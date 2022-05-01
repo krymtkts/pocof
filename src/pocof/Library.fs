@@ -1,4 +1,4 @@
-﻿namespace pocof
+namespace pocof
 
 open System
 open System.Management.Automation // PowerShell attributes come from this namespace

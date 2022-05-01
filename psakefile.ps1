@@ -8,6 +8,7 @@ Task Init {
 
 Task Clean {
     'Clean is running!'
+    Remove-Module pocof -ErrorAction SilentlyContinue
 }
 
 Task Build {
