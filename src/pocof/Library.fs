@@ -15,7 +15,7 @@ type SelectPocofCommand() =
 
     /// Describe property params in /// comments
     /// Parameter, Validate, and Alias attributes work the same as PowerShell params
-    [<Parameter(ValueFromPipeline = true)>]
+    [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: obj [] = [||] with get, set
 
     [<Parameter>]
@@ -39,16 +39,21 @@ type SelectPocofCommand() =
     member val Layout = String.Empty with get, set
 
     [<Parameter>]
-    member val Keymaps:Collections.Hashtable = null with get, set
+    member val Keymaps: Collections.Hashtable = null with get, set
 
 
     // optional: setup before pipeline input starts (e.g. Name is set, InputObject is not)
     override x.BeginProcessing() = base.BeginProcessing()
 
     // optional: handle each pipeline value (e.g. InputObject)
-    override x.ProcessRecord() = printfn "Hello %s" x.Query
+    override x.ProcessRecord() = base.ProcessRecord()
 
     // optional: finish after all pipeline input
     override x.EndProcessing() =
+        x.InputObject
+        |> Array.map (fun x -> x.ToString())
+        |> String.concat ","
+        |> printfn "Hello %s"
+
         x.WriteObject x.InputObject
         base.EndProcessing()
