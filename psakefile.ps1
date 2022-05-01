@@ -8,7 +8,8 @@ Task Init {
 
 Task Clean {
     'Clean is running!'
-    Remove-Module pocof -ErrorAction SilentlyContinue
+    Remove-Module pocof -Force -ErrorAction SilentlyContinue
+    Remove-Item .\src\*\bin -Recurse -Force
 }
 
 Task Build {
