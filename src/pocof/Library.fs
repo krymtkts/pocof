@@ -43,10 +43,10 @@ type SelectPocofCommand() =
 
 
     // optional: setup before pipeline input starts (e.g. Name is set, InputObject is not)
-    override x.BeginProcessing() = base.BeginProcessing()
+    override _.BeginProcessing() = base.BeginProcessing()
 
     // optional: handle each pipeline value (e.g. InputObject)
-    override x.ProcessRecord() = base.ProcessRecord()
+    override _.ProcessRecord() = base.ProcessRecord()
 
     // optional: finish after all pipeline input
     override x.EndProcessing() =
