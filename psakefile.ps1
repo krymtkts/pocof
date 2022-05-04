@@ -9,8 +9,6 @@ Properties {
     $ModuleVersion = (Resolve-Path ./src/*/*.fsproj | Select-Xml '//Version/text()').Node.Value
     $ModuleRoot = Split-Path -Parent $PSCommandPath
     "Module: $ModuleName ver$ModuleVersion root=$ModuleRoot"
-
-    $ApiKey = ''
 }
 
 Task default -depends TestAll
@@ -23,8 +21,9 @@ Task Init {
 
 Task Clean {
     'Clean is running!'
-    Remove-Module pocof -Force -ErrorAction SilentlyContinue
-    Remove-Item .\src\*\bin -Recurse -Force
+    Get-Module pocof -All | Remove-Module -Force -ErrorAction SilentlyContinue
+    Remove-Item .\src\*\bin -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item .\release -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Task Build -depends Clean {
@@ -44,12 +43,12 @@ Task Import -depends Build {
     }
     switch ($Stage) {
         'Debug' {
-            Import-Module (Resolve-Path ./src/*/bin/Debug/*/publish/*.psd1) -Force
+            Import-Module (Resolve-Path ./src/*/bin/Debug/*/publish/*.psd1) -Global
         }
         'Release' {
             $installPath = Join-Path $ModuleRoot release -AdditionalChildPath $ModuleVersion
             Copy-Item (Resolve-Path ./src/*/bin/Release/*/publish/*) $installPath -Verbose -Force
-            Import-Module (Resolve-Path $installPath/*.psd1)
+            Import-Module (Resolve-Path $installPath/*.psd1) -Global
         }
     }
 }
