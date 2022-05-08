@@ -2,26 +2,12 @@ namespace pocof
 
 open System
 open System.Management.Automation // PowerShell attributes come from this namespace
-open System.Management.Automation.Host // PowerShell attributes come from this namespace
 
 module ScreenBuffer =
     type Buff =
         val rui: PSHostRawUserInterface
         val buf: BufferCell [,]
         new(r, b) = { rui = r; buf = b }
-
-        interface IDisposable with
-            member __.Dispose() =
-                Console.Clear()
-                let origin = Coordinates(0, 0)
-                __.rui.SetBufferContents(origin, __.buf)
-                __.rui.CursorPosition <- Coordinates(0, __.buf.GetUpperBound(0))
-
-    let init (rui: PSHostRawUserInterface) =
-        let rect = new Rectangle(0, 0, rui.WindowSize.Width, rui.CursorPosition.Y)
-        let buf = new Buff(rui, rui.GetBufferContents(rect))
-        Console.Clear()
-        buf
 
 type ScreenBufferBuilder() =
     member _.TryFinally(body, compensation) =
@@ -67,7 +53,7 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     [<ValidateSet("match", "like", "eq")>]
-    member val Filter = String.Empty with get, set
+    member val Filter = PocofData.MATCH.ToString().ToLower() with get, set
 
     [<Parameter>]
     member val CaseSensitive = false with get, set
@@ -80,44 +66,44 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     [<ValidateSet("TopDown", "BottomUp")>]
-    member val Layout = String.Empty with get, set
+    member val Layout = PocofData.TopDown.ToString() with get, set
 
     [<Parameter>]
     member val Keymaps: Collections.Hashtable = null with get, set
 
-
-    // optional: setup before pipeline input starts (e.g. Name is set, InputObject is not)
-    override __.BeginProcessing() =
-        let now = DateTime.Now.ToString "yyyy-MM-dd hh:mm:ss.fffff"
-        printfn "begin %s\n" now
-
     // optional: handle each pipeline value (e.g. InputObject)
     override __.ProcessRecord() =
-        let now = DateTime.Now.ToString "yyyy-MM-dd hh:mm:ss.fffff"
-
-        let prin x = printfn "Processing %s %s\n" x now
-
-        __.InputObject
-        |> Array.map (fun x -> x.ToString())
-        |> String.concat ","
-        |> prin
-
         input <- List.append input <| List.ofArray __.InputObject
 
     // optional: finish after all pipeline input
     override __.EndProcessing() =
-        let now = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fffff")
-        printfn "end %s\n" now
+        use sbf = PocofScreen.init __.Host.UI.RawUI
 
-        use sbf = ScreenBuffer.init __.Host.UI.RawUI
+        let conf, state, pos =
+            PocofData.initConfig
+                { Query = __.Query
+                  Filter = __.Filter
+                  CaseSensitive = __.CaseSensitive
+                  InvertFilter = __.InvertFilter
+                  Prompt = __.Prompt
+                  Layout = __.Layout
+                  Keymaps = __.Keymaps }
+
+        let writeScreen =
+            match conf.Layout with
+            | PocofData.TopDown -> sbf.writeTopDown
+            | PocofData.BottomUp -> sbf.writeBottomUp
 
         let rec loop () =
+            let entries = input // TODO: filter this with LINQ.
+            writeScreen conf.Prompt state.Query entries
             // TODO: should use Console.KeyAvailable?
-            match PocofAction.get () with
-            | PocofAction.Cancel
-            | PocofAction.Finish -> ()
+            // if Console.KeyAvailable then
+            match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
+            | PocofData.Cancel -> ()
+            | PocofData.Finish -> __.WriteObject input
             | _ -> loop ()
+        // else
+        //     loop ()
 
         loop ()
-
-        __.WriteObject __.InputObject
