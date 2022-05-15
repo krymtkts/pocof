@@ -1,7 +1,6 @@
 namespace pocof
 
 open System
-open System.Management.Automation.Host // PowerShell attributes come from this namespace
 
 module PocofData =
     type Action =
@@ -9,16 +8,16 @@ module PocofData =
         | Cancel
         | Finish
 
+        // move.
         | BackwardChar
         | ForwardChar
-
         | BeginningOfLine
         | EndOfLine
 
-        | AddChar
+        // edit query.
+        | AddChar of char
         | DeleteBackwardChar
         | DeleteForwardChar
-        | DeleteBackwardWord
 
         | KillBeginningOfLine
         | KillEndOfLine
@@ -44,10 +43,8 @@ module PocofData =
             | "ForwardChar" -> ForwardChar
             | "BeginningOfLine" -> BeginningOfLine
             | "EndOfLine" -> EndOfLine
-            | "AddChar" -> AddChar
             | "DeleteBackwardChar" -> DeleteBackwardChar
             | "DeleteForwardChar" -> DeleteForwardChar
-            | "DeleteBackwardWord" -> DeleteBackwardWord
             | "KillBeginningOfLine" -> KillBeginningOfLine
             | "KillEndOfLine" -> KillEndOfLine
             | "RotateMatcher" -> RotateMatcher
@@ -59,7 +56,7 @@ module PocofData =
             | "ScrollPageUp" -> ScrollPageUp
             | "ScrollPageDown" -> ScrollPageDown
             | "TabExpansion" -> TabExpansion
-            | _ -> failwithf "unrecognized Action. value='%s'" s
+            | _ -> failwithf "this is a unmodifiable Action. action='%s'" s
 
 
     type Filter =
@@ -126,81 +123,74 @@ module PocofData =
            InvertFilter = p.InvertFilter },
          { X = p.Query.Length; Y = 0 })
 
-module PocofConsole =
-    type KeyState =
-        val caAsInput: bool
-        new(s) = { caAsInput = s }
+    let addQuery (s: InternalState) (x: int) (c: char) =
+        { s with Query = s.Query.Insert(x, c.ToString()) }
 
-        interface IDisposable with
-            member __.Dispose() =
-                Console.TreatControlCAsInput <- __.caAsInput
+    let moveLeft (s: Position) =
+        if s.X > 0 then
+            { s with X = s.X - 1 }
+        else
+            s
 
-    let init =
-        let state = new KeyState(Console.TreatControlCAsInput)
-        Console.TreatControlCAsInput <- true
-        state
+    let moveRight (s: Position) (ql: int) =
+        if s.X < ql then
+            { s with X = s.X + 1 }
+        else
+            s
 
+    let moveHead (s: Position) = { s with X = 0 }
+    let moveTail (s: Position) (ql: int) = { s with X = ql }
 
-module PocofScreen =
-    type Buff =
-        val rui: PSHostRawUserInterface
-        val buf: BufferCell [,]
-        new(r, b) = { rui = r; buf = b }
+    let removeQuery (s: InternalState) (x: int) =
+        { s with
+            Query =
+                if s.Query.Length > x then
+                    s.Query.Remove(x)
+                else
+                    s.Query }
 
-        interface IDisposable with
-            member __.Dispose() =
-                Console.Clear()
-                let origin = Coordinates(0, 0)
-                __.rui.SetBufferContents(origin, __.buf)
-                __.setCursorPosition 0 <| __.buf.GetUpperBound 0
+    let removeQueryHead (s: InternalState) (x: int) = { s with Query = s.Query.Substring(x) }
 
-        member __.setCursorPosition (x: int) (y: int) =
-            __.rui.CursorPosition <- Coordinates(x, y)
+    let removeQueryTail (s: InternalState) (x: int) =
+        { s with Query = s.Query.Substring(0, x) }
 
-        member __.getCursorPositionX (prompt: string) (x) =
-            __.rui.LengthInBufferCells(prompt.Substring(0, x))
+    let switchFilter (s: InternalState) =
+        { s with
+            Filter =
+                match s.Filter with
+                | EQ -> LIKE
+                | LIKE -> MATCH
+                | MATCH -> EQ }
 
-        member __.writeRightInfo (filter: string) (length: int) (height: int) =
-            let info = sprintf "%s [%d]" filter length
-            let x = __.rui.WindowSize.Width - info.Length
-            __.setCursorPosition x height
-            Console.Write info // TODO: separate dependencies.
+    let switchCaseSensitive (s: InternalState) =
+        { s with CaseSensitive = not s.CaseSensitive }
 
-        member __.writeScreenLine (height: int) (line: string) =
-            __.setCursorPosition 0 height
+    let switchInvertFilter (s: InternalState) =
+        { s with InvertFilter = not s.InvertFilter }
 
-            line.PadRight __.rui.WindowSize.Width
-            |> Console.Write // TODO: replce write-host <- not console.wrte
-
-        member __.writeTopDown (prompt: string) (filter: string) (entries: Object list) =
-            __.writeScreenLine 0 prompt
-            __.writeRightInfo filter entries.Length 0
-
-            let h = __.rui.WindowSize.Height
-
-            seq { 0 .. h - 1 }
-            |> Seq.iter (fun i ->
-                match List.tryItem i entries with
-                | Some x -> __.writeScreenLine i <| x.ToString()
-                | None -> __.writeScreenLine i String.Empty)
-
-            let screenX = 0 //TODO: where from?
-            let x = __.getCursorPositionX prompt screenX
-            __.setCursorPosition x 0
-
-        member __.writeBottomUp (prompt: string) (filter: string) (entries: Object list) =
-            // TODO: implement it from Write-BottomUp.
-            let screenX = 0 //TODO: where from?
-            let x = __.getCursorPositionX prompt screenX
-            __.setCursorPosition x __.rui.CursorPosition.Y
-
-
-    let init (rui: PSHostRawUserInterface) =
-        let rect = Rectangle(0, 0, rui.WindowSize.Width, rui.CursorPosition.Y)
-        let buf = new Buff(rui, rui.GetBufferContents(rect))
-        Console.Clear()
-        buf
-
+    let invokeAction (a: Action) (s: InternalState) (p: Position) =
+        match a with
+        | AddChar c -> (addQuery s p.X c, p)
+        | BackwardChar -> (s, moveLeft p)
+        | ForwardChar -> (s, moveRight p s.Query.Length)
+        | BeginningOfLine -> (s, moveHead p)
+        | EndOfLine -> (s, moveTail p s.Query.Length)
+        | DeleteBackwardChar -> (removeQuery s p.X, p)
+        | DeleteForwardChar -> (removeQuery s p.X, moveLeft p)
+        | KillBeginningOfLine -> (removeQueryHead s p.X, moveHead p)
+        | KillEndOfLine -> (removeQueryTail s p.X, p)
+        | RotateMatcher -> (switchFilter s, p)
+        | ToggleCaseSensitive -> (switchCaseSensitive s, p)
+        | ToggleInvertFilter -> (switchInvertFilter s, p)
+        | SelectUp -> (s, p)
+        | SelectDown -> (s, p)
+        | ToggleSelectionAndSelectNext -> (s, p)
+        | ScrollPageUp -> (s, p)
+        | ScrollPageDown -> (s, p)
+        | TabExpansion -> (s, p)
+        | x ->
+            failwithf "unrecognized Action. value='%s'"
+            <| x.GetType().Name
 
 module PocofAction =
     let internal keyMap =
@@ -220,7 +210,6 @@ module PocofAction =
           ("Alt+R", PocofData.RotateMatcher)
           ("Alt+C", PocofData.ToggleCaseSensitive)
           ("Alt+I", PocofData.ToggleInvertFilter)
-          ("Alt+W", PocofData.DeleteBackwardWord) // ?
           ("Alt+N", PocofData.SelectUp) // ?
           ("Alt+P", PocofData.SelectDown) // ?
           ("Control+Spacebar", PocofData.ToggleSelectionAndSelectNext) // ?
@@ -247,4 +236,4 @@ module PocofAction =
         elif Map.containsKey kstr keyMap then
             keyMap.[kstr]
         else
-            PocofData.AddChar
+            PocofData.AddChar k.KeyChar

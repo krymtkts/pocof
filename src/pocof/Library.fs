@@ -2,33 +2,7 @@ namespace pocof
 
 open System
 open System.Management.Automation // PowerShell attributes come from this namespace
-
-module ScreenBuffer =
-    type Buff =
-        val rui: PSHostRawUserInterface
-        val buf: BufferCell [,]
-        new(r, b) = { rui = r; buf = b }
-
-type ScreenBufferBuilder() =
-    member _.TryFinally(body, compensation) =
-        try
-            printfn "TryFinally Body"
-            body ()
-        finally
-            printfn "TryFinally compensation"
-            compensation ()
-
-    member __.Using(disposable: #IDisposable, body) =
-        let body' = fun () -> body disposable
-
-        __.TryFinally(
-            body',
-            fun () ->
-                match disposable with
-                | null -> ()
-                | disp -> disp.Dispose()
-        )
-
+open System.Management.Automation.Host // PowerShell attributes come from this namespace
 
 /// Describe cmdlet in /// comments
 /// Cmdlet attribute takes verb names as strings or verb enums
@@ -40,13 +14,40 @@ type SelectPocofCommand() =
 
     // // cmdlet parameters are properties of the class
     // let screenbuffer = new ScreenBufferBuilder()
-    let mutable input: Object list = []
+    let mutable input: PSObject list = []
 
+    let interact
+        (conf: PocofData.InternalConfig)
+        (state: PocofData.InternalState)
+        (pos: PocofData.Position)
+        (rui: PSHostRawUserInterface)
+        =
+        use sbf = PocofScreen.init rui conf.Prompt
+
+        let writeScreen =
+            match conf.Layout with
+            | PocofData.TopDown -> sbf.writeTopDown
+            | PocofData.BottomUp -> sbf.writeBottomUp
+
+        let rec loop (s: PocofData.InternalState) (p: PocofData.Position) (l: PSObject list) =
+            let entries = l // TODO: filter this with LINQ.
+            writeScreen conf.Prompt state.Query pos.X entries
+            // TODO: should use Console.KeyAvailable?
+            // if Console.KeyAvailable then
+            match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
+            | PocofData.Cancel -> []
+            | PocofData.Finish -> entries
+            | a ->
+                let ns, np = PocofData.invokeAction a s p
+                loop ns np l
+        // else
+        //     loop ()
+        loop state pos input
 
     /// Describe property params in /// comments
     /// Parameter, Validate, and Alias attributes work the same as PowerShell params
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
-    member val InputObject: Object [] = [||] with get, set
+    member val InputObject: PSObject [] = [||] with get, set
 
     [<Parameter>]
     member val Query = String.Empty with get, set
@@ -62,7 +63,7 @@ type SelectPocofCommand() =
     member val InvertFilter = false with get, set
 
     [<Parameter>]
-    member val Prompt = String.Empty with get, set
+    member val Prompt = "query" with get, set
 
     [<Parameter>]
     [<ValidateSet("TopDown", "BottomUp")>]
@@ -71,14 +72,12 @@ type SelectPocofCommand() =
     [<Parameter>]
     member val Keymaps: Collections.Hashtable = null with get, set
 
-    // optional: handle each pipeline value (e.g. InputObject)
+    override __.BeginProcessing() = base.BeginProcessing()
+
     override __.ProcessRecord() =
         input <- List.append input <| List.ofArray __.InputObject
 
-    // optional: finish after all pipeline input
     override __.EndProcessing() =
-        use sbf = PocofScreen.init __.Host.UI.RawUI
-
         let conf, state, pos =
             PocofData.initConfig
                 { Query = __.Query
@@ -89,21 +88,5 @@ type SelectPocofCommand() =
                   Layout = __.Layout
                   Keymaps = __.Keymaps }
 
-        let writeScreen =
-            match conf.Layout with
-            | PocofData.TopDown -> sbf.writeTopDown
-            | PocofData.BottomUp -> sbf.writeBottomUp
-
-        let rec loop () =
-            let entries = input // TODO: filter this with LINQ.
-            writeScreen conf.Prompt state.Query entries
-            // TODO: should use Console.KeyAvailable?
-            // if Console.KeyAvailable then
-            match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
-            | PocofData.Cancel -> ()
-            | PocofData.Finish -> __.WriteObject input
-            | _ -> loop ()
-        // else
-        //     loop ()
-
-        loop ()
+        __.WriteObject
+        <| interact conf state pos __.Host.UI.RawUI
