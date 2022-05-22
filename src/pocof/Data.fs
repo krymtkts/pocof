@@ -89,10 +89,16 @@ module PocofData =
           CaseSensitive: bool
           Invert: bool }
         member __.toString =
-            [ if __.Invert then "not" else ""
-              if __.CaseSensitive then "c" else ""
-              __.Matcher.ToString().ToLower() ]
-            |> String.concat ""
+            match __.Matcher with
+            | EQ ->
+                [ if __.CaseSensitive then "c" else ""
+                  if __.Invert then "ne" else "eq" ]
+                |> String.concat ""
+            | _ ->
+                [ if __.Invert then "not" else ""
+                  if __.CaseSensitive then "c" else ""
+                  __.Matcher.ToString().ToLower() ]
+                |> String.concat ""
 
     type InternalState = { Query: string; Filter: FilterState }
 

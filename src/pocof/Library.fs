@@ -30,7 +30,7 @@ type SelectPocofCommand() =
             | PocofData.BottomUp -> sbf.writeBottomUp
 
         let rec loop (s: PocofData.InternalState) (p: PocofData.Position) (l: PSObject list) =
-            let entries = l // TODO: filter this with LINQ.
+            let entries = PocofQuery.run s l // TODO: filter this with LINQ.
             writeScreen s p.X entries
             // TODO: should use Console.KeyAvailable?
             // if Console.KeyAvailable then

@@ -8,6 +8,7 @@
     <Compile Include="Data.fs" />
     <Compile Include="UI.fs" />
     <Compile Include="Action.fs" />
+    <Compile Include="Query.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
   <ItemGroup>
