@@ -5,8 +5,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="UI.fs" />
     <Compile Include="Data.fs" />
+    <Compile Include="UI.fs" />
+    <Compile Include="Action.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
   <ItemGroup>

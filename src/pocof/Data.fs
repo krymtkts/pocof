@@ -59,7 +59,7 @@ module PocofData =
             | _ -> failwithf "this is a unmodifiable Action. action='%s'" s
 
 
-    type Filter =
+    type Matcher =
         | EQ
         | LIKE
         | MATCH
@@ -68,7 +68,7 @@ module PocofData =
             | "EQ" -> EQ
             | "LIKE" -> LIKE
             | "MATCH" -> MATCH
-            | _ -> failwithf "unrecognized Filter. value='%s'" s
+            | _ -> failwithf "unrecognized Matcher. value='%s'" s
 
     type Layout =
         | TopDown
@@ -84,17 +84,23 @@ module PocofData =
           Layout: Layout
           Keymaps: Map<String, Action> } // TODO: map is bad pattern for fp.
 
-    type InternalState =
-        { Query: string
-          Filter: Filter
+    type FilterState =
+        { Matcher: Matcher
           CaseSensitive: bool
-          InvertFilter: bool }
+          Invert: bool }
+        member __.toString =
+            [ if __.Invert then "not" else ""
+              if __.CaseSensitive then "c" else ""
+              __.Matcher.ToString().ToLower() ]
+            |> String.concat ""
+
+    type InternalState = { Query: string; Filter: FilterState }
 
     type Position = { X: int; Y: int }
 
     type IncomingParameters =
         { Query: string
-          Filter: string
+          Matcher: string
           CaseSensitive: bool
           InvertFilter: bool
           Prompt: string
@@ -114,40 +120,54 @@ module PocofData =
             |> Map.ofSeq
 
     let initConfig (p: IncomingParameters) =
-        ({ Prompt = p.Prompt
-           Layout = Layout.ofString p.Layout
-           Keymaps = getKeyMaps p.Keymaps },
-         { Query = p.Query
-           Filter = Filter.ofString p.Filter
-           CaseSensitive = p.CaseSensitive
-           InvertFilter = p.InvertFilter },
-         { X = p.Query.Length; Y = 0 })
+        { Prompt = p.Prompt
+          Layout = Layout.ofString p.Layout
+          Keymaps = getKeyMaps p.Keymaps },
+        { Query = p.Query
+          Filter =
+            { Matcher = Matcher.ofString p.Matcher
+              CaseSensitive = p.CaseSensitive
+              Invert = p.InvertFilter } },
+        { X = p.Query.Length; Y = 0 }
 
-    let addQuery (s: InternalState) (x: int) (c: char) =
-        { s with Query = s.Query.Insert(x, c.ToString()) }
+    let addQuery (s: InternalState) (p: Position) (c: char) =
+        let newS = { s with Query = s.Query.Insert(p.X, c.ToString()) }
+        newS, { p with X = p.X + 1 }
 
-    let moveLeft (s: Position) =
-        if s.X > 0 then
-            { s with X = s.X - 1 }
+    let moveBackward (p: Position) =
+        if p.X > 0 then
+            { p with X = p.X - 1 }
         else
-            s
+            p
 
-    let moveRight (s: Position) (ql: int) =
-        if s.X < ql then
-            { s with X = s.X + 1 }
+    let moveForward (p: Position) (ql: int) =
+        if p.X < ql then
+            { p with X = p.X + 1 }
         else
-            s
+            p
 
-    let moveHead (s: Position) = { s with X = 0 }
-    let moveTail (s: Position) (ql: int) = { s with X = ql }
+    let moveHead (p: Position) = { p with X = 0 }
+    let moveTail (p: Position) (ql: int) = { p with X = ql }
 
-    let removeQuery (s: InternalState) (x: int) =
+    let removeBackwardChar (s: InternalState) (p: Position) =
+        let p = moveBackward p
+
         { s with
             Query =
-                if s.Query.Length > x then
-                    s.Query.Remove(x)
+                if s.Query.Length > p.X then
+                    s.Query.Remove(p.X, 1)
                 else
-                    s.Query }
+                    s.Query },
+        p
+
+    let removeForwardChar (s: InternalState) (p: Position) =
+        { s with
+            Query =
+                if s.Query.Length > p.X then
+                    s.Query.Remove(p.X, 1)
+                else
+                    s.Query },
+        p
 
     let removeQueryHead (s: InternalState) (x: int) = { s with Query = s.Query.Substring(x) }
 
@@ -157,83 +177,39 @@ module PocofData =
     let switchFilter (s: InternalState) =
         { s with
             Filter =
-                match s.Filter with
-                | EQ -> LIKE
-                | LIKE -> MATCH
-                | MATCH -> EQ }
+                { s.Filter with
+                    Matcher =
+                        match s.Filter.Matcher with
+                        | EQ -> LIKE
+                        | LIKE -> MATCH
+                        | MATCH -> EQ } }
 
     let switchCaseSensitive (s: InternalState) =
-        { s with CaseSensitive = not s.CaseSensitive }
+        { s with Filter = { s.Filter with CaseSensitive = not s.Filter.CaseSensitive } }
 
     let switchInvertFilter (s: InternalState) =
-        { s with InvertFilter = not s.InvertFilter }
+        { s with Filter = { s.Filter with Invert = not s.Filter.Invert } }
 
     let invokeAction (a: Action) (s: InternalState) (p: Position) =
         match a with
-        | AddChar c -> (addQuery s p.X c, p)
-        | BackwardChar -> (s, moveLeft p)
-        | ForwardChar -> (s, moveRight p s.Query.Length)
-        | BeginningOfLine -> (s, moveHead p)
-        | EndOfLine -> (s, moveTail p s.Query.Length)
-        | DeleteBackwardChar -> (removeQuery s p.X, p)
-        | DeleteForwardChar -> (removeQuery s p.X, moveLeft p)
-        | KillBeginningOfLine -> (removeQueryHead s p.X, moveHead p)
-        | KillEndOfLine -> (removeQueryTail s p.X, p)
-        | RotateMatcher -> (switchFilter s, p)
-        | ToggleCaseSensitive -> (switchCaseSensitive s, p)
-        | ToggleInvertFilter -> (switchInvertFilter s, p)
-        | SelectUp -> (s, p)
-        | SelectDown -> (s, p)
-        | ToggleSelectionAndSelectNext -> (s, p)
-        | ScrollPageUp -> (s, p)
-        | ScrollPageDown -> (s, p)
-        | TabExpansion -> (s, p)
+        | AddChar c -> addQuery s p c
+        | BackwardChar -> s, moveBackward p
+        | ForwardChar -> s, moveForward p s.Query.Length
+        | BeginningOfLine -> s, moveHead p
+        | EndOfLine -> s, moveTail p s.Query.Length
+        | DeleteBackwardChar -> removeBackwardChar s p
+        | DeleteForwardChar -> removeForwardChar s p
+        | KillBeginningOfLine -> removeQueryHead s p.X, moveHead p
+        | KillEndOfLine -> removeQueryTail s p.X, p
+        | RotateMatcher -> switchFilter s, p
+        | ToggleCaseSensitive -> switchCaseSensitive s, p
+        | ToggleInvertFilter -> switchInvertFilter s, p
+        | SelectUp -> s, p
+        | SelectDown -> s, p
+        | ToggleSelectionAndSelectNext -> s, p
+        | ScrollPageUp -> s, p
+        | ScrollPageDown -> s, p
+        | TabExpansion -> s, p
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name
-
-module PocofAction =
-    let internal keyMap =
-        // TODO: cannot use map literal with Ionide.
-        // TODO: change more better type structure.
-        [ ("Escape", PocofData.Cancel)
-          ("Control+C", PocofData.Cancel)
-          ("Enter", PocofData.Finish)
-          ("LeftArrow", PocofData.BackwardChar)
-          ("RightArrow", PocofData.ForwardChar)
-          ("Home", PocofData.BeginningOfLine)
-          ("End", PocofData.EndOfLine)
-          ("Backspace", PocofData.DeleteBackwardChar)
-          ("Delete", PocofData.DeleteForwardChar)
-          ("Alt+U", PocofData.KillBeginningOfLine)
-          ("Alt+K", PocofData.KillEndOfLine)
-          ("Alt+R", PocofData.RotateMatcher)
-          ("Alt+C", PocofData.ToggleCaseSensitive)
-          ("Alt+I", PocofData.ToggleInvertFilter)
-          ("Alt+N", PocofData.SelectUp) // ?
-          ("Alt+P", PocofData.SelectDown) // ?
-          ("Control+Spacebar", PocofData.ToggleSelectionAndSelectNext) // ?
-          ("UpArrow", PocofData.SelectUp) // ?
-          ("DownArrow", PocofData.SelectDown) // ?
-          ("PageUp", PocofData.ScrollPageUp) // ?
-          ("PageDown", PocofData.ScrollPageDown) // ?
-          ("Tab", PocofData.TabExpansion) ] // ?
-        |> Map.ofSeq
-
-    let get (uKeyMap: Map<String, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
-        use _ = PocofConsole.init
-        let k = getKey ()
-
-        let kstr =
-            if ConsoleModifiers.IsDefined k.Modifiers then
-                k.Modifiers.ToString().Replace(",", "+")
-                + k.Key.ToString()
-            else
-                k.Key.ToString()
-
-        if Map.containsKey kstr uKeyMap then
-            uKeyMap.[kstr]
-        elif Map.containsKey kstr keyMap then
-            keyMap.[kstr]
-        else
-            PocofData.AddChar k.KeyChar

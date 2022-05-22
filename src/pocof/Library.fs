@@ -31,7 +31,7 @@ type SelectPocofCommand() =
 
         let rec loop (s: PocofData.InternalState) (p: PocofData.Position) (l: PSObject list) =
             let entries = l // TODO: filter this with LINQ.
-            writeScreen conf.Prompt state.Query pos.X entries
+            writeScreen s p.X entries
             // TODO: should use Console.KeyAvailable?
             // if Console.KeyAvailable then
             match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
@@ -54,7 +54,7 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     [<ValidateSet("match", "like", "eq")>]
-    member val Filter = PocofData.MATCH.ToString().ToLower() with get, set
+    member val Matcher = PocofData.MATCH.ToString().ToLower() with get, set
 
     [<Parameter>]
     member val CaseSensitive = false with get, set
@@ -81,7 +81,7 @@ type SelectPocofCommand() =
         let conf, state, pos =
             PocofData.initConfig
                 { Query = __.Query
-                  Filter = __.Filter
+                  Matcher = __.Matcher
                   CaseSensitive = __.CaseSensitive
                   InvertFilter = __.InvertFilter
                   Prompt = __.Prompt

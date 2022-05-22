@@ -70,10 +70,14 @@ module PocofScreen =
                     .Substring(0, __.plen + x)
             )
 
-        member __.writeRightInfo (filter: string) (length: int) (height: int) =
-            let info = sprintf "%s [%d]" filter length
+        member __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
+            let info =
+                sprintf "%s [%d]"
+                <| state.Filter.toString
+                <| length
+
             let x = __.rui.WindowSize.Width - info.Length
-            __.setCursorPosition x height
+            __.setCursorPosition x row
             Console.Write info
 
         member __.writeScreenLine (height: int) (line: string) =
@@ -82,9 +86,11 @@ module PocofScreen =
             line.PadRight __.rui.WindowSize.Width
             |> Console.Write // TODO: replce write-host <- not console.wrte
 
-        member __.writeTopDown (prompt: string) (filter: string) (x: int) (entries: PSObject list) =
-            __.writeScreenLine 0 <| prompt + ">"
-            __.writeRightInfo filter entries.Length 0
+        member __.writeTopDown (state: PocofData.InternalState) (x: int) (entries: PSObject list) =
+            __.writeScreenLine 0
+            <| __.prompt + ">" + state.Query
+
+            __.writeRightInfo state entries.Length 0
 
             let h = __.rui.WindowSize.Height
 
@@ -92,17 +98,17 @@ module PocofScreen =
             seq { 0 .. h - 2 }
             |> Seq.iter (fun i ->
                 match List.tryItem i entries with
-                | Some x -> __.writeScreenLine <| i + 1 <| x.ToString()
+                | Some o -> __.writeScreenLine <| i + 1 <| o.ToString()
                 | None -> __.writeScreenLine <| i + 1 <| String.Empty)
 
             __.setCursorPosition
-            <| __.getCursorPositionX filter x
+            <| __.getCursorPositionX state.Query x
             <| 0
 
-        member __.writeBottomUp (prompt: string) (filter: string) (x: int) (entries: PSObject list) =
+        member __.writeBottomUp (state: PocofData.InternalState) (x: int) (entries: PSObject list) =
             // TODO: implement it from Write-BottomUp.
             __.setCursorPosition
-            <| __.getCursorPositionX filter x
+            <| __.getCursorPositionX state.Query x
             <| __.rui.CursorPosition.Y
 
 
