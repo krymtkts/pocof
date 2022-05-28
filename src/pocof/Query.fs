@@ -5,6 +5,11 @@ open System.Management.Automation
 open System.Text.RegularExpressions
 
 module PocofQuery =
+    let internal (=%=) wcp o =
+        WildcardPattern
+            .Get(wcp, WildcardOptions.IgnoreCase) // TODO: refer ther case_sensitive option.
+            .IsMatch(o)
+
     let internal (=~=) regex o = Regex.IsMatch(o, regex)
 
     let run (s: PocofData.InternalState) (l: PSObject list) =
@@ -17,8 +22,8 @@ module PocofQuery =
         let is =
             match s.Filter.Matcher with
             | PocofData.EQ -> ((=) s.Query)
-            | PocofData.LIKE -> ((=) s.Query) // TODO: how can i write like operator?
-            | PocofData.MATCH -> ((=~=) s.Query)
+            | PocofData.LIKE -> ((=%=) s.Query)
+            | PocofData.MATCH -> ((=~=) s.Query) // TODO: check the invlaid pattern.
 
         let answer a = if s.Filter.Invert then not a else a
 
