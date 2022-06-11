@@ -8,7 +8,7 @@ open System.Management.Automation.Host // PowerShell attributes come from this n
 /// Cmdlet attribute takes verb names as strings or verb enums
 /// Output type works the same as for PowerShell cmdlets
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
-[<OutputType(typeof<string>)>]
+[<OutputType(typeof<PSObject>)>]
 type SelectPocofCommand() =
     inherit PSCmdlet()
 
