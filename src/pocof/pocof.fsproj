@@ -12,10 +12,10 @@
     <Compile Include="Library.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="pocof.psd1" Pack="true" CopyToOutputDirectory="Always" />
     <None Include="pocof.dll-Help.xml" Pack="true" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.2.4" />
   </ItemGroup>
 </Project>
