@@ -1,8 +1,8 @@
 namespace pocof
 
 open System
-open System.Management.Automation // PowerShell attributes come from this namespace
-open System.Management.Automation.Host // PowerShell attributes come from this namespace
+open System.Management.Automation
+open System.Management.Automation.Host
 
 /// Describe cmdlet in /// comments
 /// Cmdlet attribute takes verb names as strings or verb enums

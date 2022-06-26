@@ -1,8 +1,8 @@
 namespace pocof
 
 open System
-open System.Management.Automation // PowerShell attributes come from this namespace
-open System.Management.Automation.Host // PowerShell attributes come from this namespace
+open System.Management.Automation
+open System.Management.Automation.Host
 
 type ScreenBufferBuilder() =
     member _.TryFinally(body, compensation) =
@@ -40,7 +40,13 @@ module PocofConsole =
 
 
 module PocofScreen =
+    open System.IO
     let anchor = ">"
+
+    // for debugging.
+    let logFile path res =
+        use sw = new StreamWriter(path, true)
+        res |> List.iter (fprintfn sw "<%A>")
 
     type Buff =
         val rui: PSHostRawUserInterface
@@ -84,7 +90,7 @@ module PocofScreen =
             __.setCursorPosition 0 height
 
             line.PadRight __.rui.WindowSize.Width
-            |> Console.Write // TODO: replce write-host <- not console.wrte
+            |> Console.Write
 
         member __.writeTopDown (state: PocofData.InternalState) (x: int) (entries: PSObject list) =
             __.writeScreenLine 0
@@ -92,13 +98,32 @@ module PocofScreen =
 
             __.writeRightInfo state entries.Length 0
 
-            let h = __.rui.WindowSize.Height
+            let h = __.rui.WindowSize.Height - 2
 
-            // TODO: can i use Format-Table ?
-            seq { 0 .. h - 2 }
+            use pwsh =
+                PowerShell
+                    .Create(RunspaceMode.CurrentRunspace)
+                    .AddCommand("Format-Table")
+                    .AddCommand("Out-String")
+
+            let out =
+                if List.length entries < h then
+                    entries
+                else
+                    List.take h entries
+                |> pwsh.Invoke<string>
+                |> Seq.fold
+                    (fun acc s ->
+                        s.Split Environment.NewLine
+                        |> List.ofArray
+                        |> (@) acc)
+                    []
+
+            seq { 0..h }
             |> Seq.iter (fun i ->
-                match List.tryItem i entries with
-                | Some o -> __.writeScreenLine <| i + 1 <| o.ToString()
+                match List.tryItem i out with
+                | Some s -> __.writeScreenLine <| i + 1 <| s
+                // logFile "./debug.log" [ s ]
                 | None -> __.writeScreenLine <| i + 1 <| String.Empty)
 
             __.setCursorPosition
