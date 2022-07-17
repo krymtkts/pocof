@@ -93,12 +93,11 @@ module PocofData =
             | EQ ->
                 [ if __.CaseSensitive then "c" else ""
                   if __.Invert then "ne" else "eq" ]
-                |> String.concat ""
             | _ ->
                 [ if __.Invert then "not" else ""
                   if __.CaseSensitive then "c" else ""
                   __.Matcher.ToString().ToLower() ]
-                |> String.concat ""
+            |> String.concat ""
 
     type InternalState = { Query: string; Filter: FilterState }
 

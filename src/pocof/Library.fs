@@ -4,16 +4,11 @@ open System
 open System.Management.Automation
 open System.Management.Automation.Host
 
-/// Describe cmdlet in /// comments
-/// Cmdlet attribute takes verb names as strings or verb enums
-/// Output type works the same as for PowerShell cmdlets
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<OutputType(typeof<PSObject>)>]
 type SelectPocofCommand() =
     inherit PSCmdlet()
 
-    // // cmdlet parameters are properties of the class
-    // let screenbuffer = new ScreenBufferBuilder()
     let mutable input: PSObject list = []
 
     let interact
@@ -44,8 +39,6 @@ type SelectPocofCommand() =
         //     loop ()
         loop state pos input
 
-    /// Describe property params in /// comments
-    /// Parameter, Validate, and Alias attributes work the same as PowerShell params
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject [] = [||] with get, set
 
