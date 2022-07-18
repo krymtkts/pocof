@@ -25,16 +25,16 @@ type SelectPocofCommand() =
             | PocofData.BottomUp -> sbf.writeBottomUp
 
         let rec loop (s: PocofData.InternalState) (p: PocofData.Position) (l: PSObject list) =
-            let entries = PocofQuery.run s l // TODO: filter this with LINQ.
-            writeScreen s p.X entries
+            let ns, entries = PocofQuery.run s l
+            writeScreen ns p.X entries
             // TODO: should use Console.KeyAvailable?
             // if Console.KeyAvailable then
             match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
             | PocofData.Cancel -> []
             | PocofData.Finish -> entries
             | a ->
-                let ns, np = PocofData.invokeAction a s p
-                loop ns np l
+                PocofData.invokeAction a ns p
+                |> fun (ns, np) -> loop ns np l
         // else
         //     loop ()
         loop state pos input

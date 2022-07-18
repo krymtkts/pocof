@@ -25,18 +25,26 @@ module PocofQuery =
             |> fun opt -> WildcardPattern.Get(wcp, opt).IsMatch(o)
 
         let (=~=) regex o =
-            let r =
-                if s.Filter.CaseSensitive then
-                    RegexOptions.None
-                else
-                    RegexOptions.IgnoreCase
-                |> fun op ->
-                    try
-                        new Regex(regex, op)
-                    with
-                    | _ -> new Regex(String.Empty, op)
+            if s.Filter.CaseSensitive then
+                RegexOptions.None
+            else
+                RegexOptions.IgnoreCase
+            |> fun op ->
+                try
+                    new Regex(regex, op)
+                with
+                | _ -> new Regex(String.Empty, op)
+            |> fun r -> r.IsMatch(o)
 
-            r.IsMatch(o)
+        let notification =
+            match s.Filter.Matcher with
+            | PocofData.MATCH ->
+                try
+                    new Regex(s.Query) |> ignore
+                    ""
+                with
+                | e -> e.Message
+            | _ -> ""
 
         let value o =
             if s.Filter.CaseSensitive then
@@ -55,6 +63,7 @@ module PocofQuery =
 
         let predicate (o: PSObject) = value o |> is |> answer
 
+        { s with Notification = notification },
         query {
             for o in l do
                 where (predicate o)

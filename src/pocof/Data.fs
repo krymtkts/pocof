@@ -99,7 +99,10 @@ module PocofData =
                   __.Matcher.ToString().ToLower() ]
             |> String.concat ""
 
-    type InternalState = { Query: string; Filter: FilterState }
+    type InternalState =
+        { Query: string
+          Filter: FilterState
+          Notification: string }
 
     type Position = { X: int; Y: int }
 
@@ -132,7 +135,8 @@ module PocofData =
           Filter =
             { Matcher = Matcher.ofString p.Matcher
               CaseSensitive = p.CaseSensitive
-              Invert = p.InvertFilter } },
+              Invert = p.InvertFilter }
+          Notification = "" },
         { X = p.Query.Length; Y = 0 }
 
     let addQuery (s: InternalState) (p: Position) (c: char) =

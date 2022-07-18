@@ -98,7 +98,13 @@ module PocofScreen =
 
             __.writeRightInfo state entries.Length 0
 
-            let h = __.rui.WindowSize.Height - 2
+            __.writeScreenLine 1
+            <| if state.Notification = String.Empty then
+                   state.Notification
+               else
+                   "note>" + state.Notification
+
+            let h = __.rui.WindowSize.Height - 3
 
             use pwsh =
                 PowerShell
@@ -122,9 +128,9 @@ module PocofScreen =
             seq { 0..h }
             |> Seq.iter (fun i ->
                 match List.tryItem i out with
-                | Some s -> __.writeScreenLine <| i + 1 <| s
+                | Some s -> __.writeScreenLine <| i + 2 <| s
                 // logFile "./debug.log" [ s ]
-                | None -> __.writeScreenLine <| i + 1 <| String.Empty)
+                | None -> __.writeScreenLine <| i + 2 <| String.Empty)
 
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x
