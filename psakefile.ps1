@@ -68,10 +68,10 @@ Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp 
     'Release It!'
 
     $Params = @{
-        Path        = ./release/$ModuleVersion
+        Path = ./release/$ModuleVersion
         NugetAPIKey = (Get-Credential API-key -Message 'Enter your API key as the password').Password
-        Verbose     = $true
-        WhatIf      = $Mode -eq 'DryRun'
+        Verbose = $true
+        WhatIf = $Mode -eq 'DryRun'
     }
     Publish-Module @Params
 }

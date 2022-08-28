@@ -3,6 +3,7 @@ namespace pocof
 open System
 open System.Management.Automation
 open System.Management.Automation.Host
+open System.Threading
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<OutputType(typeof<PSObject>)>]
@@ -24,20 +25,32 @@ type SelectPocofCommand() =
             | PocofData.TopDown -> sbf.writeTopDown
             | PocofData.BottomUp -> sbf.writeBottomUp
 
-        let rec loop (s: PocofData.InternalState) (p: PocofData.Position) (l: PSObject list) =
-            let ns, entries = PocofQuery.run s l
-            writeScreen ns p.X entries
-            // TODO: should use Console.KeyAvailable?
-            // if Console.KeyAvailable then
-            match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
-            | PocofData.Cancel -> []
-            | PocofData.Finish -> entries
-            | a ->
-                PocofData.invokeAction a ns p
-                |> fun (ns, np) -> loop ns np l
-        // else
-        //     loop ()
-        loop state pos input
+        let rec loop
+            (state: PocofData.InternalState)
+            (pos: PocofData.Position)
+            (results: PSObject list)
+            (skip: bool)
+            =
+            let s, l =
+                if skip then
+                    state, results
+                else
+                    let s, l = PocofQuery.run state input
+                    writeScreen s pos.X l
+                    s, l
+
+            if Console.KeyAvailable then
+                match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
+                | PocofData.Cancel -> []
+                | PocofData.Finish -> l
+                | a ->
+                    PocofData.invokeAction a s pos
+                    |> fun (s, p) -> loop s p l false
+            else
+                Thread.Sleep(50)
+                loop s pos l true
+
+        loop state pos input false
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject [] = [||] with get, set
