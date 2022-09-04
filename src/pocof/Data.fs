@@ -7,18 +7,15 @@ module PocofData =
         | None
         | Cancel
         | Finish
-
         // move.
         | BackwardChar
         | ForwardChar
         | BeginningOfLine
         | EndOfLine
-
         // edit query.
         | AddChar of char
         | DeleteBackwardChar
         | DeleteForwardChar
-
         | KillBeginningOfLine
         | KillEndOfLine
         // toggle options.
@@ -31,7 +28,7 @@ module PocofData =
         | SelectDown
         | ScrollPageUp
         | ScrollPageDown
-        // autocomplete?
+        // autocomplete
         | TabExpansion
 
         static member ofString s =
@@ -82,7 +79,7 @@ module PocofData =
     type InternalConfig =
         { Prompt: string
           Layout: Layout
-          Keymaps: Map<String, Action> } // TODO: map is bad pattern for fp.
+          Keymaps: Map<String, Action> } // TODO: enhance this map.
 
     type FilterState =
         { Matcher: Matcher

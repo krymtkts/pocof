@@ -9,25 +9,28 @@ module PocofAction =
         [ ("Escape", PocofData.Cancel)
           ("Control+C", PocofData.Cancel)
           ("Enter", PocofData.Finish)
+
           ("LeftArrow", PocofData.BackwardChar)
           ("RightArrow", PocofData.ForwardChar)
           ("Home", PocofData.BeginningOfLine)
           ("End", PocofData.EndOfLine)
+
           ("Backspace", PocofData.DeleteBackwardChar)
           ("Delete", PocofData.DeleteForwardChar)
           ("Alt+U", PocofData.KillBeginningOfLine)
           ("Alt+K", PocofData.KillEndOfLine)
+
           ("Alt+R", PocofData.RotateMatcher)
           ("Alt+C", PocofData.ToggleCaseSensitive)
           ("Alt+I", PocofData.ToggleInvertFilter)
-          ("Alt+N", PocofData.SelectUp) // ?
-          ("Alt+P", PocofData.SelectDown) // ?
-          ("Control+Spacebar", PocofData.ToggleSelectionAndSelectNext) // ?
-          ("UpArrow", PocofData.SelectUp) // ?
-          ("DownArrow", PocofData.SelectDown) // ?
-          ("PageUp", PocofData.ScrollPageUp) // ?
-          ("PageDown", PocofData.ScrollPageDown) // ?
-          ("Tab", PocofData.TabExpansion) ] // ?
+
+          ("Control+Spacebar", PocofData.ToggleSelectionAndSelectNext)
+          ("UpArrow", PocofData.SelectUp)
+          ("DownArrow", PocofData.SelectDown)
+          ("PageUp", PocofData.ScrollPageUp)
+          ("PageDown", PocofData.ScrollPageDown)
+
+          ("Tab", PocofData.TabExpansion) ]
         |> Map.ofSeq
 
     let get (uKeyMap: Map<String, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =

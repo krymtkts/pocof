@@ -36,16 +36,6 @@ module PocofQuery =
                 | _ -> new Regex(String.Empty, op)
             |> fun r -> r.IsMatch(o)
 
-        let notification =
-            match s.Filter.Matcher with
-            | PocofData.MATCH ->
-                try
-                    new Regex(s.Query) |> ignore
-                    ""
-                with
-                | e -> e.Message
-            | _ -> ""
-
         let value o =
             if s.Filter.CaseSensitive then
                 o.ToString() // TODO: refer the property if specified.
@@ -62,6 +52,16 @@ module PocofQuery =
         let answer a = if s.Filter.Invert then not a else a
 
         let predicate (o: PSObject) = value o |> is |> answer
+
+        let notification =
+            match s.Filter.Matcher with
+            | PocofData.MATCH ->
+                try
+                    new Regex(s.Query) |> ignore
+                    ""
+                with
+                | e -> e.Message
+            | _ -> ""
 
         { s with Notification = notification },
         query {
