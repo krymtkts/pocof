@@ -79,7 +79,8 @@ module PocofData =
     type InternalConfig =
         { Prompt: string
           Layout: Layout
-          Keymaps: Map<String, Action> } // TODO: enhance this map.
+          Keymaps: Map<String, Action>
+          NotInteractive: bool } // TODO: enhance this map.
 
     type FilterState =
         { Matcher: Matcher
@@ -110,7 +111,8 @@ module PocofData =
           InvertFilter: bool
           Prompt: string
           Layout: string
-          Keymaps: Collections.Hashtable }
+          Keymaps: Collections.Hashtable
+          NotInteractive: bool }
 
     let getKeyMaps (h: Collections.Hashtable) =
         if h = null then
@@ -127,7 +129,8 @@ module PocofData =
     let initConfig (p: IncomingParameters) =
         { Prompt = p.Prompt
           Layout = Layout.ofString p.Layout
-          Keymaps = getKeyMaps p.Keymaps },
+          Keymaps = getKeyMaps p.Keymaps
+          NotInteractive = p.NotInteractive },
         { Query = p.Query
           Filter =
             { Matcher = Matcher.ofString p.Matcher

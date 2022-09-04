@@ -20,34 +20,44 @@ type SelectPocofCommand() =
         (rui: PSHostRawUserInterface)
         (invoke: list<PSObject> -> seq<string>)
         =
-        use sbf = PocofScreen.init rui conf.Prompt invoke
 
-        let writeScreen =
-            match conf.Layout with
-            | PocofData.TopDown -> sbf.writeTopDown
-            | PocofData.BottomUp -> sbf.writeBottomUp
+        if conf.NotInteractive then
+            let _, l = PocofQuery.run state input
+            l
+        else
+            use sbf = PocofScreen.init rui conf.Prompt invoke
 
-        let rec loop (state: PocofData.InternalState) (pos: PocofData.Position) (results: PSObject list) (skip: bool) =
-            let s, l =
-                if skip then
-                    state, results
+            let writeScreen =
+                match conf.Layout with
+                | PocofData.TopDown -> sbf.writeTopDown
+                | PocofData.BottomUp -> sbf.writeBottomUp
+
+            let rec loop
+                (state: PocofData.InternalState)
+                (pos: PocofData.Position)
+                (results: PSObject list)
+                (skip: bool)
+                =
+                let s, l =
+                    if skip then
+                        state, results
+                    else
+                        let s, l = PocofQuery.run state input
+                        writeScreen s pos.X l
+                        s, l
+
+                if Console.KeyAvailable then
+                    match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
+                    | PocofData.Cancel -> []
+                    | PocofData.Finish -> l
+                    | a ->
+                        PocofData.invokeAction a s pos
+                        |> fun (s, p) -> loop s p l false
                 else
-                    let s, l = PocofQuery.run state input
-                    writeScreen s pos.X l
-                    s, l
+                    Thread.Sleep(50)
+                    loop s pos l true
 
-            if Console.KeyAvailable then
-                match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
-                | PocofData.Cancel -> []
-                | PocofData.Finish -> l
-                | a ->
-                    PocofData.invokeAction a s pos
-                    |> fun (s, p) -> loop s p l false
-            else
-                Thread.Sleep(50)
-                loop s pos l true
-
-        loop state pos input false
+            loop state pos input false
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject [] = [||] with get, set
@@ -77,6 +87,9 @@ type SelectPocofCommand() =
     [<Parameter>]
     member val Keymaps: Collections.Hashtable = null with get, set
 
+    [<Parameter>]
+    member val NonInteractive = false with get, set
+
     member __.invoke inp =
         __.InvokeCommand.InvokeScript(
             @"$input | Format-Table | Out-String",
@@ -101,7 +114,8 @@ type SelectPocofCommand() =
                   InvertFilter = __.InvertFilter
                   Prompt = __.Prompt
                   Layout = __.Layout
-                  Keymaps = __.Keymaps }
+                  Keymaps = __.Keymaps
+                  NotInteractive = __.NonInteractive }
 
         __.WriteObject
         <| interact conf state pos __.Host.UI.RawUI __.invoke

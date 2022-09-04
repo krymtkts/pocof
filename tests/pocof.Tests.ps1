@@ -18,7 +18,7 @@ Describe 'pocof' {
             @{ Name = 'Hello, world'; Expected = 'Hello, world' }
         ) {
             Param($InputObject)
-            Select-Pocof $Name | Should -BeExactly $Expected
+            Select-Pocof $Name -NonInteractive | Should -BeExactly $Expected
         }
     }
 }
