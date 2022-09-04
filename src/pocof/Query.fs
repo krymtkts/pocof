@@ -10,7 +10,7 @@ module PocofQuery =
             match r with
             | "" -> true
             | _ ->
-                if s.Filter.CaseSensitive then
+                if s.QueryState.CaseSensitive then
                     StringComparison.CurrentCulture
                 else
                     StringComparison.CurrentCultureIgnoreCase
@@ -18,14 +18,14 @@ module PocofQuery =
 
 
         let (=*=) wcp o =
-            if s.Filter.CaseSensitive then
+            if s.QueryState.CaseSensitive then
                 WildcardOptions.None
             else
                 WildcardOptions.IgnoreCase
             |> fun opt -> WildcardPattern.Get(wcp, opt).IsMatch(o)
 
         let (=~=) regex o =
-            if s.Filter.CaseSensitive then
+            if s.QueryState.CaseSensitive then
                 RegexOptions.None
             else
                 RegexOptions.IgnoreCase
@@ -37,24 +37,25 @@ module PocofQuery =
             |> fun r -> r.IsMatch(o)
 
         let value o =
-            if s.Filter.CaseSensitive then
+            if s.QueryState.CaseSensitive then
                 o.ToString() // TODO: refer the property if specified.
             else
                 o.ToString().ToLower()
 
         let is =
             s.Query
-            |> match s.Filter.Matcher with
+            |> match s.QueryState.Matcher with
                | PocofData.EQ -> (==)
                | PocofData.LIKE -> (=*=)
                | PocofData.MATCH -> (=~=)
 
-        let answer a = if s.Filter.Invert then not a else a
+        let answer a =
+            if s.QueryState.Invert then not a else a
 
         let predicate (o: PSObject) = value o |> is |> answer
 
         let notification =
-            match s.Filter.Matcher with
+            match s.QueryState.Matcher with
             | PocofData.MATCH ->
                 try
                     new Regex(s.Query) |> ignore

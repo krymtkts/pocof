@@ -22,7 +22,7 @@ Describe 'pocof' {
         ) {
             It " Given a name '<InputObject>', '<Expected>' should be returned." -TestCases @(
                 @{Expected = 'Hello, world' ; Params = $BaseParam + $_ }
-                @{Expected = $null; Params = @{InvertFilter = $true } + $BaseParam + $_ }
+                @{Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) {
                 $InputObject | Select-Pocof @Params | ForEach-Object {

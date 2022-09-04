@@ -14,7 +14,7 @@ type SelectPocofCommand() =
     let mutable input: PSObject list = []
 
     let mutable caseSensitive: bool = false
-    let mutable invertFilter: bool = false
+    let mutable invertQuery: bool = false
     let mutable nonInteractive: bool = false
 
     let interact
@@ -80,10 +80,10 @@ type SelectPocofCommand() =
         with set (v: SwitchParameter) = caseSensitive <- v.IsPresent
 
     [<Parameter>]
-    member __.InvertFilter: SwitchParameter = new SwitchParameter(false)
+    member __.InvertQuery: SwitchParameter = new SwitchParameter(false)
 
-    member __.InvertFilter
-        with set (v: SwitchParameter) = invertFilter <- v.IsPresent
+    member __.InvertQuery
+        with set (v: SwitchParameter) = invertQuery <- v.IsPresent
 
     [<Parameter>]
     member val Prompt = "query" with get, set
@@ -124,7 +124,7 @@ type SelectPocofCommand() =
                 { Query = __.Query
                   Matcher = __.Matcher
                   CaseSensitive = caseSensitive
-                  InvertFilter = invertFilter
+                  InvertQuery = invertQuery
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = __.Keymaps

@@ -82,7 +82,7 @@ module PocofData =
           Keymaps: Map<String, Action>
           NotInteractive: bool } // TODO: enhance this map.
 
-    type FilterState =
+    type QueryState =
         { Matcher: Matcher
           CaseSensitive: bool
           Invert: bool }
@@ -99,7 +99,7 @@ module PocofData =
 
     type InternalState =
         { Query: string
-          Filter: FilterState
+          QueryState: QueryState
           Notification: string }
 
     type Position = { X: int; Y: int }
@@ -108,7 +108,7 @@ module PocofData =
         { Query: string
           Matcher: string
           CaseSensitive: bool
-          InvertFilter: bool
+          InvertQuery: bool
           Prompt: string
           Layout: string
           Keymaps: Collections.Hashtable
@@ -132,10 +132,10 @@ module PocofData =
           Keymaps = getKeyMaps p.Keymaps
           NotInteractive = p.NotInteractive },
         { Query = p.Query
-          Filter =
+          QueryState =
             { Matcher = Matcher.ofString p.Matcher
               CaseSensitive = p.CaseSensitive
-              Invert = p.InvertFilter }
+              Invert = p.InvertQuery }
           Notification = "" },
         { X = p.Query.Length; Y = 0 }
 
@@ -185,19 +185,19 @@ module PocofData =
 
     let switchFilter (s: InternalState) =
         { s with
-            Filter =
-                { s.Filter with
+            QueryState =
+                { s.QueryState with
                     Matcher =
-                        match s.Filter.Matcher with
+                        match s.QueryState.Matcher with
                         | EQ -> LIKE
                         | LIKE -> MATCH
                         | MATCH -> EQ } }
 
     let switchCaseSensitive (s: InternalState) =
-        { s with Filter = { s.Filter with CaseSensitive = not s.Filter.CaseSensitive } }
+        { s with QueryState = { s.QueryState with CaseSensitive = not s.QueryState.CaseSensitive } }
 
     let switchInvertFilter (s: InternalState) =
-        { s with Filter = { s.Filter with Invert = not s.Filter.Invert } }
+        { s with QueryState = { s.QueryState with Invert = not s.QueryState.Invert } }
 
     let invokeAction (a: Action) (s: InternalState) (p: Position) =
         match a with

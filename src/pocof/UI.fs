@@ -81,7 +81,7 @@ module PocofScreen =
         member __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
             let info =
                 sprintf "%s [%d]"
-                <| state.Filter.toString
+                <| state.QueryState.toString
                 <| length
 
             let x = __.rui.WindowSize.Width - info.Length
