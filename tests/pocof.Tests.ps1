@@ -8,17 +8,33 @@ Describe 'pocof' {
         It 'Given the pocof module, it should have <Expected> commands' -TestCases @(
             @{ Expected = 'Select-Pocof' }
         ) {
-            Param($InputObject)
             $m = Get-Module pocof
             ($m.ExportedCmdlets).Values | Select-Object -ExpandProperty Name | Should -Contain $Expected
         }
     }
-    Context 'Select-Pocof cmdlet' {
-        It "Given a name '<Name>', '<Expected>' should be returned." -TestCases @(
-            @{ Name = 'Hello, world'; Expected = 'Hello, world' }
+    Context 'Select-Pocof cmdlet' -ForEach @{
+        InputObject = 'Hello, world'; BaseParam = @{NonInteractive = $true };
+    } {
+        Context ' In <Matcher> mode' -ForEach @(
+            @{ Matcher = 'MATCH'; Query = 'hello' },
+            @{ Matcher = 'LIKE'; Query = 'hello*' },
+            @{ Matcher = 'EQ'; Query = 'hello, world' }
         ) {
-            Param($InputObject)
-            Select-Pocof $Name -NonInteractive | Should -BeExactly $Expected
+            It " Given a name '<InputObject>', '<Expected>' should be returned." -TestCases @(
+                @{Expected = 'Hello, world' ; Params = $BaseParam + $_ }
+                @{Expected = $null; Params = @{InvertFilter = $true } + $BaseParam + $_ }
+                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+            ) {
+                $InputObject | Select-Pocof @Params | ForEach-Object {
+                    $p = if ($Expected) {
+                        @{BeExactly = $true; ExpectedValue = $Expected }
+                    }
+                    else {
+                        @{BeNullOrEmpty = $true }
+                    }
+                    $_ | Should @p
+                }
+            }
         }
     }
 }

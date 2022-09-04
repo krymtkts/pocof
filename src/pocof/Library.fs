@@ -77,13 +77,13 @@ type SelectPocofCommand() =
     member __.CaseSensitive: SwitchParameter = new SwitchParameter(false)
 
     member __.CaseSensitive
-        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
+        with set (v: SwitchParameter) = caseSensitive <- v.IsPresent
 
     [<Parameter>]
     member __.InvertFilter: SwitchParameter = new SwitchParameter(false)
 
     member __.InvertFilter
-        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
+        with set (v: SwitchParameter) = invertFilter <- v.IsPresent
 
     [<Parameter>]
     member val Prompt = "query" with get, set
