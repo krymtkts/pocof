@@ -13,6 +13,10 @@ type SelectPocofCommand() =
 
     let mutable input: PSObject list = []
 
+    let mutable caseSensitive: bool = false
+    let mutable invertFilter: bool = false
+    let mutable nonInteractive: bool = false
+
     let interact
         (conf: PocofData.InternalConfig)
         (state: PocofData.InternalState)
@@ -70,10 +74,16 @@ type SelectPocofCommand() =
     member val Matcher = PocofData.MATCH.ToString().ToLower() with get, set
 
     [<Parameter>]
-    member val CaseSensitive = false with get, set
+    member __.CaseSensitive: SwitchParameter = new SwitchParameter(false)
+
+    member __.CaseSensitive
+        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
 
     [<Parameter>]
-    member val InvertFilter = false with get, set
+    member __.InvertFilter: SwitchParameter = new SwitchParameter(false)
+
+    member __.InvertFilter
+        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
 
     [<Parameter>]
     member val Prompt = "query" with get, set
@@ -88,7 +98,10 @@ type SelectPocofCommand() =
     member val Keymaps: Collections.Hashtable = null with get, set
 
     [<Parameter>]
-    member val NonInteractive = false with get, set
+    member __.NonInteractive: SwitchParameter = new SwitchParameter(false)
+
+    member __.NonInteractive
+        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
 
     member __.invoke inp =
         __.InvokeCommand.InvokeScript(
@@ -110,12 +123,12 @@ type SelectPocofCommand() =
             PocofData.initConfig
                 { Query = __.Query
                   Matcher = __.Matcher
-                  CaseSensitive = __.CaseSensitive
-                  InvertFilter = __.InvertFilter
+                  CaseSensitive = caseSensitive
+                  InvertFilter = invertFilter
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = __.Keymaps
-                  NotInteractive = __.NonInteractive }
+                  NotInteractive = nonInteractive }
 
         __.WriteObject
         <| interact conf state pos __.Host.UI.RawUI __.invoke
