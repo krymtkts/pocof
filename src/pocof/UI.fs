@@ -53,12 +53,14 @@ module PocofScreen =
         val buf: BufferCell [,]
         val prompt: string
         val plen: int
+        val invoke: list<PSObject> -> seq<string>
 
-        new(r, p) =
+        new(r, p, i) =
             { rui = r
               buf = r.GetBufferContents(Rectangle(0, 0, r.WindowSize.Width, r.CursorPosition.Y))
               prompt = p
-              plen = p.Length + anchor.Length }
+              plen = p.Length + anchor.Length
+              invoke = i }
 
         interface IDisposable with
             member __.Dispose() =
@@ -106,18 +108,12 @@ module PocofScreen =
 
             let h = __.rui.WindowSize.Height - 3
 
-            use pwsh =
-                PowerShell
-                    .Create(RunspaceMode.CurrentRunspace)
-                    .AddCommand("Format-Table")
-                    .AddCommand("Out-String")
-
             let out =
                 if List.length entries < h then
                     entries
                 else
                     List.take h entries
-                |> pwsh.Invoke<string>
+                |> __.invoke
                 |> Seq.fold
                     (fun acc s ->
                         s.Split Environment.NewLine
@@ -143,7 +139,7 @@ module PocofScreen =
             <| __.rui.CursorPosition.Y
 
 
-    let init (rui: PSHostRawUserInterface) (prompt: string) =
-        let buf = new Buff(rui, prompt)
+    let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<PSObject> -> seq<string>) =
+        let buf = new Buff(rui, prompt, invoke)
         Console.Clear()
         buf

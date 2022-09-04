@@ -4,6 +4,7 @@ open System
 open System.Management.Automation
 open System.Management.Automation.Host
 open System.Threading
+open System.Management.Automation.Runspaces
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<OutputType(typeof<PSObject>)>]
@@ -17,20 +18,16 @@ type SelectPocofCommand() =
         (state: PocofData.InternalState)
         (pos: PocofData.Position)
         (rui: PSHostRawUserInterface)
+        (invoke: list<PSObject> -> seq<string>)
         =
-        use sbf = PocofScreen.init rui conf.Prompt
+        use sbf = PocofScreen.init rui conf.Prompt invoke
 
         let writeScreen =
             match conf.Layout with
             | PocofData.TopDown -> sbf.writeTopDown
             | PocofData.BottomUp -> sbf.writeBottomUp
 
-        let rec loop
-            (state: PocofData.InternalState)
-            (pos: PocofData.Position)
-            (results: PSObject list)
-            (skip: bool)
-            =
+        let rec loop (state: PocofData.InternalState) (pos: PocofData.Position) (results: PSObject list) (skip: bool) =
             let s, l =
                 if skip then
                     state, results
@@ -72,11 +69,23 @@ type SelectPocofCommand() =
     member val Prompt = "query" with get, set
 
     [<Parameter>]
-    [<ValidateSet("TopDown", "BottomUp")>]
+    [<ValidateSet("TopDown"
+      // , "BottomUp"
+      )>]
     member val Layout = PocofData.TopDown.ToString() with get, set
 
     [<Parameter>]
     member val Keymaps: Collections.Hashtable = null with get, set
+
+    member __.invoke inp =
+        __.InvokeCommand.InvokeScript(
+            @"$input | Format-Table | Out-String",
+            true,
+            PipelineResultTypes.None,
+            Array.ofList (inp),
+            null
+        )
+        |> Seq.map (fun o -> o.ToString())
 
     override __.BeginProcessing() = base.BeginProcessing()
 
@@ -95,4 +104,4 @@ type SelectPocofCommand() =
                   Keymaps = __.Keymaps }
 
         __.WriteObject
-        <| interact conf state pos __.Host.UI.RawUI
+        <| interact conf state pos __.Host.UI.RawUI __.invoke
