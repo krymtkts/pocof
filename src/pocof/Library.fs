@@ -7,6 +7,7 @@ open System.Threading
 open System.Management.Automation.Runspaces
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
+[<Alias("pocof")>]
 [<OutputType(typeof<PSObject>)>]
 type SelectPocofCommand() =
     inherit PSCmdlet()

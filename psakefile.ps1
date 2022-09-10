@@ -2,8 +2,8 @@ Properties {
     if (-not $Stage) {
         $Stage = 'Debug'
     }
-    if (-not $Mode) {
-        $Mode = 'DryRun'
+    if ($DryRun -eq $null) {
+        $DryRun = $true
     }
     $ModuleName = Resolve-Path ./src/* | Split-Path -Leaf
     $ModuleVersion = (Resolve-Path ./src/*/*.fsproj | Select-Xml '//Version/text()').Node.Value
@@ -23,6 +23,7 @@ Task Clean {
     'Clean is running!'
     Get-Module pocof -All | Remove-Module -Force -ErrorAction SilentlyContinue
     Remove-Item .\src\*\bin -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item .\src\*\obj -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item .\release -Recurse -Force -ErrorAction SilentlyContinue
 }
 
@@ -46,9 +47,9 @@ Task Import -depends Build {
             Import-Module (Resolve-Path ./src/*/bin/Debug/*/publish/*.psd1) -Global
         }
         'Release' {
-            $installPath = Join-Path $ModuleRoot release -AdditionalChildPath $ModuleVersion
+            $installPath = Join-Path ($env:PSModulePath -split ';' -like '*\Users\*') $ModuleName -AdditionalChildPath $ModuleVersion
             Copy-Item (Resolve-Path ./src/*/bin/Release/*/publish/*) $installPath -Verbose -Force
-            Import-Module (Resolve-Path $installPath/*.psd1) -Global
+            Import-Module $ModuleName -Global
         }
     }
 }
@@ -65,13 +66,14 @@ Task ExternalHelp -depends Import {
 }
 
 Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp {
-    'Release It!'
+    "Release $($ModuleName)! version=$ModuleVersion dryrun=$DryRun"
 
     $Params = @{
-        Path = ./release/$ModuleVersion
-        NugetAPIKey = (Get-Credential API-key -Message 'Enter your API key as the password').Password
+        Name = $ModuleName
+        NugetAPIKey = (Get-Credential API-key -Message 'Enter your API key as the password').GetNetworkCredential().Password
+        WhatIf = $DryRun
         Verbose = $true
-        WhatIf = $Mode -eq 'DryRun'
+        AllowPrerelease = $true
     }
     Publish-Module @Params
 }

@@ -9,28 +9,28 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule        = 'pocof.dll'
+    RootModule = 'pocof.dll'
 
     # Version number of this module.
-    ModuleVersion     = '1.0.0'
+    ModuleVersion = '0.1.0'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
 
     # ID used to uniquely identify this module
-    GUID              = '8941e7b0-c999-4d44-97c2-49a6acc29b10'
+    GUID = '8941e7b0-c999-4d44-97c2-49a6acc29b10'
 
     # Author of this module
-    Author            = 'Takatoshi Kuriyama'
+    Author = 'Takatoshi Kuriyama'
 
     # Company or vendor of this module
-    CompanyName       = 'Unknown'
+    # CompanyName       = 'Unknown'
 
     # Copyright statement for this module
-    Copyright         = '(c) Takatoshi Kuriyam. All rights reserved.'
+    Copyright = 'Copyright (c) 2022 Takatoshi Kuriyama. All rights reserved.'
 
     # Description of the functionality provided by this module
-    # Description = ''
+    Description = 'An interactive pipeline filtering Cmdlet for PowerShell written in F#. A fork of poco which is a PowerShell port of peco.'
 
     # Minimum version of the PowerShell engine required by this module
     PowerShellVersion = '7.0'
@@ -72,13 +72,13 @@
     FunctionsToExport = @()
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-    CmdletsToExport   = @('Select-Pocof')
+    CmdletsToExport = @('Select-Pocof')
 
     # Variables to export from this module
     VariablesToExport = '*'
 
     # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-    AliasesToExport   = @()
+    AliasesToExport = @('pocof')
 
     # DSC resources to export from this module
     # DscResourcesToExport = @()
@@ -87,18 +87,18 @@
     # ModuleList = @()
 
     # List of all files packaged with this module
-    FileList          = @('pocof.dll', 'pocof.dll-Help.xml')
+    FileList = @('pocof.dll', 'pocof.dll-Help.xml')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
-    PrivateData       = @{
+    PrivateData = @{
 
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags       = @('productivity', 'filter', 'pipeline')
+            Tags = @('productivity', 'filter', 'pipeline')
 
             # A URL to the license for this module.
-            LicenseUri = 'https://github.com/krymtkts/pocof/blob/main/LICENSE'
+            LicenseUri = 'https://raw.githubusercontent.com/krymtkts/pocof/main/LICENSE'
 
             # A URL to the main website for this project.
             ProjectUri = 'https://github.com/krymtkts/pocof/'
@@ -110,7 +110,7 @@
             # ReleaseNotes = ''
 
             # Prerelease string of this module
-            # Prerelease = ''
+            Prerelease = 'alpha'
 
             # Flag to indicate whether the module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $false
