@@ -14,15 +14,15 @@ Describe 'pocof' {
             ($m.ExportedCmdlets).Values | Select-Object -ExpandProperty Name | Should -Contain $Expected
         }
     }
-    Context 'Select-Pocof cmdlet' -ForEach @{
+    Context 'Select-Pocof cmdlet ' -ForEach @{
         InputObject = 'Hello, world'; BaseParam = @{NonInteractive = $true };
     } {
-        Context ' In <Matcher> mode' -ForEach @(
+        Context 'In <Matcher> mode ' -ForEach @(
             @{ Matcher = 'MATCH'; Query = 'hello' },
             @{ Matcher = 'LIKE'; Query = 'hello*' },
             @{ Matcher = 'EQ'; Query = 'hello, world' }
         ) {
-            It " Given a name '<InputObject>', '<Expected>' should be returned." -TestCases @(
+            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
                 @{Expected = 'Hello, world' ; Params = $BaseParam + $_ }
                 @{Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
@@ -36,6 +36,14 @@ Describe 'pocof' {
                     }
                     $_ | Should @p
                 }
+            }
+        }
+        It "Given '<InputObject>', it can be filtered to '<Expected>' with `Select-Object -First 1`." -TestCases @(
+            @{InputObject = 1..1; Expected = 1 ; Params = $BaseParam }
+            @{InputObject = 1..100; Expected = 1; Params = $BaseParam }
+        ) {
+            $InputObject | Select-Pocof @Params | Select-Object -First 1 | ForEach-Object {
+                $_ | Should -BeExactly -ExpectedValue $Expected
             }
         }
     }
