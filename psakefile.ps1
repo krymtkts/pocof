@@ -68,12 +68,19 @@ Task ExternalHelp -depends Import {
 Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp {
     "Release $($ModuleName)! version=$ModuleVersion dryrun=$DryRun"
 
+    $m = Get-Module $ModuleName
+    if ($m.Version -ne $ModuleVersion) {
+        throw "Version inconsistency between project and module. $($m.Version), $ModuleVersion"
+    }
+    $RequiredVersion = "$($m.Version)$(if ($m.PrivateData.PSData.Prerelease) {'-' + $m.PrivateData.PSData.Prerelease } else {''})"
+
     $Params = @{
         Name = $ModuleName
         NugetAPIKey = (Get-Credential API-key -Message 'Enter your API key as the password').GetNetworkCredential().Password
         WhatIf = $DryRun
         Verbose = $true
         AllowPrerelease = $true
+        RequiredVersion = $RequiredVersion
     }
     Publish-Module @Params
 }

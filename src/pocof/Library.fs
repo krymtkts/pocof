@@ -131,5 +131,5 @@ type SelectPocofCommand() =
                   Keymaps = __.Keymaps
                   NotInteractive = nonInteractive }
 
-        __.WriteObject
-        <| interact conf state pos __.Host.UI.RawUI __.invoke
+        interact conf state pos __.Host.UI.RawUI __.invoke
+        |> Seq.iter __.WriteObject
