@@ -5,6 +5,8 @@ open System.Management.Automation
 open System.Management.Automation.Host
 open System.Threading
 open System.Management.Automation.Runspaces
+open System.Collections
+open System.Collections.Generic
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
@@ -12,7 +14,7 @@ open System.Management.Automation.Runspaces
 type SelectPocofCommand() =
     inherit PSCmdlet()
 
-    let mutable input: PSObject list = []
+    let mutable input: obj list = []
 
     let mutable caseSensitive: bool = false
     let mutable invertQuery: bool = false
@@ -23,7 +25,7 @@ type SelectPocofCommand() =
         (state: PocofData.InternalState)
         (pos: PocofData.Position)
         (rui: PSHostRawUserInterface)
-        (invoke: list<PSObject> -> seq<string>)
+        (invoke: list<obj> -> seq<string>)
         =
 
         if conf.NotInteractive then
@@ -37,12 +39,7 @@ type SelectPocofCommand() =
                 | PocofData.TopDown -> sbf.writeTopDown
                 | PocofData.BottomUp -> sbf.writeBottomUp
 
-            let rec loop
-                (state: PocofData.InternalState)
-                (pos: PocofData.Position)
-                (results: PSObject list)
-                (skip: bool)
-                =
+            let rec loop (state: PocofData.InternalState) (pos: PocofData.Position) (results: obj list) (skip: bool) =
                 let s, l =
                     if skip then
                         state, results
@@ -59,7 +56,7 @@ type SelectPocofCommand() =
                         PocofData.invokeAction a s pos
                         |> fun (s, p) -> loop s p l false
                 else
-                    Thread.Sleep(50)
+                    Thread.Sleep(50) // NOTE: to avoid high load.
                     loop s pos l true
 
             loop state pos input false
@@ -96,7 +93,7 @@ type SelectPocofCommand() =
     member val Layout = PocofData.TopDown.ToString() with get, set
 
     [<Parameter>]
-    member val Keymaps: Collections.Hashtable = null with get, set
+    member val Keymaps: Hashtable = null with get, set
 
     [<Parameter>]
     member __.NonInteractive: SwitchParameter = new SwitchParameter(false)
@@ -117,9 +114,20 @@ type SelectPocofCommand() =
     override __.BeginProcessing() = base.BeginProcessing()
 
     override __.ProcessRecord() =
-        input <- List.append input <| List.ofArray __.InputObject
+        input <-
+            List.ofArray __.InputObject
+            |> List.fold
+                (fun acc o ->
+                    match o.BaseObject with
+                    | :? IDictionary as dct ->
+                        Seq.cast<obj> dct
+                        |> Seq.fold (fun a d -> d :: a) acc
+                    | _ as o -> o :: acc)
+                input
 
     override __.EndProcessing() =
+        input <- List.rev input
+
         let conf, state, pos =
             PocofData.initConfig
                 { Query = __.Query

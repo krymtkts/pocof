@@ -46,5 +46,13 @@ Describe 'pocof' {
                 $_ | Should -BeExactly -ExpectedValue $Expected
             }
         }
+        It "Given '<InputObject>', it keeps order as '<Expected>'." -TestCases @(
+            @{InputObject = [ordered]@{a = 1; b = 2; c = 3 }; Expected = [ordered]@{a = 1; b = 2; c = 3 } ; Params = $BaseParam }
+            @{InputObject = 1..20; Expected = 1..20 ; Params = $BaseParam }
+        ) {
+            $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
+            $tmp = @{InputObject = $InputObject } + $Params
+            Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
+        }
     }
 }

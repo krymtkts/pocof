@@ -5,7 +5,7 @@ open System.Management.Automation
 open System.Text.RegularExpressions
 
 module PocofQuery =
-    let run (s: PocofData.InternalState) (l: PSObject list) =
+    let run (s: PocofData.InternalState) (l: obj list) =
         let (==) (r: string) l =
             match r with
             | "" -> true
@@ -52,7 +52,7 @@ module PocofQuery =
         let answer a =
             if s.QueryState.Invert then not a else a
 
-        let predicate (o: PSObject) = value o |> is |> answer
+        let predicate (o: obj) = value o |> is |> answer
 
         let notification =
             match s.QueryState.Matcher with

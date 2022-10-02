@@ -53,7 +53,7 @@ module PocofScreen =
         val buf: BufferCell [,]
         val prompt: string
         val plen: int
-        val invoke: list<PSObject> -> seq<string>
+        val invoke: list<obj> -> seq<string>
 
         new(r, p, i) =
             { rui = r
@@ -94,11 +94,13 @@ module PocofScreen =
             line.PadRight __.rui.WindowSize.Width
             |> Console.Write
 
-        member __.writeTopDown (state: PocofData.InternalState) (x: int) (entries: PSObject list) =
+        member __.writeTopDown (state: PocofData.InternalState) (x: int) (entries: obj list) =
             __.writeScreenLine 0
             <| __.prompt + ">" + state.Query
 
             __.writeRightInfo state entries.Length 0
+
+            // logFile "./debug.log" [ List.length entries ]
 
             __.writeScreenLine 1
             <| if state.Notification = String.Empty then
@@ -132,14 +134,14 @@ module PocofScreen =
             <| __.getCursorPositionX state.Query x
             <| 0
 
-        member __.writeBottomUp (state: PocofData.InternalState) (x: int) (entries: PSObject list) =
+        member __.writeBottomUp (state: PocofData.InternalState) (x: int) (entries: obj list) =
             // TODO: implement it from Write-BottomUp.
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x
             <| __.rui.CursorPosition.Y
 
 
-    let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<PSObject> -> seq<string>) =
+    let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<obj> -> seq<string>) =
         let buf = new Buff(rui, prompt, invoke)
         Console.Clear()
         buf
