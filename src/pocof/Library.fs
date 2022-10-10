@@ -6,7 +6,6 @@ open System.Management.Automation.Host
 open System.Threading
 open System.Management.Automation.Runspaces
 open System.Collections
-open System.Collections.Generic
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
