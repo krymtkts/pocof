@@ -46,5 +46,30 @@ Describe 'pocof' {
                 $_ | Should -BeExactly -ExpectedValue $Expected
             }
         }
+        It "Given '<InputObject>', it keeps order as '<Expected>'." -TestCases @(
+            @{InputObject = [ordered]@{a = 1; b = 2; c = 3 }; Expected = @(
+                    [Collections.DictionaryEntry]::new('a', 1),
+                    [Collections.DictionaryEntry]::new('b', 2),
+                    [Collections.DictionaryEntry]::new('c', 3)) ; Params = $BaseParam
+            }
+            @{InputObject = 1..20; Expected = 1..20 ; Params = $BaseParam }
+        ) {
+            $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
+            $tmp = @{InputObject = $InputObject } + $Params
+            Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
+        }
+        It "Given '<InputObject>', it can be filtered to '<Expected>'." -TestCases @(
+            @{InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
+                    [Collections.DictionaryEntry]::new('a', 1),
+                    [Collections.DictionaryEntry]::new('d', 'a1')) ; Params = $BaseParam + @{Query = '1' }
+            }
+            @{InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
+                    [Collections.DictionaryEntry]::new('d', 'a1')) ; Params = $BaseParam + @{Query = 'a1' }
+            }
+        ) {
+            $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
+            $tmp = @{InputObject = $InputObject } + $Params
+            Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
+        }
     }
 }
