@@ -6,36 +6,40 @@ open System.Text.RegularExpressions
 open System.Collections
 
 module PocofQuery =
+    let equalOpt sensitive =
+        if sensitive then
+            StringComparison.CurrentCulture
+        else
+            StringComparison.CurrentCultureIgnoreCase
+
+    let likeOpt sensitive =
+        if sensitive then
+            WildcardOptions.None
+        else
+            WildcardOptions.IgnoreCase
+
+    let matchOpt sensitive =
+        if sensitive then
+            RegexOptions.None
+        else
+            RegexOptions.IgnoreCase
+
+    let (==) opt r l =
+        match r with
+        | "" -> true
+        | _ -> r.Equals(l, opt)
+
+    let (=*=) opt wcp o =
+        WildcardPattern.Get(wcp, opt).IsMatch(o)
+
+    let (=~=) opt regex o =
+        try
+            new Regex(regex, opt)
+        with
+        | _ -> new Regex(String.Empty, opt)
+        |> fun r -> r.IsMatch(o)
+
     let run (s: PocofData.InternalState) (l: obj list) =
-        let (==) (r: string) l =
-            match r with
-            | "" -> true
-            | _ ->
-                if s.QueryState.CaseSensitive then
-                    StringComparison.CurrentCulture
-                else
-                    StringComparison.CurrentCultureIgnoreCase
-                |> fun opt -> r.Equals(l, opt)
-
-        let (=*=) wcp o =
-            if s.QueryState.CaseSensitive then
-                WildcardOptions.None
-            else
-                WildcardOptions.IgnoreCase
-            |> fun opt -> WildcardPattern.Get(wcp, opt).IsMatch(o)
-
-        let (=~=) regex o =
-            if s.QueryState.CaseSensitive then
-                RegexOptions.None
-            else
-                RegexOptions.IgnoreCase
-            |> fun op ->
-                try
-                    new Regex(regex, op)
-                with
-                | _ -> new Regex(String.Empty, op)
-            |> fun r -> r.IsMatch(o)
-
         let values (o: obj) =
             match o with
             | :? DictionaryEntry as dct -> [ dct.Key; dct.Value ]
@@ -43,11 +47,12 @@ module PocofQuery =
             |> List.map (fun st -> st.ToString())
 
         let is =
-            s.Query
-            |> match s.QueryState.Matcher with
-               | PocofData.EQ -> (==)
-               | PocofData.LIKE -> (=*=)
-               | PocofData.MATCH -> (=~=)
+            match s.QueryState.Matcher with
+            | PocofData.EQ -> (==) << equalOpt
+            | PocofData.LIKE -> (=*=) << likeOpt
+            | PocofData.MATCH -> (=~=) << matchOpt
+            <| s.QueryState.CaseSensitive
+            <| s.Query
 
         let answer = if s.QueryState.Invert then not else id
 
