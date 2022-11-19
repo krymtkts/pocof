@@ -17,7 +17,6 @@ module PocofQuery =
                     StringComparison.CurrentCultureIgnoreCase
                 |> fun opt -> r.Equals(l, opt)
 
-
         let (=*=) wcp o =
             if s.QueryState.CaseSensitive then
                 WildcardOptions.None
@@ -38,17 +37,10 @@ module PocofQuery =
             |> fun r -> r.IsMatch(o)
 
         let values (o: obj) =
-            let strs =
-                match o with
-                | :? DictionaryEntry as dct -> [ dct.Key; dct.Value ]
-                | _ as o -> [ o ] // TODO: refer the property if specified.
-
-            strs
-            |> List.map (fun st ->
-                if s.QueryState.CaseSensitive then
-                    st.ToString()
-                else
-                    st.ToString().ToLower())
+            match o with
+            | :? DictionaryEntry as dct -> [ dct.Key; dct.Value ]
+            | _ as o -> [ o ] // TODO: refer the property if specified.
+            |> List.map (fun st -> st.ToString())
 
         let is =
             s.Query
@@ -57,8 +49,7 @@ module PocofQuery =
                | PocofData.LIKE -> (=*=)
                | PocofData.MATCH -> (=~=)
 
-        let answer a =
-            if s.QueryState.Invert then not a else a
+        let answer = if s.QueryState.Invert then not else id
 
         let predicate (o: obj) = values o |> List.exists is |> answer
 
