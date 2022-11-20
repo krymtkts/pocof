@@ -14,8 +14,8 @@ Describe 'pocof' {
             ($m.ExportedCmdlets).Values | Select-Object -ExpandProperty Name | Should -Contain $Expected
         }
     }
-    Context 'Select-Pocof cmdlet ' -ForEach @{
-        InputObject = 'Hello, world'; BaseParam = @{NonInteractive = $true };
+    Context 'Select-Pocof cmdlet' -ForEach @{
+        InputObject = 'Hello,world'; BaseParam = @{NonInteractive = $true };
     } {
         Context 'In <Matcher> mode with empty query' -ForEach @(
             @{ Matcher = 'MATCH' },
@@ -23,7 +23,7 @@ Describe 'pocof' {
             @{ Matcher = 'EQ' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = 'Hello, world' ; Params = @{Query = '' } + $BaseParam + $_ }
+                @{Expected = 'Hello,world' ; Params = @{Query = '' } + $BaseParam + $_ }
             ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
             }
@@ -31,11 +31,32 @@ Describe 'pocof' {
         Context 'In <Matcher> mode single query' -ForEach @(
             @{ Matcher = 'MATCH'; Query = 'hello' },
             @{ Matcher = 'LIKE'; Query = 'hello*' },
-            @{ Matcher = 'EQ'; Query = 'hello, world' }
+            @{ Matcher = 'EQ'; Query = 'hello,world' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = 'Hello, world' ; Params = $BaseParam + $_ }
+                @{Expected = 'Hello,world' ; Params = $BaseParam + $_ }
                 @{Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+            ) {
+                $InputObject | Select-Pocof @Params | ForEach-Object {
+                    $p = if ($Expected) {
+                        @{BeExactly = $true; ExpectedValue = $Expected }
+                    }
+                    else {
+                        @{BeNullOrEmpty = $true }
+                    }
+                    $_ | Should @p
+                }
+            }
+        }
+        Context 'In <Matcher> mode with composite query "or"' -ForEach @(
+            @{ Matcher = 'MATCH'; Query = 'universe hello' },
+            @{ Matcher = 'LIKE'; Query = 'd* hell*' },
+            @{ Matcher = 'EQ'; Query = 'hello,world hello,universe' }
+        ) {
+            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
+                @{Expected = 'Hello,world' ; Params = $BaseParam + $_ }
+                @{Expected = 'Hello,world'; Params = @{InvertQuery = $true } + $BaseParam + $_ }
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) {
                 $InputObject | Select-Pocof @Params | ForEach-Object {
