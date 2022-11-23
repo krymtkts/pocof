@@ -29,8 +29,10 @@ module PocofQuery =
         | "" -> true
         | _ -> r.Equals(l, opt)
 
-    let (=*=) opt wcp o =
-        WildcardPattern.Get(wcp, opt).IsMatch(o)
+    let (=*=) (opt: WildcardOptions) wcp o =
+        match wcp with
+        | "" -> true
+        | _ -> WildcardPattern.Get(wcp, opt).IsMatch(o)
 
     let (=~=) opt regex o =
         try

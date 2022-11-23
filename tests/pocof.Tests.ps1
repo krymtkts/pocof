@@ -17,7 +17,18 @@ Describe 'pocof' {
     Context 'Select-Pocof cmdlet ' -ForEach @{
         InputObject = 'Hello, world'; BaseParam = @{NonInteractive = $true };
     } {
-        Context 'In <Matcher> mode ' -ForEach @(
+        Context 'In <Matcher> mode with empty query' -ForEach @(
+            @{ Matcher = 'MATCH' },
+            @{ Matcher = 'LIKE' },
+            @{ Matcher = 'EQ' }
+        ) {
+            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
+                @{Expected = 'Hello, world' ; Params = @{Query = '' } + $BaseParam + $_ }
+            ) {
+                $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
+            }
+        }
+        Context 'In <Matcher> mode single query' -ForEach @(
             @{ Matcher = 'MATCH'; Query = 'hello' },
             @{ Matcher = 'LIKE'; Query = 'hello*' },
             @{ Matcher = 'EQ'; Query = 'hello, world' }
