@@ -59,11 +59,21 @@ module PocofQuery =
         let answer = if s.QueryState.Invert then not else id
 
         let predicate (o: obj) =
-            let queries = s.Query.Split(" ") |> List.ofSeq |> List.map is
+            let queries =
+                match s.QueryState.Operator with
+                | PocofData.NONE -> [ s.Query ]
+                | _ -> s.Query.Split(" ") |> List.ofSeq
+                |> List.map is
+
+            let test =
+                if s.QueryState.Operator = PocofData.OR then
+                    List.exists
+                else
+                    List.forall
 
             values o
             |> List.allPairs queries
-            |> List.exists (fun (pred, s) -> pred s |> answer)
+            |> test (fun (pred, s) -> pred s |> answer)
 
         let notification =
             match s.QueryState.Matcher with
