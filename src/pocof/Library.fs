@@ -3,9 +3,9 @@ namespace pocof
 open System
 open System.Management.Automation
 open System.Management.Automation.Host
-open System.Threading
 open System.Management.Automation.Runspaces
 open System.Collections
+open System.Threading
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]

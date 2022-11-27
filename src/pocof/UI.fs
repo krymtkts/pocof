@@ -1,7 +1,6 @@
 namespace pocof
 
 open System
-open System.Management.Automation
 open System.Management.Automation.Host
 
 type ScreenBufferBuilder() =
