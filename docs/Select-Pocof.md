@@ -14,8 +14,9 @@ schema: 2.0.0
 ## SYNTAX
 
 ```
-Select-Pocof [[-InputObject] <Object[]>] [-Query <String>] [-Filter <String>] [-CaseSensitive <Boolean>]
- [-InvertFilter <Boolean>] [-Prompt <String>] [-Layout <String>] [-Keymaps <Hashtable>] [<CommonParameters>]
+Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>] [-Operator <String>]
+ [-CaseSensitive] [-InvertQuery] [-Prompt <String>] [-Layout <String>] [-Keymaps <Hashtable>] [-NonInteractive]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -26,7 +27,7 @@ Select-Pocof [[-InputObject] <Object[]>] [-Query <String>] [-Filter <String>] [-
 
 ### Example 1
 
-```powershell
+```
 PS C:\> {{ Add example code here }}
 ```
 
@@ -39,26 +40,9 @@ PS C:\> {{ Add example code here }}
 {{ Fill CaseSensitive Description }}
 
 ```yaml
-Type: Boolean
+Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Filter
-
-{{ Fill Filter Description }}
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-Accepted values: match, like, eq
 
 Required: False
 Position: Named
@@ -72,7 +56,7 @@ Accept wildcard characters: False
 {{ Fill InputObject Description }}
 
 ```yaml
-Type: Object[]
+Type: PSObject[]
 Parameter Sets: (All)
 Aliases:
 
@@ -80,22 +64,6 @@ Required: False
 Position: 0
 Default value: None
 Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
-```
-
-### -InvertFilter
-
-{{ Fill InvertFilter Description }}
-
-```yaml
-Type: Boolean
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
@@ -151,6 +119,70 @@ Accept wildcard characters: False
 ### -Query
 
 {{ Fill Query Description }}
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -InvertQuery
+
+{{ Fill InvertQuery Description }}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Matcher
+
+{{ Fill Matcher Description }}
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -NonInteractive
+
+{{ Fill NonInteractive Description }}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Operator
+
+{{ Fill Operator Description }}
 
 ```yaml
 Type: String
