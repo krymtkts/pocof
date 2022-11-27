@@ -20,6 +20,7 @@ module PocofData =
         | KillEndOfLine
         // toggle options.
         | RotateMatcher
+        | RotateOperator
         | ToggleCaseSensitive
         | ToggleInvertFilter
         | ToggleSelectionAndSelectNext
@@ -45,6 +46,7 @@ module PocofData =
             | "KillBeginningOfLine" -> KillBeginningOfLine
             | "KillEndOfLine" -> KillEndOfLine
             | "RotateMatcher" -> RotateMatcher
+            | "RotateOperator" -> RotateOperator
             | "ToggleCaseSensitive" -> ToggleCaseSensitive
             | "ToggleInvertFilter" -> ToggleInvertFilter
             | "ToggleSelectionAndSelectNext" -> ToggleSelectionAndSelectNext
@@ -67,6 +69,17 @@ module PocofData =
             | "MATCH" -> MATCH
             | _ -> failwithf "unrecognized Matcher. value='%s'" s
 
+    type Operator =
+        | AND
+        | OR
+        | NONE
+        static member ofString(s: string) =
+            match s.ToUpper() with
+            | "AND" -> AND
+            | "OR" -> OR
+            | "NONE" -> NONE
+            | _ -> failwithf "unrecognized Operator. value='%s'" s
+
     type Layout =
         | TopDown
         | BottomUp
@@ -84,6 +97,7 @@ module PocofData =
 
     type QueryState =
         { Matcher: Matcher
+          Operator: Operator
           CaseSensitive: bool
           Invert: bool }
         member __.toString =
@@ -96,6 +110,8 @@ module PocofData =
                   if __.CaseSensitive then "c" else ""
                   __.Matcher.ToString().ToLower() ]
             |> String.concat ""
+            |> (+)
+            <| " " + __.Operator.ToString().ToLower()
 
     type InternalState =
         { Query: string
@@ -107,6 +123,7 @@ module PocofData =
     type IncomingParameters =
         { Query: string
           Matcher: string
+          Operator: string
           CaseSensitive: bool
           InvertQuery: bool
           Prompt: string
@@ -134,6 +151,7 @@ module PocofData =
         { Query = p.Query
           QueryState =
             { Matcher = Matcher.ofString p.Matcher
+              Operator = Operator.ofString p.Operator
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
           Notification = "" },
@@ -193,6 +211,16 @@ module PocofData =
                         | LIKE -> MATCH
                         | MATCH -> EQ } }
 
+    let switchOperator (s: InternalState) =
+        { s with
+            QueryState =
+                { s.QueryState with
+                    Operator =
+                        match s.QueryState.Operator with
+                        | OR -> AND
+                        | AND -> NONE
+                        | NONE -> OR } }
+
     let switchCaseSensitive (s: InternalState) =
         { s with QueryState = { s.QueryState with CaseSensitive = not s.QueryState.CaseSensitive } }
 
@@ -211,6 +239,7 @@ module PocofData =
         | KillBeginningOfLine -> removeQueryHead s p.X, moveHead p
         | KillEndOfLine -> removeQueryTail s p.X, p
         | RotateMatcher -> switchFilter s, p
+        | RotateOperator -> switchOperator s, p
         | ToggleCaseSensitive -> switchCaseSensitive s, p
         | ToggleInvertFilter -> switchInvertFilter s, p
         | SelectUp -> s, p

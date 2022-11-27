@@ -71,6 +71,10 @@ type SelectPocofCommand() =
     member val Matcher = PocofData.MATCH.ToString().ToLower() with get, set
 
     [<Parameter>]
+    [<ValidateSet("and", "or", "none")>]
+    member val Operator = PocofData.AND.ToString().ToLower() with get, set
+
+    [<Parameter>]
     member __.CaseSensitive: SwitchParameter = new SwitchParameter(false)
 
     member __.CaseSensitive
@@ -131,6 +135,7 @@ type SelectPocofCommand() =
             PocofData.initConfig
                 { Query = __.Query
                   Matcher = __.Matcher
+                  Operator = __.Operator
                   CaseSensitive = caseSensitive
                   InvertQuery = invertQuery
                   Prompt = __.Prompt

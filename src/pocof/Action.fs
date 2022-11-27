@@ -21,6 +21,7 @@ module PocofAction =
           ("Alt+K", PocofData.KillEndOfLine)
 
           ("Alt+R", PocofData.RotateMatcher)
+          ("Alt+L", PocofData.RotateOperator)
           ("Alt+C", PocofData.ToggleCaseSensitive)
           ("Alt+I", PocofData.ToggleInvertFilter)
 

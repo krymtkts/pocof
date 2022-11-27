@@ -48,17 +48,32 @@ module PocofQuery =
             | _ as o -> [ o ] // TODO: refer the property if specified.
             |> List.map (fun st -> st.ToString())
 
-        let is =
+        let is q =
             match s.QueryState.Matcher with
             | PocofData.EQ -> (==) << equalOpt
             | PocofData.LIKE -> (=*=) << likeOpt
             | PocofData.MATCH -> (=~=) << matchOpt
             <| s.QueryState.CaseSensitive
-            <| s.Query
+            <| q
 
         let answer = if s.QueryState.Invert then not else id
 
-        let predicate (o: obj) = values o |> List.exists is |> answer
+        let predicate (o: obj) =
+            let queries =
+                match s.QueryState.Operator with
+                | PocofData.NONE -> [ s.Query ]
+                | _ -> s.Query.Split(" ") |> List.ofSeq
+                |> List.map is
+
+            let test =
+                if s.QueryState.Operator = PocofData.OR then
+                    List.exists
+                else
+                    List.forall
+
+            values o
+            |> List.allPairs queries
+            |> test (fun (pred, s) -> pred s |> answer)
 
         let notification =
             match s.QueryState.Matcher with
