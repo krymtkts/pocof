@@ -93,7 +93,7 @@ module PocofScreen =
             line.PadRight __.rui.WindowSize.Width
             |> Console.Write
 
-        member __.writeTopDown (state: PocofData.InternalState) (x: int) (entries: obj list) =
+        member __.writeTopDown (state: PocofData.InternalState) (x: int) (entries: PocofData.Entry list) =
             __.writeScreenLine 0
             <| __.prompt + ">" + state.Query
 
@@ -114,6 +114,7 @@ module PocofScreen =
                     entries
                 else
                     List.take h entries
+                |> PocofData.unwrap
                 |> __.invoke
                 |> Seq.fold
                     (fun acc s ->
@@ -133,7 +134,7 @@ module PocofScreen =
             <| __.getCursorPositionX state.Query x
             <| 0
 
-        member __.writeBottomUp (state: PocofData.InternalState) (x: int) (entries: obj list) =
+        member __.writeBottomUp (state: PocofData.InternalState) (x: int) (entries: PocofData.Entry list) =
             // TODO: implement it from Write-BottomUp.
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x

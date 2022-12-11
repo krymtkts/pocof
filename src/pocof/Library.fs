@@ -13,7 +13,7 @@ open System.Threading
 type SelectPocofCommand() =
     inherit PSCmdlet()
 
-    let mutable input: obj list = []
+    let mutable input: PocofData.Entry list = []
 
     let mutable caseSensitive: bool = false
     let mutable invertQuery: bool = false
@@ -24,12 +24,12 @@ type SelectPocofCommand() =
         (state: PocofData.InternalState)
         (pos: PocofData.Position)
         (rui: PSHostRawUserInterface)
-        (invoke: list<obj> -> seq<string>)
+        (invoke: obj list -> seq<string>)
         =
 
         if conf.NotInteractive then
             let _, l = PocofQuery.run state input
-            l
+            PocofData.unwrap l
         else
             use sbf = PocofScreen.init rui conf.Prompt invoke
 
@@ -38,7 +38,12 @@ type SelectPocofCommand() =
                 | PocofData.TopDown -> sbf.writeTopDown
                 | PocofData.BottomUp -> sbf.writeBottomUp
 
-            let rec loop (state: PocofData.InternalState) (pos: PocofData.Position) (results: obj list) (skip: bool) =
+            let rec loop
+                (state: PocofData.InternalState)
+                (pos: PocofData.Position)
+                (results: PocofData.Entry list)
+                (skip: bool)
+                =
                 let s, l =
                     if skip then
                         state, results
@@ -50,7 +55,7 @@ type SelectPocofCommand() =
                 if Console.KeyAvailable then
                     match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
                     | PocofData.Cancel -> []
-                    | PocofData.Finish -> l
+                    | PocofData.Finish -> PocofData.unwrap l
                     | a ->
                         PocofData.invokeAction a s pos
                         |> fun (s, p) -> loop s p l false
@@ -123,9 +128,9 @@ type SelectPocofCommand() =
                 (fun acc o ->
                     match o.BaseObject with
                     | :? IDictionary as dct ->
-                        Seq.cast<obj> dct
-                        |> Seq.fold (fun a d -> d :: a) acc
-                    | _ as o -> o :: acc)
+                        Seq.cast<DictionaryEntry> dct
+                        |> Seq.fold (fun a d -> PocofData.Dict(d) :: a) acc
+                    | _ as o -> PocofData.Obj(PSObject o) :: acc)
                 input
 
     override __.EndProcessing() =

@@ -1,8 +1,21 @@
 namespace pocof
 
 open System
+open System.Management.Automation
+open System.Collections
 
 module PocofData =
+    type Entry =
+        | Obj of PSObject
+        | Dict of DictionaryEntry
+
+    let unwrap (entries: Entry list) =
+        entries
+        |> List.map (fun o ->
+            match o with
+            | Dict (dct) -> dct :> obj
+            | Obj (o) -> o)
+
     type Action =
         | None
         | Cancel

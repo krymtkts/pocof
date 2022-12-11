@@ -41,11 +41,11 @@ module PocofQuery =
         | _ -> new Regex(String.Empty, opt)
         |> fun r -> r.IsMatch(o)
 
-    let run (s: PocofData.InternalState) (l: obj list) =
-        let values (o: obj) =
+    let run (s: PocofData.InternalState) (l: PocofData.Entry list) =
+        let values (o: PocofData.Entry) =
             match o with
-            | :? DictionaryEntry as dct -> [ dct.Key; dct.Value ]
-            | _ as o -> [ o ] // TODO: refer the property if specified.
+            | PocofData.Dict (dct) -> [ dct.Key; dct.Value ]
+            | PocofData.Obj (o) -> [ o ] // TODO: refer the property if specified.
             |> List.map (fun st -> st.ToString())
 
         let is q =
@@ -58,7 +58,7 @@ module PocofQuery =
 
         let answer = if s.QueryState.Invert then not else id
 
-        let predicate (o: obj) =
+        let predicate (o: PocofData.Entry) =
             let queries =
                 match s.QueryState.Operator with
                 | PocofData.NONE -> [ s.Query ]
