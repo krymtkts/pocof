@@ -93,7 +93,12 @@ module PocofScreen =
             line.PadRight __.rui.WindowSize.Width
             |> Console.Write
 
-        member __.writeTopDown (state: PocofData.InternalState) (x: int) (entries: PocofData.Entry list) =
+        member __.writeTopDown
+            (state: PocofData.InternalState)
+            (x: int)
+            (entries: PocofData.Entry list)
+            (properties: string list)
+            =
             __.writeScreenLine 0
             <| __.prompt + ">" + state.Query
 
@@ -103,7 +108,7 @@ module PocofScreen =
 
             __.writeScreenLine 1
             <| if state.Notification = String.Empty then
-                   state.Notification
+                   (String.concat " " properties).[.. __.rui.WindowSize.Width - 1]
                else
                    "note>" + state.Notification
 
@@ -134,7 +139,12 @@ module PocofScreen =
             <| __.getCursorPositionX state.Query x
             <| 0
 
-        member __.writeBottomUp (state: PocofData.InternalState) (x: int) (entries: PocofData.Entry list) =
+        member __.writeBottomUp
+            (state: PocofData.InternalState)
+            (x: int)
+            (entries: PocofData.Entry list)
+            (properties: string list)
+            =
             // TODO: implement it from Write-BottomUp.
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x

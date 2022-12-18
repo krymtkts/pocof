@@ -14,6 +14,7 @@ type SelectPocofCommand() =
     inherit PSCmdlet()
 
     let mutable input: PocofData.Entry list = []
+    let mutable properties: Set<string> = set []
 
     let mutable caseSensitive: bool = false
     let mutable invertQuery: bool = false
@@ -33,6 +34,8 @@ type SelectPocofCommand() =
         else
             use sbf = PocofScreen.init rui conf.Prompt invoke
 
+            let props = List.ofSeq (properties)
+
             let writeScreen =
                 match conf.Layout with
                 | PocofData.TopDown -> sbf.writeTopDown
@@ -49,7 +52,7 @@ type SelectPocofCommand() =
                         state, results
                     else
                         let s, l = PocofQuery.run state input
-                        writeScreen s pos.X l
+                        writeScreen s pos.X l props
                         s, l
 
                 if Console.KeyAvailable then
@@ -132,6 +135,12 @@ type SelectPocofCommand() =
                         |> Seq.fold (fun a d -> PocofData.Dict(d) :: a) acc
                     | _ as o -> PocofData.Obj(PSObject o) :: acc)
                 input
+
+        properties <-
+            __.InputObject
+            |> Seq.collect (fun o -> o.Properties |> Seq.cast<PSPropertyInfo>)
+            |> List.ofSeq
+            |> List.fold (fun acc m -> acc.Add(m.Name)) properties
 
     override __.EndProcessing() =
         input <- List.rev input
