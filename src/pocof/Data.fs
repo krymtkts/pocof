@@ -129,6 +129,7 @@ module PocofData =
     type InternalState =
         { Query: string
           QueryState: QueryState
+          CurrentProperty: string
           Notification: string }
 
     type Position = { X: int; Y: int }
@@ -167,52 +168,96 @@ module PocofData =
               Operator = Operator.ofString p.Operator
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
+          CurrentProperty = ""
           Notification = "" },
         { X = p.Query.Length; Y = 0 }
 
+    let getCurrentProperty (q: string) (x: int) =
+        let cur = q.[..x].Split [| ' ' |] |> Seq.last
+
+        if cur.StartsWith ":" then
+            cur.[1..]
+        else
+            ""
+
     let addQuery (s: InternalState) (p: Position) (c: char) =
-        let newS = { s with Query = s.Query.Insert(p.X, c.ToString()) }
-        newS, { p with X = p.X + 1 }
-
-    let moveBackward (p: Position) =
-        if p.X > 0 then
-            { p with X = p.X - 1 }
-        else
-            p
-
-    let moveForward (p: Position) (ql: int) =
-        if p.X < ql then
-            { p with X = p.X + 1 }
-        else
-            p
-
-    let moveHead (p: Position) = { p with X = 0 }
-    let moveTail (p: Position) (ql: int) = { p with X = ql }
-
-    let removeBackwardChar (s: InternalState) (p: Position) =
-        let p = moveBackward p
+        let query = s.Query.Insert(p.X, c.ToString())
 
         { s with
-            Query =
-                if s.Query.Length > p.X then
-                    s.Query.Remove(p.X, 1)
-                else
-                    s.Query },
+            Query = query
+            CurrentProperty = getCurrentProperty query p.X },
+        { p with X = p.X + 1 }
+
+    let moveBackward (s: InternalState) (p: Position) =
+        let p =
+            if p.X > 0 then
+                { p with X = p.X - 1 }
+            else
+                p
+
+        { s with CurrentProperty = getCurrentProperty s.Query p.X }, p
+
+    let moveForward (s: InternalState) (p: Position) =
+        let p =
+            if p.X < s.Query.Length then
+                { p with X = p.X + 1 }
+            else
+                p
+
+        { s with CurrentProperty = getCurrentProperty s.Query p.X }, p
+
+
+    let moveHead (s: InternalState) (p: Position) =
+        { s with CurrentProperty = "" }, { p with X = 0 }
+
+    let moveTail (s: InternalState) (p: Position) =
+        { s with CurrentProperty = getCurrentProperty s.Query s.Query.Length }, { p with X = s.Query.Length }
+
+    let removeBackwardChar (s: InternalState) (p: Position) =
+        let p =
+            if p.X > 0 then
+                { p with X = p.X - 1 }
+            else
+                p
+
+        let q =
+            if s.Query.Length > p.X then
+                s.Query.Remove(p.X, 1)
+            else
+                s.Query
+
+        { s with
+            Query = q
+            CurrentProperty = getCurrentProperty q p.X },
         p
 
     let removeForwardChar (s: InternalState) (p: Position) =
+        let q =
+            if s.Query.Length > p.X then
+                s.Query.Remove(p.X, 1)
+            else
+                s.Query
+
         { s with
-            Query =
-                if s.Query.Length > p.X then
-                    s.Query.Remove(p.X, 1)
-                else
-                    s.Query },
+            Query = q
+            CurrentProperty = getCurrentProperty q p.X },
         p
 
-    let removeQueryHead (s: InternalState) (x: int) = { s with Query = s.Query.Substring(x) }
+    let removeQueryHead (s: InternalState) (p: Position) =
+        let q = s.Query.[p.X ..]
 
-    let removeQueryTail (s: InternalState) (x: int) =
-        { s with Query = s.Query.Substring(0, x) }
+        { s with
+            Query = q
+            CurrentProperty = getCurrentProperty q 0 },
+        { p with X = 0 }
+
+    let removeQueryTail (s: InternalState) (p: Position) =
+        let q = s.Query.[.. p.X - 1]
+
+        { s with
+            Query = q
+            CurrentProperty = getCurrentProperty q p.X },
+        p
 
     let switchFilter (s: InternalState) =
         { s with
@@ -243,24 +288,24 @@ module PocofData =
     let invokeAction (a: Action) (s: InternalState) (p: Position) =
         match a with
         | AddChar c -> addQuery s p c
-        | BackwardChar -> s, moveBackward p
-        | ForwardChar -> s, moveForward p s.Query.Length
-        | BeginningOfLine -> s, moveHead p
-        | EndOfLine -> s, moveTail p s.Query.Length
+        | BackwardChar -> moveBackward s p
+        | ForwardChar -> moveForward s p
+        | BeginningOfLine -> moveHead s p
+        | EndOfLine -> moveTail s p
         | DeleteBackwardChar -> removeBackwardChar s p
         | DeleteForwardChar -> removeForwardChar s p
-        | KillBeginningOfLine -> removeQueryHead s p.X, moveHead p
-        | KillEndOfLine -> removeQueryTail s p.X, p
+        | KillBeginningOfLine -> removeQueryHead s p
+        | KillEndOfLine -> removeQueryTail s p
         | RotateMatcher -> switchFilter s, p
         | RotateOperator -> switchOperator s, p
         | ToggleCaseSensitive -> switchCaseSensitive s, p
         | ToggleInvertFilter -> switchInvertFilter s, p
-        | SelectUp -> s, p
-        | SelectDown -> s, p
-        | ToggleSelectionAndSelectNext -> s, p
-        | ScrollPageUp -> s, p
-        | ScrollPageDown -> s, p
-        | TabExpansion -> s, p
+        | SelectUp -> s, p // TODO: implement it.
+        | SelectDown -> s, p // TODO: implement it.
+        | ToggleSelectionAndSelectNext -> s, p // TODO: ???
+        | ScrollPageUp -> s, p // TODO: implement it.
+        | ScrollPageDown -> s, p // TODO: implement it.
+        | TabExpansion -> s, p // TODO: implement it.
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name

@@ -52,7 +52,10 @@ type SelectPocofCommand() =
                         state, results
                     else
                         let s, l = PocofQuery.run state input
-                        writeScreen s pos.X l props
+
+                        writeScreen s pos.X l
+                        <| List.filter (fun s -> s.StartsWith state.CurrentProperty) props
+
                         s, l
 
                 if Console.KeyAvailable then
