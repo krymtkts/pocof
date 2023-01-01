@@ -102,6 +102,10 @@ module PocofData =
             | "BottomUp" -> BottomUp
             | _ -> failwithf "unrecognized Layout. value='%s'" s
 
+    type PropertySearch =
+        | NonSearch
+        | Search of string
+
     type InternalConfig =
         { Prompt: string
           Layout: Layout
@@ -129,7 +133,7 @@ module PocofData =
     type InternalState =
         { Query: string
           QueryState: QueryState
-          CurrentProperty: string
+          PropertySearch: PropertySearch
           Notification: string }
 
     type Position = { X: int; Y: int }
@@ -168,7 +172,7 @@ module PocofData =
               Operator = Operator.ofString p.Operator
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
-          CurrentProperty = ""
+          PropertySearch = NonSearch
           Notification = "" },
         { X = p.Query.Length; Y = 0 }
 
@@ -176,16 +180,16 @@ module PocofData =
         let cur = q.[..x].Split [| ' ' |] |> Seq.last
 
         if cur.StartsWith ":" then
-            cur.[1..]
+            Search cur.[1..]
         else
-            ""
+            NonSearch
 
     let addQuery (s: InternalState) (p: Position) (c: char) =
         let query = s.Query.Insert(p.X, c.ToString())
 
         { s with
             Query = query
-            CurrentProperty = getCurrentProperty query p.X },
+            PropertySearch = getCurrentProperty query p.X },
         { p with X = p.X + 1 }
 
     let moveBackward (s: InternalState) (p: Position) =
@@ -195,7 +199,7 @@ module PocofData =
             else
                 p
 
-        { s with CurrentProperty = getCurrentProperty s.Query p.X }, p
+        { s with PropertySearch = getCurrentProperty s.Query p.X }, p
 
     let moveForward (s: InternalState) (p: Position) =
         let p =
@@ -204,14 +208,14 @@ module PocofData =
             else
                 p
 
-        { s with CurrentProperty = getCurrentProperty s.Query p.X }, p
+        { s with PropertySearch = getCurrentProperty s.Query p.X }, p
 
 
     let moveHead (s: InternalState) (p: Position) =
-        { s with CurrentProperty = "" }, { p with X = 0 }
+        { s with PropertySearch = NonSearch }, { p with X = 0 }
 
     let moveTail (s: InternalState) (p: Position) =
-        { s with CurrentProperty = getCurrentProperty s.Query s.Query.Length }, { p with X = s.Query.Length }
+        { s with PropertySearch = getCurrentProperty s.Query s.Query.Length }, { p with X = s.Query.Length }
 
     let removeBackwardChar (s: InternalState) (p: Position) =
         let p =
@@ -228,7 +232,7 @@ module PocofData =
 
         { s with
             Query = q
-            CurrentProperty = getCurrentProperty q p.X },
+            PropertySearch = getCurrentProperty q p.X },
         p
 
     let removeForwardChar (s: InternalState) (p: Position) =
@@ -240,7 +244,7 @@ module PocofData =
 
         { s with
             Query = q
-            CurrentProperty = getCurrentProperty q p.X },
+            PropertySearch = getCurrentProperty q p.X },
         p
 
     let removeQueryHead (s: InternalState) (p: Position) =
@@ -248,7 +252,7 @@ module PocofData =
 
         { s with
             Query = q
-            CurrentProperty = getCurrentProperty q 0 },
+            PropertySearch = getCurrentProperty q 0 },
         { p with X = 0 }
 
     let removeQueryTail (s: InternalState) (p: Position) =
@@ -256,7 +260,7 @@ module PocofData =
 
         { s with
             Query = q
-            CurrentProperty = getCurrentProperty q p.X },
+            PropertySearch = getCurrentProperty q p.X },
         p
 
     let switchFilter (s: InternalState) =

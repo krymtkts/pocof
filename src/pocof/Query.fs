@@ -4,6 +4,7 @@ open System
 open System.Management.Automation
 open System.Text.RegularExpressions
 open System.Collections
+open Result
 
 module PocofQuery =
     let equalOpt sensitive =
@@ -92,3 +93,20 @@ module PocofQuery =
                 select o
         }
         |> List.ofSeq
+
+    let props (s: PocofData.InternalState) (p: string list) =
+        let transform (x: string) =
+            if s.QueryState.CaseSensitive then
+                x
+            else
+                x.ToLower()
+
+        match s.PropertySearch with
+        | PocofData.Search (cur: string) ->
+            let ret = List.filter (fun (s: string) -> (transform s).StartsWith cur) p
+
+            if List.isEmpty ret then
+                Error "Property not found"
+            else
+                Ok ret
+        | _ -> Ok []

@@ -97,7 +97,7 @@ module PocofScreen =
             (state: PocofData.InternalState)
             (x: int)
             (entries: PocofData.Entry list)
-            (properties: string list)
+            (props: Result<string list, string>)
             =
             __.writeScreenLine 0
             <| __.prompt + ">" + state.Query
@@ -108,7 +108,9 @@ module PocofScreen =
 
             __.writeScreenLine 1
             <| if state.Notification = String.Empty then
-                   (String.concat " " properties).[.. __.rui.WindowSize.Width - 1]
+                   match props with
+                   | Ok (p) -> (String.concat " " p).[.. __.rui.WindowSize.Width - 1]
+                   | Error (e) -> "note>" + e
                else
                    "note>" + state.Notification
 
@@ -143,7 +145,7 @@ module PocofScreen =
             (state: PocofData.InternalState)
             (x: int)
             (entries: PocofData.Entry list)
-            (properties: string list)
+            (props: Result<string list, string>)
             =
             // TODO: implement it from Write-BottomUp.
             __.setCursorPosition

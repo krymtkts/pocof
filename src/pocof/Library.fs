@@ -54,7 +54,7 @@ type SelectPocofCommand() =
                         let s, l = PocofQuery.run state input
 
                         writeScreen s pos.X l
-                        <| List.filter (fun s -> s.StartsWith state.CurrentProperty) props
+                        <| PocofQuery.props state props
 
                         s, l
 
