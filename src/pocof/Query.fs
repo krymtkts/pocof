@@ -5,35 +5,35 @@ open System.Management.Automation
 open System.Text.RegularExpressions
 
 module PocofQuery =
-    let equalOpt sensitive =
+    let private equalOpt sensitive =
         if sensitive then
             StringComparison.CurrentCulture
         else
             StringComparison.CurrentCultureIgnoreCase
 
-    let likeOpt sensitive =
+    let private likeOpt sensitive =
         if sensitive then
             WildcardOptions.None
         else
             WildcardOptions.IgnoreCase
 
-    let matchOpt sensitive =
+    let private matchOpt sensitive =
         if sensitive then
             RegexOptions.None
         else
             RegexOptions.IgnoreCase
 
-    let (==) opt r l =
+    let private (==) opt r l =
         match r with
         | "" -> true
         | _ -> r.Equals(l, opt)
 
-    let (=*=) (opt: WildcardOptions) wcp o =
+    let private (=*=) (opt: WildcardOptions) wcp o =
         match wcp with
         | "" -> true
         | _ -> WildcardPattern.Get(wcp, opt).IsMatch(o)
 
-    let (=~=) opt pattern o =
+    let private (=~=) opt pattern o =
         try
             new Regex(pattern, opt)
         with

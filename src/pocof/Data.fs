@@ -149,7 +149,7 @@ module PocofData =
           Keymaps: Hashtable
           NotInteractive: bool }
 
-    let convertKeymaps (h: Hashtable) =
+    let private convertKeymaps (h: Hashtable) =
         if h = null then
             Map []
         else
@@ -176,7 +176,7 @@ module PocofData =
           Notification = "" },
         { X = p.Query.Length; Y = 0 }
 
-    let getCurrentProperty (query: string) (x: int) =
+    let private getCurrentProperty (query: string) (x: int) =
         let p = query.[..x].Split [| ' ' |] |> Seq.last
 
         if p.StartsWith ":" then
@@ -184,7 +184,7 @@ module PocofData =
         else
             NonSearch
 
-    let addQuery (state: InternalState) (pos: Position) (c: char) =
+    let private addQuery (state: InternalState) (pos: Position) (c: char) =
         let query = state.Query.Insert(pos.X, c.ToString())
 
         { state with
@@ -192,7 +192,7 @@ module PocofData =
             PropertySearch = getCurrentProperty query pos.X },
         { pos with X = pos.X + 1 }
 
-    let moveBackward (state: InternalState) (pos: Position) =
+    let private moveBackward (state: InternalState) (pos: Position) =
         let p =
             if pos.X > 0 then
                 { pos with X = pos.X - 1 }
@@ -201,7 +201,7 @@ module PocofData =
 
         { state with PropertySearch = getCurrentProperty state.Query p.X }, p
 
-    let moveForward (state: InternalState) (pos: Position) =
+    let private moveForward (state: InternalState) (pos: Position) =
         let p =
             if pos.X < state.Query.Length then
                 { pos with X = pos.X + 1 }
@@ -211,14 +211,14 @@ module PocofData =
         { state with PropertySearch = getCurrentProperty state.Query p.X }, p
 
 
-    let moveHead (state: InternalState) (pos: Position) =
+    let private moveHead (state: InternalState) (pos: Position) =
         { state with PropertySearch = NonSearch }, { pos with X = 0 }
 
-    let moveTail (state: InternalState) (pos: Position) =
+    let private moveTail (state: InternalState) (pos: Position) =
         { state with PropertySearch = getCurrentProperty state.Query state.Query.Length },
         { pos with X = state.Query.Length }
 
-    let removeBackwardChar (state: InternalState) (pos: Position) =
+    let private removeBackwardChar (state: InternalState) (pos: Position) =
         let p =
             if pos.X > 0 then
                 { pos with X = pos.X - 1 }
@@ -236,7 +236,7 @@ module PocofData =
             PropertySearch = getCurrentProperty q p.X },
         p
 
-    let removeForwardChar (state: InternalState) (pos: Position) =
+    let private removeForwardChar (state: InternalState) (pos: Position) =
         let q =
             if state.Query.Length > pos.X then
                 state.Query.Remove(pos.X, 1)
@@ -248,7 +248,7 @@ module PocofData =
             PropertySearch = getCurrentProperty q pos.X },
         pos
 
-    let removeQueryHead (state: InternalState) (pos: Position) =
+    let private removeQueryHead (state: InternalState) (pos: Position) =
         let q = state.Query.[pos.X ..]
 
         { state with
@@ -256,7 +256,7 @@ module PocofData =
             PropertySearch = getCurrentProperty q 0 },
         { pos with X = 0 }
 
-    let removeQueryTail (state: InternalState) (pos: Position) =
+    let private removeQueryTail (state: InternalState) (pos: Position) =
         let q = state.Query.[.. pos.X - 1]
 
         { state with
@@ -264,7 +264,7 @@ module PocofData =
             PropertySearch = getCurrentProperty q pos.X },
         pos
 
-    let switchFilter (state: InternalState) =
+    let private switchFilter (state: InternalState) =
         { state with
             QueryState =
                 { state.QueryState with
@@ -274,7 +274,7 @@ module PocofData =
                         | LIKE -> MATCH
                         | MATCH -> EQ } }
 
-    let switchOperator (state: InternalState) =
+    let private switchOperator (state: InternalState) =
         { state with
             QueryState =
                 { state.QueryState with
@@ -284,10 +284,10 @@ module PocofData =
                         | AND -> NONE
                         | NONE -> OR } }
 
-    let switchCaseSensitive (state: InternalState) =
+    let private switchCaseSensitive (state: InternalState) =
         { state with QueryState = { state.QueryState with CaseSensitive = not state.QueryState.CaseSensitive } }
 
-    let switchInvertFilter (state: InternalState) =
+    let private switchInvertFilter (state: InternalState) =
         { state with QueryState = { state.QueryState with Invert = not state.QueryState.Invert } }
 
     let invokeAction (action: Action) (state: InternalState) (pos: Position) =
