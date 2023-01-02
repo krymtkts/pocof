@@ -142,8 +142,7 @@ type SelectPocofCommand() =
         properties <-
             __.InputObject
             |> Seq.collect (fun o -> o.Properties |> Seq.cast<PSPropertyInfo>)
-            |> List.ofSeq
-            |> List.fold (fun acc m -> acc.Add(m.Name)) properties
+            |> Seq.fold (fun acc m -> acc.Add(m.Name)) properties
 
     override __.EndProcessing() =
         input <- List.rev input

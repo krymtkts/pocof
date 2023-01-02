@@ -146,15 +146,15 @@ module PocofData =
           InvertQuery: bool
           Prompt: string
           Layout: string
-          Keymaps: Collections.Hashtable
+          Keymaps: Hashtable
           NotInteractive: bool }
 
-    let getKeyMaps (h: Collections.Hashtable) =
+    let convertKeymaps (h: Hashtable) =
         if h = null then
             Map []
         else
             h
-            |> Seq.cast<Collections.DictionaryEntry>
+            |> Seq.cast<DictionaryEntry>
             |> Seq.map (fun e ->
                 let k = e.Key.ToString()
                 let v = Action.ofString (e.Value.ToString())
@@ -164,7 +164,7 @@ module PocofData =
     let initConfig (p: IncomingParameters) =
         { Prompt = p.Prompt
           Layout = Layout.ofString p.Layout
-          Keymaps = getKeyMaps p.Keymaps
+          Keymaps = convertKeymaps p.Keymaps
           NotInteractive = p.NotInteractive },
         { Query = p.Query
           QueryState =
@@ -176,140 +176,141 @@ module PocofData =
           Notification = "" },
         { X = p.Query.Length; Y = 0 }
 
-    let getCurrentProperty (q: string) (x: int) =
-        let cur = q.[..x].Split [| ' ' |] |> Seq.last
+    let getCurrentProperty (query: string) (x: int) =
+        let p = query.[..x].Split [| ' ' |] |> Seq.last
 
-        if cur.StartsWith ":" then
-            Search cur.[1..]
+        if p.StartsWith ":" then
+            Search p.[1..]
         else
             NonSearch
 
-    let addQuery (s: InternalState) (p: Position) (c: char) =
-        let query = s.Query.Insert(p.X, c.ToString())
+    let addQuery (state: InternalState) (pos: Position) (c: char) =
+        let query = state.Query.Insert(pos.X, c.ToString())
 
-        { s with
+        { state with
             Query = query
-            PropertySearch = getCurrentProperty query p.X },
-        { p with X = p.X + 1 }
+            PropertySearch = getCurrentProperty query pos.X },
+        { pos with X = pos.X + 1 }
 
-    let moveBackward (s: InternalState) (p: Position) =
+    let moveBackward (state: InternalState) (pos: Position) =
         let p =
-            if p.X > 0 then
-                { p with X = p.X - 1 }
+            if pos.X > 0 then
+                { pos with X = pos.X - 1 }
             else
-                p
+                pos
 
-        { s with PropertySearch = getCurrentProperty s.Query p.X }, p
+        { state with PropertySearch = getCurrentProperty state.Query p.X }, p
 
-    let moveForward (s: InternalState) (p: Position) =
+    let moveForward (state: InternalState) (pos: Position) =
         let p =
-            if p.X < s.Query.Length then
-                { p with X = p.X + 1 }
+            if pos.X < state.Query.Length then
+                { pos with X = pos.X + 1 }
             else
-                p
+                pos
 
-        { s with PropertySearch = getCurrentProperty s.Query p.X }, p
+        { state with PropertySearch = getCurrentProperty state.Query p.X }, p
 
 
-    let moveHead (s: InternalState) (p: Position) =
-        { s with PropertySearch = NonSearch }, { p with X = 0 }
+    let moveHead (state: InternalState) (pos: Position) =
+        { state with PropertySearch = NonSearch }, { pos with X = 0 }
 
-    let moveTail (s: InternalState) (p: Position) =
-        { s with PropertySearch = getCurrentProperty s.Query s.Query.Length }, { p with X = s.Query.Length }
+    let moveTail (state: InternalState) (pos: Position) =
+        { state with PropertySearch = getCurrentProperty state.Query state.Query.Length },
+        { pos with X = state.Query.Length }
 
-    let removeBackwardChar (s: InternalState) (p: Position) =
+    let removeBackwardChar (state: InternalState) (pos: Position) =
         let p =
-            if p.X > 0 then
-                { p with X = p.X - 1 }
+            if pos.X > 0 then
+                { pos with X = pos.X - 1 }
             else
-                p
+                pos
 
         let q =
-            if s.Query.Length > p.X then
-                s.Query.Remove(p.X, 1)
+            if state.Query.Length > p.X then
+                state.Query.Remove(p.X, 1)
             else
-                s.Query
+                state.Query
 
-        { s with
+        { state with
             Query = q
             PropertySearch = getCurrentProperty q p.X },
         p
 
-    let removeForwardChar (s: InternalState) (p: Position) =
+    let removeForwardChar (state: InternalState) (pos: Position) =
         let q =
-            if s.Query.Length > p.X then
-                s.Query.Remove(p.X, 1)
+            if state.Query.Length > pos.X then
+                state.Query.Remove(pos.X, 1)
             else
-                s.Query
+                state.Query
 
-        { s with
+        { state with
             Query = q
-            PropertySearch = getCurrentProperty q p.X },
-        p
+            PropertySearch = getCurrentProperty q pos.X },
+        pos
 
-    let removeQueryHead (s: InternalState) (p: Position) =
-        let q = s.Query.[p.X ..]
+    let removeQueryHead (state: InternalState) (pos: Position) =
+        let q = state.Query.[pos.X ..]
 
-        { s with
+        { state with
             Query = q
             PropertySearch = getCurrentProperty q 0 },
-        { p with X = 0 }
+        { pos with X = 0 }
 
-    let removeQueryTail (s: InternalState) (p: Position) =
-        let q = s.Query.[.. p.X - 1]
+    let removeQueryTail (state: InternalState) (pos: Position) =
+        let q = state.Query.[.. pos.X - 1]
 
-        { s with
+        { state with
             Query = q
-            PropertySearch = getCurrentProperty q p.X },
-        p
+            PropertySearch = getCurrentProperty q pos.X },
+        pos
 
-    let switchFilter (s: InternalState) =
-        { s with
+    let switchFilter (state: InternalState) =
+        { state with
             QueryState =
-                { s.QueryState with
+                { state.QueryState with
                     Matcher =
-                        match s.QueryState.Matcher with
+                        match state.QueryState.Matcher with
                         | EQ -> LIKE
                         | LIKE -> MATCH
                         | MATCH -> EQ } }
 
-    let switchOperator (s: InternalState) =
-        { s with
+    let switchOperator (state: InternalState) =
+        { state with
             QueryState =
-                { s.QueryState with
+                { state.QueryState with
                     Operator =
-                        match s.QueryState.Operator with
+                        match state.QueryState.Operator with
                         | OR -> AND
                         | AND -> NONE
                         | NONE -> OR } }
 
-    let switchCaseSensitive (s: InternalState) =
-        { s with QueryState = { s.QueryState with CaseSensitive = not s.QueryState.CaseSensitive } }
+    let switchCaseSensitive (state: InternalState) =
+        { state with QueryState = { state.QueryState with CaseSensitive = not state.QueryState.CaseSensitive } }
 
-    let switchInvertFilter (s: InternalState) =
-        { s with QueryState = { s.QueryState with Invert = not s.QueryState.Invert } }
+    let switchInvertFilter (state: InternalState) =
+        { state with QueryState = { state.QueryState with Invert = not state.QueryState.Invert } }
 
-    let invokeAction (a: Action) (s: InternalState) (p: Position) =
-        match a with
-        | AddChar c -> addQuery s p c
-        | BackwardChar -> moveBackward s p
-        | ForwardChar -> moveForward s p
-        | BeginningOfLine -> moveHead s p
-        | EndOfLine -> moveTail s p
-        | DeleteBackwardChar -> removeBackwardChar s p
-        | DeleteForwardChar -> removeForwardChar s p
-        | KillBeginningOfLine -> removeQueryHead s p
-        | KillEndOfLine -> removeQueryTail s p
-        | RotateMatcher -> switchFilter s, p
-        | RotateOperator -> switchOperator s, p
-        | ToggleCaseSensitive -> switchCaseSensitive s, p
-        | ToggleInvertFilter -> switchInvertFilter s, p
-        | SelectUp -> s, p // TODO: implement it.
-        | SelectDown -> s, p // TODO: implement it.
-        | ToggleSelectionAndSelectNext -> s, p // TODO: ???
-        | ScrollPageUp -> s, p // TODO: implement it.
-        | ScrollPageDown -> s, p // TODO: implement it.
-        | TabExpansion -> s, p // TODO: implement it.
+    let invokeAction (action: Action) (state: InternalState) (pos: Position) =
+        match action with
+        | AddChar c -> addQuery state pos c
+        | BackwardChar -> moveBackward state pos
+        | ForwardChar -> moveForward state pos
+        | BeginningOfLine -> moveHead state pos
+        | EndOfLine -> moveTail state pos
+        | DeleteBackwardChar -> removeBackwardChar state pos
+        | DeleteForwardChar -> removeForwardChar state pos
+        | KillBeginningOfLine -> removeQueryHead state pos
+        | KillEndOfLine -> removeQueryTail state pos
+        | RotateMatcher -> switchFilter state, pos
+        | RotateOperator -> switchOperator state, pos
+        | ToggleCaseSensitive -> switchCaseSensitive state, pos
+        | ToggleInvertFilter -> switchInvertFilter state, pos
+        | SelectUp -> state, pos // TODO: implement it.
+        | SelectDown -> state, pos // TODO: implement it.
+        | ToggleSelectionAndSelectNext -> state, pos // TODO: ???
+        | ScrollPageUp -> state, pos // TODO: implement it.
+        | ScrollPageDown -> state, pos // TODO: implement it.
+        | TabExpansion -> state, pos // TODO: implement it.
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name

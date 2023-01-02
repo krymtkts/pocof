@@ -3,8 +3,6 @@ namespace pocof
 open System
 open System.Management.Automation
 open System.Text.RegularExpressions
-open System.Collections
-open Result
 
 module PocofQuery =
     let equalOpt sensitive =
@@ -35,14 +33,14 @@ module PocofQuery =
         | "" -> true
         | _ -> WildcardPattern.Get(wcp, opt).IsMatch(o)
 
-    let (=~=) opt regex o =
+    let (=~=) opt pattern o =
         try
-            new Regex(regex, opt)
+            new Regex(pattern, opt)
         with
         | _ -> new Regex(String.Empty, opt)
         |> fun r -> r.IsMatch(o)
 
-    let run (s: PocofData.InternalState) (l: PocofData.Entry list) =
+    let run (state: PocofData.InternalState) (entries: PocofData.Entry list) =
         let values (o: PocofData.Entry) =
             match o with
             | PocofData.Dict (dct) -> [ dct.Key; dct.Value ]
@@ -50,24 +48,28 @@ module PocofQuery =
             |> List.map (fun st -> st.ToString())
 
         let is q =
-            match s.QueryState.Matcher with
+            match state.QueryState.Matcher with
             | PocofData.EQ -> (==) << equalOpt
             | PocofData.LIKE -> (=*=) << likeOpt
             | PocofData.MATCH -> (=~=) << matchOpt
-            <| s.QueryState.CaseSensitive
+            <| state.QueryState.CaseSensitive
             <| q
 
-        let answer = if s.QueryState.Invert then not else id
+        let answer =
+            if state.QueryState.Invert then
+                not
+            else
+                id
 
         let predicate (o: PocofData.Entry) =
             let queries =
-                match s.QueryState.Operator with
-                | PocofData.NONE -> [ s.Query ]
-                | _ -> s.Query.Split(" ") |> List.ofSeq
+                match state.QueryState.Operator with
+                | PocofData.NONE -> [ state.Query ]
+                | _ -> state.Query.Split(" ") |> List.ofSeq
                 |> List.map is
 
             let test =
-                if s.QueryState.Operator = PocofData.OR then
+                if state.QueryState.Operator = PocofData.OR then
                     List.exists
                 else
                     List.forall
@@ -77,33 +79,33 @@ module PocofQuery =
             |> test (fun (pred, s) -> pred s |> answer)
 
         let notification =
-            match s.QueryState.Matcher with
+            match state.QueryState.Matcher with
             | PocofData.MATCH ->
                 try
-                    new Regex(s.Query) |> ignore
+                    new Regex(state.Query) |> ignore
                     ""
                 with
                 | e -> e.Message
             | _ -> ""
 
-        { s with Notification = notification },
+        { state with Notification = notification },
         query {
-            for o in l do
+            for o in entries do
                 where (predicate o)
                 select o
         }
         |> List.ofSeq
 
-    let props (s: PocofData.InternalState) (p: string list) =
+    let props (state: PocofData.InternalState) (entries: string list) =
         let transform (x: string) =
-            if s.QueryState.CaseSensitive then
+            if state.QueryState.CaseSensitive then
                 x
             else
                 x.ToLower()
 
-        match s.PropertySearch with
-        | PocofData.Search (cur: string) ->
-            let ret = List.filter (fun (s: string) -> (transform s).StartsWith cur) p
+        match state.PropertySearch with
+        | PocofData.Search (prefix: string) ->
+            let ret = List.filter (fun (s: string) -> (transform s).StartsWith prefix) entries
 
             if List.isEmpty ret then
                 Error "Property not found"

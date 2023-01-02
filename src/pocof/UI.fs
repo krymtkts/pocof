@@ -3,30 +3,10 @@ namespace pocof
 open System
 open System.Management.Automation.Host
 
-type ScreenBufferBuilder() =
-    member _.TryFinally(body, compensation) =
-        try
-            printfn "TryFinally Body"
-            body ()
-        finally
-            printfn "TryFinally compensation"
-            compensation ()
-
-    member __.Using(disposable: #IDisposable, body) =
-        let body' = fun () -> body disposable
-
-        __.TryFinally(
-            body',
-            fun () ->
-                match disposable with
-                | null -> ()
-                | disp -> disp.Dispose()
-        )
-
 module PocofConsole =
     type KeyState =
         val caAsInput: bool
-        new(s) = { caAsInput = s }
+        new(b) = { caAsInput = b }
 
         interface IDisposable with
             member __.Dispose() =
@@ -71,7 +51,7 @@ module PocofScreen =
         member __.setCursorPosition (x: int) (y: int) =
             __.rui.CursorPosition <- Coordinates(x, y)
 
-        member __.getCursorPositionX (filter: string) (x) =
+        member __.getCursorPositionX (filter: string) (x: int) =
             __.rui.LengthInBufferCells(
                 (__.prompt + anchor + filter)
                     .Substring(0, __.plen + x)
