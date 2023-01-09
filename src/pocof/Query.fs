@@ -40,12 +40,59 @@ module PocofQuery =
         | _ -> new Regex(String.Empty, opt)
         |> fun r -> r.IsMatch(o)
 
+    type Query =
+        | Normal of string
+        | Property of string * string
+
+    let inline private (/?) (x: 'a) (prop: string) : 'b =
+        let propInfo = x.GetType().GetProperty(prop)
+        propInfo.GetValue(x, null) :?> 'b
+
     let run (state: PocofData.InternalState) (entries: PocofData.Entry list) =
+        let rec parseQuery (acc: Query list) (xs: string list) =
+            // TODO: state.QueryState.Operator is PocofData.NONE.
+            match xs with
+            | [] -> acc
+            | (x :: xs) ->
+                match xs with
+                | [] ->
+                    parseQuery
+                    <| if x.StartsWith ":" then
+                           acc
+                       else
+                           Normal x :: acc
+                    <| []
+                | y :: zs ->
+                    if x.StartsWith ":" then
+                        parseQuery
+                        <| Property(x.[1..], y) :: acc
+                        <| if List.isEmpty zs then
+                               []
+                           else
+                               List.tail zs
+                    else
+                        parseQuery <| Normal x :: acc <| xs
+
         let values (o: PocofData.Entry) =
-            match o with
-            | PocofData.Dict (dct) -> [ dct.Key; dct.Value ]
-            | PocofData.Obj (o) -> [ o ] // TODO: refer the property if specified.
-            |> List.map (fun st -> st.ToString())
+            let queries =
+                state.Query.Split [| ' ' |]
+                |> List.ofSeq
+                |> parseQuery []
+
+            queries
+            |> List.fold
+                (fun acc x ->
+                    match x with
+                    | Property (k, v) ->
+                        match o with
+                        | PocofData.Dict (dct) -> (dct /? k, v) :: acc // TODO: how can i get string value from variable?
+                        | PocofData.Obj (o) -> (o.BaseObject /? k, v) :: acc
+                    | Normal (v) ->
+                        match o with
+                        | PocofData.Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
+                        | PocofData.Obj (o) -> (o, v) :: acc)
+                []
+            |> List.map (fun (s, v) -> (s.ToString(), v))
 
         let is q =
             match state.QueryState.Matcher with
@@ -62,21 +109,13 @@ module PocofQuery =
                 id
 
         let predicate (o: PocofData.Entry) =
-            let queries =
-                match state.QueryState.Operator with
-                | PocofData.NONE -> [ state.Query ]
-                | _ -> state.Query.Split(" ") |> List.ofSeq
-                |> List.map is
-
             let test =
                 if state.QueryState.Operator = PocofData.OR then
                     List.exists
                 else
                     List.forall
 
-            values o
-            |> List.allPairs queries
-            |> test (fun (pred, s) -> pred s |> answer)
+            values o |> test (fun (l, r) -> is r l |> answer)
 
         let notification =
             match state.QueryState.Matcher with
@@ -105,7 +144,8 @@ module PocofQuery =
 
         match state.PropertySearch with
         | PocofData.Search (prefix: string) ->
-            let ret = List.filter (fun (s: string) -> (transform s).StartsWith prefix) entries
+            let p = transform prefix
+            let ret = List.filter (fun (s: string) -> (transform s).StartsWith p) entries
 
             if List.isEmpty ret then
                 Error "Property not found"
