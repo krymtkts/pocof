@@ -44,9 +44,13 @@ module PocofQuery =
         | Normal of string
         | Property of string * string
 
-    let inline private (/?) (x: 'a) (prop: string) : 'b =
-        let propInfo = x.GetType().GetProperty(prop)
-        propInfo.GetValue(x, null) :?> 'b
+    let inline private (/?) (x: 'a) (prop: string) =
+        try
+            // TODO: not so good.
+            let propInfo = x.GetType().GetProperty(prop)
+            Some(propInfo.GetValue(x, null) :?> 'b)
+        with
+        | _ -> None
 
     let run (state: PocofData.InternalState) (entries: PocofData.Entry list) =
         let rec parseQuery (acc: Query list) (xs: string list) =
@@ -84,9 +88,14 @@ module PocofQuery =
                 (fun acc x ->
                     match x with
                     | Property (k, v) ->
-                        match o with
-                        | PocofData.Dict (dct) -> (dct /? k, v) :: acc // TODO: how can i get string value from variable?
-                        | PocofData.Obj (o) -> (o.BaseObject /? k, v) :: acc
+                        let p =
+                            match o with
+                            | PocofData.Dict (dct) -> dct /? k
+                            | PocofData.Obj (o) -> o.BaseObject /? k
+
+                        match p with
+                        | Some (pv) -> (pv, v) :: acc
+                        | None -> acc
                     | Normal (v) ->
                         match o with
                         | PocofData.Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
