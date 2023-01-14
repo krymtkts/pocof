@@ -52,7 +52,7 @@ module PocofQuery =
         with
         | _ -> None
 
-    let run (state: PocofData.InternalState) (entries: PocofData.Entry list) =
+    let run (state: PocofData.InternalState) (entries: PocofData.Entry list) (props: Map<string, string>) =
         let rec parseQuery (acc: Query list) (xs: string list) =
             // TODO: state.QueryState.Operator is PocofData.NONE.
             match xs with
@@ -88,10 +88,15 @@ module PocofQuery =
                 (fun acc x ->
                     match x with
                     | Property (k, v) ->
+                        let pk =
+                            match props.TryGetValue k with
+                            | true, v -> v
+                            | _ -> ""
+
                         let p =
                             match o with
-                            | PocofData.Dict (dct) -> dct /? k
-                            | PocofData.Obj (o) -> o.BaseObject /? k
+                            | PocofData.Dict (dct) -> dct /? pk
+                            | PocofData.Obj (o) -> o.BaseObject /? pk
 
                         match p with
                         | Some (pv) -> (pv, v) :: acc

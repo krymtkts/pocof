@@ -27,14 +27,19 @@ type SelectPocofCommand() =
         (rui: PSHostRawUserInterface)
         (invoke: obj list -> seq<string>)
         =
+        let props = List.ofSeq properties
+
+        let pmap =
+            props
+            |> List.map (fun p -> p.ToLower(), p)
+            |> Map.ofList
 
         if conf.NotInteractive then
-            let _, l = PocofQuery.run state input
+            let _, l = PocofQuery.run state input pmap
             PocofData.unwrap l
         else
             use sbf = PocofScreen.init rui conf.Prompt invoke
 
-            let props = List.ofSeq (properties)
 
             let writeScreen =
                 match conf.Layout with
@@ -51,7 +56,7 @@ type SelectPocofCommand() =
                     if skip then
                         state, results
                     else
-                        let s, l = PocofQuery.run state input
+                        let s, l = PocofQuery.run state input pmap
 
                         writeScreen s pos.X l
                         <| PocofQuery.props state props
