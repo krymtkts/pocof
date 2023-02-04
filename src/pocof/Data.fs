@@ -180,17 +180,18 @@ module PocofData =
         let p = query.[..x].Split [| ' ' |] |> Seq.last
 
         if p.StartsWith ":" then
-            Search p.[1..]
+            Search <| p.[1..]
         else
             NonSearch
 
     let private addQuery (state: InternalState) (pos: Position) (c: char) =
         let query = state.Query.Insert(pos.X, c.ToString())
+        let p = { pos with X = pos.X + 1 }
 
         { state with
             Query = query
-            PropertySearch = getCurrentProperty query pos.X },
-        { pos with X = pos.X + 1 }
+            PropertySearch = getCurrentProperty query p.X },
+        p
 
     let private moveBackward (state: InternalState) (pos: Position) =
         let p =
@@ -199,7 +200,7 @@ module PocofData =
             else
                 pos
 
-        { state with PropertySearch = getCurrentProperty state.Query p.X }, p
+        { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p
 
     let private moveForward (state: InternalState) (pos: Position) =
         let p =
@@ -208,7 +209,7 @@ module PocofData =
             else
                 pos
 
-        { state with PropertySearch = getCurrentProperty state.Query p.X }, p
+        { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p
 
 
     let private moveHead (state: InternalState) (pos: Position) =

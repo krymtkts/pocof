@@ -69,20 +69,19 @@ module PocofQuery =
                 | y :: zs ->
                     if x.StartsWith ":" then
                         parseQuery
-                        <| Property(x.[1..], y) :: acc
-                        <| if List.isEmpty zs then
-                               []
-                           else
-                               List.tail zs
+                        <| Property(x.[1..].ToLower(), y) :: acc
+                        <| zs
                     else
                         parseQuery <| Normal x :: acc <| xs
 
-        let values (o: PocofData.Entry) =
-            let queries =
-                state.Query.Split [| ' ' |]
-                |> List.ofSeq
-                |> parseQuery []
+        let queries =
+            state.Query.Split [| ' ' |]
+            |> List.ofSeq
+            |> parseQuery []
 
+        // PocofDebug.logFile "./debug.log" queries
+
+        let values (o: PocofData.Entry) =
             queries
             |> List.fold
                 (fun acc x ->

@@ -17,15 +17,16 @@ module PocofConsole =
         Console.TreatControlCAsInput <- true
         state
 
-
-module PocofScreen =
-    open System.IO
-    let private anchor = ">"
-
+module PocofDebug =
     // for debugging.
-    let private logFile path res =
+    open System.IO
+
+    let logFile path res =
         use sw = new StreamWriter(path, true)
         res |> List.iter (fprintfn sw "<%A>")
+
+module PocofScreen =
+    let private anchor = ">"
 
     type Buff =
         val rui: PSHostRawUserInterface
@@ -84,7 +85,7 @@ module PocofScreen =
 
             __.writeRightInfo state entries.Length 0
 
-            // logFile "./debug.log" [ List.length entries ]
+            // PocofDebug.logFile "./debug.log" [ List.length entries ]
 
             __.writeScreenLine 1
             <| if state.Notification = String.Empty then
