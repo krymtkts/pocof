@@ -125,7 +125,7 @@ type SelectPocofCommand() =
                     | :? IDictionary as dct ->
                         Seq.cast<obj> dct
                         |> Seq.fold (fun a d -> d :: a) acc
-                    | _ as o -> o :: acc)
+                    | _ as _ -> o :: acc)
                 input
 
     override __.EndProcessing() =
