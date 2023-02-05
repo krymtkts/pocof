@@ -52,6 +52,12 @@ module PocofQuery =
         with
         | _ -> None
 
+    let inline private (/?/) (x: PSObject) (prop: string) =
+        try
+            Some((x.Properties.Item prop).Value)
+        with
+        | _ -> None
+
     let run (state: PocofData.InternalState) (entries: PocofData.Entry list) (props: Map<string, string>) =
         let rec parseQuery (acc: Query list) (xs: string list) =
             // TODO: state.QueryState.Operator is PocofData.NONE.
@@ -95,7 +101,7 @@ module PocofQuery =
                         let p =
                             match o with
                             | PocofData.Dict (dct) -> dct /? pk
-                            | PocofData.Obj (o) -> o.BaseObject /? pk
+                            | PocofData.Obj (o) -> o /?/ pk
 
                         match p with
                         | Some (pv) -> (pv, v) :: acc

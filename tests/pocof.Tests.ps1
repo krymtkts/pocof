@@ -153,4 +153,53 @@ Describe 'pocof' {
             }
         }
     }
+    Context 'Select-Pocof cmdlet with property' -ForEach @{
+        InputObject = @(
+            [PSCustomObject]@{ Name = 'Osaka'; City = 'Tokyo' },
+            [PSCustomObject]@{ Name = 'Tokyo'; City = 'Osaka' }
+        ); BaseParam = @{NonInteractive = $true };
+    } {
+        Context 'In <Matcher> mode with single property "and" (default)' -ForEach @(
+            @{ Matcher = 'MATCH'; Query = ':name os' },
+            @{ Matcher = 'LIKE'; Query = ':Name os*' },
+            @{ Matcher = 'EQ'; Query = ':namE osaka' }
+        ) {
+            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
+                @{Expected = @($InputObject[0]); Params = $BaseParam + $_ }
+                @{Expected = @($InputObject[1]); Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+            ) {
+                $InputObject | Select-Pocof @Params | ForEach-Object {
+                    $p = if ($Expected) {
+                        @{BeExactly = $true; ExpectedValue = $Expected }
+                    }
+                    else {
+                        @{BeNullOrEmpty = $true }
+                    }
+                    $_ | Should @p
+                }
+            }
+        }
+        Context 'In <Matcher> mode with composite query "and" (default)' -ForEach @(
+            @{ Matcher = 'MATCH'; Query = ':name os tok :city to' },
+            @{ Matcher = 'LIKE'; Query = ':Name os* tok* :City to*' },
+            @{ Matcher = 'EQ'; Query = ':namE osaka tokyo :city tokyo' }
+        ) {
+            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
+                @{Expected = @($InputObject[0]); Params = $BaseParam + $_ }
+                @{Expected = @($InputObject[1]); Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+            ) {
+                $InputObject | Select-Pocof @Params | ForEach-Object {
+                    $p = if ($Expected) {
+                        @{BeExactly = $true; ExpectedValue = $Expected }
+                    }
+                    else {
+                        @{BeNullOrEmpty = $true }
+                    }
+                    $_ | Should @p
+                }
+            }
+        }
+    }
 }
