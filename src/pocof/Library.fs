@@ -141,7 +141,7 @@ type SelectPocofCommand() =
                     | :? IDictionary as dct ->
                         Seq.cast<DictionaryEntry> dct
                         |> Seq.fold (fun a d -> PocofData.Dict(d) :: a) acc
-                    | _ as o -> PocofData.Obj(PSObject o) :: acc)
+                    | _ as _ -> PocofData.Obj(PSObject o) :: acc)
                 input
 
         properties <-
