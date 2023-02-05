@@ -110,6 +110,11 @@ Describe 'pocof' {
                 }
             }
         }
+        It 'Given PSCustomObject, should be returned without any mutation.' -TestCases @(
+            @{InputObject = @([PSCustomObject]@{Name = 'McCall' }); Params = $BaseParam }
+        ) {
+            $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $InputObject
+        }
         It "Given '<InputObject>', it can be filtered to '<Expected>' with `Select-Object -First 1`." -TestCases @(
             @{InputObject = 1..1; Expected = 1 ; Params = $BaseParam }
             @{InputObject = 1..100; Expected = 1; Params = $BaseParam }
