@@ -14,6 +14,17 @@ Describe 'pocof' {
             ($m.ExportedCmdlets).Values | Select-Object -ExpandProperty Name | Should -Contain $Expected
         }
     }
+    $PocofShould = {
+        $InputObject | Select-Pocof @Params | ForEach-Object {
+            $p = if ($Expected) {
+                @{BeExactly = $true; ExpectedValue = $Expected }
+            }
+            else {
+                @{BeNullOrEmpty = $true }
+            }
+            $_ | Should @p
+        }
+    }
     Context 'Select-Pocof cmdlet' -ForEach @{
         InputObject = 'Hello,world'; BaseParam = @{NonInteractive = $true };
     } {
@@ -37,17 +48,7 @@ Describe 'pocof' {
                 @{Expected = 'Hello,world' ; Params = $BaseParam + $_ }
                 @{Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
-            ) {
-                $InputObject | Select-Pocof @Params | ForEach-Object {
-                    $p = if ($Expected) {
-                        @{BeExactly = $true; ExpectedValue = $Expected }
-                    }
-                    else {
-                        @{BeNullOrEmpty = $true }
-                    }
-                    $_ | Should @p
-                }
-            }
+            ) $PocofShould
         }
         Context 'In <Matcher> mode with composite query "and" (default)' -ForEach @(
             @{ Matcher = 'MATCH'; Query = 'hello World' },
@@ -58,17 +59,7 @@ Describe 'pocof' {
                 @{Expected = 'Hello,world' ; Params = $BaseParam + $_ }
                 @{Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
-            ) {
-                $InputObject | Select-Pocof @Params | ForEach-Object {
-                    $p = if ($Expected) {
-                        @{BeExactly = $true; ExpectedValue = $Expected }
-                    }
-                    else {
-                        @{BeNullOrEmpty = $true }
-                    }
-                    $_ | Should @p
-                }
-            }
+            ) $PocofShould
         }
         Context 'In <Matcher> mode with composite query "or"' -ForEach @(
             @{ Matcher = 'MATCH'; Query = 'universe hello' ; Operator = 'or' }; ,
@@ -79,17 +70,7 @@ Describe 'pocof' {
                 @{Expected = 'Hello,world' ; Params = $BaseParam + $_ }
                 @{Expected = 'Hello,world'; Params = @{InvertQuery = $true } + $BaseParam + $_ }
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
-            ) {
-                $InputObject | Select-Pocof @Params | ForEach-Object {
-                    $p = if ($Expected) {
-                        @{BeExactly = $true; ExpectedValue = $Expected }
-                    }
-                    else {
-                        @{BeNullOrEmpty = $true }
-                    }
-                    $_ | Should @p
-                }
-            }
+            ) $PocofShould
         }
         Context 'In <Matcher> mode with composite query "none"' -ForEach @(
             @{ Matcher = 'MATCH'; Query = 'universe hello' ; Operator = 'none' }; ,
@@ -98,17 +79,7 @@ Describe 'pocof' {
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
                 @{Expected = $null ; Params = $BaseParam + $_ }
-            ) {
-                $InputObject | Select-Pocof @Params | ForEach-Object {
-                    $p = if ($Expected) {
-                        @{BeExactly = $true; ExpectedValue = $Expected }
-                    }
-                    else {
-                        @{BeNullOrEmpty = $true }
-                    }
-                    $_ | Should @p
-                }
-            }
+            ) $PocofShould
         }
         It 'Given PSCustomObject, should be returned without any mutation.' -TestCases @(
             @{InputObject = @([PSCustomObject]@{Name = 'McCall' }); Params = $BaseParam }
@@ -168,38 +139,22 @@ Describe 'pocof' {
                 @{Expected = @($InputObject[0]); Params = $BaseParam + $_ }
                 @{Expected = @($InputObject[1]); Params = @{InvertQuery = $true } + $BaseParam + $_ }
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
-            ) {
-                $InputObject | Select-Pocof @Params | ForEach-Object {
-                    $p = if ($Expected) {
-                        @{BeExactly = $true; ExpectedValue = $Expected }
-                    }
-                    else {
-                        @{BeNullOrEmpty = $true }
-                    }
-                    $_ | Should @p
-                }
-            }
+            ) $PocofShould
         }
+
         Context 'In <Matcher> mode with composite query "and" (default)' -ForEach @(
-            @{ Matcher = 'MATCH'; Query = ':name os tok :city to' },
-            @{ Matcher = 'LIKE'; Query = ':Name os* tok* :City to*' },
-            @{ Matcher = 'EQ'; Query = ':namE osaka tokyo :city tokyo' }
+            @{ Matcher = 'MATCH'; Query = ':name os tok' },
+            @{ Matcher = 'MATCH'; Query = ':city tok :name os' },
+            @{ Matcher = 'LIKE'; Query = ':Name os* tok*' },
+            @{ Matcher = 'LIKE'; Query = ':City *yo :Name *sk*' },
+            @{ Matcher = 'EQ'; Query = ':namE osaka tokyo' }
+            @{ Matcher = 'EQ'; Query = ':city tokyo :namE osaka' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
                 @{Expected = @($InputObject[0]); Params = $BaseParam + $_ }
                 @{Expected = @($InputObject[1]); Params = @{InvertQuery = $true } + $BaseParam + $_ }
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
-            ) {
-                $InputObject | Select-Pocof @Params | ForEach-Object {
-                    $p = if ($Expected) {
-                        @{BeExactly = $true; ExpectedValue = $Expected }
-                    }
-                    else {
-                        @{BeNullOrEmpty = $true }
-                    }
-                    $_ | Should @p
-                }
-            }
+            ) $PocofShould
         }
     }
 }
