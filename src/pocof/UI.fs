@@ -3,30 +3,10 @@ namespace pocof
 open System
 open System.Management.Automation.Host
 
-type ScreenBufferBuilder() =
-    member _.TryFinally(body, compensation) =
-        try
-            printfn "TryFinally Body"
-            body ()
-        finally
-            printfn "TryFinally compensation"
-            compensation ()
-
-    member __.Using(disposable: #IDisposable, body) =
-        let body' = fun () -> body disposable
-
-        __.TryFinally(
-            body',
-            fun () ->
-                match disposable with
-                | null -> ()
-                | disp -> disp.Dispose()
-        )
-
 module PocofConsole =
     type KeyState =
         val caAsInput: bool
-        new(s) = { caAsInput = s }
+        new(b) = { caAsInput = b }
 
         interface IDisposable with
             member __.Dispose() =
@@ -37,15 +17,16 @@ module PocofConsole =
         Console.TreatControlCAsInput <- true
         state
 
-
-module PocofScreen =
-    open System.IO
-    let anchor = ">"
-
+module PocofDebug =
     // for debugging.
+    open System.IO
+
     let logFile path res =
         use sw = new StreamWriter(path, true)
         res |> List.iter (fprintfn sw "<%A>")
+
+module PocofScreen =
+    let private anchor = ">"
 
     type Buff =
         val rui: PSHostRawUserInterface
@@ -68,16 +49,16 @@ module PocofScreen =
                 __.rui.SetBufferContents(origin, __.buf)
                 __.setCursorPosition 0 <| __.buf.GetUpperBound 0
 
-        member __.setCursorPosition (x: int) (y: int) =
+        member private __.setCursorPosition (x: int) (y: int) =
             __.rui.CursorPosition <- Coordinates(x, y)
 
-        member __.getCursorPositionX (filter: string) (x) =
+        member private __.getCursorPositionX (filter: string) (x: int) =
             __.rui.LengthInBufferCells(
                 (__.prompt + anchor + filter)
                     .Substring(0, __.plen + x)
             )
 
-        member __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
+        member private __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
             let info =
                 sprintf "%s [%d]"
                 <| state.QueryState.toString
@@ -87,23 +68,30 @@ module PocofScreen =
             __.setCursorPosition x row
             Console.Write info
 
-        member __.writeScreenLine (height: int) (line: string) =
+        member private __.writeScreenLine (height: int) (line: string) =
             __.setCursorPosition 0 height
 
             line.PadRight __.rui.WindowSize.Width
             |> Console.Write
 
-        member __.writeTopDown (state: PocofData.InternalState) (x: int) (entries: obj list) =
+        member __.writeTopDown
+            (state: PocofData.InternalState)
+            (x: int)
+            (entries: PocofData.Entry list)
+            (props: Result<string list, string>)
+            =
             __.writeScreenLine 0
             <| __.prompt + ">" + state.Query
 
             __.writeRightInfo state entries.Length 0
 
-            // logFile "./debug.log" [ List.length entries ]
+            // PocofDebug.logFile "./debug.log" [ List.length entries ]
 
             __.writeScreenLine 1
             <| if state.Notification = String.Empty then
-                   state.Notification
+                   match props with
+                   | Ok (p) -> (String.concat " " p).[.. __.rui.WindowSize.Width - 1]
+                   | Error (e) -> "note>" + e
                else
                    "note>" + state.Notification
 
@@ -114,6 +102,7 @@ module PocofScreen =
                     entries
                 else
                     List.take h entries
+                |> PocofData.unwrap
                 |> __.invoke
                 |> Seq.fold
                     (fun acc s ->
@@ -133,7 +122,12 @@ module PocofScreen =
             <| __.getCursorPositionX state.Query x
             <| 0
 
-        member __.writeBottomUp (state: PocofData.InternalState) (x: int) (entries: obj list) =
+        member __.writeBottomUp
+            (state: PocofData.InternalState)
+            (x: int)
+            (entries: PocofData.Entry list)
+            (props: Result<string list, string>)
+            =
             // TODO: implement it from Write-BottomUp.
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x

@@ -34,7 +34,7 @@ module PocofAction =
           ("Tab", PocofData.TabExpansion) ]
         |> Map.ofSeq
 
-    let get (uKeyMap: Map<String, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
+    let get (userKeymap: Map<String, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
         use _ = PocofConsole.init
         let k = getKey ()
 
@@ -46,8 +46,8 @@ module PocofAction =
             else
                 k.Key.ToString()
 
-        if Map.containsKey kstr uKeyMap then
-            uKeyMap.[kstr]
+        if Map.containsKey kstr userKeymap then
+            userKeymap.[kstr]
         elif Map.containsKey kstr keyMap then
             keyMap.[kstr]
         else

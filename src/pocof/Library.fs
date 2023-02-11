@@ -13,7 +13,8 @@ open System.Threading
 type SelectPocofCommand() =
     inherit PSCmdlet()
 
-    let mutable input: obj list = []
+    let mutable input: PocofData.Entry list = []
+    let mutable properties: Set<string> = set []
 
     let mutable caseSensitive: bool = false
     let mutable invertQuery: bool = false
@@ -24,33 +25,48 @@ type SelectPocofCommand() =
         (state: PocofData.InternalState)
         (pos: PocofData.Position)
         (rui: PSHostRawUserInterface)
-        (invoke: list<obj> -> seq<string>)
+        (invoke: obj list -> seq<string>)
         =
+        let props = List.ofSeq properties
+
+        let pmap =
+            props
+            |> List.map (fun p -> p.ToLower(), p)
+            |> Map.ofList
 
         if conf.NotInteractive then
-            let _, l = PocofQuery.run state input
-            l
+            let _, l = PocofQuery.run state input pmap
+            PocofData.unwrap l
         else
             use sbf = PocofScreen.init rui conf.Prompt invoke
+
 
             let writeScreen =
                 match conf.Layout with
                 | PocofData.TopDown -> sbf.writeTopDown
                 | PocofData.BottomUp -> sbf.writeBottomUp
 
-            let rec loop (state: PocofData.InternalState) (pos: PocofData.Position) (results: obj list) (skip: bool) =
+            let rec loop
+                (state: PocofData.InternalState)
+                (pos: PocofData.Position)
+                (results: PocofData.Entry list)
+                (skip: bool)
+                =
                 let s, l =
                     if skip then
                         state, results
                     else
-                        let s, l = PocofQuery.run state input
+                        let s, l = PocofQuery.run state input pmap
+
                         writeScreen s pos.X l
+                        <| PocofQuery.props state props
+
                         s, l
 
                 if Console.KeyAvailable then
                     match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
                     | PocofData.Cancel -> []
-                    | PocofData.Finish -> l
+                    | PocofData.Finish -> PocofData.unwrap l
                     | a ->
                         PocofData.invokeAction a s pos
                         |> fun (s, p) -> loop s p l false
@@ -123,10 +139,15 @@ type SelectPocofCommand() =
                 (fun acc o ->
                     match o.BaseObject with
                     | :? IDictionary as dct ->
-                        Seq.cast<obj> dct
-                        |> Seq.fold (fun a d -> d :: a) acc
-                    | _ as _ -> o :: acc)
+                        Seq.cast<DictionaryEntry> dct
+                        |> Seq.fold (fun a d -> PocofData.Dict(d) :: a) acc
+                    | _ as _ -> PocofData.Obj(PSObject o) :: acc)
                 input
+
+        properties <-
+            __.InputObject
+            |> Seq.collect (fun o -> o.Properties |> Seq.cast<PSPropertyInfo>)
+            |> Seq.fold (fun acc m -> acc.Add(m.Name)) properties
 
     override __.EndProcessing() =
         input <- List.rev input
