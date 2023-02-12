@@ -35,7 +35,6 @@ module PocofAction =
         |> Map.ofSeq
 
     let get (userKeymap: Map<String, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
-        use _ = PocofConsole.init
         let k = getKey ()
 
         let kstr =

@@ -40,7 +40,6 @@ type SelectPocofCommand() =
         else
             use sbf = PocofScreen.init rui conf.Prompt invoke
 
-
             let writeScreen =
                 match conf.Layout with
                 | PocofData.TopDown -> sbf.writeTopDown

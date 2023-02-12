@@ -3,20 +3,6 @@ namespace pocof
 open System
 open System.Management.Automation.Host
 
-module PocofConsole =
-    type KeyState =
-        val caAsInput: bool
-        new(b) = { caAsInput = b }
-
-        interface IDisposable with
-            member __.Dispose() =
-                Console.TreatControlCAsInput <- __.caAsInput
-
-    let init =
-        let state = new KeyState(Console.TreatControlCAsInput)
-        Console.TreatControlCAsInput <- true
-        state
-
 module PocofDebug =
     // for debugging.
     open System.IO
@@ -30,20 +16,24 @@ module PocofScreen =
 
     type Buff =
         val rui: PSHostRawUserInterface
-        val buf: BufferCell [,]
         val prompt: string
-        val plen: int
         val invoke: list<obj> -> seq<string>
 
-        new(r, p, i) =
+        val buf: BufferCell [,]
+        val plen: int
+        val caAsInput: bool
+
+        new(r, p, i, b) =
             { rui = r
               buf = r.GetBufferContents(Rectangle(0, 0, r.WindowSize.Width, r.CursorPosition.Y))
               prompt = p
               plen = p.Length + anchor.Length
-              invoke = i }
+              invoke = i
+              caAsInput = b }
 
         interface IDisposable with
             member __.Dispose() =
+                Console.TreatControlCAsInput <- __.caAsInput
                 Console.Clear()
                 let origin = Coordinates(0, 0)
                 __.rui.SetBufferContents(origin, __.buf)
@@ -135,6 +125,7 @@ module PocofScreen =
 
 
     let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<obj> -> seq<string>) =
-        let buf = new Buff(rui, prompt, invoke)
+        let buf = new Buff(rui, prompt, invoke, Console.TreatControlCAsInput)
         Console.Clear()
+        Console.TreatControlCAsInput <- true
         buf
