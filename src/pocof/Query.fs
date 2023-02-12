@@ -122,7 +122,8 @@ module PocofQuery =
             <| q
 
         let answer =
-            if state.QueryState.Invert then
+            if (String.IsNullOrWhiteSpace >> not) state.Query
+               && state.QueryState.Invert then
                 not
             else
                 id

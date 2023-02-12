@@ -34,7 +34,9 @@ Describe 'pocof' {
             @{ Matcher = 'EQ' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = 'Hello,world' ; Params = @{Query = '' } + $BaseParam + $_ }
+                @{Expected = 'Hello,world'; Params = $BaseParam + $_ }
+                @{Expected = 'Hello,world'; Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{Expected = 'Hello,world'; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
             }
