@@ -35,7 +35,6 @@ module PocofAction =
         |> Map.ofSeq
 
     let get (userKeymap: Map<String, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
-        use _ = PocofConsole.init
         let k = getKey ()
 
         let kstr =
@@ -50,5 +49,8 @@ module PocofAction =
             userKeymap.[kstr]
         elif Map.containsKey kstr keyMap then
             keyMap.[kstr]
+        elif k.Modifiers.HasFlag ConsoleModifiers.Alt
+             || k.Modifiers.HasFlag ConsoleModifiers.Control then // NOTE: block non-shift modifiers.
+            PocofData.None
         else
             PocofData.AddChar k.KeyChar
