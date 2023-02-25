@@ -49,8 +49,11 @@ module PocofAction =
             userKeymap.[kstr]
         elif Map.containsKey kstr keyMap then
             keyMap.[kstr]
-        elif k.Modifiers.HasFlag ConsoleModifiers.Alt
-             || k.Modifiers.HasFlag ConsoleModifiers.Control then // NOTE: block non-shift modifiers.
+        elif
+            k.Modifiers.HasFlag ConsoleModifiers.Alt
+            || k.Modifiers.HasFlag ConsoleModifiers.Control // NOTE: block non-shift modifiers.
+            || Char.IsControl(k.KeyChar)
+        then
             PocofData.None
         else
             PocofData.AddChar k.KeyChar
