@@ -109,8 +109,8 @@ module PocofData =
     type InternalConfig =
         { Prompt: string
           Layout: Layout
-          Keymaps: Map<String, Action>
-          NotInteractive: bool } // TODO: enhance this map.
+          Keymaps: Map<String, Action> // TODO: enhance this map.
+          NotInteractive: bool }
 
     type QueryState =
         { Matcher: Matcher
@@ -134,7 +134,8 @@ module PocofData =
         { Query: string
           QueryState: QueryState
           PropertySearch: PropertySearch
-          Notification: string }
+          Notification: string
+          SuppressProperties: bool }
 
     type Position = { X: int; Y: int }
 
@@ -145,6 +146,7 @@ module PocofData =
           CaseSensitive: bool
           InvertQuery: bool
           NotInteractive: bool
+          SuppressProperties: bool
           Prompt: string
           Layout: string
           Keymaps: Hashtable }
@@ -173,7 +175,8 @@ module PocofData =
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
           PropertySearch = NonSearch
-          Notification = "" },
+          Notification = ""
+          SuppressProperties = p.SuppressProperties },
         { X = p.Query.Length; Y = 0 }
 
     let private getCurrentProperty (query: string) (x: int) =
