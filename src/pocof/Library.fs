@@ -103,6 +103,12 @@ type SelectPocofCommand() =
         with set (v: SwitchParameter) = invertQuery <- v.IsPresent
 
     [<Parameter>]
+    member __.NonInteractive: SwitchParameter = new SwitchParameter(false)
+
+    member __.NonInteractive
+        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
+
+    [<Parameter>]
     member val Prompt = "query" with get, set
 
     [<Parameter>]
@@ -113,12 +119,6 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
-
-    [<Parameter>]
-    member __.NonInteractive: SwitchParameter = new SwitchParameter(false)
-
-    member __.NonInteractive
-        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
 
     member __.invoke inp =
         __.InvokeCommand.InvokeScript(
@@ -159,10 +159,10 @@ type SelectPocofCommand() =
                   Operator = __.Operator
                   CaseSensitive = caseSensitive
                   InvertQuery = invertQuery
+                  NotInteractive = nonInteractive
                   Prompt = __.Prompt
                   Layout = __.Layout
-                  Keymaps = __.Keymaps
-                  NotInteractive = nonInteractive }
+                  Keymaps = __.Keymaps }
 
         interact conf state pos __.Host.UI.RawUI __.invoke
         |> Seq.iter __.WriteObject

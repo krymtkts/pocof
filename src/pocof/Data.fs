@@ -144,10 +144,10 @@ module PocofData =
           Operator: string
           CaseSensitive: bool
           InvertQuery: bool
+          NotInteractive: bool
           Prompt: string
           Layout: string
-          Keymaps: Hashtable
-          NotInteractive: bool }
+          Keymaps: Hashtable }
 
     let private convertKeymaps (h: Hashtable) =
         if h = null then
