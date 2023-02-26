@@ -15,8 +15,8 @@ schema: 2.0.0
 
 ```
 Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>] [-Operator <String>]
- [-CaseSensitive] [-InvertQuery] [-Prompt <String>] [-Layout <String>] [-Keymaps <Hashtable>] [-NonInteractive]
- [<CommonParameters>]
+ [-CaseSensitive] [-InvertQuery] [-NonInteractive] [-SuppressProperties] [-Prompt <String>] [-Layout <String>]
+ [-Keymaps <Hashtable>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -46,7 +46,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -143,7 +143,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -175,7 +175,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -192,6 +192,22 @@ Aliases:
 Required: False
 Position: Named
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -SuppressProperties
+
+{{ Fill SuppressProperties Description }}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
