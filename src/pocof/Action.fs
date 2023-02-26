@@ -25,7 +25,7 @@ module PocofAction =
           ("Alt+C", PocofData.ToggleCaseSensitive)
           ("Alt+I", PocofData.ToggleInvertFilter)
 
-          ("Control+Spacebar", PocofData.ToggleSelectionAndSelectNext)
+          ("Control+Spacebar", PocofData.ToggleSuppressProperties)
           ("UpArrow", PocofData.SelectUp)
           ("DownArrow", PocofData.SelectDown)
           ("PageUp", PocofData.ScrollPageUp)

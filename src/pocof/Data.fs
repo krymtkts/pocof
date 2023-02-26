@@ -36,7 +36,7 @@ module PocofData =
         | RotateOperator
         | ToggleCaseSensitive
         | ToggleInvertFilter
-        | ToggleSelectionAndSelectNext
+        | ToggleSuppressProperties
         // move selection.
         | SelectUp
         | SelectDown
@@ -62,7 +62,7 @@ module PocofData =
             | "RotateOperator" -> RotateOperator
             | "ToggleCaseSensitive" -> ToggleCaseSensitive
             | "ToggleInvertFilter" -> ToggleInvertFilter
-            | "ToggleSelectionAndSelectNext" -> ToggleSelectionAndSelectNext
+            | "ToggleSelectionAndSelectNext" -> ToggleSuppressProperties
             | "SelectUp" -> SelectUp
             | "SelectDown" -> SelectDown
             | "ScrollPageUp" -> ScrollPageUp
@@ -294,6 +294,9 @@ module PocofData =
     let private switchInvertFilter (state: InternalState) =
         { state with QueryState = { state.QueryState with Invert = not state.QueryState.Invert } }
 
+    let private switchSuppressProperties (state: InternalState) =
+        { state with SuppressProperties = not state.SuppressProperties }
+
     let invokeAction (action: Action) (state: InternalState) (pos: Position) =
         match action with
         | AddChar c -> addQuery state pos c
@@ -309,9 +312,9 @@ module PocofData =
         | RotateOperator -> switchOperator state, pos
         | ToggleCaseSensitive -> switchCaseSensitive state, pos
         | ToggleInvertFilter -> switchInvertFilter state, pos
+        | ToggleSuppressProperties -> switchSuppressProperties state, pos
         | SelectUp -> state, pos // TODO: implement it.
         | SelectDown -> state, pos // TODO: implement it.
-        | ToggleSelectionAndSelectNext -> state, pos // TODO: ???
         | ScrollPageUp -> state, pos // TODO: implement it.
         | ScrollPageDown -> state, pos // TODO: implement it.
         | TabExpansion -> state, pos // TODO: implement it.
