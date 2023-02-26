@@ -19,6 +19,7 @@ type SelectPocofCommand() =
     let mutable caseSensitive: bool = false
     let mutable invertQuery: bool = false
     let mutable nonInteractive: bool = false
+    let mutable suppressProperties: bool = false
 
     let interact
         (conf: PocofData.InternalConfig)
@@ -58,7 +59,10 @@ type SelectPocofCommand() =
                         let s, l = PocofQuery.run state input pmap
 
                         writeScreen s pos.X l
-                        <| PocofQuery.props state props
+                        <| if state.SuppressProperties then
+                               Ok []
+                           else
+                               PocofQuery.props state props
 
                         s, l
 
@@ -103,6 +107,18 @@ type SelectPocofCommand() =
         with set (v: SwitchParameter) = invertQuery <- v.IsPresent
 
     [<Parameter>]
+    member __.NonInteractive: SwitchParameter = new SwitchParameter(false)
+
+    member __.NonInteractive
+        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
+
+    [<Parameter>]
+    member __.SuppressProperties: SwitchParameter = new SwitchParameter(false)
+
+    member __.SuppressProperties
+        with set (v: SwitchParameter) = suppressProperties <- v.IsPresent
+
+    [<Parameter>]
     member val Prompt = "query" with get, set
 
     [<Parameter>]
@@ -113,12 +129,6 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
-
-    [<Parameter>]
-    member __.NonInteractive: SwitchParameter = new SwitchParameter(false)
-
-    member __.NonInteractive
-        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
 
     member __.invoke inp =
         __.InvokeCommand.InvokeScript(
@@ -159,10 +169,11 @@ type SelectPocofCommand() =
                   Operator = __.Operator
                   CaseSensitive = caseSensitive
                   InvertQuery = invertQuery
+                  NotInteractive = nonInteractive
+                  SuppressProperties = suppressProperties
                   Prompt = __.Prompt
                   Layout = __.Layout
-                  Keymaps = __.Keymaps
-                  NotInteractive = nonInteractive }
+                  Keymaps = __.Keymaps }
 
         interact conf state pos __.Host.UI.RawUI __.invoke
         |> Seq.iter __.WriteObject

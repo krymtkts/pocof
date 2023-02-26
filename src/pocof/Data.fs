@@ -36,7 +36,7 @@ module PocofData =
         | RotateOperator
         | ToggleCaseSensitive
         | ToggleInvertFilter
-        | ToggleSelectionAndSelectNext
+        | ToggleSuppressProperties
         // move selection.
         | SelectUp
         | SelectDown
@@ -62,7 +62,7 @@ module PocofData =
             | "RotateOperator" -> RotateOperator
             | "ToggleCaseSensitive" -> ToggleCaseSensitive
             | "ToggleInvertFilter" -> ToggleInvertFilter
-            | "ToggleSelectionAndSelectNext" -> ToggleSelectionAndSelectNext
+            | "ToggleSelectionAndSelectNext" -> ToggleSuppressProperties
             | "SelectUp" -> SelectUp
             | "SelectDown" -> SelectDown
             | "ScrollPageUp" -> ScrollPageUp
@@ -109,8 +109,8 @@ module PocofData =
     type InternalConfig =
         { Prompt: string
           Layout: Layout
-          Keymaps: Map<String, Action>
-          NotInteractive: bool } // TODO: enhance this map.
+          Keymaps: Map<String, Action> // TODO: enhance this map.
+          NotInteractive: bool }
 
     type QueryState =
         { Matcher: Matcher
@@ -134,7 +134,8 @@ module PocofData =
         { Query: string
           QueryState: QueryState
           PropertySearch: PropertySearch
-          Notification: string }
+          Notification: string
+          SuppressProperties: bool }
 
     type Position = { X: int; Y: int }
 
@@ -144,10 +145,11 @@ module PocofData =
           Operator: string
           CaseSensitive: bool
           InvertQuery: bool
+          NotInteractive: bool
+          SuppressProperties: bool
           Prompt: string
           Layout: string
-          Keymaps: Hashtable
-          NotInteractive: bool }
+          Keymaps: Hashtable }
 
     let private convertKeymaps (h: Hashtable) =
         if h = null then
@@ -173,7 +175,8 @@ module PocofData =
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
           PropertySearch = NonSearch
-          Notification = "" },
+          Notification = ""
+          SuppressProperties = p.SuppressProperties },
         { X = p.Query.Length; Y = 0 }
 
     let private getCurrentProperty (query: string) (x: int) =
@@ -291,6 +294,9 @@ module PocofData =
     let private switchInvertFilter (state: InternalState) =
         { state with QueryState = { state.QueryState with Invert = not state.QueryState.Invert } }
 
+    let private switchSuppressProperties (state: InternalState) =
+        { state with SuppressProperties = not state.SuppressProperties }
+
     let invokeAction (action: Action) (state: InternalState) (pos: Position) =
         match action with
         | AddChar c -> addQuery state pos c
@@ -306,9 +312,9 @@ module PocofData =
         | RotateOperator -> switchOperator state, pos
         | ToggleCaseSensitive -> switchCaseSensitive state, pos
         | ToggleInvertFilter -> switchInvertFilter state, pos
+        | ToggleSuppressProperties -> switchSuppressProperties state, pos
         | SelectUp -> state, pos // TODO: implement it.
         | SelectDown -> state, pos // TODO: implement it.
-        | ToggleSelectionAndSelectNext -> state, pos // TODO: ???
         | ScrollPageUp -> state, pos // TODO: implement it.
         | ScrollPageDown -> state, pos // TODO: implement it.
         | TabExpansion -> state, pos // TODO: implement it.
