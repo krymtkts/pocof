@@ -72,7 +72,7 @@ type SelectPocofCommand() =
                     | PocofData.Finish -> PocofData.unwrap l
                     | PocofData.Noop -> loop s pos l true
                     | a ->
-                        PocofData.invokeAction a s pos
+                        PocofData.invokeAction a s pos props
                         |> fun (s, p) -> loop s p l false
                 else
                     Thread.Sleep(50) // NOTE: to avoid high load.

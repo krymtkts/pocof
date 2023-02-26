@@ -266,7 +266,18 @@ module PocofData =
     let private switchSuppressProperties (state: InternalState) =
         { state with SuppressProperties = not state.SuppressProperties }
 
-    let invokeAction (action: Action) (state: InternalState) (pos: Position) =
+    let private completeProperty (state: InternalState) (pos: Position) (props: string list) =
+        match state.PropertySearch with
+        | NonSearch -> state, pos
+        | Search q ->
+            let candidate =
+                props
+                |> List.filter (fun p -> p.StartsWith(q))
+                |> List.head
+
+            { state with Query = sprintf ":%s" candidate }, pos
+
+    let invokeAction (action: Action) (state: InternalState) (pos: Position) (props: string list) =
         match action with
         | AddChar c -> addQuery state pos c
         | BackwardChar -> moveBackward state pos
@@ -286,7 +297,7 @@ module PocofData =
         | SelectDown -> state, pos // TODO: implement it.
         | ScrollPageUp -> state, pos // TODO: implement it.
         | ScrollPageDown -> state, pos // TODO: implement it.
-        | TabExpansion -> state, pos // TODO: implement it.
+        | TabExpansion -> completeProperty state pos props
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name
