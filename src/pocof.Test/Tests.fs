@@ -1,7 +1,12 @@
 module Tests
 
-open System
 open Xunit
+open FsUnitTyped
 
-[<Fact>]
-let ``My test`` () = Assert.True(true)
+module ``Pocof Tests`` =
+
+    [<Fact>]
+    let ``Sample test should equals 1`` () = 1 |> shouldEqual 1
+
+[<EntryPoint>]
+let main argv = 0
