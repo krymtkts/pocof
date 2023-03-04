@@ -38,8 +38,14 @@ module PocofAction =
         let k = getKey ()
 
         let kstr =
-            if ConsoleModifiers.IsDefined k.Modifiers then
-                k.Modifiers.ToString().Replace(",", "+")
+            let m =
+                [ ConsoleModifiers.Alt
+                  ConsoleModifiers.Shift
+                  ConsoleModifiers.Control ]
+                |> List.exists k.Modifiers.HasFlag
+
+            if m then
+                k.Modifiers.ToString().Replace(", ", "+")
                 + "+"
                 + k.Key.ToString()
             else
