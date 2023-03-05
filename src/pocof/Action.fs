@@ -1,65 +1,130 @@
 namespace pocof
 
 open System
+open System.Collections
 
 module PocofAction =
-    let internal keyMap =
-        // TODO: cannot use map literal with Ionide.
-        // TODO: change more better type structure.
-        [ ("Escape", PocofData.Cancel)
-          ("Control+C", PocofData.Cancel)
-          ("Enter", PocofData.Finish)
 
-          ("LeftArrow", PocofData.BackwardChar)
-          ("RightArrow", PocofData.ForwardChar)
-          ("Home", PocofData.BeginningOfLine)
-          ("End", PocofData.EndOfLine)
+    type private Modifires =
+        | NoModifier
+        | Modifier of ConsoleModifiers
 
-          ("Backspace", PocofData.DeleteBackwardChar)
-          ("Delete", PocofData.DeleteForwardChar)
-          ("Alt+U", PocofData.KillBeginningOfLine)
-          ("Alt+K", PocofData.KillEndOfLine)
+    let private kp (x: Modifires) k : PocofData.KeyPattern =
+        let m =
+            match x with
+            | NoModifier -> 0
+            | Modifier m -> m.GetHashCode()
 
-          ("Alt+R", PocofData.RotateMatcher)
-          ("Alt+L", PocofData.RotateOperator)
-          ("Alt+C", PocofData.ToggleCaseSensitive)
-          ("Alt+I", PocofData.ToggleInvertFilter)
+        { Modifier = m; Key = k }
 
-          ("Control+Spacebar", PocofData.ToggleSuppressProperties)
-          ("UpArrow", PocofData.SelectUp)
-          ("DownArrow", PocofData.SelectDown)
-          ("PageUp", PocofData.ScrollPageUp)
-          ("PageDown", PocofData.ScrollPageDown)
+    // Shorthands for defining the default keymap.
+    let private nom = kp NoModifier
+    let private alt = kp <| Modifier(ConsoleModifiers.Alt)
+    let private ctrl = kp <| Modifier(ConsoleModifiers.Control)
 
-          ("Tab", PocofData.TabExpansion) ]
-        |> Map.ofSeq
+    let private defaultKeymap =
+        Map [ (nom ConsoleKey.Escape, PocofData.Cancel)
+              (ctrl ConsoleKey.C, PocofData.Cancel)
+              (nom ConsoleKey.Enter, PocofData.Finish)
 
-    let get (userKeymap: Map<String, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
+              (nom ConsoleKey.LeftArrow, PocofData.BackwardChar)
+              (nom ConsoleKey.RightArrow, PocofData.ForwardChar)
+              (nom ConsoleKey.Home, PocofData.BeginningOfLine)
+              (nom ConsoleKey.End, PocofData.EndOfLine)
+
+              (nom ConsoleKey.Backspace, PocofData.DeleteBackwardChar)
+              (nom ConsoleKey.Delete, PocofData.DeleteForwardChar)
+              (alt ConsoleKey.U, PocofData.KillBeginningOfLine)
+              (alt ConsoleKey.K, PocofData.KillEndOfLine)
+
+              (alt ConsoleKey.R, PocofData.RotateMatcher)
+              (alt ConsoleKey.L, PocofData.RotateOperator)
+              (alt ConsoleKey.C, PocofData.ToggleCaseSensitive)
+              (alt ConsoleKey.I, PocofData.ToggleInvertFilter)
+
+              (ctrl ConsoleKey.Spacebar, PocofData.ToggleSuppressProperties)
+              (nom ConsoleKey.UpArrow, PocofData.SelectUp)
+              (nom ConsoleKey.DownArrow, PocofData.SelectDown)
+              (nom ConsoleKey.PageUp, PocofData.ScrollPageUp)
+              (nom ConsoleKey.PageDown, PocofData.ScrollPageDown)
+
+              (nom ConsoleKey.Tab, PocofData.TabExpansion) ]
+
+    let inline toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
+        let ok, e = Enum.TryParse<'a>(k, true)
+        if ok then Some e else None
+
+    let toKeyPattern (s: string) =
+        match s.Split('+') |> List.ofSeq |> List.rev with
+        | [] -> failwith "Unreachable pass."
+        | [ k ] ->
+            match toEnum<ConsoleKey> k with
+            | Some e -> Ok <| nom e
+            | None -> Error <| sprintf "Unsupported key '%s'." k
+        | k :: ms ->
+            let ke = toEnum<ConsoleKey> k
+
+            let me =
+                ms
+                |> List.map toEnum<ConsoleModifiers>
+                |> List.fold
+                    (fun acc e ->
+                        match (acc, e) with
+                        | (Some a, Some x) -> a ||| x.GetHashCode() |> Some
+                        | _ -> None)
+                    (Some 0)
+
+            match (ke, me) with
+            | (Some k, Some m) -> Ok { Modifier = m; Key = k }
+            | _ -> Error <| sprintf "Unsupported combination '%s'." s
+
+    let convertKeymaps (h: Hashtable) =
+        match h with
+        | null -> defaultKeymap
+        | x ->
+            x
+            |> Seq.cast<DictionaryEntry>
+            |> Seq.map (fun e ->
+                let k = e.Key.ToString() |> toKeyPattern
+                let v = e.Value.ToString() |> PocofData.Action.ofString
+
+                match (k, v) with
+                | (Ok kv, v) -> (kv, v)
+                | (Error e, _) -> failwith e) // TODO: enhance error handling.
+            |> Map
+
+    type private KeyInfo =
+        { Pattern: PocofData.KeyPattern
+          KeyChar: char }
+
+    type private Key =
+        | Char of char
+        | Control of ConsoleKey
+        | Modifier of PocofData.KeyPattern
+        | Shortcut of PocofData.Action
+
+    let private key (getKey: unit -> ConsoleKeyInfo) =
         let k = getKey ()
+        let m = k.Modifiers.GetHashCode()
 
-        let kstr =
-            let m =
-                [ ConsoleModifiers.Alt
-                  ConsoleModifiers.Shift
-                  ConsoleModifiers.Control ]
-                |> List.exists k.Modifiers.HasFlag
+        { KeyChar = k.KeyChar
+          Pattern = { Modifier = m; Key = k.Key } }
 
-            if m then
-                k.Modifiers.ToString().Replace(", ", "+")
-                + "+"
-                + k.Key.ToString()
-            else
-                k.Key.ToString()
-
-        if Map.containsKey kstr userKeymap then
-            userKeymap.[kstr]
-        elif Map.containsKey kstr keyMap then
-            keyMap.[kstr]
-        elif
-            k.Modifiers.HasFlag ConsoleModifiers.Alt
-            || k.Modifiers.HasFlag ConsoleModifiers.Control // NOTE: block non-shift modifiers.
-            || Char.IsControl(k.KeyChar)
-        then
-            PocofData.None
+    let private keyToAction (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (key: KeyInfo) =
+        if Map.containsKey key.Pattern defaultKeymap then
+            Shortcut defaultKeymap.[key.Pattern]
+        elif Map.containsKey key.Pattern keymap then // TODO; currently cannot overrides default keymap...
+            Shortcut keymap.[key.Pattern]
+        elif key.Pattern.Modifier > 0 then
+            Modifier key.Pattern
+        elif Char.IsControl(key.KeyChar) then
+            Control key.Pattern.Key
         else
-            PocofData.AddChar k.KeyChar
+            Char key.KeyChar
+
+    let get (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
+        match key getKey |> keyToAction keymap with
+        | Char c -> PocofData.AddChar c
+        | Control _
+        | Modifier _ -> PocofData.None
+        | Shortcut a -> a

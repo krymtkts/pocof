@@ -173,7 +173,7 @@ type SelectPocofCommand() =
                   SuppressProperties = suppressProperties
                   Prompt = __.Prompt
                   Layout = __.Layout
-                  Keymaps = __.Keymaps }
+                  Keymaps = __.Keymaps |> PocofAction.convertKeymaps }
 
         interact conf state pos __.Host.UI.RawUI __.invoke
         |> Seq.iter __.WriteObject
