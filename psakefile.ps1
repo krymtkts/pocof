@@ -5,15 +5,15 @@ Properties {
     if ($DryRun -eq $null) {
         $DryRun = $true
     }
-    $ModuleName = Resolve-Path ./src/* | Split-Path -Leaf
-    $ModuleVersion = (Resolve-Path ./src/*/*.fsproj | Select-Xml '//Version/text()').Node.Value
+    $ModuleName = Resolve-Path ./src/*/*.psd1 | Split-Path -LeafBase
+    $ModuleVersion = (Resolve-Path "./src/${ModuleName}/*.fsproj" | Select-Xml '//Version/text()').Node.Value
     $ModuleRoot = Split-Path -Parent $PSCommandPath
     "Module: $ModuleName ver$ModuleVersion root=$ModuleRoot"
 }
 
 Task default -depends TestAll
 
-Task TestAll -depends Init, Build, Test
+Task TestAll -depends Init, Build, UnitTest, Test
 
 Task Init {
     'Init is running!'
@@ -29,12 +29,20 @@ Task Clean {
 
 Task Build -depends Clean {
     'Build command let!'
-    Import-LocalizedData -BindingVariable module -BaseDirectory (Resolve-Path ./src/*) -FileName "$ModuleName.psd1"
-    if ($module.ModuleVersion -ne (Resolve-Path ./src/*/*.fsproj | Select-Xml '//Version/text()').Node.Value) {
+    Import-LocalizedData -BindingVariable module -BaseDirectory (Resolve-Path "./src/${ModuleName}/") -FileName "$ModuleName.psd1"
+    if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
     dotnet publish -c $Stage
     "Completed to build $ModuleName ver$ModuleVersion"
+}
+
+Task UnitTest {
+    dotnet test --collect:"XPlat Code Coverage" --nologo
+}
+
+Task Coverage -depends UnitTest {
+    reportgenerator -reports:'.\src\pocof.Test\TestResults\*\coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
 
 Task Import -depends Build {
@@ -48,7 +56,7 @@ Task Import -depends Build {
         }
         'Release' {
             $installPath = Join-Path ($env:PSModulePath -split ';' -like '*\Users\*') $ModuleName -AdditionalChildPath $ModuleVersion
-            Copy-Item (Resolve-Path ./src/*/bin/Release/*/publish/*) $installPath -Verbose -Force
+            Copy-Item (Resolve-Path "./src/${ModuleName}/bin/Release/*/publish/*") $installPath -Verbose -Force
             Import-Module $ModuleName -Global
         }
     }
@@ -62,7 +70,7 @@ Task ExternalHelp -depends Import {
     if (-not (Test-Path ./docs)) {
         New-MarkdownHelp -Module pocof -OutputFolder ./docs
     }
-    New-ExternalHelp docs -OutputPath (Resolve-Path ./src/*/) -Force
+    New-ExternalHelp docs -OutputPath (Resolve-Path "./src/${ModuleName}/") -Force
 }
 
 Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp {
