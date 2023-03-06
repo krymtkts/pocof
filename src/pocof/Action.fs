@@ -6,34 +6,34 @@ open System.Collections
 module PocofAction =
 
     type private Modifires =
-        | NoModifier
+        | Plain
         | Modifier of ConsoleModifiers
 
-    let private kp (x: Modifires) k : PocofData.KeyPattern =
+    let private modify (x: Modifires) k : PocofData.KeyPattern =
         let m =
             match x with
-            | NoModifier -> 0
+            | Plain -> 0
             | Modifier m -> m.GetHashCode()
 
         { Modifier = m; Key = k }
 
     // Shorthands for defining the default keymap.
-    let private nom = kp NoModifier
-    let private alt = kp <| Modifier(ConsoleModifiers.Alt)
-    let private ctrl = kp <| Modifier(ConsoleModifiers.Control)
+    let private plain = modify Plain
+    let private alt = modify <| Modifier(ConsoleModifiers.Alt)
+    let private ctrl = modify <| Modifier(ConsoleModifiers.Control)
 
     let private defaultKeymap =
-        Map [ (nom ConsoleKey.Escape, PocofData.Cancel)
+        Map [ (plain ConsoleKey.Escape, PocofData.Cancel)
               (ctrl ConsoleKey.C, PocofData.Cancel)
-              (nom ConsoleKey.Enter, PocofData.Finish)
+              (plain ConsoleKey.Enter, PocofData.Finish)
 
-              (nom ConsoleKey.LeftArrow, PocofData.BackwardChar)
-              (nom ConsoleKey.RightArrow, PocofData.ForwardChar)
-              (nom ConsoleKey.Home, PocofData.BeginningOfLine)
-              (nom ConsoleKey.End, PocofData.EndOfLine)
+              (plain ConsoleKey.LeftArrow, PocofData.BackwardChar)
+              (plain ConsoleKey.RightArrow, PocofData.ForwardChar)
+              (plain ConsoleKey.Home, PocofData.BeginningOfLine)
+              (plain ConsoleKey.End, PocofData.EndOfLine)
 
-              (nom ConsoleKey.Backspace, PocofData.DeleteBackwardChar)
-              (nom ConsoleKey.Delete, PocofData.DeleteForwardChar)
+              (plain ConsoleKey.Backspace, PocofData.DeleteBackwardChar)
+              (plain ConsoleKey.Delete, PocofData.DeleteForwardChar)
               (alt ConsoleKey.U, PocofData.KillBeginningOfLine)
               (alt ConsoleKey.K, PocofData.KillEndOfLine)
 
@@ -43,12 +43,12 @@ module PocofAction =
               (alt ConsoleKey.I, PocofData.ToggleInvertFilter)
 
               (ctrl ConsoleKey.Spacebar, PocofData.ToggleSuppressProperties)
-              (nom ConsoleKey.UpArrow, PocofData.SelectUp)
-              (nom ConsoleKey.DownArrow, PocofData.SelectDown)
-              (nom ConsoleKey.PageUp, PocofData.ScrollPageUp)
-              (nom ConsoleKey.PageDown, PocofData.ScrollPageDown)
+              (plain ConsoleKey.UpArrow, PocofData.SelectUp)
+              (plain ConsoleKey.DownArrow, PocofData.SelectDown)
+              (plain ConsoleKey.PageUp, PocofData.ScrollPageUp)
+              (plain ConsoleKey.PageDown, PocofData.ScrollPageDown)
 
-              (nom ConsoleKey.Tab, PocofData.TabExpansion) ]
+              (plain ConsoleKey.Tab, PocofData.TabExpansion) ]
 
     let inline toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
         let ok, e = Enum.TryParse<'a>(k, true)
@@ -59,12 +59,12 @@ module PocofAction =
         | [] -> failwith "Unreachable pass."
         | [ k ] ->
             match toEnum<ConsoleKey> k with
-            | Some e -> Ok <| nom e
+            | Some e -> Ok <| plain e
             | None -> Error <| sprintf "Unsupported key '%s'." k
         | k :: ms ->
-            let ke = toEnum<ConsoleKey> k
+            let k = toEnum<ConsoleKey> k
 
-            let me =
+            let m =
                 ms
                 |> List.map toEnum<ConsoleModifiers>
                 |> List.fold
@@ -74,7 +74,7 @@ module PocofAction =
                         | _ -> None)
                     (Some 0)
 
-            match (ke, me) with
+            match (k, m) with
             | (Some k, Some m) -> Ok { Modifier = m; Key = k }
             | _ -> Error <| sprintf "Unsupported combination '%s'." s
 
