@@ -49,7 +49,6 @@ module ``PocofAction Tests`` =
 
         [<Fact>]
         let ``user-defined Action if matched.`` () =
-            // TODO: Unfortunately, the modifiers must be defined according to the order of ConsoleModifiers.
             let keyMap: Map<PocofData.KeyPattern, PocofData.Action> =
                 Map [ ({ Modifier = 7; Key = ConsoleKey.E }, PocofData.Finish) ]
 
