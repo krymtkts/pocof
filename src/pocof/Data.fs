@@ -106,10 +106,12 @@ module PocofData =
         | NonSearch
         | Search of string
 
+    type KeyPattern = { Modifier: int; Key: ConsoleKey }
+
     type InternalConfig =
         { Prompt: string
           Layout: Layout
-          Keymaps: Map<String, Action> // TODO: enhance this map.
+          Keymaps: Map<KeyPattern, Action>
           NotInteractive: bool }
 
     type QueryState =
@@ -149,24 +151,12 @@ module PocofData =
           SuppressProperties: bool
           Prompt: string
           Layout: string
-          Keymaps: Hashtable }
-
-    let private convertKeymaps (h: Hashtable) =
-        if h = null then
-            Map []
-        else
-            h
-            |> Seq.cast<DictionaryEntry>
-            |> Seq.map (fun e ->
-                let k = e.Key.ToString()
-                let v = Action.ofString (e.Value.ToString())
-                (k, v))
-            |> Map.ofSeq
+          Keymaps: Map<KeyPattern, Action> }
 
     let initConfig (p: IncomingParameters) =
         { Prompt = p.Prompt
           Layout = Layout.ofString p.Layout
-          Keymaps = convertKeymaps p.Keymaps
+          Keymaps = p.Keymaps
           NotInteractive = p.NotInteractive },
         { Query = p.Query
           QueryState =
