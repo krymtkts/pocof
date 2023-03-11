@@ -8,7 +8,7 @@ open System.Collections
 
 
 module ``PocofAction Tests`` =
-    type ``toKeyPattern shoud returns``() =
+    module ``toKeyPattern shoud returns`` =
         [<Fact>]
         let ``A without modifiers.`` () =
             PocofAction.toKeyPattern "A"
@@ -39,7 +39,7 @@ module ``PocofAction Tests`` =
             PocofAction.toKeyPattern "c+c+c"
             |> shouldEqual (Error "Unsupported combination 'c+c+c'.")
 
-    type ``get should returns ``() =
+    module ``get should returns `` =
         [<Fact>]
         let ``PocofData.AddChar if no modifier is specified.`` () =
             let getKey = fun () -> new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
@@ -92,9 +92,9 @@ module ``PocofAction Tests`` =
     //     actual |> shouldEqual PocofData.None
 
 
-    type convertKeymaps() =
+    module ``convertKeymaps should returns `` =
         [<Fact>]
-        let ``a`` () =
+        let ``map transformed from hastable`` () =
             let h = new Hashtable()
             h.Add("Control+Alt+Shift+X", "Cancel")
 
@@ -104,7 +104,7 @@ module ``PocofAction Tests`` =
 module ``PocofData Tests`` =
     open Microsoft.FSharp.Reflection
 
-    type ``Action fromString shoud returns``() =
+    module ``Action fromString shoud returns`` =
         [<Fact>]
         let ``Error Unknown.`` () =
             PocofData.Action.fromString "Unknown"
@@ -132,7 +132,7 @@ module ``PocofData Tests`` =
             fromString a.Name
             |> shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a))
 
-    type ``Matcher fromString shoud returns``() =
+    module ``Matcher fromString shoud returns`` =
         [<Fact>]
         let ``Error Unknown.`` () =
             ``Error Unknown.``<PocofData.Matcher> PocofData.Matcher.fromString
@@ -141,7 +141,7 @@ module ``PocofData Tests`` =
         let ``known matchers.`` () =
             ``known matchers.``<PocofData.Matcher> PocofData.Matcher.fromString
 
-    type ``Operator fromString shoud returns``() =
+    module ``Operator fromString shoud returns`` =
         [<Fact>]
         let ``Error Unknown.`` () =
             ``Error Unknown.``<PocofData.Operator> PocofData.Operator.fromString
@@ -150,7 +150,7 @@ module ``PocofData Tests`` =
         let ``known matchers.`` () =
             ``known matchers.``<PocofData.Operator> PocofData.Operator.fromString
 
-    type ``Layout fromString shoud returns``() =
+    module ``Layout fromString shoud returns`` =
         [<Fact>]
         let ``Error Unknown.`` () =
             ``Error Unknown.``<PocofData.Layout> PocofData.Layout.fromString
