@@ -86,11 +86,14 @@ module PocofAction =
             |> Seq.cast<DictionaryEntry>
             |> Seq.map (fun e ->
                 let k = e.Key.ToString() |> toKeyPattern
-                let v = e.Value.ToString() |> PocofData.Action.ofString
+                let v = e.Value.ToString() |> PocofData.Action.fromString
 
                 match (k, v) with
-                | (Ok kv, v) -> (kv, v)
-                | (Error e, _) -> failwith e) // TODO: enhance error handling.
+                | (Ok kv, Ok av) -> (kv, av)
+                // TODO: enhance error handling.
+                | (Error e1, Error e2) -> failwith <| e1 + e2
+                | (Error e, _)
+                | (_, Error e) -> failwith e)
             |> Map
 
     type private KeyInfo =
@@ -126,5 +129,5 @@ module PocofAction =
         match key getKey |> keyToAction keymap with
         | Char c -> PocofData.AddChar c
         | Control _
-        | Modifier _ -> PocofData.None
+        | Modifier _ -> PocofData.Noop
         | Shortcut a -> a

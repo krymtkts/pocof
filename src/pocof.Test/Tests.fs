@@ -80,7 +80,7 @@ module ``PocofAction Tests`` =
             let getKey = fun () -> new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true)
             let actual = PocofAction.get keyMap getKey
 
-            actual |> shouldEqual PocofData.None
+            actual |> shouldEqual PocofData.Noop
 
     // [<Fact>]
     // let ``None if not match the keymap.`` () =
@@ -101,6 +101,27 @@ module ``PocofAction Tests`` =
             PocofAction.convertKeymaps h
             |> shouldEqual (Map[({ Modifier = 7; Key = ConsoleKey.X }, PocofData.Cancel)])
 
+module ``PocofData Tests`` =
+    open Microsoft.FSharp.Reflection
+
+    type ``Action fromString shoud returns``() =
+        [<Fact>]
+        let ``Error Unknown.`` () =
+            PocofData.Action.fromString "Unknown"
+            |> shouldEqual (Error "Unknown action. 'Unknown'")
+
+        [<Fact>]
+        let ``Error when AddChar.`` () =
+            PocofData.Action.fromString "AddChar"
+            |> shouldEqual (Error "Unknown action. 'AddChar'")
+
+        [<Fact>]
+        let ``known actions excluding AddChar.`` () =
+            FSharpType.GetUnionCases(typeof<PocofData.Action>)
+            |> Seq.filter (fun a -> a.Name <> "AddChar")
+            |> Seq.iter (fun a ->
+                PocofData.Action.fromString a.Name
+                |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> PocofData.Action)))
 
 [<EntryPoint>]
 let main argv = 0

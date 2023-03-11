@@ -3,6 +3,7 @@ namespace pocof
 open System
 open System.Management.Automation
 open System.Collections
+open Microsoft.FSharp.Reflection
 
 module PocofData =
     type Entry =
@@ -17,7 +18,7 @@ module PocofData =
             | Obj (o) -> o)
 
     type Action =
-        | None
+        | Noop
         | Cancel
         | Finish
         // move.
@@ -45,30 +46,18 @@ module PocofData =
         // autocomplete
         | TabExpansion
 
-        static member ofString s =
-            match s with
-            | "None" -> None
-            | "Cancel" -> Cancel
-            | "Finish" -> Finish
-            | "BackwardChar" -> BackwardChar
-            | "ForwardChar" -> ForwardChar
-            | "BeginningOfLine" -> BeginningOfLine
-            | "EndOfLine" -> EndOfLine
-            | "DeleteBackwardChar" -> DeleteBackwardChar
-            | "DeleteForwardChar" -> DeleteForwardChar
-            | "KillBeginningOfLine" -> KillBeginningOfLine
-            | "KillEndOfLine" -> KillEndOfLine
-            | "RotateMatcher" -> RotateMatcher
-            | "RotateOperator" -> RotateOperator
-            | "ToggleCaseSensitive" -> ToggleCaseSensitive
-            | "ToggleInvertFilter" -> ToggleInvertFilter
-            | "ToggleSelectionAndSelectNext" -> ToggleSuppressProperties
-            | "SelectUp" -> SelectUp
-            | "SelectDown" -> SelectDown
-            | "ScrollPageUp" -> ScrollPageUp
-            | "ScrollPageDown" -> ScrollPageDown
-            | "TabExpansion" -> TabExpansion
-            | _ -> failwithf "this is a unmodifiable Action. action='%s'" s
+        static member conversionTable =
+            let excludes = Set [ "AddChar" ]
+
+            FSharpType.GetUnionCases(typeof<Action>)
+            |> Seq.filter (fun a -> not <| Set.contains a.Name excludes)
+            |> Seq.map (fun a -> (a.Name, (FSharpValue.MakeUnion(a, [||]) :?> Action)))
+            |> Map
+
+        static member fromString s =
+            match Map.tryFind s Action.conversionTable with
+            | Some a -> Ok a
+            | _ -> Error <| sprintf "Unknown action. '%s'" s
 
 
     type Matcher =
