@@ -108,12 +108,12 @@ module ``PocofData Tests`` =
         [<Fact>]
         let ``Error Unknown.`` () =
             PocofData.Action.fromString "Unknown"
-            |> shouldEqual (Error "Unknown action. 'Unknown'")
+            |> shouldEqual (Error "Unknown case 'Unknown'.")
 
         [<Fact>]
         let ``Error when AddChar.`` () =
             PocofData.Action.fromString "AddChar"
-            |> shouldEqual (Error "Unknown action. 'AddChar'")
+            |> shouldEqual (Error "Unknown case 'AddChar'.")
 
         [<Fact>]
         let ``known actions excluding AddChar.`` () =
@@ -122,6 +122,42 @@ module ``PocofData Tests`` =
             |> Seq.iter (fun a ->
                 PocofData.Action.fromString a.Name
                 |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> PocofData.Action)))
+
+    let ``Error Unknown.``<'a> (fromString: string -> 'a) =
+        shouldFail (fun () -> fromString "Unknown" |> ignore)
+
+    let ``known matchers.``<'a> (fromString: string -> 'a) =
+        FSharpType.GetUnionCases(typeof<'a>)
+        |> Seq.iter (fun (a: UnionCaseInfo) ->
+            fromString a.Name
+            |> shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a))
+
+    type ``Matcher fromString shoud returns``() =
+        [<Fact>]
+        let ``Error Unknown.`` () =
+            ``Error Unknown.``<PocofData.Matcher> PocofData.Matcher.fromString
+
+        [<Fact>]
+        let ``known matchers.`` () =
+            ``known matchers.``<PocofData.Matcher> PocofData.Matcher.fromString
+
+    type ``Operator fromString shoud returns``() =
+        [<Fact>]
+        let ``Error Unknown.`` () =
+            ``Error Unknown.``<PocofData.Operator> PocofData.Operator.fromString
+
+        [<Fact>]
+        let ``known matchers.`` () =
+            ``known matchers.``<PocofData.Operator> PocofData.Operator.fromString
+
+    type ``Layout fromString shoud returns``() =
+        [<Fact>]
+        let ``Error Unknown.`` () =
+            ``Error Unknown.``<PocofData.Layout> PocofData.Layout.fromString
+
+        [<Fact>]
+        let ``known matchers.`` () =
+            ``known matchers.``<PocofData.Layout> PocofData.Layout.fromString
 
 [<EntryPoint>]
 let main argv = 0

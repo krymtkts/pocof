@@ -17,6 +17,21 @@ module PocofData =
             | Dict (dct) -> dct :> obj
             | Obj (o) -> o)
 
+    let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
+        match FSharpType.GetUnionCases typeof<'a>
+              |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
+              |> Seq.tryFind (fun u -> u.Name = s)
+            with
+        | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
+        | _ -> Error <| sprintf "Unknown case '%s'." s
+
+    let private fromString<'a> s =
+        match FSharpType.GetUnionCases typeof<'a>
+              |> Seq.tryFind (fun u -> u.Name = s)
+            with
+        | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
+        | _ -> failwithf "Unknown case '%s'." s
+
     type Action =
         | Noop
         | Cancel
@@ -45,51 +60,24 @@ module PocofData =
         | ScrollPageDown
         // autocomplete
         | TabExpansion
-
-        static member conversionTable =
-            let excludes = Set [ "AddChar" ]
-
-            FSharpType.GetUnionCases(typeof<Action>)
-            |> Seq.filter (fun a -> not <| Set.contains a.Name excludes)
-            |> Seq.map (fun a -> (a.Name, (FSharpValue.MakeUnion(a, [||]) :?> Action)))
-            |> Map
-
-        static member fromString s =
-            match Map.tryFind s Action.conversionTable with
-            | Some a -> Ok a
-            | _ -> Error <| sprintf "Unknown action. '%s'" s
-
+        static member fromString = tryFromStringExcludes<Action> <| set [ "AddChar" ]
 
     type Matcher =
         | EQ
         | LIKE
         | MATCH
-        static member ofString(s: string) =
-            match s.ToUpper() with
-            | "EQ" -> EQ
-            | "LIKE" -> LIKE
-            | "MATCH" -> MATCH
-            | _ -> failwithf "unrecognized Matcher. value='%s'" s
+        static member fromString = fromString<Matcher>
 
     type Operator =
         | AND
         | OR
         | NONE
-        static member ofString(s: string) =
-            match s.ToUpper() with
-            | "AND" -> AND
-            | "OR" -> OR
-            | "NONE" -> NONE
-            | _ -> failwithf "unrecognized Operator. value='%s'" s
+        static member fromString = fromString<Operator>
 
     type Layout =
         | TopDown
         | BottomUp
-        static member ofString s =
-            match s with
-            | "TopDown" -> TopDown
-            | "BottomUp" -> BottomUp
-            | _ -> failwithf "unrecognized Layout. value='%s'" s
+        static member fromString = fromString<Layout>
 
     type PropertySearch =
         | NonSearch
@@ -144,13 +132,13 @@ module PocofData =
 
     let initConfig (p: IncomingParameters) =
         { Prompt = p.Prompt
-          Layout = Layout.ofString p.Layout
+          Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
           NotInteractive = p.NotInteractive },
         { Query = p.Query
           QueryState =
-            { Matcher = Matcher.ofString p.Matcher
-              Operator = Operator.ofString p.Operator
+            { Matcher = Matcher.fromString p.Matcher
+              Operator = Operator.fromString p.Operator
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
           PropertySearch = NonSearch
