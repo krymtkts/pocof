@@ -70,7 +70,7 @@ type SelectPocofCommand() =
                     match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
                     | PocofData.Cancel -> []
                     | PocofData.Finish -> PocofData.unwrap l
-                    | PocofData.None -> loop s pos l true
+                    | PocofData.Noop -> loop s pos l true
                     | a ->
                         PocofData.invokeAction a s pos
                         |> fun (s, p) -> loop s p l false

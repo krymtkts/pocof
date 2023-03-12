@@ -8,7 +8,7 @@ open System.Collections
 
 
 module ``PocofAction Tests`` =
-    type ``toKeyPattern shoud returns``() =
+    module ``toKeyPattern shoud returns`` =
         [<Fact>]
         let ``A without modifiers.`` () =
             PocofAction.toKeyPattern "A"
@@ -39,7 +39,7 @@ module ``PocofAction Tests`` =
             PocofAction.toKeyPattern "c+c+c"
             |> shouldEqual (Error "Unsupported combination 'c+c+c'.")
 
-    type ``get should returns ``() =
+    module ``get should returns `` =
         [<Fact>]
         let ``PocofData.AddChar if no modifier is specified.`` () =
             let getKey = fun () -> new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
@@ -80,7 +80,7 @@ module ``PocofAction Tests`` =
             let getKey = fun () -> new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true)
             let actual = PocofAction.get keyMap getKey
 
-            actual |> shouldEqual PocofData.None
+            actual |> shouldEqual PocofData.Noop
 
     // [<Fact>]
     // let ``None if not match the keymap.`` () =
@@ -92,15 +92,191 @@ module ``PocofAction Tests`` =
     //     actual |> shouldEqual PocofData.None
 
 
-    type convertKeymaps() =
+    module ``convertKeymaps should returns `` =
         [<Fact>]
-        let ``a`` () =
+        let ``map transformed from hastable`` () =
             let h = new Hashtable()
             h.Add("Control+Alt+Shift+X", "Cancel")
 
             PocofAction.convertKeymaps h
             |> shouldEqual (Map[({ Modifier = 7; Key = ConsoleKey.X }, PocofData.Cancel)])
 
+module ``PocofData Tests`` =
+    open Microsoft.FSharp.Reflection
+
+    module ``Action fromString shoud returns`` =
+        [<Fact>]
+        let ``Error Unknown.`` () =
+            PocofData.Action.fromString "Unknown"
+            |> shouldEqual (Error "Unknown case 'Unknown'.")
+
+        [<Fact>]
+        let ``Error when AddChar.`` () =
+            PocofData.Action.fromString "AddChar"
+            |> shouldEqual (Error "Unknown case 'AddChar'.")
+
+        [<Fact>]
+        let ``known actions excluding AddChar.`` () =
+            FSharpType.GetUnionCases(typeof<PocofData.Action>)
+            |> Seq.filter (fun a -> a.Name <> "AddChar")
+            |> Seq.iter (fun a ->
+                PocofData.Action.fromString a.Name
+                |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> PocofData.Action)))
+
+    let ``Error Unknown.``<'a> (fromString: string -> 'a) =
+        shouldFail (fun () -> fromString "Unknown" |> ignore)
+
+    let ``known matchers.``<'a> (fromString: string -> 'a) =
+        FSharpType.GetUnionCases(typeof<'a>)
+        |> Seq.iter (fun (a: UnionCaseInfo) ->
+            fromString a.Name
+            |> shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a))
+
+    module ``Matcher fromString shoud returns`` =
+        [<Fact>]
+        let ``Error Unknown.`` () =
+            ``Error Unknown.``<PocofData.Matcher> PocofData.Matcher.fromString
+
+        [<Fact>]
+        let ``known matchers.`` () =
+            ``known matchers.``<PocofData.Matcher> PocofData.Matcher.fromString
+
+    module ``Operator fromString shoud returns`` =
+        [<Fact>]
+        let ``Error Unknown.`` () =
+            ``Error Unknown.``<PocofData.Operator> PocofData.Operator.fromString
+
+        [<Fact>]
+        let ``known matchers.`` () =
+            ``known matchers.``<PocofData.Operator> PocofData.Operator.fromString
+
+    module ``Layout fromString shoud returns`` =
+        [<Fact>]
+        let ``Error Unknown.`` () =
+            ``Error Unknown.``<PocofData.Layout> PocofData.Layout.fromString
+
+        [<Fact>]
+        let ``known matchers.`` () =
+            ``known matchers.``<PocofData.Layout> PocofData.Layout.fromString
+
+    module ``QueryState toString should returns`` =
+        [<Fact>]
+        let ``eq and`` () =
+            let actual: PocofData.QueryState =
+                { Matcher = PocofData.Matcher.EQ
+                  Operator = PocofData.Operator.AND
+                  CaseSensitive = false
+                  Invert = false }
+
+            actual.toString |> shouldEqual "eq and"
+
+        [<Fact>]
+        let ``cne or`` () =
+            let actual: PocofData.QueryState =
+                { Matcher = PocofData.Matcher.EQ
+                  Operator = PocofData.Operator.OR
+                  CaseSensitive = true
+                  Invert = true }
+
+            actual.toString |> shouldEqual "cne or"
+
+        [<Fact>]
+        let ``like and`` () =
+            let actual: PocofData.QueryState =
+                { Matcher = PocofData.Matcher.LIKE
+                  Operator = PocofData.Operator.AND
+                  CaseSensitive = false
+                  Invert = false }
+
+            actual.toString |> shouldEqual "like and"
+
+        [<Fact>]
+        let ``notcmatch or`` () =
+            let actual: PocofData.QueryState =
+                { Matcher = PocofData.Matcher.MATCH
+                  Operator = PocofData.Operator.OR
+                  CaseSensitive = true
+                  Invert = true }
+
+            actual.toString |> shouldEqual "notcmatch or"
+
+    module ``initConfig `` =
+        [<Fact>]
+        let ``should returns tuples`` () =
+            PocofData.initConfig
+                { Query = ":name"
+                  Matcher = "like"
+                  Operator = "and"
+                  CaseSensitive = true
+                  InvertQuery = true
+                  NotInteractive = true
+                  SuppressProperties = true
+                  Prompt = "prompt"
+                  Layout = "TopDown"
+                  Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, PocofData.Cancel) ] }
+            |> shouldEqual
+            <| ({ Prompt = "prompt"
+                  Layout = PocofData.Layout.TopDown
+                  Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, PocofData.Cancel) ]
+                  NotInteractive = true },
+                { Query = ":name"
+                  QueryState =
+                    { Matcher = PocofData.Matcher.LIKE
+                      Operator = PocofData.Operator.AND
+                      CaseSensitive = true
+                      Invert = true }
+                  PropertySearch = PocofData.PropertySearch.Search "name"
+                  Notification = ""
+                  SuppressProperties = true },
+                { X = 5; Y = 0 })
+
+        [<Fact>]
+        let ``should fail due to unknown Matcher.`` () =
+            shouldFail (fun () ->
+                PocofData.initConfig
+                    { Query = ""
+                      Matcher = "same"
+                      Operator = "or"
+                      CaseSensitive = false
+                      InvertQuery = false
+                      NotInteractive = false
+                      SuppressProperties = false
+                      Prompt = "prompt"
+                      Layout = "TopDown"
+                      Keymaps = Map [] }
+                |> ignore)
+
+        [<Fact>]
+        let ``should fail due to unknown Operator.`` () =
+            shouldFail (fun () ->
+                PocofData.initConfig
+                    { Query = ""
+                      Matcher = "eq"
+                      Operator = "not"
+                      CaseSensitive = false
+                      InvertQuery = false
+                      NotInteractive = false
+                      SuppressProperties = false
+                      Prompt = "prompt"
+                      Layout = "TopDown"
+                      Keymaps = Map [] }
+                |> ignore)
+
+        [<Fact>]
+        let ``should fail due to unknown Layout.`` () =
+            shouldFail (fun () ->
+                PocofData.initConfig
+                    { Query = ""
+                      Matcher = "eq"
+                      Operator = "or"
+                      CaseSensitive = false
+                      InvertQuery = false
+                      NotInteractive = false
+                      SuppressProperties = false
+                      Prompt = "prompt"
+                      Layout = "LeftToRight"
+                      Keymaps = Map [] }
+                |> ignore)
 
 [<EntryPoint>]
 let main argv = 0

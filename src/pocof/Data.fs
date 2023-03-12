@@ -3,6 +3,7 @@ namespace pocof
 open System
 open System.Management.Automation
 open System.Collections
+open Microsoft.FSharp.Reflection
 
 module PocofData =
     type Entry =
@@ -16,8 +17,23 @@ module PocofData =
             | Dict (dct) -> dct :> obj
             | Obj (o) -> o)
 
+    let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
+        match FSharpType.GetUnionCases typeof<'a>
+              |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
+              |> Seq.tryFind (fun u -> u.Name = s)
+            with
+        | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
+        | _ -> Error <| sprintf "Unknown case '%s'." s
+
+    let private fromString<'a> s =
+        match FSharpType.GetUnionCases typeof<'a>
+              |> Seq.tryFind (fun u -> u.Name = s)
+            with
+        | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
+        | _ -> failwithf "Unknown case '%s'." s
+
     type Action =
-        | None
+        | Noop
         | Cancel
         | Finish
         // move.
@@ -44,63 +60,24 @@ module PocofData =
         | ScrollPageDown
         // autocomplete
         | TabExpansion
-
-        static member ofString s =
-            match s with
-            | "None" -> None
-            | "Cancel" -> Cancel
-            | "Finish" -> Finish
-            | "BackwardChar" -> BackwardChar
-            | "ForwardChar" -> ForwardChar
-            | "BeginningOfLine" -> BeginningOfLine
-            | "EndOfLine" -> EndOfLine
-            | "DeleteBackwardChar" -> DeleteBackwardChar
-            | "DeleteForwardChar" -> DeleteForwardChar
-            | "KillBeginningOfLine" -> KillBeginningOfLine
-            | "KillEndOfLine" -> KillEndOfLine
-            | "RotateMatcher" -> RotateMatcher
-            | "RotateOperator" -> RotateOperator
-            | "ToggleCaseSensitive" -> ToggleCaseSensitive
-            | "ToggleInvertFilter" -> ToggleInvertFilter
-            | "ToggleSelectionAndSelectNext" -> ToggleSuppressProperties
-            | "SelectUp" -> SelectUp
-            | "SelectDown" -> SelectDown
-            | "ScrollPageUp" -> ScrollPageUp
-            | "ScrollPageDown" -> ScrollPageDown
-            | "TabExpansion" -> TabExpansion
-            | _ -> failwithf "this is a unmodifiable Action. action='%s'" s
-
+        static member fromString = tryFromStringExcludes<Action> <| set [ "AddChar" ]
 
     type Matcher =
         | EQ
         | LIKE
         | MATCH
-        static member ofString(s: string) =
-            match s.ToUpper() with
-            | "EQ" -> EQ
-            | "LIKE" -> LIKE
-            | "MATCH" -> MATCH
-            | _ -> failwithf "unrecognized Matcher. value='%s'" s
+        static member fromString = fromString<Matcher>
 
     type Operator =
         | AND
         | OR
         | NONE
-        static member ofString(s: string) =
-            match s.ToUpper() with
-            | "AND" -> AND
-            | "OR" -> OR
-            | "NONE" -> NONE
-            | _ -> failwithf "unrecognized Operator. value='%s'" s
+        static member fromString = fromString<Operator>
 
     type Layout =
         | TopDown
         | BottomUp
-        static member ofString s =
-            match s with
-            | "TopDown" -> TopDown
-            | "BottomUp" -> BottomUp
-            | _ -> failwithf "unrecognized Layout. value='%s'" s
+        static member fromString = fromString<Layout>
 
     type PropertySearch =
         | NonSearch
@@ -120,17 +97,18 @@ module PocofData =
           CaseSensitive: bool
           Invert: bool }
         member __.toString =
-            match __.Matcher with
-            | EQ ->
-                [ if __.CaseSensitive then "c" else ""
-                  if __.Invert then "ne" else "eq" ]
-            | _ ->
-                [ if __.Invert then "not" else ""
-                  if __.CaseSensitive then "c" else ""
-                  __.Matcher.ToString().ToLower() ]
+            List.append
+            <| match __.Matcher with
+               | EQ ->
+                   [ if __.CaseSensitive then "c" else ""
+                     if __.Invert then "ne" else "eq" ]
+               | _ ->
+                   [ if __.Invert then "not" else ""
+                     if __.CaseSensitive then "c" else ""
+                     __.Matcher.ToString().ToLower() ]
+            <| [ " "
+                 __.Operator.ToString().ToLower() ]
             |> String.concat ""
-            |> (+)
-            <| " " + __.Operator.ToString().ToLower()
 
     type InternalState =
         { Query: string
@@ -153,22 +131,6 @@ module PocofData =
           Layout: string
           Keymaps: Map<KeyPattern, Action> }
 
-    let initConfig (p: IncomingParameters) =
-        { Prompt = p.Prompt
-          Layout = Layout.ofString p.Layout
-          Keymaps = p.Keymaps
-          NotInteractive = p.NotInteractive },
-        { Query = p.Query
-          QueryState =
-            { Matcher = Matcher.ofString p.Matcher
-              Operator = Operator.ofString p.Operator
-              CaseSensitive = p.CaseSensitive
-              Invert = p.InvertQuery }
-          PropertySearch = NonSearch
-          Notification = ""
-          SuppressProperties = p.SuppressProperties },
-        { X = p.Query.Length; Y = 0 }
-
     let private getCurrentProperty (query: string) (x: int) =
         let p = query.[..x].Split [| ' ' |] |> Seq.last
 
@@ -176,6 +138,22 @@ module PocofData =
             Search <| p.[1..]
         else
             NonSearch
+
+    let initConfig (p: IncomingParameters) =
+        { Prompt = p.Prompt
+          Layout = Layout.fromString p.Layout
+          Keymaps = p.Keymaps
+          NotInteractive = p.NotInteractive },
+        { Query = p.Query
+          QueryState =
+            { Matcher = Matcher.fromString <| p.Matcher.ToUpper()
+              Operator = Operator.fromString <| p.Operator.ToUpper()
+              CaseSensitive = p.CaseSensitive
+              Invert = p.InvertQuery }
+          PropertySearch = getCurrentProperty p.Query p.Query.Length
+          Notification = ""
+          SuppressProperties = p.SuppressProperties },
+        { X = p.Query.Length; Y = 0 }
 
     let private addQuery (state: InternalState) (pos: Position) (c: char) =
         let query = state.Query.Insert(pos.X, c.ToString())
