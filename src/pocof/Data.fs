@@ -131,6 +131,14 @@ module PocofData =
           Layout: string
           Keymaps: Map<KeyPattern, Action> }
 
+    let private getCurrentProperty (query: string) (x: int) =
+        let p = query.[..x].Split [| ' ' |] |> Seq.last
+
+        if p.StartsWith ":" then
+            Search <| p.[1..]
+        else
+            NonSearch
+
     let initConfig (p: IncomingParameters) =
         { Prompt = p.Prompt
           Layout = Layout.fromString p.Layout
@@ -142,18 +150,10 @@ module PocofData =
               Operator = Operator.fromString <| p.Operator.ToUpper()
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
-          PropertySearch = NonSearch
+          PropertySearch = getCurrentProperty p.Query p.Query.Length
           Notification = ""
           SuppressProperties = p.SuppressProperties },
         { X = p.Query.Length; Y = 0 }
-
-    let private getCurrentProperty (query: string) (x: int) =
-        let p = query.[..x].Split [| ' ' |] |> Seq.last
-
-        if p.StartsWith ":" then
-            Search <| p.[1..]
-        else
-            NonSearch
 
     let private addQuery (state: InternalState) (pos: Position) (c: char) =
         let query = state.Query.Insert(pos.X, c.ToString())

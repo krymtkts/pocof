@@ -200,5 +200,83 @@ module ``PocofData Tests`` =
 
             actual.toString |> shouldEqual "notcmatch or"
 
+    module ``initConfig `` =
+        [<Fact>]
+        let ``should returns tuples`` () =
+            PocofData.initConfig
+                { Query = ":name"
+                  Matcher = "like"
+                  Operator = "and"
+                  CaseSensitive = true
+                  InvertQuery = true
+                  NotInteractive = true
+                  SuppressProperties = true
+                  Prompt = "prompt"
+                  Layout = "TopDown"
+                  Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, PocofData.Cancel) ] }
+            |> shouldEqual
+            <| ({ Prompt = "prompt"
+                  Layout = PocofData.Layout.TopDown
+                  Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, PocofData.Cancel) ]
+                  NotInteractive = true },
+                { Query = ":name"
+                  QueryState =
+                    { Matcher = PocofData.Matcher.LIKE
+                      Operator = PocofData.Operator.AND
+                      CaseSensitive = true
+                      Invert = true }
+                  PropertySearch = PocofData.PropertySearch.Search "name"
+                  Notification = ""
+                  SuppressProperties = true },
+                { X = 5; Y = 0 })
+
+        [<Fact>]
+        let ``should fail due to unknown Matcher.`` () =
+            shouldFail (fun () ->
+                PocofData.initConfig
+                    { Query = ""
+                      Matcher = "same"
+                      Operator = "or"
+                      CaseSensitive = false
+                      InvertQuery = false
+                      NotInteractive = false
+                      SuppressProperties = false
+                      Prompt = "prompt"
+                      Layout = "TopDown"
+                      Keymaps = Map [] }
+                |> ignore)
+
+        [<Fact>]
+        let ``should fail due to unknown Operator.`` () =
+            shouldFail (fun () ->
+                PocofData.initConfig
+                    { Query = ""
+                      Matcher = "eq"
+                      Operator = "not"
+                      CaseSensitive = false
+                      InvertQuery = false
+                      NotInteractive = false
+                      SuppressProperties = false
+                      Prompt = "prompt"
+                      Layout = "TopDown"
+                      Keymaps = Map [] }
+                |> ignore)
+
+        [<Fact>]
+        let ``should fail due to unknown Layout.`` () =
+            shouldFail (fun () ->
+                PocofData.initConfig
+                    { Query = ""
+                      Matcher = "eq"
+                      Operator = "or"
+                      CaseSensitive = false
+                      InvertQuery = false
+                      NotInteractive = false
+                      SuppressProperties = false
+                      Prompt = "prompt"
+                      Layout = "LeftToRight"
+                      Keymaps = Map [] }
+                |> ignore)
+
 [<EntryPoint>]
 let main argv = 0
