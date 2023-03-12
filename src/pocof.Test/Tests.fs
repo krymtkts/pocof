@@ -159,5 +159,46 @@ module ``PocofData Tests`` =
         let ``known matchers.`` () =
             ``known matchers.``<PocofData.Layout> PocofData.Layout.fromString
 
+    module ``QueryState toString should returns`` =
+        [<Fact>]
+        let ``eq and`` () =
+            let actual: PocofData.QueryState =
+                { Matcher = PocofData.Matcher.EQ
+                  Operator = PocofData.Operator.AND
+                  CaseSensitive = false
+                  Invert = false }
+
+            actual.toString |> shouldEqual "eq and"
+
+        [<Fact>]
+        let ``cne or`` () =
+            let actual: PocofData.QueryState =
+                { Matcher = PocofData.Matcher.EQ
+                  Operator = PocofData.Operator.OR
+                  CaseSensitive = true
+                  Invert = true }
+
+            actual.toString |> shouldEqual "cne or"
+
+        [<Fact>]
+        let ``like and`` () =
+            let actual: PocofData.QueryState =
+                { Matcher = PocofData.Matcher.LIKE
+                  Operator = PocofData.Operator.AND
+                  CaseSensitive = false
+                  Invert = false }
+
+            actual.toString |> shouldEqual "like and"
+
+        [<Fact>]
+        let ``notcmatch or`` () =
+            let actual: PocofData.QueryState =
+                { Matcher = PocofData.Matcher.MATCH
+                  Operator = PocofData.Operator.OR
+                  CaseSensitive = true
+                  Invert = true }
+
+            actual.toString |> shouldEqual "notcmatch or"
+
 [<EntryPoint>]
 let main argv = 0
