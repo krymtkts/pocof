@@ -48,6 +48,13 @@ module ``PocofAction Tests`` =
             actual |> shouldEqual (PocofData.AddChar 'a')
 
         [<Fact>]
+        let ``PocofData.AddChar if symbol with shift.`` () =
+            let getKey = fun () -> new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false)
+            let actual = PocofAction.get Map.empty getKey
+
+            actual |> shouldEqual (PocofData.AddChar ':')
+
+        [<Fact>]
         let ``user-defined Action if matched.`` () =
             let keyMap: Map<PocofData.KeyPattern, PocofData.Action> =
                 Map [ ({ Modifier = 7; Key = ConsoleKey.E }, PocofData.Finish) ]
@@ -73,12 +80,19 @@ module ``PocofAction Tests`` =
             actual |> shouldEqual PocofData.BeginningOfLine
 
         [<Fact>]
-        let ``None if not match the keymap.`` () =
+        let ``PocofData.AddChar if not match the keymap.`` () =
             let keyMap: Map<PocofData.KeyPattern, PocofData.Action> =
                 Map [ ({ Modifier = 1; Key = ConsoleKey.U }, PocofData.KillBeginningOfLine) ]
 
             let getKey = fun () -> new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true)
             let actual = PocofAction.get keyMap getKey
+
+            actual |> shouldEqual (PocofData.AddChar 'u')
+
+        [<Fact>]
+        let ``PocofData.None if the control character not match the keymap.`` () =
+            let getKey = fun () -> new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true)
+            let actual = PocofAction.get Map.empty getKey
 
             actual |> shouldEqual PocofData.Noop
 
