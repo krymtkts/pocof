@@ -192,22 +192,22 @@ module PocofData =
         { pos with X = state.Query.Length }
 
     let private removeBackwardChar (state: InternalState) (pos: Position) =
-        let p =
-            if pos.X > 0 then
-                { pos with X = pos.X - 1 }
-            else
-                pos
+        if pos.X > 0 then
+            let p = { pos with X = pos.X - 1 }
 
-        let q =
-            if state.Query.Length > p.X then
-                state.Query.Remove(p.X, 1)
-            else
-                state.Query
+            let q =
+                if state.Query.Length > p.X then
+                    state.Query.Remove(p.X, 1)
+                else
+                    state.Query
 
-        { state with
-            Query = q
-            PropertySearch = getCurrentProperty q p.X },
-        p
+            { state with
+                Query = q
+                PropertySearch = getCurrentProperty q p.X },
+            p
+        else
+            state, pos
+
 
     let private removeForwardChar (state: InternalState) (pos: Position) =
         let q =
