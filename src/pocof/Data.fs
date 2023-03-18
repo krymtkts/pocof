@@ -140,6 +140,7 @@ module PocofData =
             NonSearch
 
     let initConfig (p: IncomingParameters) =
+        // TODO: Eliminate the possibility of failure from here.
         { Prompt = p.Prompt
           Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
@@ -236,7 +237,7 @@ module PocofData =
             PropertySearch = getCurrentProperty q pos.X },
         pos
 
-    let private switchFilter (state: InternalState) =
+    let private switchMatcher (state: InternalState) =
         { state with
             QueryState =
                 { state.QueryState with
@@ -276,7 +277,7 @@ module PocofData =
         | DeleteForwardChar -> removeForwardChar state pos
         | KillBeginningOfLine -> removeQueryHead state pos
         | KillEndOfLine -> removeQueryTail state pos
-        | RotateMatcher -> switchFilter state, pos
+        | RotateMatcher -> switchMatcher state, pos
         | RotateOperator -> switchOperator state, pos
         | ToggleCaseSensitive -> switchCaseSensitive state, pos
         | ToggleInvertFilter -> switchInvertFilter state, pos

@@ -292,5 +292,309 @@ module ``PocofData Tests`` =
                       Keymaps = Map [] }
                 |> ignore)
 
+    module ``invokeAction `` =
+        let defaultState: PocofData.InternalState =
+            { Query = ""
+              QueryState =
+                { Matcher = PocofData.Matcher.MATCH
+                  Operator = PocofData.Operator.OR
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = PocofData.PropertySearch.NonSearch
+              Notification = ""
+              SuppressProperties = false }
+
+        let defaultPosition: PocofData.Position = { X = 0; Y = 0 }
+
+        module ``with AddChar`` =
+            [<Fact>]
+            let ``should return a property search state and position.x = 1 when the char is colon.`` () =
+                PocofData.invokeAction (PocofData.AddChar ':') defaultState { X = 0; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":"
+                        PropertySearch = PocofData.PropertySearch.Search "" },
+                    { X = 1; Y = 0 })
+
+            [<Fact>]
+            let ``should return a non-search state and position.X = 6 when the char is space.`` () =
+                PocofData.invokeAction
+                    (PocofData.AddChar ' ')
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" }
+                    { X = 5; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name "
+                        PropertySearch = PocofData.PropertySearch.NonSearch },
+                    { X = 6; Y = 0 })
+
+        module ``with BackwardChar`` =
+            [<Fact>]
+            let ``should return state with pos unmodified when moving forward on ':name' with position.X=0.`` () =
+                let state =
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.NonSearch }
+
+                let position: PocofData.Position = { X = 0; Y = 0 }
+
+                PocofData.invokeAction (PocofData.BackwardChar) state position
+                |> shouldEqual
+                <| (state, position)
+
+            [<Fact>]
+            let ``should return state with position.X=4 when moving forward on ':name' with position.X=5.`` () =
+                PocofData.invokeAction
+                    (PocofData.BackwardChar)
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" }
+                    { X = 5; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "nam" },
+                    { X = 4; Y = 0 })
+
+        module ``with ForwardChar`` =
+            [<Fact>]
+            let ``should return state with position.X=2 when moving forward on ':name' with position.X=1.`` () =
+                PocofData.invokeAction
+                    PocofData.ForwardChar
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "" }
+                    { X = 1; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "n" },
+                    { X = 2; Y = 0 })
+
+            [<Fact>]
+            let ``should return state with pos unmodified when moving forward on ':name' with position.X=5 and query.Length=3.``
+                ()
+                =
+                PocofData.invokeAction
+                    PocofData.ForwardChar
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" }
+                    { X = 5; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" },
+                    { X = 5; Y = 0 })
+
+        module ``with BeginningOfLine`` =
+            ()
+
+        module ``with EndOfLine`` =
+            ()
+
+        module ``with DeleteBackwardChar`` =
+            [<Fact>]
+            let ``should remove the character to the left of cursor, making state.Query one character shorter.`` () =
+                PocofData.invokeAction
+                    PocofData.DeleteBackwardChar
+                    { defaultState with
+                        Query = ":name "
+                        PropertySearch = PocofData.PropertySearch.NonSearch }
+                    { X = 6; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" },
+                    { X = 5; Y = 0 })
+
+            [<Fact>]
+            let ``should not change state if the cursor position is at the begin of line.`` () =
+                PocofData.invokeAction
+                    PocofData.DeleteBackwardChar
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.NonSearch }
+                    { X = 0; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.NonSearch },
+                    { X = 0; Y = 0 })
+
+        module ``with DeleteForwardChar`` =
+            [<Fact>]
+            let ``should remove the character to the right of cursor, making state.Query one character shorter.`` () =
+                PocofData.invokeAction
+                    PocofData.DeleteForwardChar
+                    { defaultState with
+                        Query = ":name "
+                        PropertySearch = PocofData.PropertySearch.Search "name" }
+                    { X = 0; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = "name "
+                        PropertySearch = PocofData.PropertySearch.NonSearch },
+                    { X = 0; Y = 0 })
+
+            [<Fact>]
+            let ``should not change state if the cursor position is at the end of line.`` () =
+                PocofData.invokeAction
+                    PocofData.DeleteForwardChar
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" }
+                    { X = 5; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" },
+                    { X = 5; Y = 0 })
+
+        module ``with KillBeginningOfLine`` =
+            [<Fact>]
+            let ``should remove all characters before the specified position.`` () =
+                PocofData.invokeAction
+                    PocofData.KillBeginningOfLine
+                    { defaultState with Query = "examplequery" }
+                    { X = 7; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with Query = "query" }, { X = 0; Y = 0 })
+
+            [<Fact>]
+            let ``should not change state if the cursor position is at the begin of line.`` () =
+                PocofData.invokeAction
+                    PocofData.KillBeginningOfLine
+                    { defaultState with Query = "query" }
+                    { X = 0; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with Query = "query" }, { X = 0; Y = 0 })
+
+        module ``with KillEndOfLine`` =
+            [<Fact>]
+            let ``should remove characters after the current cursor position.`` () =
+                PocofData.invokeAction
+                    PocofData.KillEndOfLine
+                    { defaultState with Query = "examplequery" }
+                    { X = 7; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with Query = "example" }, { X = 7; Y = 0 })
+
+            [<Fact>]
+            let ``should not change state if the cursor position is at the end of line.`` () =
+                PocofData.invokeAction PocofData.KillEndOfLine { defaultState with Query = "example" } { X = 7; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with Query = "example" }, { X = 7; Y = 0 })
+
+        let testWithouPosition action state expected =
+            PocofData.invokeAction action state defaultPosition
+            |> shouldEqual
+            <| (expected, defaultPosition)
+
+        module ``with RotateMatcher`` =
+            let test before after =
+                testWithouPosition
+                    PocofData.RotateMatcher
+                    { defaultState with QueryState = { defaultState.QueryState with Matcher = before } }
+                    { defaultState with QueryState = { defaultState.QueryState with Matcher = after } }
+
+            [<Fact>]
+            let ``should switch EQ to LIKE.`` () =
+                test PocofData.Matcher.EQ PocofData.Matcher.LIKE
+
+            [<Fact>]
+            let ``should switch LIKE to MATCH.`` () =
+                test PocofData.Matcher.LIKE PocofData.Matcher.MATCH
+
+            [<Fact>]
+            let ``should switch MATCh to EQ.`` () =
+                test PocofData.Matcher.MATCH PocofData.Matcher.EQ
+
+        module ``with RotateOperator`` =
+            let test before after =
+                testWithouPosition
+                    PocofData.RotateOperator
+                    { defaultState with QueryState = { defaultState.QueryState with Operator = before } }
+                    { defaultState with QueryState = { defaultState.QueryState with Operator = after } }
+
+            [<Fact>]
+            let ``should switch NONE to OR.`` () =
+                test PocofData.Operator.NONE PocofData.Operator.OR
+
+            [<Fact>]
+            let ``should switch OR to AND.`` () =
+                test PocofData.Operator.OR PocofData.Operator.AND
+
+            [<Fact>]
+            let ``should switch AND to NONE.`` () =
+                test PocofData.Operator.AND PocofData.Operator.NONE
+
+        module ``with ToggleCaseSensitive`` =
+            let test before after =
+                testWithouPosition
+                    PocofData.ToggleCaseSensitive
+                    { defaultState with QueryState = { defaultState.QueryState with CaseSensitive = before } }
+                    { defaultState with QueryState = { defaultState.QueryState with CaseSensitive = after } }
+
+            [<Fact>]
+            let ``should return a enabled case sensitive.`` () = test false true
+
+            [<Fact>]
+            let ``should return a disabled case sensitive.`` () = test true false
+
+        module ``with ToggleInvertFilter`` =
+            let test before after () =
+                testWithouPosition
+                    PocofData.ToggleInvertFilter
+                    { defaultState with QueryState = { defaultState.QueryState with Invert = before } }
+                    { defaultState with QueryState = { defaultState.QueryState with Invert = after } }
+
+            [<Fact>]
+            let ``should return a enabled invert filter.`` () = test false true
+
+            [<Fact>]
+            let ``should return a disabled invert filter.`` () = test true false
+
+        module ``with ToggleSuppressProperties`` =
+            let test before after () =
+                testWithouPosition
+                    PocofData.ToggleSuppressProperties
+                    { defaultState with SuppressProperties = before }
+                    { defaultState with SuppressProperties = after }
+
+            [<Fact>]
+            let ``should return a enabled suppress property.`` () = test false true
+
+            [<Fact>]
+            let ``should return a disabled suppress property.`` () = test true false
+
+        let noop action =
+            PocofData.invokeAction action defaultState defaultPosition
+            |> shouldEqual
+            <| (defaultState, defaultPosition)
+
+
+        module ``with SelectUp`` =
+            [<Fact>]
+            let ``should return any difference when a uparrow is entered.`` () = noop PocofData.SelectUp
+
+        module ``with SelectDown`` =
+            [<Fact>]
+            let ``should return any difference when a downarrow is entered.`` () = noop PocofData.SelectDown
+
+        module ``with ScrollPageUp`` =
+            [<Fact>]
+            let ``should return any difference when a pageup is entered.`` () = noop PocofData.ScrollPageUp
+
+        module ``with ScrollPageDown`` =
+            [<Fact>]
+            let ``should return any difference when a pagedown is entered.`` () = noop PocofData.ScrollPageDown
+
+        module ``with TabExpansion`` =
+            [<Fact>]
+            let ``should return any difference when a tab is entered.`` () = noop PocofData.TabExpansion
+
 [<EntryPoint>]
 let main argv = 0
