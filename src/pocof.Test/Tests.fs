@@ -390,10 +390,62 @@ module ``PocofData Tests`` =
                     { X = 5; Y = 0 })
 
         module ``with BeginningOfLine`` =
-            ()
+            [<Fact>]
+            let ``should return state with position.X = 0.`` () =
+                PocofData.invokeAction
+                    PocofData.BeginningOfLine
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" }
+                    { X = 5; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.NonSearch },
+                    { X = 0; Y = 0 })
+
+            [<Fact>]
+            let ``should return state with pos unmodified`` () =
+                PocofData.invokeAction
+                    PocofData.BeginningOfLine
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" }
+                    { X = 0; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.NonSearch },
+                    { X = 0; Y = 0 })
 
         module ``with EndOfLine`` =
-            ()
+            [<Fact>]
+            let ``should return state with position.X = query length.`` () =
+                PocofData.invokeAction
+                    PocofData.EndOfLine
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "n" }
+                    { X = 2; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" },
+                    { X = 5; Y = 0 })
+
+            [<Fact>]
+            let ``should return state with pos unmodified`` () =
+                PocofData.invokeAction
+                    PocofData.EndOfLine
+                    { defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" }
+                    { X = 5; Y = 0 }
+                |> shouldEqual
+                <| ({ defaultState with
+                        Query = ":name"
+                        PropertySearch = PocofData.PropertySearch.Search "name" },
+                    { X = 5; Y = 0 })
 
         module ``with DeleteBackwardChar`` =
             [<Fact>]
