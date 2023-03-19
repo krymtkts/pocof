@@ -38,10 +38,12 @@ Task Build -depends Clean {
 }
 
 Task UnitTest {
+    Remove-Item .\src\pocof.Test\TestResults\* -Recurse -ErrorAction SilentlyContinue
     dotnet test --collect:"XPlat Code Coverage" --nologo
 }
 
 Task Coverage -depends UnitTest {
+    Remove-Item .\coverage\*
     reportgenerator -reports:'.\src\pocof.Test\TestResults\*\coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
 

@@ -103,7 +103,6 @@ module PocofAction =
     type private Key =
         | Char of char
         | Control of ConsoleKey
-        | Modifier of PocofData.KeyPattern
         | Shortcut of PocofData.Action
 
     let private key (getKey: unit -> ConsoleKeyInfo) =
@@ -118,8 +117,6 @@ module PocofAction =
             Shortcut defaultKeymap.[key.Pattern]
         elif Map.containsKey key.Pattern keymap then // TODO; currently cannot overrides default keymap...
             Shortcut keymap.[key.Pattern]
-        elif key.Pattern.Modifier > 0 then
-            Modifier key.Pattern
         elif Char.IsControl(key.KeyChar) then
             Control key.Pattern.Key
         else
@@ -128,6 +125,5 @@ module PocofAction =
     let get (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
         match key getKey |> keyToAction keymap with
         | Char c -> PocofData.AddChar c
-        | Control _
-        | Modifier _ -> PocofData.Noop
         | Shortcut a -> a
+        | Control _ -> PocofData.Noop

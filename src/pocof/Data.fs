@@ -140,6 +140,7 @@ module PocofData =
             NonSearch
 
     let initConfig (p: IncomingParameters) =
+        // TODO: Eliminate the possibility of failure from here.
         { Prompt = p.Prompt
           Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
@@ -191,22 +192,22 @@ module PocofData =
         { pos with X = state.Query.Length }
 
     let private removeBackwardChar (state: InternalState) (pos: Position) =
-        let p =
-            if pos.X > 0 then
-                { pos with X = pos.X - 1 }
-            else
-                pos
+        if pos.X > 0 then
+            let p = { pos with X = pos.X - 1 }
 
-        let q =
-            if state.Query.Length > p.X then
-                state.Query.Remove(p.X, 1)
-            else
-                state.Query
+            let q =
+                if state.Query.Length > p.X then
+                    state.Query.Remove(p.X, 1)
+                else
+                    state.Query
 
-        { state with
-            Query = q
-            PropertySearch = getCurrentProperty q p.X },
-        p
+            { state with
+                Query = q
+                PropertySearch = getCurrentProperty q p.X },
+            p
+        else
+            state, pos
+
 
     let private removeForwardChar (state: InternalState) (pos: Position) =
         let q =
@@ -236,7 +237,7 @@ module PocofData =
             PropertySearch = getCurrentProperty q pos.X },
         pos
 
-    let private switchFilter (state: InternalState) =
+    let private switchMatcher (state: InternalState) =
         { state with
             QueryState =
                 { state.QueryState with
@@ -276,7 +277,7 @@ module PocofData =
         | DeleteForwardChar -> removeForwardChar state pos
         | KillBeginningOfLine -> removeQueryHead state pos
         | KillEndOfLine -> removeQueryTail state pos
-        | RotateMatcher -> switchFilter state, pos
+        | RotateMatcher -> switchMatcher state, pos
         | RotateOperator -> switchOperator state, pos
         | ToggleCaseSensitive -> switchCaseSensitive state, pos
         | ToggleInvertFilter -> switchInvertFilter state, pos
