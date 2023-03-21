@@ -102,7 +102,7 @@ module ``QueryState toString should returns`` =
 
         actual.toString |> shouldEqual "notcmatch or"
 
-module ``initConfig `` =
+module initConfig =
     [<Fact>]
     let ``should returns tuples`` () =
         PocofData.initConfig
@@ -180,7 +180,7 @@ module ``initConfig `` =
                   Keymaps = Map [] }
             |> ignore)
 
-module ``invokeAction `` =
+module invokeAction =
     let state: PocofData.InternalState =
         { Query = ""
           QueryState =
