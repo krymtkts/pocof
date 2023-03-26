@@ -54,8 +54,6 @@ module PocofQuery =
 
     let inline private (/?/) (x: PSObject) (prop: string) =
         try
-            PocofDebug.logFile "./debug.log" [ prop ]
-            PocofDebug.logFile "./debug.log" [ (x.Properties.Item prop).Value ]
             Some((x.Properties.Item prop).Value)
         with
         | _ -> None

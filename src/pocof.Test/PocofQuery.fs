@@ -46,12 +46,6 @@ module run =
     let genList s =
         List.map duplicatCase s |> List.concat |> mapToObj
 
-    let entries =
-        genList [ "Name"
-                  "Attribute"
-                  "Length" ]
-
-    let props = Map [ ("length", "Length") ]
 
     let matcher m (s: PocofData.InternalState) =
         { s with QueryState = { s.QueryState with Matcher = m } }
@@ -67,151 +61,161 @@ module run =
     let opAnd (s: PocofData.InternalState) =
         { s with QueryState = { s.QueryState with Operator = PocofData.AND } }
 
-    [<Fact>]
-    let ``should returns empty if entry list is empty.`` () =
-        PocofQuery.run state [] props
-        |> shouldEqual (state, [])
+    module ``with a simple query`` =
+        let entries =
+            genList [ "Name"
+                      "Attribute"
+                      "Length" ]
 
-    module ``with MATCH`` =
-        let state = state |> matcher PocofData.MATCH |> query "a"
-
-        [<Fact>]
-        let ``should returns all entries if query is empty.`` () =
-            let state = initState () |> matcher PocofData.MATCH
-
-            PocofQuery.run state entries props
-            |> shouldEqual (state, entries)
+        let props = Map [ ("length", "Length") ]
 
         [<Fact>]
-        let ``should returns all entries if query is invalid pattern.`` () =
-            let state = state |> query "+"
+        let ``should returns empty if entry list is empty.`` () =
+            PocofQuery.run state [] props
+            |> shouldEqual (state, [])
 
-            PocofQuery.run state entries props
-            |> shouldEqual (
-                { state with Notification = "Invalid pattern '+' at offset 1. Quantifier {x,y} following nothing." },
-                entries
-            )
+        module ``of MATCH`` =
+            let state = state |> matcher PocofData.MATCH |> query "a"
 
-        [<Fact>]
-        let ``should returns filtered entries.`` () =
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Name"; "Attribute" ])
+            [<Fact>]
+            let ``should returns all entries if query is empty.`` () =
+                let state = initState () |> matcher PocofData.MATCH
 
-        [<Fact>]
-        let ``should returns filtered entries when matcher is match and case sensitive.`` () =
-            let state = caseSensitive state
+                PocofQuery.run state entries props
+                |> shouldEqual (state, entries)
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, mapToObj [ "Name"; "name"; "attribute" ])
+            [<Fact>]
+            let ``should returns all entries if query is invalid pattern.`` () =
+                let state = state |> query "+"
 
-        [<Fact>]
-        let ``should returns filtered entries when matcher is match and invert result.`` () =
-            let state = invert state
+                PocofQuery.run state entries props
+                |> shouldEqual (
+                    { state with Notification = "Invalid pattern '+' at offset 1. Quantifier {x,y} following nothing." },
+                    entries
+                )
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Length" ])
+            [<Fact>]
+            let ``should returns filtered entries.`` () =
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Name"; "Attribute" ])
 
-        [<Fact>]
-        let ``should returns filtered entries when composite query with or operator.`` () =
-            let state = state |> query "a N"
+            [<Fact>]
+            let ``should returns filtered entries when matcher is match and case sensitive.`` () =
+                let state = caseSensitive state
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, entries)
+                PocofQuery.run state entries props
+                |> shouldEqual (state, mapToObj [ "Name"; "name"; "attribute" ])
 
-        [<Fact>]
-        let ``should returns filtered entries when composite query with and operator.`` () =
-            let state = state |> query "a N" |> opAnd
+            [<Fact>]
+            let ``should returns filtered entries when matcher is match and invert result.`` () =
+                let state = invert state
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Name" ])
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Length" ])
 
-    module ``with LIKE`` =
-        let state = state |> matcher PocofData.LIKE |> query "a*"
+            [<Fact>]
+            let ``should returns filtered entries when composite query with or operator.`` () =
+                let state = state |> query "a N"
 
-        [<Fact>]
-        let ``should returns all entries if query is empty.`` () =
-            let state = initState () |> matcher PocofData.LIKE
+                PocofQuery.run state entries props
+                |> shouldEqual (state, entries)
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, entries)
+            [<Fact>]
+            let ``should returns filtered entries when composite query with and operator.`` () =
+                let state = state |> query "a N" |> opAnd
 
-        [<Fact>]
-        let ``should returns matched entries when matcher is like .`` () =
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Attribute" ])
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Name" ])
 
-        [<Fact>]
-        let ``should returns matched entries when matcher is like and case sensitive.`` () =
-            let state = caseSensitive state
+        module ``of LIKE`` =
+            let state = state |> matcher PocofData.LIKE |> query "a*"
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, mapToObj [ "attribute" ])
+            [<Fact>]
+            let ``should returns all entries if query is empty.`` () =
+                let state = initState () |> matcher PocofData.LIKE
 
-        [<Fact>]
-        let ``should returns filtered entries when matcher is like and invert result.`` () =
-            let state = invert state
+                PocofQuery.run state entries props
+                |> shouldEqual (state, entries)
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Name"; "Length" ])
+            [<Fact>]
+            let ``should returns matched entries when matcher is like .`` () =
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Attribute" ])
 
-        [<Fact>]
-        let ``should returns filtered entries when composite query with or operator.`` () =
-            let state = state |> query "*e* N*"
+            [<Fact>]
+            let ``should returns matched entries when matcher is like and case sensitive.`` () =
+                let state = caseSensitive state
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, entries)
+                PocofQuery.run state entries props
+                |> shouldEqual (state, mapToObj [ "attribute" ])
 
-        [<Fact>]
-        let ``should returns filtered entries when composite query with and operator.`` () =
-            let state = state |> query "*e* N*" |> opAnd
+            [<Fact>]
+            let ``should returns filtered entries when matcher is like and invert result.`` () =
+                let state = invert state
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Name" ])
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Name"; "Length" ])
 
-    module ``with EQ`` =
-        let state = state |> matcher PocofData.EQ |> query "Name"
+            [<Fact>]
+            let ``should returns filtered entries when composite query with or operator.`` () =
+                let state = state |> query "*e* N*"
 
-        [<Fact>]
-        let ``should returns all entries if query is empty.`` () =
-            let state = initState () |> matcher PocofData.EQ
+                PocofQuery.run state entries props
+                |> shouldEqual (state, entries)
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, entries)
+            [<Fact>]
+            let ``should returns filtered entries when composite query with and operator.`` () =
+                let state = state |> query "*e* N*" |> opAnd
 
-        [<Fact>]
-        let ``should returns matched entries when matcher is eq .`` () =
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Name" ])
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Name" ])
 
-        [<Fact>]
-        let ``should returns matched entries when matcher is eq and case sensitive.`` () =
-            let state = caseSensitive state
+        module ``of EQ`` =
+            let state = state |> matcher PocofData.EQ |> query "Name"
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, mapToObj [ "Name" ])
+            [<Fact>]
+            let ``should returns all entries if query is empty.`` () =
+                let state = initState () |> matcher PocofData.EQ
 
-        [<Fact>]
-        let ``should returns filtered entries when matcher is eq and invert result.`` () =
-            let state = invert state
+                PocofQuery.run state entries props
+                |> shouldEqual (state, entries)
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Attribute"; "Length" ])
+            [<Fact>]
+            let ``should returns matched entries when matcher is eq .`` () =
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Name" ])
 
-        [<Fact>]
-        let ``should returns filtered entries when composite query with or operator.`` () =
-            let state = state |> query "Name Length"
+            [<Fact>]
+            let ``should returns matched entries when matcher is eq and case sensitive.`` () =
+                let state = caseSensitive state
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, genList [ "Name"; "Length" ])
+                PocofQuery.run state entries props
+                |> shouldEqual (state, mapToObj [ "Name" ])
 
-        [<Fact>]
-        let ``should returns filtered entries when composite query with and operator.`` () =
-            let state = state |> query "Name Length" |> opAnd
+            [<Fact>]
+            let ``should returns filtered entries when matcher is eq and invert result.`` () =
+                let state = invert state
 
-            PocofQuery.run state entries props
-            |> shouldEqual (state, List.Empty)
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Attribute"; "Length" ])
 
-    module ``and Dictionary`` =
+            [<Fact>]
+            let ``should returns filtered entries when composite query with or operator.`` () =
+                let state = state |> query "Name Length"
+
+                PocofQuery.run state entries props
+                |> shouldEqual (state, genList [ "Name"; "Length" ])
+
+            [<Fact>]
+            let ``should returns filtered entries when composite query with and operator.`` () =
+                let state = state |> query "Name Length" |> opAnd
+
+                PocofQuery.run state entries props
+                |> shouldEqual (state, List.Empty)
+
+    module ``witha a Dictionary query`` =
+        let props = Map []
+
         open System.Collections
         let mapToDict = List.map (PocofData.Dict)
 
@@ -239,11 +243,12 @@ module run =
             PocofQuery.run state entries props
             |> shouldEqual (state, mapToDict [ DictionaryEntry("Jane", "Doe") ])
 
-    module ``and Property`` =
+    module ``with a Property query`` =
         let getPsObj (f: string, l: string) =
             let ret = PSObject()
-            ret.Properties.Add(PSNoteProperty("FN", f))
-            ret.Properties.Add(PSNoteProperty("LN", l))
+
+            [ "Fn", f; "Ln", l ]
+            |> List.iter (fun (k, v) -> ret.Properties.Add(PSNoteProperty(k, v)))
 
             ret
 
@@ -255,9 +260,11 @@ module run =
                          ("Ming", "Wu")
                          ("Taro", "Nanashi") ]
 
+        let props = Map [ "fn", "Fn"; "ln", "Ln" ]
+
         [<Fact>]
         let ``should returns filtered entries when composite query with or operator.`` () =
-            let state = state |> query "j"
+            let state = state |> query ":fn j"
             let filtered = [ entries.[0]; entries.[1] ]
 
             PocofQuery.run state entries props
@@ -265,8 +272,15 @@ module run =
 
         [<Fact>]
         let ``should returns filtered entries when composite query with and operator.`` () =
-            let state = state |> query "a j" |> opAnd
+            let state = state |> query ":fn a :fn j" |> opAnd
             let filtered = [ entries.[1] ]
 
             PocofQuery.run state entries props
             |> shouldEqual (state, filtered)
+
+        [<Fact>]
+        let ``should returns all entries when broken composite query.`` () =
+            let state = state |> query ":fn "
+
+            PocofQuery.run state entries props
+            |> shouldEqual (state, entries)
