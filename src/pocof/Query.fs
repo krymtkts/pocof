@@ -54,11 +54,18 @@ module PocofQuery =
 
     let inline private (/?/) (x: PSObject) (prop: string) =
         try
+            PocofDebug.logFile "./debug.log" [ prop ]
+            PocofDebug.logFile "./debug.log" [ (x.Properties.Item prop).Value ]
             Some((x.Properties.Item prop).Value)
         with
         | _ -> None
 
+    // TODO: implement it.
+    // let prepare (state: PocofData.InternalState)(props: Map<string, string>) =
+    //     ()
+
     let run (state: PocofData.InternalState) (entries: PocofData.Entry list) (props: Map<string, string>) =
+        // TODO: move returning state to prepare function.
         let rec parseQuery (acc: Query list) (xs: string list) =
             // TODO: state.QueryState.Operator is PocofData.NONE.
             match xs with

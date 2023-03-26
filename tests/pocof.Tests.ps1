@@ -122,6 +122,7 @@ Describe 'pocof' {
             ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
                 $tmp = @{InputObject = $InputObject } + $Params
+                # for testing direct passing to InputObject.
                 Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
             }
         }
