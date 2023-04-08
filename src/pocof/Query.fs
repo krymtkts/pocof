@@ -86,7 +86,7 @@ module PocofQuery =
                         parseQuery <| Normal x :: acc <| xs
 
         let queries =
-            state.Query.Split [| ' ' |]
+            state.Query.Trim().Split [| ' ' |]
             |> List.ofSeq
             |> parseQuery []
 
@@ -135,12 +135,14 @@ module PocofQuery =
 
         let predicate (o: PocofData.Entry) =
             let test =
-                if state.QueryState.Operator = PocofData.OR then
-                    List.exists
-                else
-                    List.forall
+                match state.QueryState.Operator with
+                | PocofData.OR -> List.exists
+                | _ -> List.forall
 
-            values o |> test (fun (l, r) -> is r l |> answer)
+            match values o with
+            | [] -> true
+            | xs -> xs |> test (fun (l, r) -> is r l |> answer)
+
 
         let notification =
             match state.QueryState.Matcher with

@@ -18,6 +18,9 @@ let initState () : PocofData.InternalState =
 
 let state = initState ()
 
+let caseSensitive (s: PocofData.InternalState) =
+    { s with QueryState = { s.QueryState with CaseSensitive = true } }
+
 module prepare =
     ()
 
@@ -39,6 +42,14 @@ module props =
         PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Search "Na" } entries
         |> shouldEqual (Ok [ "Name" ])
 
+    [<Fact>]
+    let ``should returns Ok with filtered properties when case sensitive.`` () =
+        let state =
+            caseSensitive { state with PropertySearch = PocofData.PropertySearch.Search "Na" }
+
+        PocofQuery.props state entries
+        |> shouldEqual (Ok [ "Name" ])
+
 module run =
     let duplicatCase (s: string) = [ s; s.ToLower() ]
     let mapToObj = List.map (PSObject.AsPSObject >> PocofData.Obj)
@@ -52,8 +63,6 @@ module run =
 
     let query q (s: PocofData.InternalState) = { s with Query = q }
 
-    let caseSensitive (s: PocofData.InternalState) =
-        { s with QueryState = { s.QueryState with CaseSensitive = true } }
 
     let invert (s: PocofData.InternalState) =
         { s with QueryState = { s.QueryState with Invert = true } }
@@ -243,6 +252,14 @@ module run =
             PocofQuery.run state entries props
             |> shouldEqual (state, mapToDict [ DictionaryEntry("Jane", "Doe") ])
 
+    // TODO: currentry not work. need to fix.
+    // [<Fact>]
+    // let ``should returns filtered entries when property query.`` () =
+    //     let state = state |> query ":key ja" |> opAnd
+
+    //     PocofQuery.run state entries props
+    //     |> shouldEqual (state, mapToDict [ DictionaryEntry("Jane", "Doe") ])
+
     module ``with a Property query`` =
         let getPsObj (f: string, l: string) =
             let ret = PSObject()
@@ -264,23 +281,42 @@ module run =
 
         [<Fact>]
         let ``should returns filtered entries when composite query with or operator.`` () =
-            let state = state |> query ":fn j"
-            let filtered = [ entries.[0]; entries.[1] ]
+            let state = state |> query ":fn a :ln d"
+
+            let filtered =
+                [ entries.[0]
+                  entries.[1]
+                  entries.[3] ]
 
             PocofQuery.run state entries props
             |> shouldEqual (state, filtered)
 
         [<Fact>]
         let ``should returns filtered entries when composite query with and operator.`` () =
-            let state = state |> query ":fn a :fn j" |> opAnd
+            let state = state |> query ":fn a :ln d" |> opAnd
             let filtered = [ entries.[1] ]
 
             PocofQuery.run state entries props
             |> shouldEqual (state, filtered)
 
         [<Fact>]
-        let ``should returns all entries when broken composite query.`` () =
+        let ``should returns all entries when propetry not exists.`` () =
+            let state = state |> query ":f a"
+
+            PocofQuery.run state entries props
+            |> shouldEqual (state, entries)
+
+        [<Fact>]
+        let ``should returns all entries when incomplete composite query.`` () =
             let state = state |> query ":fn "
 
             PocofQuery.run state entries props
             |> shouldEqual (state, entries)
+
+        [<Fact>]
+        let ``should returns filtered entries when incomplete composite query.`` () =
+            let state = state |> query "a :fn"
+            let filtered = [ entries.[1]; entries.[3] ]
+
+            PocofQuery.run state entries props
+            |> shouldEqual (state, filtered)
