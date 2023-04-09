@@ -252,13 +252,19 @@ module run =
             PocofQuery.run state entries props
             |> shouldEqual (state, mapToDict [ DictionaryEntry("Jane", "Doe") ])
 
-    // TODO: currentry not work. need to fix.
-    // [<Fact>]
-    // let ``should returns filtered entries when property query.`` () =
-    //     let state = state |> query ":key ja" |> opAnd
+        [<Fact>]
+        let ``should returns filtered entries when property query.`` () =
+            let props =
+                DictionaryEntry("Jane", "Doe")
+                |> PSObject.AsPSObject
+                |> (fun o -> o.Properties)
+                |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
+                |> Map
 
-    //     PocofQuery.run state entries props
-    //     |> shouldEqual (state, mapToDict [ DictionaryEntry("Jane", "Doe") ])
+            let state = state |> query ":key ja" |> opAnd
+
+            PocofQuery.run state entries props
+            |> shouldEqual (state, mapToDict [ DictionaryEntry("Jane", "Doe") ])
 
     module ``with a Property query`` =
         let getPsObj (f: string, l: string) =
