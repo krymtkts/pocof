@@ -48,6 +48,9 @@ Task Coverage -depends UnitTest {
 }
 
 Task WorkflowTest {
+    if (-not (Get-Command act -ErrorAction SilentlyContinue)) {
+        throw 'act is not installed. Read https://github.com/nektos/act and install it.'
+    }
     act pull_request --verbose --platform ubuntu-latest=catthehacker/ubuntu:pwsh-latest
 }
 
