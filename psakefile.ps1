@@ -47,6 +47,13 @@ Task Coverage -depends UnitTest {
     reportgenerator -reports:'.\src\pocof.Test\TestResults\*\coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
 
+Task WorkflowTest {
+    if (-not (Get-Command act -ErrorAction SilentlyContinue)) {
+        throw 'act is not installed. Read https://github.com/nektos/act and install it.'
+    }
+    act pull_request --verbose --platform ubuntu-latest=catthehacker/ubuntu:pwsh-latest
+}
+
 Task Import -depends Build {
     "Import $ModuleName ver$ModuleVersion"
     if ( -not ($ModuleName -and $ModuleVersion)) {
