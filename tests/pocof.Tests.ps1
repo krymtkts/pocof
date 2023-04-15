@@ -119,6 +119,10 @@ Describe 'pocof' {
                 @{InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
                         [Collections.DictionaryEntry]::new('d', 'a1')) ; Params = $BaseParam + $_ + @{Query = 'a1' }
                 }
+                @{InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
+                        [Collections.DictionaryEntry]::new('a', 1)) ; Params = $BaseParam + $_ + @{Query = ':key a' }
+                }
+                @{InputObject = [ordered]@{}; Expected = @() ; Params = $BaseParam + $_ }
             ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
                 $tmp = @{InputObject = $InputObject } + $Params

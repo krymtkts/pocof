@@ -130,12 +130,12 @@ type SelectPocofCommand() =
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
 
-    member __.invoke inp =
+    member __.invoke input =
         __.InvokeCommand.InvokeScript(
             @"$input | Format-Table | Out-String",
             true,
             PipelineResultTypes.None,
-            Array.ofList (inp),
+            Array.ofList (input),
             null
         )
         |> Seq.map (fun o -> o.ToString())
@@ -151,13 +151,24 @@ type SelectPocofCommand() =
                     | :? IDictionary as dct ->
                         Seq.cast<DictionaryEntry> dct
                         |> Seq.fold (fun a d -> PocofData.Dict(d) :: a) acc
-                    | _ as _ -> PocofData.Obj(PSObject o) :: acc)
+                    | _ -> PocofData.Obj(PSObject o) :: acc)
                 input
 
         properties <-
             __.InputObject
-            |> Seq.collect (fun o -> o.Properties |> Seq.cast<PSPropertyInfo>)
-            |> Seq.fold (fun acc m -> acc.Add(m.Name)) properties
+            |> Seq.collect (fun o ->
+                match o.BaseObject with
+                | :? IDictionary as dct ->
+                    match Seq.cast<DictionaryEntry> dct with
+                    | s when Seq.isEmpty s -> Seq.empty
+                    | s ->
+                        s
+                        |> Seq.head
+                        |> PSObject.AsPSObject
+                        |> (fun o -> o.Properties)
+                | _ -> o.Properties)
+            |> Seq.map (fun p -> p.Name)
+            |> Seq.fold (fun acc n -> acc.Add(n)) properties
 
     override __.EndProcessing() =
         input <- List.rev input
