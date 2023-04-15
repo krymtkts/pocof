@@ -154,13 +154,7 @@ module PocofQuery =
                 | e -> e.Message
             | _ -> ""
 
-        { state with Notification = notification },
-        query {
-            for o in entries do
-                where (predicate o)
-                select o
-        }
-        |> List.ofSeq
+        { state with Notification = notification }, entries |> List.filter predicate
 
     let props (state: PocofData.InternalState) (entries: string list) =
         let transform (x: string) =
