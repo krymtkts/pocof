@@ -159,10 +159,13 @@ type SelectPocofCommand() =
             |> Seq.collect (fun o ->
                 match o.BaseObject with
                 | :? IDictionary as dct ->
-                    Seq.cast<DictionaryEntry> dct
-                    |> Seq.head
-                    |> PSObject.AsPSObject
-                    |> (fun o -> o.Properties)
+                    match Seq.cast<DictionaryEntry> dct with
+                    | s when Seq.isEmpty s -> Seq.empty
+                    | s ->
+                        s
+                        |> Seq.head
+                        |> PSObject.AsPSObject
+                        |> (fun o -> o.Properties)
                 | _ -> o.Properties)
             |> Seq.map (fun p -> p.Name)
             |> Seq.fold (fun acc n -> acc.Add(n)) properties
