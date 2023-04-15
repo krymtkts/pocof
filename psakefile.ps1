@@ -47,6 +47,10 @@ Task Coverage -depends UnitTest {
     reportgenerator -reports:'.\src\pocof.Test\TestResults\*\coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
 
+Task WorkflowTest {
+    act pull_request --verbose --platform ubuntu-latest=catthehacker/ubuntu:pwsh-latest
+}
+
 Task Import -depends Build {
     "Import $ModuleName ver$ModuleVersion"
     if ( -not ($ModuleName -and $ModuleVersion)) {
