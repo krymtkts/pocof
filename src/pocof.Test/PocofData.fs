@@ -70,7 +70,7 @@ module ``QueryState toString should returns`` =
               CaseSensitive = false
               Invert = false }
 
-        actual.toString |> shouldEqual "eq and"
+        string actual |> shouldEqual "eq and"
 
     [<Fact>]
     let ``cne or`` () =
@@ -80,7 +80,7 @@ module ``QueryState toString should returns`` =
               CaseSensitive = true
               Invert = true }
 
-        actual.toString |> shouldEqual "cne or"
+        string actual |> shouldEqual "cne or"
 
     [<Fact>]
     let ``like and`` () =
@@ -90,7 +90,7 @@ module ``QueryState toString should returns`` =
               CaseSensitive = false
               Invert = false }
 
-        actual.toString |> shouldEqual "like and"
+        string actual |> shouldEqual "like and"
 
     [<Fact>]
     let ``notcmatch or`` () =
@@ -100,7 +100,7 @@ module ``QueryState toString should returns`` =
               CaseSensitive = true
               Invert = true }
 
-        actual.toString |> shouldEqual "notcmatch or"
+        string actual |> shouldEqual "notcmatch or"
 
 module initConfig =
     [<Fact>]

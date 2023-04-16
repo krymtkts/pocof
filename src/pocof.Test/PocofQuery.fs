@@ -220,7 +220,7 @@ module run =
                 let state = state |> query "Name Length" |> opAnd
 
                 PocofQuery.run state entries props
-                |> shouldEqual (state, List.Empty)
+                |> shouldEqual (state, [])
 
     module ``witha a Dictionary query`` =
         let props = Map []
