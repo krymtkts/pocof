@@ -109,9 +109,7 @@ module PocofData =
             List.append
             <| match __.Matcher, __.CaseSensitive, __.Invert with
                | EQ, true, true -> [ "cne" ]
-               | EQ, true, false -> [ "ceq" ]
                | EQ, false, true -> [ "ne" ]
-               | EQ, false, false -> [ "eq" ]
                | m, true, true -> [ "notc"; string m ]
                | m, true, false -> [ "c"; string m ]
                | m, false, true -> [ "not"; string m ]
