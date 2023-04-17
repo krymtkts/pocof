@@ -4,24 +4,23 @@ open System
 open System.Management.Automation
 open System.Text.RegularExpressions
 
+open PocofData
+
 module PocofQuery =
     let private equalOpt sensitive =
-        if sensitive then
-            StringComparison.CurrentCulture
-        else
-            StringComparison.CurrentCultureIgnoreCase
+        match sensitive with
+        | true -> StringComparison.CurrentCulture
+        | _ -> StringComparison.CurrentCultureIgnoreCase
 
     let private likeOpt sensitive =
-        if sensitive then
-            WildcardOptions.None
-        else
-            WildcardOptions.IgnoreCase
+        match sensitive with
+        | true -> WildcardOptions.None
+        | _ -> WildcardOptions.IgnoreCase
 
     let private matchOpt sensitive =
-        if sensitive then
-            RegexOptions.None
-        else
-            RegexOptions.IgnoreCase
+        match sensitive with
+        | true -> RegexOptions.None
+        | _ -> RegexOptions.IgnoreCase
 
     let private (==) opt r l =
         match r with
@@ -59,31 +58,30 @@ module PocofQuery =
         | _ -> None
 
     // TODO: implement it.
-    // let prepare (state: PocofData.InternalState)(props: Map<string, string>) =
+    // let prepare (state: InternalState)(props: Map<string, string>) =
     //     ()
 
-    let run (state: PocofData.InternalState) (entries: PocofData.Entry list) (props: Map<string, string>) =
+    let run (state: InternalState) (entries: Entry list) (props: Map<string, string>) =
         // TODO: move returning state to prepare function.
         let rec parseQuery (acc: Query list) (xs: string list) =
-            // TODO: state.QueryState.Operator is PocofData.NONE.
+            // TODO: state.QueryState.Operator is NONE.
             match xs with
             | [] -> acc
             | (x :: xs) ->
                 match xs with
                 | [] ->
                     parseQuery
-                    <| if x.StartsWith ":" then
-                           acc
-                       else
-                           Normal x :: acc
+                    <| match x with
+                       | Prefix ":" _ -> acc
+                       | _ -> Normal x :: acc
                     <| []
                 | y :: zs ->
-                    if x.StartsWith ":" then
+                    match x with
+                    | Prefix ":" p ->
                         parseQuery
-                        <| Property(x.[1..].ToLower(), y) :: acc
+                        <| Property(String.lower p, y) :: acc
                         <| zs
-                    else
-                        parseQuery <| Normal x :: acc <| xs
+                    | _ -> parseQuery <| Normal x :: acc <| xs
 
         let queries =
             state.Query.Trim().Split [| ' ' |]
@@ -92,7 +90,7 @@ module PocofQuery =
 
         // PocofDebug.logFile "./debug.log" queries
 
-        let values (o: PocofData.Entry) =
+        let values (o: Entry) =
             queries
             |> List.fold
                 (fun acc x ->
@@ -105,38 +103,36 @@ module PocofQuery =
 
                         let p =
                             match o with
-                            | PocofData.Dict (dct) -> dct /? pk
-                            | PocofData.Obj (o) -> o /?/ pk
+                            | Dict (dct) -> dct /? pk
+                            | Obj (o) -> o /?/ pk
 
                         match p with
                         | Some (pv) -> (pv, v) :: acc
                         | None -> acc
                     | Normal (v) ->
                         match o with
-                        | PocofData.Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
-                        | PocofData.Obj (o) -> (o, v) :: acc)
+                        | Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
+                        | Obj (o) -> (o, v) :: acc)
                 []
-            |> List.map (fun (s, v) -> (s.ToString(), v))
+            |> List.map (fun (s, v) -> (string s, v))
 
         let is q =
             match state.QueryState.Matcher with
-            | PocofData.EQ -> (==) << equalOpt
-            | PocofData.LIKE -> (=*=) << likeOpt
-            | PocofData.MATCH -> (=~=) << matchOpt
+            | EQ -> (==) << equalOpt
+            | LIKE -> (=*=) << likeOpt
+            | MATCH -> (=~=) << matchOpt
             <| state.QueryState.CaseSensitive
             <| q
 
         let answer =
-            if (String.IsNullOrWhiteSpace >> not) state.Query
-               && state.QueryState.Invert then
-                not
-            else
-                id
+            match String.IsNullOrWhiteSpace state.Query, state.QueryState.Invert with
+            | false, true -> not
+            | _ -> id
 
-        let predicate (o: PocofData.Entry) =
+        let predicate (o: Entry) =
             let test =
                 match state.QueryState.Operator with
-                | PocofData.OR -> List.exists
+                | OR -> List.exists
                 | _ -> List.forall
 
             match values o with
@@ -146,7 +142,7 @@ module PocofQuery =
 
         let notification =
             match state.QueryState.Matcher with
-            | PocofData.MATCH ->
+            | MATCH ->
                 try
                     new Regex(state.Query) |> ignore
                     ""
@@ -154,28 +150,20 @@ module PocofQuery =
                 | e -> e.Message
             | _ -> ""
 
-        { state with Notification = notification },
-        query {
-            for o in entries do
-                where (predicate o)
-                select o
-        }
-        |> List.ofSeq
+        { state with Notification = notification }, entries |> List.filter predicate
 
-    let props (state: PocofData.InternalState) (entries: string list) =
+    let props (state: InternalState) (entries: string list) =
         let transform (x: string) =
-            if state.QueryState.CaseSensitive then
-                x
-            else
-                x.ToLower()
+            match state.QueryState.CaseSensitive with
+            | true -> x
+            | _ -> String.lower x
 
         match state.PropertySearch with
-        | PocofData.Search (prefix: string) ->
+        | Search (prefix: string) ->
             let p = transform prefix
             let ret = List.filter (fun (s: string) -> (transform s).StartsWith p) entries
 
-            if List.isEmpty ret then
-                Error "Property not found"
-            else
-                Ok ret
+            match ret with
+            | [] -> Error "Property not found"
+            | _ -> Ok ret
         | _ -> Ok []

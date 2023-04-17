@@ -51,8 +51,9 @@ module PocofAction =
               (plain ConsoleKey.Tab, PocofData.TabExpansion) ]
 
     let inline toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
-        let ok, e = Enum.TryParse<'a>(k, true)
-        if ok then Some e else None
+        match Enum.TryParse<'a>(k, true) with
+        | (true, e) -> Some e
+        | _ -> None
 
     let toKeyPattern (s: string) =
         match s.Split('+') |> List.ofSeq |> List.rev with
@@ -85,8 +86,8 @@ module PocofAction =
             x
             |> Seq.cast<DictionaryEntry>
             |> Seq.map (fun e ->
-                let k = e.Key.ToString() |> toKeyPattern
-                let v = e.Value.ToString() |> PocofData.Action.fromString
+                let k = string e.Key |> toKeyPattern
+                let v = string e.Value |> PocofData.Action.fromString
 
                 match (k, v) with
                 | (Ok kv, Ok av) -> (kv, av)
@@ -112,15 +113,22 @@ module PocofAction =
         { KeyChar = k.KeyChar
           Pattern = { Modifier = m; Key = k.Key } }
 
+    let private (|ShortcutKey|_|) (m: Map<PocofData.KeyPattern, PocofData.Action>) (k: KeyInfo) =
+        match Map.tryFind k.Pattern m with
+        | Some v -> Some(v)
+        | _ -> None
+
+    let private (|ControlKey|_|) (k: KeyInfo) =
+        match Char.IsControl(k.KeyChar) with
+        | true -> Some(k.Pattern.Key)
+        | _ -> None
+
     let private keyToAction (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (key: KeyInfo) =
-        if Map.containsKey key.Pattern defaultKeymap then
-            Shortcut defaultKeymap.[key.Pattern]
-        elif Map.containsKey key.Pattern keymap then // TODO; currently cannot overrides default keymap...
-            Shortcut keymap.[key.Pattern]
-        elif Char.IsControl(key.KeyChar) then
-            Control key.Pattern.Key
-        else
-            Char key.KeyChar
+        match key with
+        | ShortcutKey defaultKeymap k -> Shortcut k
+        | ShortcutKey keymap k -> Shortcut k
+        | ControlKey c -> Control c
+        | _ -> Char key.KeyChar
 
     let get (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
         match key getKey |> keyToAction keymap with

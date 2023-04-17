@@ -49,10 +49,7 @@ module PocofScreen =
             )
 
         member private __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
-            let info =
-                sprintf "%s [%d]"
-                <| state.QueryState.toString
-                <| length
+            let info = sprintf "%O [%d]" <| state.QueryState <| length
 
             let x = __.rui.WindowSize.Width - info.Length
             __.setCursorPosition x row
@@ -78,20 +75,19 @@ module PocofScreen =
             // PocofDebug.logFile "./debug.log" [ List.length entries ]
 
             __.writeScreenLine 1
-            <| if state.Notification = String.Empty then
+            <| match state.Notification with
+               | "" ->
                    match props with
                    | Ok (p) -> (String.concat " " p).[.. __.rui.WindowSize.Width - 1]
                    | Error (e) -> "note>" + e
-               else
-                   "note>" + state.Notification
+               | _ -> "note>" + state.Notification
 
             let h = __.rui.WindowSize.Height - 3
 
             let out =
-                if List.length entries < h then
-                    entries
-                else
-                    List.take h entries
+                match List.length entries < h with
+                | true -> entries
+                | _ -> List.take h entries
                 |> PocofData.unwrap
                 |> __.invoke
                 |> Seq.fold
@@ -122,7 +118,6 @@ module PocofScreen =
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x
             <| __.rui.CursorPosition.Y
-
 
     let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<obj> -> seq<string>) =
         let buf = new Buff(rui, prompt, invoke, Console.TreatControlCAsInput)

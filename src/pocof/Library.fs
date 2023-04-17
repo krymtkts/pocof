@@ -7,13 +7,15 @@ open System.Management.Automation.Runspaces
 open System.Collections
 open System.Threading
 
+open PocofData
+
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
 [<OutputType(typeof<PSObject>)>]
 type SelectPocofCommand() =
     inherit PSCmdlet()
 
-    let mutable input: PocofData.Entry list = []
+    let mutable input: Entry list = []
     let mutable properties: Set<string> = set []
 
     let mutable caseSensitive: bool = false
@@ -22,9 +24,9 @@ type SelectPocofCommand() =
     let mutable suppressProperties: bool = false
 
     let interact
-        (conf: PocofData.InternalConfig)
-        (state: PocofData.InternalState)
-        (pos: PocofData.Position)
+        (conf: InternalConfig)
+        (state: InternalState)
+        (pos: Position)
         (rui: PSHostRawUserInterface)
         (invoke: obj list -> seq<string>)
         =
@@ -32,49 +34,45 @@ type SelectPocofCommand() =
 
         let pmap =
             props
-            |> List.map (fun p -> p.ToLower(), p)
+            |> List.map (fun p -> String.lower p, p)
             |> Map.ofList
 
-        if conf.NotInteractive then
+        match conf.NotInteractive with
+        | true ->
             let _, l = PocofQuery.run state input pmap
-            PocofData.unwrap l
-        else
+            unwrap l
+        | _ ->
             use sbf = PocofScreen.init rui conf.Prompt invoke
 
             let writeScreen =
                 match conf.Layout with
-                | PocofData.TopDown -> sbf.writeTopDown
-                | PocofData.BottomUp -> sbf.writeBottomUp
+                | TopDown -> sbf.writeTopDown
+                | BottomUp -> sbf.writeBottomUp
 
-            let rec loop
-                (state: PocofData.InternalState)
-                (pos: PocofData.Position)
-                (results: PocofData.Entry list)
-                (skip: bool)
-                =
+            let rec loop (state: InternalState) (pos: Position) (results: Entry list) (skip: bool) =
                 let s, l =
-                    if skip then
-                        state, results
-                    else
+                    match skip with
+                    | true -> state, results
+                    | _ ->
                         let s, l = PocofQuery.run state input pmap
 
                         writeScreen s pos.X l
-                        <| if state.SuppressProperties then
-                               Ok []
-                           else
-                               PocofQuery.props state props
+                        <| match state.SuppressProperties with
+                           | true -> Ok []
+                           | _ -> PocofQuery.props state props
 
                         s, l
 
-                if Console.KeyAvailable then
+                match Console.KeyAvailable with
+                | true ->
                     match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
-                    | PocofData.Cancel -> []
-                    | PocofData.Finish -> PocofData.unwrap l
-                    | PocofData.Noop -> loop s pos l true
+                    | Cancel -> []
+                    | Finish -> unwrap l
+                    | Noop -> loop s pos l true
                     | a ->
-                        PocofData.invokeAction a s pos
+                        invokeAction a s pos
                         |> fun (s, p) -> loop s p l false
-                else
+                | _ ->
                     Thread.Sleep(50) // NOTE: to avoid high load.
                     loop s pos l true
 
@@ -88,11 +86,11 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     [<ValidateSet("match", "like", "eq")>]
-    member val Matcher = PocofData.MATCH.ToString().ToLower() with get, set
+    member val Matcher = string MATCH with get, set
 
     [<Parameter>]
     [<ValidateSet("and", "or", "none")>]
-    member val Operator = PocofData.AND.ToString().ToLower() with get, set
+    member val Operator = string AND with get, set
 
     [<Parameter>]
     member __.CaseSensitive: SwitchParameter = new SwitchParameter(false)
@@ -125,7 +123,7 @@ type SelectPocofCommand() =
     [<ValidateSet("TopDown"
       // , "BottomUp"
       )>]
-    member val Layout = PocofData.TopDown.ToString() with get, set
+    member val Layout = string TopDown with get, set
 
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
@@ -138,7 +136,7 @@ type SelectPocofCommand() =
             Array.ofList (input),
             null
         )
-        |> Seq.map (fun o -> o.ToString())
+        |> Seq.map string
 
     override __.BeginProcessing() = base.BeginProcessing()
 
@@ -150,8 +148,8 @@ type SelectPocofCommand() =
                     match o.BaseObject with
                     | :? IDictionary as dct ->
                         Seq.cast<DictionaryEntry> dct
-                        |> Seq.fold (fun a d -> PocofData.Dict(d) :: a) acc
-                    | _ -> PocofData.Obj(PSObject o) :: acc)
+                        |> Seq.fold (fun a d -> Dict(d) :: a) acc
+                    | _ -> Obj(PSObject o) :: acc)
                 input
 
         properties <-
@@ -174,7 +172,7 @@ type SelectPocofCommand() =
         input <- List.rev input
 
         let conf, state, pos =
-            PocofData.initConfig
+            initConfig
                 { Query = __.Query
                   Matcher = __.Matcher
                   Operator = __.Operator

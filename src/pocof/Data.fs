@@ -17,6 +17,9 @@ module PocofData =
             | Dict (dct) -> dct :> obj
             | Obj (o) -> o)
 
+    type String with
+        static member lower(s: string) = s.ToLower()
+
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         match FSharpType.GetUnionCases typeof<'a>
               |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
@@ -31,6 +34,10 @@ module PocofData =
             with
         | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
         | _ -> failwithf "Unknown case '%s'." s
+
+    let private toString (x: 'a) =
+        match FSharpValue.GetUnionFields(x, typeof<'a>) with
+        | case, _ -> case.Name
 
     type Action =
         | Noop
@@ -67,12 +74,14 @@ module PocofData =
         | LIKE
         | MATCH
         static member fromString = fromString<Matcher>
+        override __.ToString() = toString __ |> String.lower
 
     type Operator =
         | AND
         | OR
         | NONE
         static member fromString = fromString<Operator>
+        override __.ToString() = toString __ |> String.lower
 
     type Layout =
         | TopDown
@@ -96,18 +105,16 @@ module PocofData =
           Operator: Operator
           CaseSensitive: bool
           Invert: bool }
-        member __.toString =
+        override __.ToString() =
             List.append
-            <| match __.Matcher with
-               | EQ ->
-                   [ if __.CaseSensitive then "c" else ""
-                     if __.Invert then "ne" else "eq" ]
-               | _ ->
-                   [ if __.Invert then "not" else ""
-                     if __.CaseSensitive then "c" else ""
-                     __.Matcher.ToString().ToLower() ]
-            <| [ " "
-                 __.Operator.ToString().ToLower() ]
+            <| match __.Matcher, __.CaseSensitive, __.Invert with
+               | EQ, true, true -> [ "cne" ]
+               | EQ, false, true -> [ "ne" ]
+               | m, true, true -> [ "notc"; string m ]
+               | m, true, false -> [ "c"; string m ]
+               | m, false, true -> [ "not"; string m ]
+               | m, false, false -> [ string m ]
+            <| [ " "; string __.Operator ]
             |> String.concat ""
 
     type InternalState =
@@ -131,13 +138,18 @@ module PocofData =
           Layout: string
           Keymaps: Map<KeyPattern, Action> }
 
-    let private getCurrentProperty (query: string) (x: int) =
-        let p = query.[..x].Split [| ' ' |] |> Seq.last
+    let (|Prefix|_|) (p: string) (s: string) =
+        match s.StartsWith(p) with
+        | true -> Some(s.[1..])
+        | _ -> None
 
-        if p.StartsWith ":" then
-            Search <| p.[1..]
-        else
-            NonSearch
+
+    let private getCurrentProperty (query: string) (x: int) =
+        let s = query.[..x].Split [| ' ' |] |> Seq.last
+
+        match s with
+        | Prefix ":" p -> Search <| p
+        | _ -> NonSearch
 
     let initConfig (p: IncomingParameters) =
         // TODO: Eliminate the possibility of failure from here.
@@ -157,7 +169,7 @@ module PocofData =
         { X = p.Query.Length; Y = 0 }
 
     let private addQuery (state: InternalState) (pos: Position) (c: char) =
-        let query = state.Query.Insert(pos.X, c.ToString())
+        let query = state.Query.Insert(pos.X, string c)
         let p = { pos with X = pos.X + 1 }
 
         { state with
@@ -167,19 +179,17 @@ module PocofData =
 
     let private moveBackward (state: InternalState) (pos: Position) =
         let p =
-            if pos.X > 0 then
-                { pos with X = pos.X - 1 }
-            else
-                pos
+            match pos.X with
+            | 0 -> pos
+            | _ -> { pos with X = pos.X - 1 }
 
         { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p
 
     let private moveForward (state: InternalState) (pos: Position) =
         let p =
-            if pos.X < state.Query.Length then
-                { pos with X = pos.X + 1 }
-            else
-                pos
+            match pos.X < state.Query.Length with
+            | true -> { pos with X = pos.X + 1 }
+            | _ -> pos
 
         { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p
 
@@ -192,29 +202,27 @@ module PocofData =
         { pos with X = state.Query.Length }
 
     let private removeBackwardChar (state: InternalState) (pos: Position) =
-        if pos.X > 0 then
+        match pos.X with
+        | 0 -> state, pos
+        | _ ->
             let p = { pos with X = pos.X - 1 }
 
             let q =
-                if state.Query.Length > p.X then
-                    state.Query.Remove(p.X, 1)
-                else
-                    state.Query
+                match state.Query.Length > p.X with
+                | true -> state.Query.Remove(p.X, 1)
+                | _ -> state.Query
 
             { state with
                 Query = q
                 PropertySearch = getCurrentProperty q p.X },
             p
-        else
-            state, pos
 
 
     let private removeForwardChar (state: InternalState) (pos: Position) =
         let q =
-            if state.Query.Length > pos.X then
-                state.Query.Remove(pos.X, 1)
-            else
-                state.Query
+            match state.Query.Length > pos.X with
+            | true -> state.Query.Remove(pos.X, 1)
+            | _ -> state.Query
 
         { state with
             Query = q
