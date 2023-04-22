@@ -55,7 +55,10 @@ module ``get should returns`` =
     [<Fact>]
     let ``user-defined Action if matched.`` () =
         let keyMap: Map<PocofData.KeyPattern, PocofData.Action> =
-            Map [ ({ Modifier = 7; Key = ConsoleKey.E }, PocofData.Finish) ]
+            Map [ ({ Modifier = 7; Key = ConsoleKey.E }, PocofData.Finish)
+                  ({ Modifier = 0
+                     Key = ConsoleKey.Escape },
+                   PocofData.Noop) ]
 
         let getKey = fun () -> new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true)
         let actual = PocofAction.get keyMap getKey
@@ -63,17 +66,35 @@ module ``get should returns`` =
         actual |> shouldEqual PocofData.Finish
 
     [<Fact>]
-    let ``system-defined Action if matched.`` () =
-        let getKey = fun () -> new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false)
-        let actual = PocofAction.get Map.empty getKey
+    let ``Action if matched.`` () =
+        let keyMap =
+            ([ ({ Modifier = 7; Key = ConsoleKey.E }: PocofData.KeyPattern)
+               { Modifier = 0
+                 Key = ConsoleKey.Escape } ],
+             [ PocofData.Finish; PocofData.Noop ],
+             PocofAction.defaultKeymap)
+            |||> List.foldBack2 Map.add
+
+        let actual =
+            PocofAction.get keyMap (fun () -> new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false))
 
         actual
         |> shouldEqual PocofData.KillBeginningOfLine
 
+        let actual =
+            PocofAction.get keyMap (fun () -> new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true))
+
+        actual |> shouldEqual PocofData.Finish
+
+        let actual =
+            PocofAction.get keyMap (fun () -> new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false))
+
+        actual |> shouldEqual PocofData.Noop
+
     [<Fact>]
-    let ``system-defined Action if matched to no modifier key.`` () =
+    let ``Action if matched to no modifier key.`` () =
         let getKey = fun () -> new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false)
-        let actual = PocofAction.get Map.empty getKey
+        let actual = PocofAction.get PocofAction.defaultKeymap getKey
 
         actual |> shouldEqual PocofData.BeginningOfLine
 
@@ -90,18 +111,18 @@ module ``get should returns`` =
     [<Fact>]
     let ``PocofData.None if the control character not match the keymap.`` () =
         let getKey = fun () -> new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true)
-        let actual = PocofAction.get Map.empty getKey
+        let actual = PocofAction.get PocofAction.defaultKeymap getKey
 
         actual |> shouldEqual PocofData.Noop
 
-// [<Fact>]
-// let ``None if not match the keymap.`` () =
-//     let getKey =
-//         fun () -> new ConsoleKeyInfo('\n', ConsoleKey.Enter, false, false, false)
+    [<Fact>]
+    let ``None if not match the keymap.`` () =
+        let getKey =
+            fun () -> new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false)
 
-//     let actual = PocofAction.get Map.empty getKey
+        let actual = PocofAction.get PocofAction.defaultKeymap getKey
 
-//     actual |> shouldEqual PocofData.None
+        actual |> shouldEqual PocofData.Noop
 
 module ``convertKeymaps should returns`` =
     [<Fact>]

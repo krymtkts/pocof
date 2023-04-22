@@ -129,7 +129,6 @@ module PocofAction =
 
     let private keyToAction (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (key: KeyInfo) =
         match key with
-        | ShortcutKey defaultKeymap k -> Shortcut k
         | ShortcutKey keymap k -> Shortcut k
         | ControlKey c -> Control c
         | _ -> Char key.KeyChar
