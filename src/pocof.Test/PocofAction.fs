@@ -37,7 +37,7 @@ module ``toKeyPattern should returns`` =
         PocofAction.toKeyPattern "c+c+c"
         |> shouldEqual (Error "Unsupported combination 'c+c+c'.")
 
-module ``get should returns `` =
+module ``get should returns`` =
     [<Fact>]
     let ``PocofData.AddChar if no modifier is specified.`` () =
         let getKey = fun () -> new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
@@ -103,11 +103,19 @@ module ``get should returns `` =
 
 //     actual |> shouldEqual PocofData.None
 
-module ``convertKeymaps should returns `` =
+module ``convertKeymaps should returns`` =
     [<Fact>]
     let ``map transformed from hastable`` () =
         let h = new Hashtable()
         h.Add("Control+Alt+Shift+X", "Cancel")
+        h.Add("Escape", "Noop")
+
+        let expected =
+            [ (({ Modifier = 7; Key = ConsoleKey.X }: PocofData.KeyPattern), PocofData.Cancel)
+              (({ Modifier = 0
+                  Key = ConsoleKey.Escape }: PocofData.KeyPattern),
+               PocofData.Noop) ]
+            |> List.fold (fun acc (k, v) -> Map.add k v acc) PocofAction.defaultKeymap
 
         PocofAction.convertKeymaps h
-        |> shouldEqual (Map[({ Modifier = 7; Key = ConsoleKey.X }, PocofData.Cancel)])
+        |> shouldEqual expected

@@ -22,7 +22,7 @@ module PocofAction =
     let private alt = modify <| Modifier(ConsoleModifiers.Alt)
     let private ctrl = modify <| Modifier(ConsoleModifiers.Control)
 
-    let private defaultKeymap =
+    let defaultKeymap =
         Map [ (plain ConsoleKey.Escape, PocofData.Cancel)
               (ctrl ConsoleKey.C, PocofData.Cancel)
               (plain ConsoleKey.Enter, PocofData.Finish)
@@ -83,19 +83,23 @@ module PocofAction =
         match h with
         | null -> defaultKeymap
         | x ->
-            x
-            |> Seq.cast<DictionaryEntry>
-            |> Seq.map (fun e ->
-                let k = string e.Key |> toKeyPattern
-                let v = string e.Value |> PocofData.Action.fromString
+            let source = defaultKeymap |> Map.toSeq
 
-                match (k, v) with
-                | (Ok kv, Ok av) -> (kv, av)
-                // TODO: enhance error handling.
-                | (Error e1, Error e2) -> failwith <| e1 + e2
-                | (Error e, _)
-                | (_, Error e) -> failwith e)
-            |> Map
+            let custom =
+                x
+                |> Seq.cast<DictionaryEntry>
+                |> Seq.map (fun e ->
+                    let k = string e.Key |> toKeyPattern
+                    let v = string e.Value |> PocofData.Action.fromString
+
+                    match (k, v) with
+                    | (Ok kv, Ok av) -> (kv, av)
+                    // TODO: enhance error handling.
+                    | (Error e1, Error e2) -> failwith <| e1 + e2
+                    | (Error e, _)
+                    | (_, Error e) -> failwith e)
+
+            Seq.append source custom |> Map.ofSeq
 
     type private KeyInfo =
         { Pattern: PocofData.KeyPattern
