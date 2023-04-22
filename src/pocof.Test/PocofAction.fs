@@ -128,8 +128,8 @@ module ``convertKeymaps should returns`` =
     [<Fact>]
     let ``map transformed from hastable`` () =
         let h = new Hashtable()
-        h.Add("Control+Alt+Shift+X", "Cancel")
-        h.Add("Escape", "Noop")
+        h.Add("control+alt+shift+x", "cancel")
+        h.Add("ESCAPE", "NOOP")
 
         let expected =
             ([ ({ Modifier = 7; Key = ConsoleKey.X }: PocofData.KeyPattern)
@@ -141,3 +141,8 @@ module ``convertKeymaps should returns`` =
 
         PocofAction.convertKeymaps h
         |> shouldEqual expected
+
+    [<Fact>]
+    let ``default map from null hashtable`` () =
+        PocofAction.convertKeymaps null
+        |> shouldEqual PocofAction.defaultKeymap

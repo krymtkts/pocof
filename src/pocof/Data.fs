@@ -19,18 +19,23 @@ module PocofData =
 
     type String with
         static member lower(s: string) = s.ToLower()
+        static member upper(s: string) = s.ToUpper()
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
+        let name = String.lower s
+
         match FSharpType.GetUnionCases typeof<'a>
               |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
-              |> Seq.tryFind (fun u -> u.Name = s)
+              |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
             with
         | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| sprintf "Unknown case '%s'." s
 
     let private fromString<'a> s =
+        let name = String.lower s
+
         match FSharpType.GetUnionCases typeof<'a>
-              |> Seq.tryFind (fun u -> u.Name = s)
+              |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
             with
         | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
         | _ -> failwithf "Unknown case '%s'." s
@@ -159,8 +164,8 @@ module PocofData =
           NotInteractive = p.NotInteractive },
         { Query = p.Query
           QueryState =
-            { Matcher = Matcher.fromString <| p.Matcher.ToUpper()
-              Operator = Operator.fromString <| p.Operator.ToUpper()
+            { Matcher = Matcher.fromString p.Matcher
+              Operator = Operator.fromString p.Operator
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
           PropertySearch = getCurrentProperty p.Query p.Query.Length
