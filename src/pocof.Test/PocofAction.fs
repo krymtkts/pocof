@@ -111,11 +111,12 @@ module ``convertKeymaps should returns`` =
         h.Add("Escape", "Noop")
 
         let expected =
-            [ (({ Modifier = 7; Key = ConsoleKey.X }: PocofData.KeyPattern), PocofData.Cancel)
-              (({ Modifier = 0
-                  Key = ConsoleKey.Escape }: PocofData.KeyPattern),
-               PocofData.Noop) ]
-            |> List.fold (fun acc (k, v) -> Map.add k v acc) PocofAction.defaultKeymap
+            ([ ({ Modifier = 7; Key = ConsoleKey.X }: PocofData.KeyPattern)
+               { Modifier = 0
+                 Key = ConsoleKey.Escape } ],
+             [ PocofData.Cancel; PocofData.Noop ],
+             PocofAction.defaultKeymap)
+            |||> List.foldBack2 Map.add
 
         PocofAction.convertKeymaps h
         |> shouldEqual expected
