@@ -10,8 +10,8 @@ open PocofData
 module ``Action fromString should returns`` =
     [<Fact>]
     let ``Error Unknown.`` () =
-        Action.fromString "Unknown"
-        |> shouldEqual (Error "Unknown case 'Unknown'.")
+        Action.fromString "XXX"
+        |> shouldEqual (Error "Unknown case 'XXX'.")
 
     [<Fact>]
     let ``Error when AddChar.`` () =
@@ -23,8 +23,13 @@ module ``Action fromString should returns`` =
         FSharpType.GetUnionCases(typeof<Action>)
         |> Seq.filter (fun a -> a.Name <> "AddChar")
         |> Seq.iter (fun a ->
-            Action.fromString a.Name
-            |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action)))
+            [ a.Name
+              String.lower a.Name
+              String.upper a.Name ]
+            |> List.map Action.fromString
+            |> List.iter (fun s ->
+                s
+                |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
 
 let ``Error Unknown.``<'a> (fromString: string -> 'a) =
     shouldFail (fun () -> fromString "Unknown" |> ignore)
@@ -32,8 +37,13 @@ let ``Error Unknown.``<'a> (fromString: string -> 'a) =
 let ``known matchers.``<'a> (fromString: string -> 'a) =
     FSharpType.GetUnionCases(typeof<'a>)
     |> Seq.iter (fun (a: UnionCaseInfo) ->
-        fromString a.Name
-        |> shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a))
+        [ a.Name
+          String.lower a.Name
+          String.upper a.Name ]
+        |> List.map fromString
+        |> List.iter (fun s ->
+            s
+            |> shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
 
 module ``Matcher fromString should returns`` =
     [<Fact>]
