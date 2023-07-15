@@ -99,7 +99,7 @@ module run =
 
                 PocofQuery.run state entries props
                 |> shouldEqual (
-                    { state with Notification = "Invalid pattern '+' at offset 1. Quantifier {x,y} following nothing." },
+                    { state with Notification = "Invalid pattern '+' at offset 1. Quantifier '+' following nothing." },
                     entries
                 )
 
