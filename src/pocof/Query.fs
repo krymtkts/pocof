@@ -32,7 +32,7 @@ module PocofQuery =
         | "" -> true
         | _ -> WildcardPattern.Get(wcp, opt).IsMatch(o)
 
-    let private (=~=) opt pattern o =
+    let private (=~=) opt pattern (o:string) =
         try
             new Regex(pattern, opt)
         with
