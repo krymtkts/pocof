@@ -7,8 +7,8 @@ Properties {
     }
     $ModuleName = Resolve-Path ./src/*/*.psd1 | Split-Path -LeafBase
     $ModuleVersion = (Resolve-Path "./src/${ModuleName}/*.fsproj" | Select-Xml '//Version/text()').Node.Value
-    $ModuleRoot = Split-Path -Parent $PSCommandPath
-    "Module: $ModuleName ver$ModuleVersion root=$ModuleRoot"
+    $ModuleSrcPath = Resolve-Path "./src/${ModuleName}/"
+    "Module: $ModuleName ver$ModuleVersion root=$ModuleSrcPath"
 }
 
 Task default -depends TestAll
@@ -29,7 +29,7 @@ Task Clean {
 
 Task Build -depends Clean {
     'Build command let!'
-    Import-LocalizedData -BindingVariable module -BaseDirectory (Resolve-Path "./src/${ModuleName}/") -FileName "$ModuleName.psd1"
+    Import-LocalizedData -BindingVariable module -BaseDirectory $ModuleSrcPath -FileName "$ModuleName.psd1"
     if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
@@ -61,11 +61,11 @@ Task Import -depends Build {
     }
     switch ($Stage) {
         'Debug' {
-            Import-Module (Resolve-Path ./src/*/bin/Debug/*/publish/*.psd1) -Global
+            Import-Module (Resolve-Path "${ModuleSrcPath}/bin/Debug/*/publish/*.psd1") -Global
         }
         'Release' {
             $installPath = Join-Path ($env:PSModulePath -split ';' -like '*\Users\*') $ModuleName -AdditionalChildPath $ModuleVersion
-            Copy-Item (Resolve-Path "./src/${ModuleName}/bin/Release/*/publish/*") $installPath -Verbose -Force
+            Copy-Item (Resolve-Path "${ModuleSrcPath}/bin/Release/*/publish/*") $installPath -Verbose -Force
             Import-Module $ModuleName -Global
         }
     }
@@ -79,7 +79,7 @@ Task ExternalHelp -depends Import {
     if (-not (Test-Path ./docs)) {
         New-MarkdownHelp -Module pocof -OutputFolder ./docs
     }
-    New-ExternalHelp docs -OutputPath (Resolve-Path "./src/${ModuleName}/") -Force
+    New-ExternalHelp docs -OutputPath $ModuleSrcPath -Force
 }
 
 Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp {
@@ -89,15 +89,13 @@ Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp 
     if ($m.Version -ne $ModuleVersion) {
         throw "Version inconsistency between project and module. $($m.Version), $ModuleVersion"
     }
-    $RequiredVersion = "$($m.Version)$(if ($m.PrivateData.PSData.Prerelease) {'-' + $m.PrivateData.PSData.Prerelease } else {''})"
 
     $Params = @{
-        Name = $ModuleName
-        NugetAPIKey = (Get-Credential API-key -Message 'Enter your API key as the password').GetNetworkCredential().Password
+        Path = $m.Path
+        Repository = 'PSGallery'
+        ApiKey = (Get-Credential API-key -Message 'Enter your API key as the password')
         WhatIf = $DryRun
         Verbose = $true
-        AllowPrerelease = $true
-        RequiredVersion = $RequiredVersion
     }
-    Publish-Module @Params
+    Publish-PSResource @Params
 }
