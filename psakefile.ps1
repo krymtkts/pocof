@@ -8,7 +8,8 @@ Properties {
     $ModuleName = Resolve-Path ./src/*/*.psd1 | Split-Path -LeafBase
     $ModuleVersion = (Resolve-Path "./src/${ModuleName}/*.fsproj" | Select-Xml '//Version/text()').Node.Value
     $ModuleSrcPath = Resolve-Path "./src/${ModuleName}/"
-    "Module: $ModuleName ver$ModuleVersion root=$ModuleSrcPath"
+    $ModulePublishPath = Resolve-Path "./publish/${ModuleName}/"
+    "Module: ${ModuleName} ver${ModuleVersion} root=${ModuleSrcPath} publish=${ModulePublishPath}"
 }
 
 Task default -depends TestAll
@@ -25,11 +26,12 @@ Task Clean {
     Remove-Item .\src\*\bin -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item .\src\*\obj -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item .\release -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item "${ModulePublishPath}/*" -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitkeep
 }
 
 Task Build -depends Clean {
     'Build command let!'
-    Import-LocalizedData -BindingVariable module -BaseDirectory $ModuleSrcPath -FileName "$ModuleName.psd1"
+    Import-LocalizedData -BindingVariable module -BaseDirectory $ModuleSrcPath -FileName "${ModuleName}.psd1"
     if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
@@ -65,7 +67,9 @@ Task Import -depends Build {
         }
         'Release' {
             $installPath = Join-Path ($env:PSModulePath -split ';' -like '*\Users\*') $ModuleName -AdditionalChildPath $ModuleVersion
-            Copy-Item (Resolve-Path "${ModuleSrcPath}/bin/Release/*/publish/*") $installPath -Verbose -Force
+            $sourcePath = Resolve-Path "${ModuleSrcPath}/bin/Release/*/publish/*"
+            Copy-Item $sourcePath $installPath -Verbose -Force
+            Copy-Item $sourcePath $ModulePublishPath -Verbose -Force
             Import-Module $ModuleName -Global
         }
     }
@@ -89,9 +93,13 @@ Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp 
     if ($m.Version -ne $ModuleVersion) {
         throw "Version inconsistency between project and module. $($m.Version), $ModuleVersion"
     }
+    $p = Get-ChildItem "${ModulePublishPath}/*.psd1"
+    if (-not $p) {
+        throw "Module manifest not found. $($m.ModuleBase)/*.psd1"
+    }
 
     $Params = @{
-        Path = $m.Path
+        Path = $p.FullName
         Repository = 'PSGallery'
         ApiKey = (Get-Credential API-key -Message 'Enter your API key as the password')
         WhatIf = $DryRun
