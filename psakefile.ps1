@@ -101,7 +101,7 @@ Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp 
     $Params = @{
         Path = $p.FullName
         Repository = 'PSGallery'
-        ApiKey = (Get-Credential API-key -Message 'Enter your API key as the password')
+        ApiKey = (Get-Credential API-key -Message 'Enter your API key as the password').GetNetworkCredential().Password
         WhatIf = $DryRun
         Verbose = $true
     }
