@@ -178,7 +178,7 @@ DocProject/Help/Html2
 DocProject/Help/html
 
 # Click-Once directory
-publish/
+bin/*/publish/
 
 # Publish Web Output
 *.[Pp]ublish.xml
@@ -397,3 +397,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+publish/pocof/*
+!publish/pocof/.gitkeep
