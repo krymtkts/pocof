@@ -77,7 +77,10 @@ Task Import -depends Build {
 }
 
 Task Test -depends Import {
-    Invoke-Pester
+    $result = Invoke-Pester -PassThru
+    if ($result.Failed) {
+        throw 'Invoke-Pester failed.'
+    }
 }
 
 Task ExternalHelp -depends Import {
