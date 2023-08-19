@@ -43,6 +43,9 @@ Task Build -depends Clean {
 Task UnitTest {
     Remove-Item ./src/pocof.Test/TestResults/* -Recurse -ErrorAction SilentlyContinue
     dotnet test --collect:"XPlat Code Coverage" --nologo
+    if (-not $?) {
+        throw 'dotnet test failed.'
+    }
 }
 
 Task Coverage -depends UnitTest {
