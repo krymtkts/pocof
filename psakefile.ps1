@@ -23,9 +23,9 @@ Task Init {
 Task Clean {
     'Clean is running!'
     Get-Module pocof -All | Remove-Module -Force -ErrorAction SilentlyContinue
-    Remove-Item .\src\*\bin -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item .\src\*\obj -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item .\release -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item ./src/*/bin/$Stage -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item ./src/*/obj/$Stage -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item ./release -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item "${ModulePublishPath}/*" -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitkeep
 }
 
@@ -40,13 +40,13 @@ Task Build -depends Clean {
 }
 
 Task UnitTest {
-    Remove-Item .\src\pocof.Test\TestResults\* -Recurse -ErrorAction SilentlyContinue
+    Remove-Item ./src/pocof.Test/TestResults/* -Recurse -ErrorAction SilentlyContinue
     dotnet test --collect:"XPlat Code Coverage" --nologo
 }
 
 Task Coverage -depends UnitTest {
-    Remove-Item .\coverage\*
-    reportgenerator -reports:'.\src\pocof.Test\TestResults\*\coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
+    Remove-Item ./coverage/*
+    reportgenerator -reports:'./src/pocof.Test/TestResults/*/coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
 
 Task WorkflowTest {
@@ -66,7 +66,7 @@ Task Import -depends Build {
             Import-Module (Resolve-Path "${ModuleSrcPath}/bin/Debug/*/publish/*.psd1") -Global
         }
         'Release' {
-            $installPath = Join-Path ($env:PSModulePath -split ';' -like '*\Users\*') $ModuleName -AdditionalChildPath $ModuleVersion
+            $installPath = Join-Path ($env:PSModulePath -split ';' -like '*Users*') $ModuleName -AdditionalChildPath $ModuleVersion
             $sourcePath = Resolve-Path "${ModuleSrcPath}/bin/Release/*/publish/*"
             Copy-Item $sourcePath $installPath -Verbose -Force
             Copy-Item $sourcePath $ModulePublishPath -Verbose -Force
