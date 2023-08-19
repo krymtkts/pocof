@@ -23,10 +23,11 @@ Task Init {
 Task Clean {
     'Clean is running!'
     Get-Module pocof -All | Remove-Module -Force -ErrorAction SilentlyContinue
-    Remove-Item ./src/*/bin/$Stage -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item ./src/*/obj/$Stage -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item ./release -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item "${ModulePublishPath}/*" -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitkeep
+    @(
+        "./src/*/*/${Stage}"
+        './release'
+        "${ModulePublishPath}/*"
+    ) | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitkeep
 }
 
 Task Build -depends Clean {
