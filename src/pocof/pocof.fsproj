@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>0.5.0</Version>
+    <Version>0.6.0</Version>
     <TargetFramework>net7.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Data.fs" />
@@ -16,6 +17,6 @@
     <None Include="pocof.dll-Help.xml" Pack="true" CopyToOutputDirectory="Always" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.3.6" />
+    <PackageReference Include="PowerShellStandard.Library" Version="7.0.0-preview.1" />
   </ItemGroup>
 </Project>

@@ -71,6 +71,7 @@ Task Import -depends Build {
         }
         'Release' {
             $installPath = Join-Path ($env:PSModulePath -split ';' -like '*Users*') $ModuleName -AdditionalChildPath $ModuleVersion
+            New-Item -Path $installPath -ItemType Directory -ErrorAction SilentlyContinue
             $sourcePath = Resolve-Path "${ModuleSrcPath}/bin/Release/*/publish/*"
             Copy-Item $sourcePath $installPath -Verbose -Force
             Copy-Item $sourcePath $ModulePublishPath -Verbose -Force
@@ -93,7 +94,7 @@ Task ExternalHelp -depends Import {
     New-ExternalHelp docs -OutputPath $ModuleSrcPath -Force
 }
 
-Task Release -precondition { $Stage -eq 'Release' } -depends Test, ExternalHelp {
+Task Release -precondition { $Stage -eq 'Release' } -depends TestAll, ExternalHelp {
     "Release $($ModuleName)! version=$ModuleVersion dryrun=$DryRun"
 
     $m = Get-Module $ModuleName
