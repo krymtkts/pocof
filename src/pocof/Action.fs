@@ -19,8 +19,8 @@ module PocofAction =
 
     // Shorthands for defining the default keymap.
     let private plain = modify Plain
-    let private alt = modify <| Modifier(ConsoleModifiers.Alt)
-    let private ctrl = modify <| Modifier(ConsoleModifiers.Control)
+    let private alt = modify <| Modifier ConsoleModifiers.Alt
+    let private ctrl = modify <| Modifier ConsoleModifiers.Control
 
     let defaultKeymap =
         Map [ (plain ConsoleKey.Escape, PocofData.Cancel)
@@ -56,7 +56,7 @@ module PocofAction =
         | _ -> None
 
     let toKeyPattern (s: string) =
-        match s.Split('+') |> List.ofSeq |> List.rev with
+        match s.Split '+' |> List.ofSeq |> List.rev with
         | [] -> failwith "Unreachable pass."
         | [ k ] ->
             match toEnum<ConsoleKey> k with
@@ -119,12 +119,12 @@ module PocofAction =
 
     let private (|ShortcutKey|_|) (m: Map<PocofData.KeyPattern, PocofData.Action>) (k: KeyInfo) =
         match Map.tryFind k.Pattern m with
-        | Some v -> Some(v)
+        | Some v -> Some v
         | _ -> None
 
     let private (|ControlKey|_|) (k: KeyInfo) =
-        match Char.IsControl(k.KeyChar) with
-        | true -> Some(k.Pattern.Key)
+        match Char.IsControl k.KeyChar with
+        | true -> Some k.Pattern.Key
         | _ -> None
 
     let private keyToAction (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (key: KeyInfo) =

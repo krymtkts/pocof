@@ -93,25 +93,25 @@ type SelectPocofCommand() =
     member val Operator = string AND with get, set
 
     [<Parameter>]
-    member __.CaseSensitive: SwitchParameter = new SwitchParameter(false)
+    member __.CaseSensitive: SwitchParameter = new SwitchParameter false
 
     member __.CaseSensitive
         with set (v: SwitchParameter) = caseSensitive <- v.IsPresent
 
     [<Parameter>]
-    member __.InvertQuery: SwitchParameter = new SwitchParameter(false)
+    member __.InvertQuery: SwitchParameter = new SwitchParameter false
 
     member __.InvertQuery
         with set (v: SwitchParameter) = invertQuery <- v.IsPresent
 
     [<Parameter>]
-    member __.NonInteractive: SwitchParameter = new SwitchParameter(false)
+    member __.NonInteractive: SwitchParameter = new SwitchParameter false
 
     member __.NonInteractive
         with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
 
     [<Parameter>]
-    member __.SuppressProperties: SwitchParameter = new SwitchParameter(false)
+    member __.SuppressProperties: SwitchParameter = new SwitchParameter false
 
     member __.SuppressProperties
         with set (v: SwitchParameter) = suppressProperties <- v.IsPresent
@@ -148,7 +148,7 @@ type SelectPocofCommand() =
                     match o.BaseObject with
                     | :? IDictionary as dct ->
                         Seq.cast<DictionaryEntry> dct
-                        |> Seq.fold (fun a d -> Dict(d) :: a) acc
+                        |> Seq.fold (fun a d -> Dict d :: a) acc
                     | _ -> Obj(PSObject o) :: acc)
                 input
 
@@ -166,7 +166,7 @@ type SelectPocofCommand() =
                         |> (fun o -> o.Properties)
                 | _ -> o.Properties)
             |> Seq.map (fun p -> p.Name)
-            |> Seq.fold (fun acc n -> acc.Add(n)) properties
+            |> Seq.fold (fun acc n -> acc.Add n) properties
 
     override __.EndProcessing() =
         input <- List.rev input

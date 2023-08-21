@@ -144,8 +144,8 @@ module PocofData =
           Keymaps: Map<KeyPattern, Action> }
 
     let (|Prefix|_|) (p: string) (s: string) =
-        match s.StartsWith(p) with
-        | true -> Some(s.[1..])
+        match s.StartsWith p with
+        | true -> Some s.[1..]
         | _ -> None
 
 
