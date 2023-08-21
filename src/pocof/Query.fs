@@ -7,18 +7,18 @@ open System.Text.RegularExpressions
 open PocofData
 
 module PocofQuery =
-    let private equalOpt sensitive =
-        match sensitive with
+    let private equalOpt =
+        function
         | true -> StringComparison.CurrentCulture
         | _ -> StringComparison.CurrentCultureIgnoreCase
 
-    let private likeOpt sensitive =
-        match sensitive with
+    let private likeOpt =
+        function
         | true -> WildcardOptions.None
         | _ -> WildcardOptions.IgnoreCase
 
-    let private matchOpt sensitive =
-        match sensitive with
+    let private matchOpt =
+        function
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
@@ -32,7 +32,7 @@ module PocofQuery =
         | "" -> true
         | _ -> WildcardPattern.Get(wcp, opt).IsMatch(o)
 
-    let private (=~=) opt pattern (o:string) =
+    let private (=~=) opt pattern (o: string) =
         try
             new Regex(pattern, opt)
         with
