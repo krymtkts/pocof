@@ -7,18 +7,18 @@ open System.Text.RegularExpressions
 open PocofData
 
 module PocofQuery =
-    let private equalOpt sensitive =
-        match sensitive with
+    let private equalOpt =
+        function
         | true -> StringComparison.CurrentCulture
         | _ -> StringComparison.CurrentCultureIgnoreCase
 
-    let private likeOpt sensitive =
-        match sensitive with
+    let private likeOpt =
+        function
         | true -> WildcardOptions.None
         | _ -> WildcardOptions.IgnoreCase
 
-    let private matchOpt sensitive =
-        match sensitive with
+    let private matchOpt =
+        function
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
@@ -30,14 +30,14 @@ module PocofQuery =
     let private (=*=) (opt: WildcardOptions) wcp o =
         match wcp with
         | "" -> true
-        | _ -> WildcardPattern.Get(wcp, opt).IsMatch(o)
+        | _ -> WildcardPattern.Get(wcp, opt).IsMatch o
 
-    let private (=~=) opt pattern (o:string) =
+    let private (=~=) opt pattern (o: string) =
         try
             new Regex(pattern, opt)
         with
         | _ -> new Regex(String.Empty, opt)
-        |> fun r -> r.IsMatch(o)
+        |> fun r -> r.IsMatch o
 
     type Query =
         | Normal of string
@@ -46,14 +46,14 @@ module PocofQuery =
     let inline private (/?) (x: 'a) (prop: string) =
         try
             // TODO: not so good.
-            let propInfo = x.GetType().GetProperty(prop)
+            let propInfo = x.GetType().GetProperty prop
             Some(propInfo.GetValue(x, null) :?> 'b)
         with
         | _ -> None
 
     let inline private (/?/) (x: PSObject) (prop: string) =
         try
-            Some((x.Properties.Item prop).Value)
+            Some (x.Properties.Item prop).Value
         with
         | _ -> None
 
