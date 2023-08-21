@@ -279,8 +279,8 @@ module PocofData =
     let private switchSuppressProperties (state: InternalState) =
         { state with SuppressProperties = not state.SuppressProperties }
 
-    let invokeAction (action: Action) (state: InternalState) (pos: Position) =
-        match action with
+    let invokeAction (state: InternalState) (pos: Position) =
+        function
         | AddChar c -> addQuery state pos c
         | BackwardChar -> moveBackward state pos
         | ForwardChar -> moveForward state pos

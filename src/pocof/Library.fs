@@ -70,7 +70,7 @@ type SelectPocofCommand() =
                     | Finish -> unwrap l
                     | Noop -> loop s pos l true
                     | a ->
-                        invokeAction a s pos
+                        invokeAction s pos a
                         |> fun (s, p) -> loop s p l false
                 | _ ->
                     Thread.Sleep(50) // NOTE: to avoid high load.
