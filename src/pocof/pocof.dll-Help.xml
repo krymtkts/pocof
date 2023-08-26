@@ -6,11 +6,13 @@
       <command:verb>Select</command:verb>
       <command:noun>Pocof</command:noun>
       <maml:description>
-        <maml:para>{{ Fill in the Synopsis }}</maml:para>
+        <maml:para>Selects objects from a collection based on interactive query.</maml:para>
       </maml:description>
     </command:details>
     <maml:description>
-      <maml:para>{{ Fill in the Description }}</maml:para>
+      <maml:para>The `Select-Pocof` cmdlet selects objects from a collection based on interactive query. For example, you can use the `Select-Pocof` cmdlet to select files that located current directory with interactive window.</maml:para>
+      <maml:para>You can use 3 matching mode `match`, `like` or `eq` and can use 3 operator mode `and`, `or` or `none`.</maml:para>
+      <maml:para>By default, the query matches to the stringified object. A query starting with a colon, such as `:property-name`, indicates a property query. In a property query, you can specify the property value using the format `:property-name property-value`. If you use a property query, the query will match to the specified object properties.</maml:para>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
@@ -18,7 +20,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName, ByValue)" position="0" aliases="none">
           <maml:name>InputObject</maml:name>
           <maml:description>
-            <maml:para>{{ Fill InputObject Description }}</maml:para>
+            <maml:para>Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">PSObject[]</command:parameterValue>
           <dev:type>
@@ -30,7 +32,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>CaseSensitive</maml:name>
           <maml:description>
-            <maml:para>{{ Fill CaseSensitive Description }}</maml:para>
+            <maml:para>Filtering in case-sensitive.</maml:para>
           </maml:description>
           <dev:type>
             <maml:name>SwitchParameter</maml:name>
@@ -41,7 +43,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Keymaps</maml:name>
           <maml:description>
-            <maml:para>{{ Fill Keymaps Description }}</maml:para>
+            <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
           <dev:type>
@@ -53,7 +55,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Layout</maml:name>
           <maml:description>
-            <maml:para>{{ Fill Layout Description }}</maml:para>
+            <maml:para>Select the layout: TopDown or BottomUp. Currently, only the TopDown layout is supported.</maml:para>
           </maml:description>
           <command:parameterValueGroup>
             <command:parameterValue required="false" command:variableLength="false">TopDown</command:parameterValue>
@@ -69,7 +71,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Prompt</maml:name>
           <maml:description>
-            <maml:para>{{ Fill Prompt Description }}</maml:para>
+            <maml:para>Specifies the prompt that appears before the query input space.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
@@ -81,7 +83,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Query</maml:name>
           <maml:description>
-            <maml:para>{{ Fill Query Description }}</maml:para>
+            <maml:para>Specifies the initial query string.</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
@@ -93,7 +95,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>InvertQuery</maml:name>
           <maml:description>
-            <maml:para>{{ Fill InvertQuery Description }}</maml:para>
+            <maml:para>Enabling `InvertQuery` will invert the filtering output.</maml:para>
           </maml:description>
           <dev:type>
             <maml:name>SwitchParameter</maml:name>
@@ -104,7 +106,10 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Matcher</maml:name>
           <maml:description>
-            <maml:para>{{ Fill Matcher Description }}</maml:para>
+            <maml:para>Select the matching mode. You can use `match`, `like`, or `eq`.</maml:para>
+            <maml:para>- `match` provides regular expression matching</maml:para>
+            <maml:para>- `like` provides wildcard matching</maml:para>
+            <maml:para>- `eq` provides exact matching</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
@@ -116,7 +121,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>NonInteractive</maml:name>
           <maml:description>
-            <maml:para>{{ Fill NonInteractive Description }}</maml:para>
+            <maml:para>Enabling `NonInteractive` starts the application in non-interactive mode. Mainly used for testing purposes.</maml:para>
           </maml:description>
           <dev:type>
             <maml:name>SwitchParameter</maml:name>
@@ -127,7 +132,10 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Operator</maml:name>
           <maml:description>
-            <maml:para>{{ Fill Operator Description }}</maml:para>
+            <maml:para>Select the logical operator to use when specifying query strings. You can use `and`, `or`, or `none`.</maml:para>
+            <maml:para>- `and` provides logical "and" to multi query generated from splitting query by whitespace</maml:para>
+            <maml:para>- `or` provides logical "or" to multi query generated from splitting query by whitespace</maml:para>
+            <maml:para>- `none` provides simple matching with a raw query</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
@@ -139,7 +147,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>SuppressProperties</maml:name>
           <maml:description>
-            <maml:para>{{ Fill SuppressProperties Description }}</maml:para>
+            <maml:para>Enabling `SuppressProperties` will disable the display of properties under the query input.</maml:para>
           </maml:description>
           <dev:type>
             <maml:name>SwitchParameter</maml:name>
@@ -153,7 +161,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>CaseSensitive</maml:name>
         <maml:description>
-          <maml:para>{{ Fill CaseSensitive Description }}</maml:para>
+          <maml:para>Filtering in case-sensitive.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>
@@ -165,7 +173,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True (ByPropertyName, ByValue)" position="0" aliases="none">
         <maml:name>InputObject</maml:name>
         <maml:description>
-          <maml:para>{{ Fill InputObject Description }}</maml:para>
+          <maml:para>Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">PSObject[]</command:parameterValue>
         <dev:type>
@@ -177,7 +185,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Keymaps</maml:name>
         <maml:description>
-          <maml:para>{{ Fill Keymaps Description }}</maml:para>
+          <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
         <dev:type>
@@ -189,7 +197,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Layout</maml:name>
         <maml:description>
-          <maml:para>{{ Fill Layout Description }}</maml:para>
+          <maml:para>Select the layout: TopDown or BottomUp. Currently, only the TopDown layout is supported.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -201,7 +209,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Prompt</maml:name>
         <maml:description>
-          <maml:para>{{ Fill Prompt Description }}</maml:para>
+          <maml:para>Specifies the prompt that appears before the query input space.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -213,7 +221,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Query</maml:name>
         <maml:description>
-          <maml:para>{{ Fill Query Description }}</maml:para>
+          <maml:para>Specifies the initial query string.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -225,7 +233,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>InvertQuery</maml:name>
         <maml:description>
-          <maml:para>{{ Fill InvertQuery Description }}</maml:para>
+          <maml:para>Enabling `InvertQuery` will invert the filtering output.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>
@@ -237,7 +245,10 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Matcher</maml:name>
         <maml:description>
-          <maml:para>{{ Fill Matcher Description }}</maml:para>
+          <maml:para>Select the matching mode. You can use `match`, `like`, or `eq`.</maml:para>
+          <maml:para>- `match` provides regular expression matching</maml:para>
+          <maml:para>- `like` provides wildcard matching</maml:para>
+          <maml:para>- `eq` provides exact matching</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -249,7 +260,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>NonInteractive</maml:name>
         <maml:description>
-          <maml:para>{{ Fill NonInteractive Description }}</maml:para>
+          <maml:para>Enabling `NonInteractive` starts the application in non-interactive mode. Mainly used for testing purposes.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>
@@ -261,7 +272,10 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Operator</maml:name>
         <maml:description>
-          <maml:para>{{ Fill Operator Description }}</maml:para>
+          <maml:para>Select the logical operator to use when specifying query strings. You can use `and`, `or`, or `none`.</maml:para>
+          <maml:para>- `and` provides logical "and" to multi query generated from splitting query by whitespace</maml:para>
+          <maml:para>- `or` provides logical "or" to multi query generated from splitting query by whitespace</maml:para>
+          <maml:para>- `none` provides simple matching with a raw query</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -273,7 +287,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>SuppressProperties</maml:name>
         <maml:description>
-          <maml:para>{{ Fill SuppressProperties Description }}</maml:para>
+          <maml:para>Enabling `SuppressProperties` will disable the display of properties under the query input.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>
@@ -286,7 +300,7 @@
     <command:inputTypes>
       <command:inputType>
         <dev:type>
-          <maml:name>System.Object[]</maml:name>
+          <maml:name>`System.Management.Automation.PSObject[]`</maml:name>
         </dev:type>
         <maml:description>
           <maml:para></maml:para>
@@ -296,7 +310,7 @@
     <command:returnValues>
       <command:returnValue>
         <dev:type>
-          <maml:name>System.String</maml:name>
+          <maml:name>`System.Management.Automation.PSObject`</maml:name>
         </dev:type>
         <maml:description>
           <maml:para></maml:para>
@@ -305,15 +319,30 @@
     </command:returnValues>
     <maml:alertSet>
       <maml:alert>
-        <maml:para></maml:para>
+        <maml:para>Includes the following aliases for `Select-Pocof`</maml:para>
+        <maml:para>- `pocof`</maml:para>
       </maml:alert>
     </maml:alertSet>
     <command:examples>
       <command:example>
-        <maml:title>-------------------------- Example 1 --------------------------</maml:title>
-        <dev:code>PS C:\&gt; {{ Add example code here }}</dev:code>
+        <maml:title>Example 1: Get current directory items with interactive filtering</maml:title>
+        <dev:code>PS C:\&gt; Get-ChildItem | Select-Pocof</dev:code>
         <dev:remarks>
-          <maml:para>{{ Add example description here }}</maml:para>
+          <maml:para>Interactively filter the output of `Get-ChildItem`.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>----------- Example 2: Filter with multiple options -----------</maml:title>
+        <dev:code>PS C:\&gt; Get-ChildItem | Select-Pocof -CaseSensitive -Query 'docs md' | Invoke-Item</dev:code>
+        <dev:remarks>
+          <maml:para>Interactively filter the output of `Get-ChildItem` with an initial case-sensitive query. And performs the default action on the filtered items.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>----------------- Example 3: Filter hashtable -----------------</maml:title>
+        <dev:code>PS C:\&gt; @{foo=100; bar=101; foobar=102} | Select-Pocof -NonInteractive -Query ':key foo' | % -Begin {$x = @{}} {$x[$_.Key]= $_.Value} -End {$x}</dev:code>
+        <dev:remarks>
+          <maml:para>Interactively filter hashtable and create new hashtable from filtered items.</maml:para>
         </dev:remarks>
       </command:example>
     </command:examples>
