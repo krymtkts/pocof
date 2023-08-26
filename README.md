@@ -13,13 +13,25 @@ powershell peco is a port of [peco](https://github.com/peco/peco) for PowerShell
 To learn how to write Cmdlet in F#.
 Also to add my own flavor to poco which I often use.
 
+## Installation
+
+[PowerShell Gallery | pocof](https://www.powershellgallery.com/packages/pocof/)
+
+```powershell
+# PowerShellGet 2.x
+Install-Module -Name pocof -AllowPrerelease
+
+# PSResourceGet (also known as PowerShellGet 3.0)
+Install-PSResource -Name pocof -Prerelease
+```
+
 ## Disclaimer
 
 Still incomplete.
 
 ## Publishing module
 
-Publishing to PowerShell Gallery.
+Build and publish to PowerShell Gallery.
 To avoid accidents, dry runs mode is default.
 
 ```powershell
@@ -29,3 +41,6 @@ Invoke-psake -taskList Release -parameters @{'Stage'='Release'}
 # Publish.
 Invoke-psake -taskList Release -parameters @{'Stage'='Release';'DryRun'=$false}
 ```
+
+Recommended to do these in new PowerShell process.
+After you import pocof, cannot release `FSharp.Core.dll` even if you invoke `Remove-Module`.
