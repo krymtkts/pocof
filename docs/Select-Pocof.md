@@ -1,7 +1,7 @@
 ---
 external help file: pocof.dll-Help.xml
 Module Name: pocof
-online version:
+online version: https://github.com/krymtkts/pocof/blob/main/docs/Select-Pocof.md
 schema: 2.0.0
 ---
 
