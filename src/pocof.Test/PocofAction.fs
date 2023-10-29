@@ -126,7 +126,7 @@ module ``get should returns`` =
 
 module ``convertKeymaps should returns`` =
     [<Fact>]
-    let ``map transformed from hastable`` () =
+    let ``map transformed from hashtable`` () =
         let h = new Hashtable()
         h.Add("control+alt+shift+x", "cancel")
         h.Add("ESCAPE", "NOOP")

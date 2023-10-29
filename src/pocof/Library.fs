@@ -5,7 +5,6 @@ open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
 open System.Collections
-open System.Threading
 
 open PocofData
 
@@ -32,14 +31,14 @@ type SelectPocofCommand() =
         =
         let props = List.ofSeq properties
 
-        let pmap =
+        let propMap =
             props
             |> List.map (fun p -> String.lower p, p)
             |> Map.ofList
 
         match conf.NotInteractive with
         | true ->
-            let _, l = PocofQuery.run state input pmap
+            let _, l = PocofQuery.run state input propMap
             unwrap l
         | _ ->
             use sbf = PocofScreen.init rui conf.Prompt invoke
@@ -49,12 +48,16 @@ type SelectPocofCommand() =
                 | TopDown -> sbf.writeTopDown
                 | BottomUp -> sbf.writeBottomUp
 
-            let rec loop (state: InternalState) (pos: Position) (results: Entry list) (skip: bool) =
+            let getKey () =
+                Async.FromContinuations(fun (cont, _, _) -> Console.ReadKey true |> cont)
+                |> Async.RunSynchronously
+
+            let rec loop (results: Entry list) (state: InternalState) (pos: Position) (refresh: Refresh) =
                 let s, l =
-                    match skip with
-                    | true -> state, results
+                    match refresh with
+                    | NotRequired -> state, results
                     | _ ->
-                        let s, l = PocofQuery.run state input pmap
+                        let s, l = PocofQuery.run state input propMap
 
                         writeScreen s pos.X l
                         <| match state.SuppressProperties with
@@ -63,20 +66,13 @@ type SelectPocofCommand() =
 
                         s, l
 
-                match Console.KeyAvailable with
-                | true ->
-                    match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
-                    | Cancel -> []
-                    | Finish -> unwrap l
-                    | Noop -> loop s pos l true
-                    | a ->
-                        invokeAction s pos a
-                        |> fun (s, p) -> loop s p l false
-                | _ ->
-                    Thread.Sleep(50) // NOTE: to avoid high load.
-                    loop s pos l true
+                match PocofAction.get conf.Keymaps getKey with
+                | Cancel -> []
+                | Finish -> unwrap l
+                | Noop -> loop l s pos NotRequired
+                | a -> invokeAction s pos a |||> loop l
 
-            loop state pos input false
+            loop input state pos Required
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject [] = [||] with get, set

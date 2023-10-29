@@ -20,14 +20,14 @@ module PocofScreen =
         val invoke: list<obj> -> seq<string>
 
         val buf: BufferCell [,]
-        val plen: int
+        val promptLength: int
         val caAsInput: bool
 
         new(r, p, i, b) =
             { rui = r
               buf = r.GetBufferContents(Rectangle(0, 0, r.WindowSize.Width, r.CursorPosition.Y))
               prompt = p
-              plen = p.Length + anchor.Length
+              promptLength = p.Length + anchor.Length
               invoke = i
               caAsInput = b }
 
@@ -45,7 +45,7 @@ module PocofScreen =
         member private __.getCursorPositionX (filter: string) (x: int) =
             __.rui.LengthInBufferCells(
                 (__.prompt + anchor + filter)
-                    .Substring(0, __.plen + x)
+                    .Substring(0, __.promptLength + x)
             )
 
         member private __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
