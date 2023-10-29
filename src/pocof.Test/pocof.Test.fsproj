@@ -15,19 +15,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FsUnit.xUnit" Version="5.2.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
-    <PackageReference Include="xunit" Version="2.4.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+    <PackageReference Include="FsUnit.xUnit" Version="5.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="3.1.2">
+    <PackageReference Include="coverlet.collector" Version="6.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- NOTE: for creating mock PSObject -->
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.3.6" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.3.9" />
   </ItemGroup>
 
   <ItemGroup>
