@@ -17,7 +17,7 @@ module PocofAction =
 
         { Modifier = m; Key = k }
 
-    // Shorthands for defining the default keymap.
+    // Shorthands for defining the default key-map.
     let private plain = modify Plain
     let private alt = modify <| Modifier ConsoleModifiers.Alt
     let private ctrl = modify <| Modifier ConsoleModifiers.Control

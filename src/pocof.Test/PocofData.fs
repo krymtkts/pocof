@@ -583,19 +583,19 @@ module invokeAction =
 
     module ``with SelectUp`` =
         [<Fact>]
-        let ``should return any difference when a uparrow is entered.`` () = noop SelectUp
+        let ``should return any difference when a up-arrow is entered.`` () = noop SelectUp
 
     module ``with SelectDown`` =
         [<Fact>]
-        let ``should return any difference when a downarrow is entered.`` () = noop SelectDown
+        let ``should return any difference when a down-arrow is entered.`` () = noop SelectDown
 
     module ``with ScrollPageUp`` =
         [<Fact>]
-        let ``should return any difference when a pageup is entered.`` () = noop ScrollPageUp
+        let ``should return any difference when a page-up is entered.`` () = noop ScrollPageUp
 
     module ``with ScrollPageDown`` =
         [<Fact>]
-        let ``should return any difference when a pagedown is entered.`` () = noop ScrollPageDown
+        let ``should return any difference when a page-down is entered.`` () = noop ScrollPageDown
 
     module ``with TabExpansion`` =
         [<Fact>]

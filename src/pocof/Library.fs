@@ -31,14 +31,14 @@ type SelectPocofCommand() =
         =
         let props = List.ofSeq properties
 
-        let pmap =
+        let propMap =
             props
             |> List.map (fun p -> String.lower p, p)
             |> Map.ofList
 
         match conf.NotInteractive with
         | true ->
-            let _, l = PocofQuery.run state input pmap
+            let _, l = PocofQuery.run state input propMap
             unwrap l
         | _ ->
             use sbf = PocofScreen.init rui conf.Prompt invoke
@@ -57,7 +57,7 @@ type SelectPocofCommand() =
                     match refresh with
                     | NotRequired -> state, results
                     | _ ->
-                        let s, l = PocofQuery.run state input pmap
+                        let s, l = PocofQuery.run state input propMap
 
                         writeScreen s pos.X l
                         <| match state.SuppressProperties with
