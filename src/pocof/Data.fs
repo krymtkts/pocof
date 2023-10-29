@@ -97,6 +97,14 @@ module PocofData =
         | NonSearch
         | Search of string
 
+    type Refresh =
+        | Required
+        | NotRequired
+        static member ofBool =
+            function
+            | true -> Required
+            | _ -> NotRequired
+
     type KeyPattern = { Modifier: int; Key: ConsoleKey }
 
     type InternalConfig =
@@ -148,7 +156,6 @@ module PocofData =
         | true -> Some s.[1..]
         | _ -> None
 
-
     let private getCurrentProperty (query: string) (x: int) =
         let s = query.[..x].Split [| ' ' |] |> Seq.last
 
@@ -181,38 +188,42 @@ module PocofData =
             Query = query
             PropertySearch = getCurrentProperty query p.X },
         p,
-        true
+        Required
 
     let private moveBackward (state: InternalState) (pos: Position) =
         let p, changed =
             match pos.X with
-            | 0 -> pos, false
-            | _ -> { pos with X = pos.X - 1 }, true
+            | 0 -> pos, NotRequired
+            | _ -> { pos with X = pos.X - 1 }, Required
 
         { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p, changed
 
     let private moveForward (state: InternalState) (pos: Position) =
         let p, changed =
             match pos.X < state.Query.Length with
-            | true -> { pos with X = pos.X + 1 }, true
-            | _ -> pos, false
+            | true -> { pos with X = pos.X + 1 }, Required
+            | _ -> pos, NotRequired
 
         { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p, changed
 
     let private moveHead (state: InternalState) (pos: Position) =
-        { state with PropertySearch = NonSearch }, { pos with X = 0 }, pos.X <> 0 && state.PropertySearch <> NonSearch
+        { state with PropertySearch = NonSearch },
+        { pos with X = 0 },
+        (pos.X <> 0 && state.PropertySearch <> NonSearch)
+        |> Refresh.ofBool
 
     let private moveTail (state: InternalState) (pos: Position) =
         let ps = getCurrentProperty state.Query state.Query.Length
 
         { state with PropertySearch = getCurrentProperty state.Query state.Query.Length },
         { pos with X = state.Query.Length },
-        pos.X <> state.Query.Length
-        && ps <> state.PropertySearch
+        (pos.X <> state.Query.Length
+         && ps <> state.PropertySearch)
+        |> Refresh.ofBool
 
     let private removeBackwardChar (state: InternalState) (pos: Position) =
         match pos.X with
-        | 0 -> state, pos, false
+        | 0 -> state, pos, NotRequired
         | _ ->
             let p = { pos with X = pos.X - 1 }
 
@@ -225,13 +236,13 @@ module PocofData =
                 Query = q
                 PropertySearch = getCurrentProperty q p.X },
             p,
-            true
+            Required
 
     let private removeForwardChar (state: InternalState) (pos: Position) =
         let q, changed =
             match state.Query.Length > pos.X with
-            | true -> state.Query.Remove(pos.X, 1), true
-            | _ -> state.Query, false
+            | true -> state.Query.Remove(pos.X, 1), Required
+            | _ -> state.Query, NotRequired
 
         { state with
             Query = q
@@ -247,7 +258,8 @@ module PocofData =
             Query = q
             PropertySearch = ps },
         { pos with X = 0 },
-        q <> state.Query || ps <> state.PropertySearch
+        (q <> state.Query || ps <> state.PropertySearch)
+        |> Refresh.ofBool
 
     let private removeQueryTail (state: InternalState) (pos: Position) =
         let q = state.Query.[.. pos.X - 1]
@@ -257,7 +269,8 @@ module PocofData =
             Query = q
             PropertySearch = ps },
         pos,
-        q <> state.Query || ps <> state.PropertySearch
+        (q <> state.Query || ps <> state.PropertySearch)
+        |> Refresh.ofBool
 
     let private switchMatcher (state: InternalState) =
         { state with
@@ -299,16 +312,16 @@ module PocofData =
         | DeleteForwardChar -> removeForwardChar state pos
         | KillBeginningOfLine -> removeQueryHead state pos
         | KillEndOfLine -> removeQueryTail state pos
-        | RotateMatcher -> switchMatcher state, pos, true
-        | RotateOperator -> switchOperator state, pos, true
-        | ToggleCaseSensitive -> switchCaseSensitive state, pos, true
-        | ToggleInvertFilter -> switchInvertFilter state, pos, true
-        | ToggleSuppressProperties -> switchSuppressProperties state, pos, true
-        | SelectUp -> state, pos, false // TODO: implement it.
-        | SelectDown -> state, pos, false // TODO: implement it.
-        | ScrollPageUp -> state, pos, false // TODO: implement it.
-        | ScrollPageDown -> state, pos, false // TODO: implement it.
-        | TabExpansion -> state, pos, false // TODO: implement it.
+        | RotateMatcher -> switchMatcher state, pos, Required
+        | RotateOperator -> switchOperator state, pos, Required
+        | ToggleCaseSensitive -> switchCaseSensitive state, pos, Required
+        | ToggleInvertFilter -> switchInvertFilter state, pos, Required
+        | ToggleSuppressProperties -> switchSuppressProperties state, pos, Required
+        | SelectUp -> state, pos, NotRequired // TODO: implement it.
+        | SelectDown -> state, pos, NotRequired // TODO: implement it.
+        | ScrollPageUp -> state, pos, NotRequired // TODO: implement it.
+        | ScrollPageDown -> state, pos, NotRequired // TODO: implement it.
+        | TabExpansion -> state, pos, NotRequired // TODO: implement it.
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name
