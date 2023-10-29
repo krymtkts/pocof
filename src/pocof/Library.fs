@@ -52,10 +52,10 @@ type SelectPocofCommand() =
                 Async.FromContinuations(fun (cont, _, _) -> Console.ReadKey true |> cont)
                 |> Async.RunSynchronously
 
-            let rec loop (state: InternalState) (pos: Position) (results: Entry list) (skip: bool) =
+            let rec loop (state: InternalState) (pos: Position) (results: Entry list) (changed: bool) =
                 let s, l =
-                    match skip with
-                    | true -> state, results
+                    match changed with
+                    | false -> state, results
                     | _ ->
                         let s, l = PocofQuery.run state input pmap
 
@@ -72,9 +72,9 @@ type SelectPocofCommand() =
                 | Noop -> loop s pos l true
                 | a ->
                     invokeAction s pos a
-                    |> fun (s, p) -> loop s p l false
+                    |> fun (s, p, c) -> loop s p l c
 
-            loop state pos input false
+            loop state pos input true
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject [] = [||] with get, set
