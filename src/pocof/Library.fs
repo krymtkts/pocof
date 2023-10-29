@@ -5,7 +5,6 @@ open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
 open System.Collections
-open System.Threading
 
 open PocofData
 
@@ -49,6 +48,10 @@ type SelectPocofCommand() =
                 | TopDown -> sbf.writeTopDown
                 | BottomUp -> sbf.writeBottomUp
 
+            let getKey () =
+                Async.FromContinuations(fun (cont, _, _) -> Console.ReadKey true |> cont)
+                |> Async.RunSynchronously
+
             let rec loop (state: InternalState) (pos: Position) (results: Entry list) (skip: bool) =
                 let s, l =
                     match skip with
@@ -63,18 +66,13 @@ type SelectPocofCommand() =
 
                         s, l
 
-                match Console.KeyAvailable with
-                | true ->
-                    match PocofAction.get conf.Keymaps (fun () -> Console.ReadKey true) with
-                    | Cancel -> []
-                    | Finish -> unwrap l
-                    | Noop -> loop s pos l true
-                    | a ->
-                        invokeAction s pos a
-                        |> fun (s, p) -> loop s p l false
-                | _ ->
-                    Thread.Sleep(50) // NOTE: to avoid high load.
-                    loop s pos l true
+                match PocofAction.get conf.Keymaps getKey with
+                | Cancel -> []
+                | Finish -> unwrap l
+                | Noop -> loop s pos l true
+                | a ->
+                    invokeAction s pos a
+                    |> fun (s, p) -> loop s p l false
 
             loop state pos input false
 
