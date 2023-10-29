@@ -29,7 +29,8 @@ updates:
         patterns:
           - "PowerShellStandard.Library"
       test-lib:
-        patterns: "*"
+        patterns:
+          - "*"
         exclude-patterns:
           - "PowerShellStandard.Library"
     assignees:
