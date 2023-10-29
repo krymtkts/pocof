@@ -28,7 +28,7 @@ module props =
     let entries = [ "Name"; "Attribute"; "Length" ]
 
     [<Fact>]
-    let ``should returns OK with emtpy list.`` () =
+    let ``should returns OK with empty list.`` () =
         PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.NonSearch } entries
         |> shouldEqual (Ok [])
 
@@ -51,11 +51,13 @@ module props =
         |> shouldEqual (Ok [ "Name" ])
 
 module run =
-    let duplicatCase (s: string) = [ s; s.ToLower() ]
+    let duplicateCase (s: string) = [ s; s.ToLower() ]
     let mapToObj = List.map (PSObject.AsPSObject >> PocofData.Obj)
 
     let genList s =
-        List.map duplicatCase s |> List.concat |> mapToObj
+        List.map duplicateCase s
+        |> List.concat
+        |> mapToObj
 
 
     let matcher m (s: PocofData.InternalState) =
@@ -222,7 +224,7 @@ module run =
                 PocofQuery.run state entries props
                 |> shouldEqual (state, [])
 
-    module ``witha a Dictionary query`` =
+    module ``with a Dictionary query`` =
         let props = Map []
 
         open System.Collections
@@ -306,7 +308,7 @@ module run =
             |> shouldEqual (state, filtered)
 
         [<Fact>]
-        let ``should returns all entries when propetry not exists.`` () =
+        let ``should returns all entries when property not exists.`` () =
             let state = state |> query ":f a"
 
             PocofQuery.run state entries props

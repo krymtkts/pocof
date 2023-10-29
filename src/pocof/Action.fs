@@ -5,11 +5,11 @@ open System.Collections
 
 module PocofAction =
 
-    type private Modifires =
+    type private Modifiers =
         | Plain
         | Modifier of ConsoleModifiers
 
-    let private modify (x: Modifires) k : PocofData.KeyPattern =
+    let private modify (x: Modifiers) k : PocofData.KeyPattern =
         let m =
             match x with
             | Plain -> 0
