@@ -237,7 +237,7 @@ module invokeAction =
     module ``with AddChar`` =
         [<Fact>]
         let ``should return a property search state and position.x = 1 when the char is colon.`` () =
-            invokeAction state { X = 0; Y = 0 } (AddChar ':')
+            invokeAction state { X = 0; Y = 0 } (AddChar ":")
             |> shouldEqual
             <| ({ state with
                     Query = ":"
@@ -252,7 +252,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "name" }
                 { X = 5; Y = 0 }
-                (AddChar ' ')
+                (AddChar " ")
             |> shouldEqual
             <| ({ state with
                     Query = ":name "
