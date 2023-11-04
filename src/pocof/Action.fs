@@ -110,8 +110,7 @@ module PocofAction =
         | Control of ConsoleKey
         | Shortcut of PocofData.Action
 
-    let private key (getKey: unit -> ConsoleKeyInfo) =
-        let k = getKey ()
+    let private key (k: ConsoleKeyInfo) =
         let m = k.Modifiers.GetHashCode()
 
         { KeyChar = k.KeyChar
@@ -133,8 +132,15 @@ module PocofAction =
         | ControlKey c -> Control c
         | _ -> Char key.KeyChar
 
-    let get (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (getKey: unit -> ConsoleKeyInfo) =
-        match key getKey |> keyToAction keymap with
-        | Char c -> PocofData.AddChar c
-        | Shortcut a -> a
-        | Control _ -> PocofData.Noop
+    let get (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (keyInfo: ConsoleKeyInfo list) =
+        keyInfo
+        |> List.map (key >> keyToAction keymap)
+        |> List.fold
+            (fun acc x ->
+                (acc, x)
+                |> function
+                    | PocofData.AddChar s, Char c -> string c |> (+) s |> PocofData.AddChar
+                    | _, Char c -> PocofData.AddChar <| string c
+                    | _, Shortcut a -> a
+                    | _, Control _ -> PocofData.Noop)
+            PocofData.Noop

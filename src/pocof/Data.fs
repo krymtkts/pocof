@@ -54,7 +54,7 @@ module PocofData =
         | BeginningOfLine
         | EndOfLine
         // edit query.
-        | AddChar of char
+        | AddChar of string
         | DeleteBackwardChar
         | DeleteForwardChar
         | KillBeginningOfLine
@@ -180,9 +180,9 @@ module PocofData =
           SuppressProperties = p.SuppressProperties },
         { X = p.Query.Length; Y = 0 }
 
-    let private addQuery (state: InternalState) (pos: Position) (c: char) =
-        let query = state.Query.Insert(pos.X, string c)
-        let p = { pos with X = pos.X + 1 }
+    let private addQuery (state: InternalState) (pos: Position) (s: string) =
+        let query = state.Query.Insert(pos.X, s)
+        let p = { pos with X = pos.X + String.length s }
 
         { state with
             Query = query
@@ -303,7 +303,7 @@ module PocofData =
 
     let invokeAction (state: InternalState) (pos: Position) =
         function
-        | AddChar c -> addQuery state pos c
+        | AddChar s -> addQuery state pos s
         | BackwardChar -> moveBackward state pos
         | ForwardChar -> moveForward state pos
         | BeginningOfLine -> moveHead state pos

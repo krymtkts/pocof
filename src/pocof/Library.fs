@@ -49,7 +49,14 @@ type SelectPocofCommand() =
                 | BottomUp -> sbf.writeBottomUp
 
             let getKey () =
-                Async.FromContinuations(fun (cont, _, _) -> Console.ReadKey true |> cont)
+                let rec read (acc: ConsoleKeyInfo list) =
+                    let acc = Console.ReadKey true :: acc
+
+                    match Console.KeyAvailable with
+                    | true -> read acc
+                    | _ -> List.rev acc
+
+                Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
                 |> Async.RunSynchronously
 
             let rec loop (results: Entry list) (state: InternalState) (pos: Position) (refresh: Refresh) =
@@ -66,11 +73,13 @@ type SelectPocofCommand() =
 
                         s, l
 
-                match PocofAction.get conf.Keymaps getKey with
-                | Cancel -> []
-                | Finish -> unwrap l
-                | Noop -> loop l s pos NotRequired
-                | a -> invokeAction s pos a |||> loop l
+                getKey ()
+                |> PocofAction.get conf.Keymaps
+                |> function
+                    | Cancel -> []
+                    | Finish -> unwrap l
+                    | Noop -> loop l s pos NotRequired
+                    | a -> invokeAction s pos a |||> loop l
 
             loop input state pos Required
 
