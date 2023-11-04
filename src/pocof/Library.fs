@@ -125,9 +125,7 @@ type SelectPocofCommand() =
     member val Prompt = "query" with get, set
 
     [<Parameter>]
-    [<ValidateSet("TopDown"
-      // , "BottomUp"
-      )>]
+    [<ValidateSet("TopDown", "BottomUp")>]
     member val Layout = string TopDown with get, set
 
     [<Parameter>]

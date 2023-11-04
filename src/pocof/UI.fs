@@ -67,10 +67,12 @@ module PocofScreen =
             (entries: PocofData.Entry list)
             (props: Result<string list, string>)
             =
-            __.writeScreenLine 0
+            let basePosition = 0
+
+            __.writeScreenLine basePosition
             <| __.prompt + ">" + state.Query
 
-            __.writeRightInfo state entries.Length 0
+            __.writeRightInfo state entries.Length basePosition
 
             // PocofDebug.logFile "./debug.log" [ List.length entries ]
 
@@ -106,7 +108,7 @@ module PocofScreen =
 
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x
-            <| 0
+            <| basePosition
 
         member __.writeBottomUp
             (state: PocofData.InternalState)
@@ -114,10 +116,55 @@ module PocofScreen =
             (entries: PocofData.Entry list)
             (props: Result<string list, string>)
             =
-            // TODO: implement it from Write-BottomUp.
+            let basePosition = __.rui.WindowSize.Height - 1
+
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x
-            <| __.rui.CursorPosition.Y
+            <| basePosition
+
+            __.writeScreenLine basePosition
+            <| __.prompt + ">" + state.Query
+
+            __.writeRightInfo state entries.Length basePosition
+
+            // PocofDebug.logFile "./debug.log" [ List.length entries ]
+
+            __.writeScreenLine (basePosition - 1)
+            <| match state.Notification with
+               | "" ->
+                   match props with
+                   | Ok (p) -> (String.concat " " p).[.. __.rui.WindowSize.Width - 1]
+                   | Error (e) -> "note>" + e
+               | _ -> "note>" + state.Notification
+
+            let h = __.rui.WindowSize.Height - 3
+
+            let out =
+                match List.length entries < h with
+                | true -> entries
+                | _ -> List.take h entries
+                |> PocofData.unwrap
+                |> __.invoke
+                |> Seq.fold
+                    (fun acc s ->
+                        s.Split Environment.NewLine
+                        |> List.ofArray
+                        |> (@) acc)
+                    []
+
+            seq { 0..h }
+            |> Seq.iter (fun i ->
+                match List.tryItem i out with
+                | Some s -> __.writeScreenLine <| basePosition - i - 2 <| s
+                // logFile "./debug.log" [ s ]
+                | None ->
+                    __.writeScreenLine
+                    <| basePosition - i - 2
+                    <| String.Empty)
+
+            __.setCursorPosition
+            <| __.getCursorPositionX state.Query x
+            <| basePosition
 
     let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<obj> -> seq<string>) =
         let buf = new Buff(rui, prompt, invoke, Console.TreatControlCAsInput)
