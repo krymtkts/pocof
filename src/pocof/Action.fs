@@ -134,8 +134,7 @@ module PocofAction =
 
     let get (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (keyInfo: ConsoleKeyInfo list) =
         keyInfo
-        |> List.map key
-        |> List.map (keyToAction keymap)
+        |> List.map (key >> keyToAction keymap)
         |> List.fold
             (fun acc x ->
                 (acc, x)
