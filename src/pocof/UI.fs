@@ -61,13 +61,19 @@ module PocofScreen =
             line.PadRight __.rui.WindowSize.Width
             |> Console.Write
 
-        member __.writeTopDown
+        member __.writeScreen
+            (layout: PocofData.Layout)
             (state: PocofData.InternalState)
             (x: int)
             (entries: PocofData.Entry list)
             (props: Result<string list, string>)
             =
-            let basePosition = 0
+            let basePosition, firstLine, toHeight =
+                match layout with
+                | PocofData.TopDown -> 0, 1, (+) 2
+                | PocofData.BottomUp ->
+                    let basePosition = __.rui.WindowSize.Height - 1
+                    basePosition, basePosition - 1, (-) (basePosition - 2)
 
             __.writeScreenLine basePosition
             <| __.prompt + ">" + state.Query
@@ -76,7 +82,7 @@ module PocofScreen =
 
             // PocofDebug.logFile "./debug.log" [ List.length entries ]
 
-            __.writeScreenLine 1
+            __.writeScreenLine firstLine
             <| match state.Notification with
                | "" ->
                    match props with
@@ -101,70 +107,22 @@ module PocofScreen =
 
             seq { 0..h }
             |> Seq.iter (fun i ->
-                match List.tryItem i out with
-                | Some s -> __.writeScreenLine <| i + 2 <| s
-                // logFile "./debug.log" [ s ]
-                | None -> __.writeScreenLine <| i + 2 <| String.Empty)
+                __.writeScreenLine
+                <| toHeight i
+                <| match List.tryItem i out with
+                   | Some s ->
+                       // logFile "./debug.log" [ s ]
+                       s
+                   | None -> String.Empty)
 
             __.setCursorPosition
             <| __.getCursorPositionX state.Query x
             <| basePosition
 
-        member __.writeBottomUp
-            (state: PocofData.InternalState)
-            (x: int)
-            (entries: PocofData.Entry list)
-            (props: Result<string list, string>)
-            =
-            let basePosition = __.rui.WindowSize.Height - 1
 
-            __.setCursorPosition
-            <| __.getCursorPositionX state.Query x
-            <| basePosition
+        member __.writeTopDown = __.writeScreen PocofData.TopDown
 
-            __.writeScreenLine basePosition
-            <| __.prompt + ">" + state.Query
-
-            __.writeRightInfo state entries.Length basePosition
-
-            // PocofDebug.logFile "./debug.log" [ List.length entries ]
-
-            __.writeScreenLine (basePosition - 1)
-            <| match state.Notification with
-               | "" ->
-                   match props with
-                   | Ok (p) -> (String.concat " " p).[.. __.rui.WindowSize.Width - 1]
-                   | Error (e) -> "note>" + e
-               | _ -> "note>" + state.Notification
-
-            let h = __.rui.WindowSize.Height - 3
-
-            let out =
-                match List.length entries < h with
-                | true -> entries
-                | _ -> List.take h entries
-                |> PocofData.unwrap
-                |> __.invoke
-                |> Seq.fold
-                    (fun acc s ->
-                        s.Split Environment.NewLine
-                        |> List.ofArray
-                        |> (@) acc)
-                    []
-
-            seq { 0..h }
-            |> Seq.iter (fun i ->
-                match List.tryItem i out with
-                | Some s -> __.writeScreenLine <| basePosition - i - 2 <| s
-                // logFile "./debug.log" [ s ]
-                | None ->
-                    __.writeScreenLine
-                    <| basePosition - i - 2
-                    <| String.Empty)
-
-            __.setCursorPosition
-            <| __.getCursorPositionX state.Query x
-            <| basePosition
+        member __.writeBottomUp = __.writeScreen PocofData.BottomUp
 
     let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<obj> -> seq<string>) =
         let buf = new Buff(rui, prompt, invoke, Console.TreatControlCAsInput)
