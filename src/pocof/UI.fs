@@ -45,6 +45,7 @@ module PocofScreen =
                 __.setCursorPosition 0 <| __.buf.GetUpperBound 0
 
     let private anchor = ">"
+    let private note = "note>"
 
     type Buff =
         val rui: RawUI
@@ -94,8 +95,8 @@ module PocofScreen =
                | "" ->
                    match props with
                    | Ok (p) -> (String.concat " " p).[.. (__.rui.getWindowWidth ()) - 1]
-                   | Error (e) -> "note>" + e
-               | _ -> "note>" + state.Notification
+                   | Error (e) -> note + e
+               | _ -> note + state.Notification
 
             let h = __.rui.getWindowHeight () - 3
 
