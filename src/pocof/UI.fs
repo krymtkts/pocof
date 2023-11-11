@@ -50,20 +50,14 @@ module PocofScreen =
         val rui: RawUI
         val prompt: string
         val invoke: list<obj> -> seq<string>
-        val promptLength: int
 
-        new(r, p, i) =
-            { rui = r
-              prompt = p
-              promptLength = p.Length + anchor.Length
-              invoke = i }
+        new(r, p, i) = { rui = r; prompt = p; invoke = i }
 
         interface IDisposable with
             member __.Dispose() = (__.rui :> IDisposable).Dispose()
 
         member private __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
-            let info = sprintf "%O [%d]" <| state.QueryState <| length
-
+            let info = $"%O{state.QueryState} [%d{length}]"
             let x = (__.rui.getWindowWidth ()) - info.Length
             __.rui.setCursorPosition x row
             Console.Write info
@@ -88,8 +82,8 @@ module PocofScreen =
                     let basePosition = __.rui.getWindowHeight () - 1
                     basePosition, basePosition - 1, (-) (basePosition - 2)
 
-            __.writeScreenLine basePosition
-            <| __.prompt + ">" + state.Query
+            let prompt = __.prompt + anchor + state.Query
+            __.writeScreenLine basePosition prompt
 
             __.writeRightInfo state entries.Length basePosition
 
@@ -129,7 +123,7 @@ module PocofScreen =
                    | None -> String.Empty)
 
             __.rui.setCursorPosition
-            <| __.rui.getCursorPositionX (__.prompt + anchor + state.Query) (__.promptLength + x)
+            <| __.rui.getCursorPositionX prompt (__.prompt.Length + anchor.Length + x)
             <| basePosition
 
         member __.writeTopDown = __.writeScreen PocofData.TopDown
