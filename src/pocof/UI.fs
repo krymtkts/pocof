@@ -1,8 +1,5 @@
 namespace pocof
 
-open System
-open System.Management.Automation.Host
-
 module PocofDebug =
     // for debugging.
     open System.IO
@@ -12,6 +9,9 @@ module PocofDebug =
         res |> List.iter (fprintfn sw "<%A>")
 
 module PocofScreen =
+    open System
+    open System.Management.Automation.Host
+
     type RawUI =
         val rui: PSHostRawUserInterface
         val buf: BufferCell [,]
@@ -35,6 +35,7 @@ module PocofScreen =
 
         member __.getWindowWidth() = __.rui.WindowSize.Width
         member __.getWindowHeight() = __.rui.WindowSize.Height
+        member __.write(s: string) = Console.Write s
 
         interface IDisposable with
             member __.Dispose() =
@@ -61,13 +62,13 @@ module PocofScreen =
             let info = $"%O{state.QueryState} [%d{length}]"
             let x = (__.rui.getWindowWidth ()) - info.Length
             __.rui.setCursorPosition x row
-            Console.Write info
+            __.rui.write info
 
         member private __.writeScreenLine (height: int) (line: string) =
             __.rui.setCursorPosition 0 height
 
             line.PadRight(__.rui.getWindowWidth ())
-            |> Console.Write
+            |> __.rui.write
 
         member __.writeScreen
             (layout: PocofData.Layout)
