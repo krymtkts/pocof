@@ -25,6 +25,24 @@ Describe 'pocof' {
             $_ | Should @p
         }
     }
+
+    Context 'Checking Select-Pocof parameters' -ForEach @{
+        InputObject = 'Hello,world'
+        Expected = 'Hello,world'
+        BaseParam = @{NonInteractive = $true };
+    } {
+        Context 'In <Layout> mode with empty query' -ForEach @(
+            @{ Layout = 'TopDown' },
+            @{ Layout = 'BottomUp' }
+        ) {
+            It "Given Layout '<Layout>', '<Expected>' should be returned." -TestCases @(
+                @{Params = $BaseParam + $_ }
+            ) {
+                $InputObject | Select-Pocof @Params -ErrorAction SilentlyContinue | Should -BeExactly -ExpectedValue $Expected
+            }
+        }
+    }
+
     Context 'Select-Pocof cmdlet' -ForEach @{
         InputObject = 'Hello,world'; BaseParam = @{NonInteractive = $true };
     } {
