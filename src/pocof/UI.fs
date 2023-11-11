@@ -12,6 +12,14 @@ module PocofScreen =
     open System
     open System.Management.Automation.Host
 
+    type IRawUI =
+        inherit IDisposable
+        abstract member setCursorPosition: int -> int -> unit
+        abstract member getCursorPositionX: string -> int -> int
+        abstract member getWindowWidth: unit -> int
+        abstract member getWindowHeight: unit -> int
+        abstract member write: string -> unit
+
     type RawUI =
         val rui: PSHostRawUserInterface
         val buf: BufferCell [,]
@@ -27,15 +35,16 @@ module PocofScreen =
             Console.Clear()
             r
 
-        member __.setCursorPosition (x: int) (y: int) =
-            __.rui.CursorPosition <- Coordinates(x, y)
+        interface IRawUI with
+            member __.setCursorPosition (x: int) (y: int) =
+                __.rui.CursorPosition <- Coordinates(x, y)
 
-        member __.getCursorPositionX (prompt: string) (x: int) =
-            __.rui.LengthInBufferCells(prompt.Substring(0, x))
+            member __.getCursorPositionX (prompt: string) (x: int) =
+                __.rui.LengthInBufferCells(prompt.Substring(0, x))
 
-        member __.getWindowWidth() = __.rui.WindowSize.Width
-        member __.getWindowHeight() = __.rui.WindowSize.Height
-        member __.write(s: string) = Console.Write s
+            member __.getWindowWidth() = __.rui.WindowSize.Width
+            member __.getWindowHeight() = __.rui.WindowSize.Height
+            member __.write(s: string) = Console.Write s
 
         interface IDisposable with
             member __.Dispose() =
@@ -43,13 +52,15 @@ module PocofScreen =
                 Console.Clear()
                 let origin = Coordinates(0, 0)
                 __.rui.SetBufferContents(origin, __.buf)
-                __.setCursorPosition 0 <| __.buf.GetUpperBound 0
+
+                (__ :> IRawUI).setCursorPosition 0
+                <| __.buf.GetUpperBound 0
 
     let private anchor = ">"
     let private note = "note>"
 
     type Buff =
-        val rui: RawUI
+        val rui: IRawUI
         val prompt: string
         val invoke: list<obj> -> seq<string>
 
