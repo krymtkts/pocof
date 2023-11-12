@@ -18,7 +18,7 @@ module PocofScreen =
         abstract member GetCursorPositionX: string -> int -> int
         abstract member GetWindowWidth: unit -> int
         abstract member GetWindowHeight: unit -> int
-        abstract member Write: string -> unit
+        abstract member Write: int -> int -> string -> unit
 
     type RawUI =
         val rui: PSHostRawUserInterface
@@ -44,7 +44,10 @@ module PocofScreen =
 
             member __.GetWindowWidth() = __.rui.WindowSize.Width
             member __.GetWindowHeight() = __.rui.WindowSize.Height
-            member __.Write(s: string) = Console.Write s
+
+            member __.Write (x: int) (y: int) (s: string) =
+                (__ :> IRawUI).SetCursorPosition x y
+                Console.Write s
 
         interface IDisposable with
             member __.Dispose() =
@@ -72,14 +75,11 @@ module PocofScreen =
         member private __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
             let info = $"%O{state.QueryState} [%d{length}]"
             let x = (__.rui.GetWindowWidth()) - info.Length
-            __.rui.SetCursorPosition x row
-            __.rui.Write info
+            __.rui.Write x row info
 
         member private __.writeScreenLine (height: int) (line: string) =
-            __.rui.SetCursorPosition 0 height
-
             line.PadRight(__.rui.GetWindowWidth())
-            |> __.rui.Write
+            |> __.rui.Write 0 height
 
         member __.writeScreen
             (layout: PocofData.Layout)
