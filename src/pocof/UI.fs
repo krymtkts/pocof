@@ -1,8 +1,5 @@
 namespace pocof
 
-open System
-open System.Management.Automation.Host
-
 module PocofDebug =
     // for debugging.
     open System.IO
@@ -12,54 +9,71 @@ module PocofDebug =
         res |> List.iter (fprintfn sw "<%A>")
 
 module PocofScreen =
-    let private anchor = ">"
+    open System
+    open System.Management.Automation.Host
 
-    type Buff =
-        val rui: PSHostRawUserInterface
-        val prompt: string
-        val invoke: list<obj> -> seq<string>
+    type IRawUI =
+        inherit IDisposable
+        abstract member SetCursorPosition: int -> int -> unit
+        abstract member GetCursorPositionX: string -> int -> int
+        abstract member GetWindowWidth: unit -> int
+        abstract member GetWindowHeight: unit -> int
+        abstract member Write: int -> int -> string -> unit
 
-        val buf: BufferCell [,]
-        val promptLength: int
-        val caAsInput: bool
+    type RawUI(rui) =
+        let rui: PSHostRawUserInterface = rui
 
-        new(r, p, i, b) =
-            { rui = r
-              buf = r.GetBufferContents(Rectangle(0, 0, r.WindowSize.Width, r.CursorPosition.Y))
-              prompt = p
-              promptLength = p.Length + anchor.Length
-              invoke = i
-              caAsInput = b }
+        let buf: BufferCell [,] =
+            rui.GetBufferContents(Rectangle(0, 0, rui.WindowSize.Width, rui.CursorPosition.Y))
+
+        let caAsInput: bool = Console.TreatControlCAsInput
+
+        do
+            Console.TreatControlCAsInput <- true
+            Console.Clear()
+
+        interface IRawUI with
+            member __.SetCursorPosition (x: int) (y: int) = rui.CursorPosition <- Coordinates(x, y)
+
+            member __.GetCursorPositionX (prompt: string) (x: int) =
+                rui.LengthInBufferCells(prompt.Substring(0, x))
+
+            member __.GetWindowWidth() = rui.WindowSize.Width
+            member __.GetWindowHeight() = rui.WindowSize.Height
+
+            member __.Write (x: int) (y: int) (s: string) =
+                (__ :> IRawUI).SetCursorPosition x y
+                Console.Write s
 
         interface IDisposable with
             member __.Dispose() =
-                Console.TreatControlCAsInput <- __.caAsInput
+                Console.TreatControlCAsInput <- caAsInput
                 Console.Clear()
                 let origin = Coordinates(0, 0)
-                __.rui.SetBufferContents(origin, __.buf)
-                __.setCursorPosition 0 <| __.buf.GetUpperBound 0
+                rui.SetBufferContents(origin, buf)
 
-        member private __.setCursorPosition (x: int) (y: int) =
-            __.rui.CursorPosition <- Coordinates(x, y)
+                (__ :> IRawUI).SetCursorPosition 0
+                <| buf.GetUpperBound 0
 
-        member private __.getCursorPositionX (filter: string) (x: int) =
-            __.rui.LengthInBufferCells(
-                (__.prompt + anchor + filter)
-                    .Substring(0, __.promptLength + x)
-            )
+    let private anchor = ">"
+    let private note = "note>"
+
+    type Buff(r, p, i) =
+        let rui: IRawUI = r
+        let prompt: string = p
+        let invoke: obj list -> string seq = i
+
+        interface IDisposable with
+            member __.Dispose() = (rui :> IDisposable).Dispose()
 
         member private __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
-            let info = sprintf "%O [%d]" <| state.QueryState <| length
-
-            let x = __.rui.WindowSize.Width - info.Length
-            __.setCursorPosition x row
-            Console.Write info
+            let info = $"%O{state.QueryState} [%d{length}]"
+            let x = (rui.GetWindowWidth()) - info.Length
+            rui.Write x row info
 
         member private __.writeScreenLine (height: int) (line: string) =
-            __.setCursorPosition 0 height
-
-            line.PadRight __.rui.WindowSize.Width
-            |> Console.Write
+            line.PadRight(rui.GetWindowWidth())
+            |> rui.Write 0 height
 
         member __.writeScreen
             (layout: PocofData.Layout)
@@ -72,32 +86,31 @@ module PocofScreen =
                 match layout with
                 | PocofData.TopDown -> 0, 1, (+) 2
                 | PocofData.BottomUp ->
-                    let basePosition = __.rui.WindowSize.Height - 1
+                    let basePosition = rui.GetWindowHeight() - 1
                     basePosition, basePosition - 1, (-) (basePosition - 2)
 
-            __.writeScreenLine basePosition
-            <| __.prompt + ">" + state.Query
-
+            let topLine = prompt + anchor + state.Query
+            __.writeScreenLine basePosition topLine
             __.writeRightInfo state entries.Length basePosition
 
-            // PocofDebug.logFile "./debug.log" [ List.length entries ]
+            // PocofDebug.logFile "./debug.log" [ List.length entries ] // TODO: add debug flag.
 
             __.writeScreenLine firstLine
             <| match state.Notification with
                | "" ->
                    match props with
-                   | Ok (p) -> (String.concat " " p).[.. __.rui.WindowSize.Width - 1]
-                   | Error (e) -> "note>" + e
-               | _ -> "note>" + state.Notification
+                   | Ok (p) -> (String.concat " " p).[.. (rui.GetWindowWidth()) - 1]
+                   | Error (e) -> note + e
+               | _ -> note + state.Notification
 
-            let h = __.rui.WindowSize.Height - 3
+            let h = rui.GetWindowHeight() - 3
 
             let out =
                 match List.length entries < h with
                 | true -> entries
                 | _ -> List.take h entries
                 |> PocofData.unwrap
-                |> __.invoke
+                |> invoke
                 |> Seq.fold
                     (fun acc s ->
                         s.Split Environment.NewLine
@@ -111,21 +124,19 @@ module PocofScreen =
                 <| toHeight i
                 <| match List.tryItem i out with
                    | Some s ->
-                       // logFile "./debug.log" [ s ]
+                       // logFile "./debug.log" [ s ] // TODO: add debug flag.
                        s
                    | None -> String.Empty)
 
-            __.setCursorPosition
-            <| __.getCursorPositionX state.Query x
+            rui.SetCursorPosition
+            <| rui.GetCursorPositionX topLine (prompt.Length + anchor.Length + x)
             <| basePosition
-
 
         member __.writeTopDown = __.writeScreen PocofData.TopDown
 
         member __.writeBottomUp = __.writeScreen PocofData.BottomUp
 
-    let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<obj> -> seq<string>) =
-        let buf = new Buff(rui, prompt, invoke, Console.TreatControlCAsInput)
-        Console.Clear()
-        Console.TreatControlCAsInput <- true
+    let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: obj list -> string seq) =
+        let r = new RawUI(rui)
+        let buf = new Buff(r, prompt, invoke)
         buf
