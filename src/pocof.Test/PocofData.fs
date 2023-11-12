@@ -156,8 +156,8 @@ module initConfig =
               Prompt = "prompt"
               Layout = "TopDown"
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ] }
-        |> shouldEqual
-        <| ({ Prompt = "prompt"
+        |> shouldEqual (
+            { Prompt = "prompt"
               Layout = Layout.TopDown
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
               NotInteractive = true },
@@ -170,7 +170,8 @@ module initConfig =
               PropertySearch = Search "name"
               Notification = ""
               SuppressProperties = true },
-            { X = 5; Y = 0 })
+            { X = 5; Y = 0 }
+        )
 
     [<Fact>]
     let ``should fail due to unknown Matcher.`` () =
@@ -238,12 +239,13 @@ module invokeAction =
         [<Fact>]
         let ``should return a property search state and position.x = 1 when the char is colon.`` () =
             invokeAction state { X = 0; Y = 0 } (AddChar ":")
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":"
                     PropertySearch = Search "" },
                 { X = 1; Y = 0 },
-                Required)
+                Required
+            )
 
         [<Fact>]
         let ``should return a non-search state and position.X = 6 when the char is space.`` () =
@@ -253,12 +255,13 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 5; Y = 0 }
                 (AddChar " ")
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name "
                     PropertySearch = NonSearch },
                 { X = 6; Y = 0 },
-                Required)
+                Required
+            )
 
     module ``with BackwardChar`` =
         [<Fact>]
@@ -271,8 +274,7 @@ module invokeAction =
             let position: Position = { X = 0; Y = 0 }
 
             invokeAction state position BackwardChar
-            |> shouldEqual
-            <| (state, position, NotRequired)
+            |> shouldEqual (state, position, NotRequired)
 
         [<Fact>]
         let ``should return state with position.X=4 when moving forward on ':name' with position.X=5.`` () =
@@ -282,12 +284,13 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 5; Y = 0 }
                 BackwardChar
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = Search "nam" },
                 { X = 4; Y = 0 },
-                Required)
+                Required
+            )
 
     module ``with ForwardChar`` =
         [<Fact>]
@@ -298,12 +301,13 @@ module invokeAction =
                     PropertySearch = Search "" }
                 { X = 1; Y = 0 }
                 ForwardChar
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = Search "n" },
                 { X = 2; Y = 0 },
-                Required)
+                Required
+            )
 
         [<Fact>]
         let ``should return state with pos unmodified when moving forward on ':name' with position.X=5 and query.Length=3.``
@@ -315,12 +319,13 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 5; Y = 0 }
                 ForwardChar
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = Search "name" },
                 { X = 5; Y = 0 },
-                NotRequired)
+                NotRequired
+            )
 
     module ``with BeginningOfLine`` =
         [<Fact>]
@@ -331,12 +336,13 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 5; Y = 0 }
                 BeginningOfLine
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = NonSearch },
                 { X = 0; Y = 0 },
-                Required)
+                Required
+            )
 
         [<Fact>]
         let ``should return state with pos unmodified`` () =
@@ -346,12 +352,13 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 0; Y = 0 }
                 BeginningOfLine
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = NonSearch },
                 { X = 0; Y = 0 },
-                NotRequired)
+                NotRequired
+            )
 
         [<Fact>]
         let ``should return no change with pos modified when NonSearch`` () =
@@ -361,12 +368,13 @@ module invokeAction =
                     PropertySearch = NonSearch }
                 { X = 5; Y = 0 }
                 BeginningOfLine
-            |> (shouldEqual
-                <| ({ state with
-                        Query = "query"
-                        PropertySearch = NonSearch },
-                    { X = 0; Y = 0 },
-                    NotRequired))
+            |> (shouldEqual (
+                { state with
+                    Query = "query"
+                    PropertySearch = NonSearch },
+                { X = 0; Y = 0 },
+                NotRequired
+            ))
 
     module ``with EndOfLine`` =
         [<Fact>]
@@ -377,12 +385,13 @@ module invokeAction =
                     PropertySearch = Search "n" }
                 { X = 2; Y = 0 }
                 EndOfLine
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = Search "name" },
                 { X = 5; Y = 0 },
-                Required)
+                Required
+            )
 
         [<Fact>]
         let ``should return state with pos unmodified`` () =
@@ -392,12 +401,13 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 5; Y = 0 }
                 EndOfLine
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = Search "name" },
                 { X = 5; Y = 0 },
-                NotRequired)
+                NotRequired
+            )
 
         [<Fact>]
         let ``should return no change with pos modified when NonSearch`` () =
@@ -407,12 +417,13 @@ module invokeAction =
                     PropertySearch = NonSearch }
                 { X = 0; Y = 0 }
                 EndOfLine
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = "query"
                     PropertySearch = NonSearch },
                 { X = 5; Y = 0 },
-                NotRequired)
+                NotRequired
+            )
 
     module ``with DeleteBackwardChar`` =
         [<Fact>]
@@ -423,12 +434,13 @@ module invokeAction =
                     PropertySearch = NonSearch }
                 { X = 6; Y = 0 }
                 DeleteBackwardChar
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = Search "name" },
                 { X = 5; Y = 0 },
-                Required)
+                Required
+            )
 
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
@@ -438,12 +450,13 @@ module invokeAction =
                     PropertySearch = NonSearch }
                 { X = 0; Y = 0 }
                 DeleteBackwardChar
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = NonSearch },
                 { X = 0; Y = 0 },
-                NotRequired)
+                NotRequired
+            )
 
     module ``with DeleteForwardChar`` =
         [<Fact>]
@@ -454,12 +467,13 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 0; Y = 0 }
                 DeleteForwardChar
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = "name "
                     PropertySearch = NonSearch },
                 { X = 0; Y = 0 },
-                Required)
+                Required
+            )
 
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
@@ -469,42 +483,39 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 5; Y = 0 }
                 DeleteForwardChar
-            |> shouldEqual
-            <| ({ state with
+            |> shouldEqual (
+                { state with
                     Query = ":name"
                     PropertySearch = Search "name" },
                 { X = 5; Y = 0 },
-                NotRequired)
+                NotRequired
+            )
 
     module ``with KillBeginningOfLine`` =
         [<Fact>]
         let ``should remove all characters before the specified position.`` () =
             invokeAction { state with Query = "examplequery" } { X = 7; Y = 0 } KillBeginningOfLine
-            |> shouldEqual
-            <| ({ state with Query = "query" }, { X = 0; Y = 0 }, Required)
+            |> shouldEqual ({ state with Query = "query" }, { X = 0; Y = 0 }, Required)
 
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
             invokeAction { state with Query = "query" } { X = 0; Y = 0 } KillBeginningOfLine
-            |> shouldEqual
-            <| ({ state with Query = "query" }, { X = 0; Y = 0 }, NotRequired)
+            |> shouldEqual ({ state with Query = "query" }, { X = 0; Y = 0 }, NotRequired)
 
     module ``with KillEndOfLine`` =
         [<Fact>]
         let ``should remove characters after the current cursor position.`` () =
             invokeAction { state with Query = "examplequery" } { X = 7; Y = 0 } KillEndOfLine
-            |> shouldEqual
-            <| ({ state with Query = "example" }, { X = 7; Y = 0 }, Required)
+            |> shouldEqual ({ state with Query = "example" }, { X = 7; Y = 0 }, Required)
 
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
             invokeAction { state with Query = "example" } { X = 7; Y = 0 } KillEndOfLine
-            |> shouldEqual
-            <| ({ state with Query = "example" }, { X = 7; Y = 0 }, NotRequired)
+            |> shouldEqual ({ state with Query = "example" }, { X = 7; Y = 0 }, NotRequired)
 
     let testStateOnly action state expected =
-        invokeAction state position action |> shouldEqual
-        <| (expected, position, Required)
+        invokeAction state position action
+        |> shouldEqual (expected, position, Required)
 
     module ``with RotateMatcher`` =
         let test before after =
@@ -578,8 +589,8 @@ module invokeAction =
         let ``should return a disabled suppress property.`` () = test true false
 
     let noop action =
-        invokeAction state position action |> shouldEqual
-        <| (state, position, NotRequired) // TODO: change to false when the action is implemented.
+        invokeAction state position action
+        |> shouldEqual (state, position, NotRequired) // TODO: change to false when the action is implemented.
 
     module ``with SelectUp`` =
         [<Fact>]
