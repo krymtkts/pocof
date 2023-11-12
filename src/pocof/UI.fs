@@ -61,7 +61,7 @@ module PocofScreen =
     type Buff(r, p, i) =
         let rui: IRawUI = r
         let prompt: string = p
-        let invoke: list<obj> -> seq<string> = i
+        let invoke: obj list -> string seq = i
 
         interface IDisposable with
             member __.Dispose() = (rui :> IDisposable).Dispose()
@@ -93,7 +93,7 @@ module PocofScreen =
             __.writeScreenLine basePosition topLine
             __.writeRightInfo state entries.Length basePosition
 
-            // PocofDebug.logFile "./debug.log" [ List.length entries ]
+            // PocofDebug.logFile "./debug.log" [ List.length entries ] // TODO: add debug flag.
 
             __.writeScreenLine firstLine
             <| match state.Notification with
@@ -124,7 +124,7 @@ module PocofScreen =
                 <| toHeight i
                 <| match List.tryItem i out with
                    | Some s ->
-                       // logFile "./debug.log" [ s ]
+                       // logFile "./debug.log" [ s ] // TODO: add debug flag.
                        s
                    | None -> String.Empty)
 
@@ -136,7 +136,7 @@ module PocofScreen =
 
         member __.writeBottomUp = __.writeScreen PocofData.BottomUp
 
-    let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: list<obj> -> seq<string>) =
+    let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: obj list -> string seq) =
         let r = new RawUI(rui)
         let buf = new Buff(r, prompt, invoke)
         buf
