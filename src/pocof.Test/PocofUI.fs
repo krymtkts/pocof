@@ -16,7 +16,8 @@ type MockRawUI =
     static xx = 50
     static yy = 30
     new() =
-        { caAsInput = true // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException in GitHub Actions workflow.
+        // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
+        { caAsInput = true
           x = MockRawUI.xx
           y = MockRawUI.yy
           screen = generateLine  MockRawUI.xx MockRawUI.yy
