@@ -3,8 +3,6 @@ module PocofUI
 open Xunit
 open FsUnitTyped
 open System
-open System.Collections
-open pocof
 open pocof.PocofData
 open pocof.PocofScreen
 
@@ -60,7 +58,7 @@ module ``Buff writeScreen`` =
               Notification = ""
               SuppressProperties = false }
 
-        buff.writeScreen TopDown state 0 [] <| Ok []
+        buff.writeTopDown state 0 [] <| Ok []
 
         let expected =
             "query>foo                           cmatch and [0]" :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
@@ -83,10 +81,13 @@ module ``Buff writeScreen`` =
               Notification = ""
               SuppressProperties = false }
 
-        buff.writeScreen BottomUp state 0 [] <| Ok []
+        buff.writeBottomUp state 0 [] <| Ok []
 
         let expected =
             "prompt>hello*world*                 notlike or [0]" :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
             |> List.rev
         rui.screen
         |> shouldEqual expected
+
+    // TODO: test notification rendering.
+    // TODO: test entries rendering.
