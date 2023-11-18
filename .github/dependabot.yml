@@ -45,3 +45,12 @@ updates:
       - "krymtkts"
     reviewers:
       - "krymtkts"
+ignore:
+  - dependency-name: "PowerShellStandard.Library"
+    update-types:
+      - "version-update:semver-major"
+      - "version-update:semver-minor"
+  - dependency-name: "Microsoft.PowerShell.SDK"
+    update-types:
+      - "version-update:semver-major"
+      - "version-update:semver-minor"
