@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FsUnit.xUnit" Version="5.5.0" />
+    <PackageReference Include="FsUnit.xUnit" Version="5.6.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.6.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
@@ -28,7 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- NOTE: for creating mock PSObject -->
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.3.9" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.3.10" />
   </ItemGroup>
 
   <ItemGroup>
