@@ -25,14 +25,22 @@ updates:
       time: "06:00"
       timezone: "Asia/Tokyo"
     groups:
-      lib:
+      pwsh-std:
         patterns:
           - "PowerShellStandard.Library"
+        update-types:
+          - "patch"
+      pwsh-sdk:
+        patterns:
+          - "Microsoft.PowerShell.SDK"
+        update-types:
+          - "patch"
       test-lib:
         patterns:
           - "*"
         exclude-patterns:
           - "PowerShellStandard.Library"
+          - "Microsoft.PowerShell.SDK"
     assignees:
       - "krymtkts"
     reviewers:
