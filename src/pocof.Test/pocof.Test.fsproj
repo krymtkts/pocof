@@ -28,7 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- NOTE: for creating mock PSObject -->
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.0" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.3.10" />
   </ItemGroup>
 
   <ItemGroup>
