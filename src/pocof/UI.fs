@@ -93,7 +93,9 @@ module PocofScreen =
             __.writeScreenLine basePosition topLine
             __.writeRightInfo state entries.Length basePosition
 
-            // PocofDebug.logFile "./debug.log" [ List.length entries ] // TODO: add debug flag.
+#if DEBUG
+            PocofDebug.logFile "./debug.log" [ List.length entries ]
+#endif
 
             __.writeScreenLine firstLine
             <| match state.Notification with
@@ -124,7 +126,9 @@ module PocofScreen =
                 <| toHeight i
                 <| match List.tryItem i out with
                    | Some s ->
-                       // logFile "./debug.log" [ s ] // TODO: add debug flag.
+#if DEBUG
+                       PocofDebug.logFile "./debug.log" [ s ]
+#endif
                        s
                    | None -> String.Empty)
 
