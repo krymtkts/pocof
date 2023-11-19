@@ -1,12 +1,41 @@
 namespace pocof
 
+// for debugging.
 module PocofDebug =
-    // for debugging.
+    open System
     open System.IO
+    open System.Runtime.CompilerServices
+    open System.Runtime.InteropServices
 
-    let logFile path res =
-        use sw = new StreamWriter(path, true)
-        res |> List.iter (fprintfn sw "<%A>")
+    let lockObj = new obj ()
+
+    let logPath = "./debug.log"
+
+    [<AbstractClass; Sealed>]
+    type Logger =
+        static member logFile
+            (
+                res,
+                [<Optional; DefaultParameterValue(""); CallerMemberName>] caller: string,
+                [<CallerFilePath; Optional; DefaultParameterValue("")>] path: string,
+                [<CallerLineNumber; Optional; DefaultParameterValue(0)>] line: int
+            ) =
+
+            // NOTE: lock to avoid another process error when dotnet test.
+            lock lockObj (fun () ->
+                use sw = new StreamWriter(logPath, true)
+
+                res
+                |> List.iter (fun r ->
+                    fprintfn
+                        sw
+                        "[%s] %s at %d %s <%A>"
+                        (DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ss.fffzzz"))
+                        path
+                        line
+                        caller
+                        r))
+
 
 module PocofScreen =
     open System
@@ -94,7 +123,7 @@ module PocofScreen =
             __.writeRightInfo state entries.Length basePosition
 
 #if DEBUG
-            PocofDebug.logFile "./debug.log" [ List.length entries ]
+            PocofDebug.Logger.logFile [ List.length entries ]
 #endif
 
             __.writeScreenLine firstLine
@@ -127,7 +156,7 @@ module PocofScreen =
                 <| match List.tryItem i out with
                    | Some s ->
 #if DEBUG
-                       PocofDebug.logFile "./debug.log" [ s ]
+                       PocofDebug.Logger.logFile [ s ]
 #endif
                        s
                    | None -> String.Empty)

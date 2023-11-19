@@ -89,7 +89,7 @@ module PocofQuery =
             |> parseQuery []
 
 #if DEBUG
-        PocofDebug.logFile "./debug.log" queries
+        PocofDebug.Logger.logFile queries
 #endif
 
         let values (o: Entry) =
