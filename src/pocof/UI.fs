@@ -52,8 +52,12 @@ module PocofScreen =
     type RawUI(rui) =
         let rui: PSHostRawUserInterface = rui
 
-        let buf: BufferCell [,] =
-            rui.GetBufferContents(Rectangle(0, 0, rui.WindowSize.Width, rui.CursorPosition.Y))
+        let buf: BufferCell [,] option =
+            try
+                rui.GetBufferContents(Rectangle(0, 0, rui.WindowSize.Width, rui.CursorPosition.Y))
+                |> Some
+            with // NOTE: when running on Linux, this exception is thrown.
+            | :? NotImplementedException -> None
 
         let caAsInput: bool = Console.TreatControlCAsInput
 
@@ -79,10 +83,15 @@ module PocofScreen =
                 Console.TreatControlCAsInput <- caAsInput
                 Console.Clear()
                 let origin = Coordinates(0, 0)
-                rui.SetBufferContents(origin, buf)
 
-                (__ :> IRawUI).SetCursorPosition 0
-                <| buf.GetUpperBound 0
+                let pos =
+                    match buf with
+                    | Some buf ->
+                        rui.SetBufferContents(origin, buf)
+                        buf.GetUpperBound 0
+                    | None -> 0
+
+                (__ :> IRawUI).SetCursorPosition 0 pos
 
     let private anchor = ">"
     let private note = "note>"
