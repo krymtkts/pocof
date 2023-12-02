@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
@@ -28,7 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- NOTE: for creating mock PSObject -->
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.3.10" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.0" />
   </ItemGroup>
 
   <ItemGroup>
