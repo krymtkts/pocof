@@ -145,6 +145,7 @@ module PocofScreen =
 
             let h = rui.GetWindowHeight() - 3
 
+
             let out =
                 match List.length entries < h with
                 | true -> entries
@@ -153,10 +154,16 @@ module PocofScreen =
                 |> invoke
                 |> Seq.fold
                     (fun acc s ->
-                        s.Split Environment.NewLine
+                        // NOTE: This split lines is implemented complicated way because of netstandard2.0.
+                        s.Replace(Environment.NewLine, "\n").Split('\n')
                         |> List.ofArray
                         |> (@) acc)
                     []
+
+#if DEBUG
+            PocofDebug.Logger.logFile [ "out length"
+                                        $"{Seq.length out}" ]
+#endif
 
             seq { 0..h }
             |> Seq.iter (fun i ->
