@@ -19,7 +19,7 @@ let initState () : PocofData.InternalState =
 let state = initState ()
 
 let caseSensitive (s: PocofData.InternalState) =
-    { s with QueryState = { s.QueryState with CaseSensitive = true } }
+    { s with QueryState.CaseSensitive = true }
 
 module prepare =
     ()
@@ -59,18 +59,14 @@ module run =
         |> List.concat
         |> mapToObj
 
-
-    let matcher m (s: PocofData.InternalState) =
-        { s with QueryState = { s.QueryState with Matcher = m } }
+    let matcher m (s: PocofData.InternalState) = { s with QueryState.Matcher = m }
 
     let query q (s: PocofData.InternalState) = { s with Query = q }
 
-
-    let invert (s: PocofData.InternalState) =
-        { s with QueryState = { s.QueryState with Invert = true } }
+    let invert (s: PocofData.InternalState) = { s with QueryState.Invert = true }
 
     let opAnd (s: PocofData.InternalState) =
-        { s with QueryState = { s.QueryState with Operator = PocofData.AND } }
+        { s with QueryState.Operator = PocofData.AND }
 
     module ``with a simple query`` =
         let entries =
@@ -259,7 +255,7 @@ module run =
             let props =
                 DictionaryEntry("Jane", "Doe")
                 |> PSObject.AsPSObject
-                |> (fun o -> o.Properties)
+                |> _.Properties
                 |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
                 |> Map
 

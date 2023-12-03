@@ -521,8 +521,8 @@ module invokeAction =
         let test before after =
             testStateOnly
                 RotateMatcher
-                { state with QueryState = { state.QueryState with Matcher = before } }
-                { state with QueryState = { state.QueryState with Matcher = after } }
+                { state with InternalState.QueryState.Matcher = before }
+                { state with InternalState.QueryState.Matcher = after }
 
         [<Fact>]
         let ``should switch EQ to LIKE.`` () = test EQ LIKE
@@ -537,8 +537,8 @@ module invokeAction =
         let test before after =
             testStateOnly
                 RotateOperator
-                { state with QueryState = { state.QueryState with Operator = before } }
-                { state with QueryState = { state.QueryState with Operator = after } }
+                { state with InternalState.QueryState.Operator = before }
+                { state with InternalState.QueryState.Operator = after }
 
         [<Fact>]
         let ``should switch NONE to OR.`` () = test NONE OR
@@ -553,8 +553,8 @@ module invokeAction =
         let test before after =
             testStateOnly
                 ToggleCaseSensitive
-                { state with QueryState = { state.QueryState with CaseSensitive = before } }
-                { state with QueryState = { state.QueryState with CaseSensitive = after } }
+                { state with InternalState.QueryState.CaseSensitive = before }
+                { state with InternalState.QueryState.CaseSensitive = after }
 
         [<Fact>]
         let ``should return a enabled case sensitive.`` () = test false true
@@ -566,8 +566,8 @@ module invokeAction =
         let test before after () =
             testStateOnly
                 ToggleInvertFilter
-                { state with QueryState = { state.QueryState with Invert = before } }
-                { state with QueryState = { state.QueryState with Invert = after } }
+                { state with InternalState.QueryState.Invert = before }
+                { state with InternalState.QueryState.Invert = after }
 
         [<Fact>]
         let ``should return a enabled invert filter.`` () = test false true
