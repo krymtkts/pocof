@@ -274,29 +274,25 @@ module PocofData =
 
     let private switchMatcher (state: InternalState) =
         { state with
-            QueryState =
-                { state.QueryState with
-                    Matcher =
-                        match state.QueryState.Matcher with
-                        | EQ -> LIKE
-                        | LIKE -> MATCH
-                        | MATCH -> EQ } }
+            InternalState.QueryState.Matcher =
+                match state.QueryState.Matcher with
+                | EQ -> LIKE
+                | LIKE -> MATCH
+                | MATCH -> EQ }
 
     let private switchOperator (state: InternalState) =
         { state with
-            QueryState =
-                { state.QueryState with
-                    Operator =
-                        match state.QueryState.Operator with
-                        | OR -> AND
-                        | AND -> NONE
-                        | NONE -> OR } }
+            InternalState.QueryState.Operator =
+                match state.QueryState.Operator with
+                | OR -> AND
+                | AND -> NONE
+                | NONE -> OR }
 
     let private switchCaseSensitive (state: InternalState) =
-        { state with QueryState = { state.QueryState with CaseSensitive = not state.QueryState.CaseSensitive } }
+        { state with InternalState.QueryState.CaseSensitive = not state.QueryState.CaseSensitive }
 
     let private switchInvertFilter (state: InternalState) =
-        { state with QueryState = { state.QueryState with Invert = not state.QueryState.Invert } }
+        { state with InternalState.QueryState.Invert = not state.QueryState.Invert }
 
     let private switchSuppressProperties (state: InternalState) =
         { state with SuppressProperties = not state.SuppressProperties }
