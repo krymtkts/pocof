@@ -61,28 +61,29 @@ module PocofQuery =
     // let prepare (state: InternalState)(props: Map<string, string>) =
     //     ()
 
-    let run (state: InternalState) (entries: Entry list) (props: Map<string, string>) =
-        // TODO: move returning state to prepare function.
-        let rec parseQuery (acc: Query list) (xs: string list) =
-            // TODO: state.QueryState.Operator is NONE.
+    // TODO: move returning state to prepare function.
+    [<TailCall>]
+    let rec private parseQuery (acc: Query list) (xs: string list) =
+        // TODO: state.QueryState.Operator is NONE.
+        match xs with
+        | [] -> acc
+        | (x :: xs) ->
             match xs with
-            | [] -> acc
-            | (x :: xs) ->
-                match xs with
-                | [] ->
+            | [] ->
+                parseQuery
+                <| match x with
+                   | Prefix ":" _ -> acc
+                   | _ -> Normal x :: acc
+                <| []
+            | y :: zs ->
+                match x with
+                | Prefix ":" p ->
                     parseQuery
-                    <| match x with
-                       | Prefix ":" _ -> acc
-                       | _ -> Normal x :: acc
-                    <| []
-                | y :: zs ->
-                    match x with
-                    | Prefix ":" p ->
-                        parseQuery
-                        <| Property(String.lower p, y) :: acc
-                        <| zs
-                    | _ -> parseQuery <| Normal x :: acc <| xs
+                    <| Property(String.lower p, y) :: acc
+                    <| zs
+                | _ -> parseQuery <| Normal x :: acc <| xs
 
+    let run (state: InternalState) (entries: Entry list) (props: Map<string, string>) =
         let queries =
             state.Query.Trim().Split [| ' ' |]
             |> List.ofSeq
