@@ -166,9 +166,9 @@ type SelectPocofCommand() =
                         s
                         |> Seq.head
                         |> PSObject.AsPSObject
-                        |> (fun o -> o.Properties)
+                        |> _.Properties
                 | _ -> o.Properties)
-            |> Seq.map (fun p -> p.Name)
+            |> Seq.map _.Name
             |> Seq.fold (fun acc n -> acc.Add n) properties
 
     override __.EndProcessing() =

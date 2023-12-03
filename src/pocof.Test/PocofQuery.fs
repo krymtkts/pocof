@@ -255,7 +255,7 @@ module run =
             let props =
                 DictionaryEntry("Jane", "Doe")
                 |> PSObject.AsPSObject
-                |> (fun o -> o.Properties)
+                |> _.Properties
                 |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
                 |> Map
 
