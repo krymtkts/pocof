@@ -5,6 +5,41 @@ open System.Management.Automation
 open System.Collections
 open Microsoft.FSharp.Reflection
 
+// for debugging.
+module PocofDebug =
+    open System.IO
+    open System.Runtime.CompilerServices
+    open System.Runtime.InteropServices
+
+    let lockObj = new obj ()
+
+    let logPath = "./debug.log"
+
+    [<AbstractClass; Sealed>]
+    type Logger =
+        static member logFile
+            (
+                res,
+                [<Optional; DefaultParameterValue(""); CallerMemberName>] caller: string,
+                [<CallerFilePath; Optional; DefaultParameterValue("")>] path: string,
+                [<CallerLineNumber; Optional; DefaultParameterValue(0)>] line: int
+            ) =
+
+            // NOTE: lock to avoid another process error when dotnet test.
+            lock lockObj (fun () ->
+                use sw = new StreamWriter(logPath, true)
+
+                res
+                |> List.iter (fun r ->
+                    fprintfn
+                        sw
+                        "[%s] %s at %d %s <%A>"
+                        (DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ss.fffzzz"))
+                        path
+                        line
+                        caller
+                        r))
+
 module PocofData =
     type Entry =
         | Obj of PSObject
@@ -297,7 +332,40 @@ module PocofData =
     let private switchSuppressProperties (state: InternalState) =
         { state with SuppressProperties = not state.SuppressProperties }
 
-    let invokeAction (state: InternalState) (pos: Position) =
+    let private completeProperty (state: InternalState) (pos: Position) (props: string list) =
+        match state.PropertySearch with
+        | NonSearch -> state, pos, NotRequired
+        | Search q ->
+            // TODO: currently not supported rotate candidate.
+            let candidate =
+                props
+                |> List.filter (fun p -> p.ToLower().StartsWith(q.ToLower()))
+                |> function
+                    | [] -> ""
+                    | x :: _ -> x
+
+            match candidate with
+            | "" -> state, pos, NotRequired
+            | _ ->
+                let basePosition = pos.X - String.length q
+
+                let q: string =
+                    let head = state.Query.[.. basePosition - 1]
+                    let tail = state.Query.[pos.X ..]
+#if DEBUG
+                    PocofDebug.Logger.logFile [ $"head '{head}' candidate '{candidate}' tail '{tail}'" ]
+#endif
+                    $"%s{head}%s{candidate}%s{tail}"
+
+                let x = basePosition + candidate.Length
+
+                { state with
+                    Query = q
+                    PropertySearch = Search candidate },
+                { pos with X = x },
+                Required
+
+    let invokeAction (state: InternalState) (pos: Position) (props: string list) =
         function
         | AddChar s -> addQuery state pos s
         | BackwardChar -> moveBackward state pos
@@ -317,7 +385,8 @@ module PocofData =
         | SelectDown -> state, pos, NotRequired // TODO: implement it.
         | ScrollPageUp -> state, pos, NotRequired // TODO: implement it.
         | ScrollPageDown -> state, pos, NotRequired // TODO: implement it.
-        | TabExpansion -> state, pos, NotRequired // TODO: implement it.
+        // TODO: i think it is not good to include props in invokeAction only for completion.
+        | TabExpansion -> completeProperty state pos props
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name
