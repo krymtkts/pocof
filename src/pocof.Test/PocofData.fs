@@ -661,7 +661,7 @@ module invokeAction =
             |> shouldEqual (
                 { state with
                     Query = ":path"
-                    PropertySearch = Search "path" },
+                    PropertySearch = Rotate("p", 0, [ "path" ]) },
                 { position with X = 5 },
                 Required
             )
@@ -679,7 +679,7 @@ module invokeAction =
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = Search "name" },
+                    PropertySearch = Rotate("n", 0, [ "name"; "number" ]) },
                 { position with X = 5 },
                 Required
             )
@@ -697,7 +697,7 @@ module invokeAction =
             |> shouldEqual (
                 { state with
                     Query = ":name foo"
-                    PropertySearch = Search "name" },
+                    PropertySearch = Rotate("n", 0, [ "name" ]) },
                 { position with X = 5 },
                 Required
             )
@@ -712,7 +712,7 @@ module invokeAction =
             let position = { position with X = 5 }
 
             invokeAction state position [ "name"; "path" ] TabExpansion
-            |> shouldEqual (state, position, Required)
+            |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position, Required)
 
         [<Fact>]
         let ``shouldn't return any difference when a property is already completed to mid of query.`` () =
@@ -724,4 +724,40 @@ module invokeAction =
             let position = { position with X = 5 }
 
             invokeAction state position [ "name"; "path" ] TabExpansion
-            |> shouldEqual (state, position, Required)
+            |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position, Required)
+
+        [<Fact>]
+        let ``should return next property when rotation.`` () =
+            let state =
+                { state with
+                    Query = ":name"
+                    PropertySearch = Rotate("n", 0, [ "name"; "number" ]) }
+
+            let position = { position with X = 5 }
+
+            invokeAction state position [ "name"; "path"; "number" ] TabExpansion
+            |> shouldEqual (
+                { state with
+                    Query = ":number"
+                    PropertySearch = Rotate("n", 1, [ "name"; "number" ]) },
+                { position with X = 7 },
+                Required
+            )
+
+        [<Fact>]
+        let ``should return first property when next rotation not found.`` () =
+            let state =
+                { state with
+                    Query = ":number"
+                    PropertySearch = Rotate("n", 1, [ "name"; "number" ]) }
+
+            let position = { position with X = 7 }
+
+            invokeAction state position [ "name"; "path"; "number" ] TabExpansion
+            |> shouldEqual (
+                { state with
+                    Query = ":name"
+                    PropertySearch = Rotate("n", 0, [ "name"; "number" ]) },
+                { position with X = 5 },
+                Required
+            )

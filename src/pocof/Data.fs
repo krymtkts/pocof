@@ -131,6 +131,7 @@ module PocofData =
     type PropertySearch =
         | NonSearch
         | Search of string
+        | Rotate of string * int * string list
 
     type Refresh =
         | Required
@@ -335,25 +336,24 @@ module PocofData =
     let private completeProperty (state: InternalState) (pos: Position) (props: string list) =
         match state.PropertySearch with
         | NonSearch -> state, pos, NotRequired
-        | Search q ->
-            // TODO: currently not supported rotate candidate.
-            let candidate =
+        | Search keyword ->
+            let candidate, candidates =
                 props
-                |> List.filter (fun p -> p.ToLower().StartsWith(q.ToLower()))
+                |> List.filter (fun p -> p.ToLower().StartsWith(keyword.ToLower()))
                 |> function
-                    | [] -> ""
-                    | x :: _ -> x
+                    | [] -> "", []
+                    | xs -> List.head xs, xs
 
             match candidate with
             | "" -> state, pos, NotRequired
             | _ ->
-                let basePosition = pos.X - String.length q
+                let basePosition = pos.X - String.length keyword
 
                 let q: string =
                     let head = state.Query.[.. basePosition - 1]
                     let tail = state.Query.[pos.X ..]
 #if DEBUG
-                    PocofDebug.Logger.logFile [ $"head '{head}' candidate '{candidate}' tail '{tail}'" ]
+                    PocofDebug.Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
                     $"%s{head}%s{candidate}%s{tail}"
 
@@ -361,9 +361,30 @@ module PocofData =
 
                 { state with
                     Query = q
-                    PropertySearch = Search candidate },
+                    PropertySearch = Rotate(keyword, 0, candidates) },
                 { pos with X = x },
                 Required
+        | Rotate (keyword, i, candidates) ->
+            let cur = candidates.[i]
+            let i = (i + 1) % candidates.Length
+            let next = candidates.[i]
+            let basePosition = pos.X - String.length cur
+
+            let q: string =
+                let head = state.Query.[.. basePosition - 1]
+                let tail = state.Query.[pos.X ..]
+#if DEBUG
+                PocofDebug.Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
+#endif
+                $"%s{head}%s{next}%s{tail}"
+
+            let x = basePosition + next.Length
+
+            { state with
+                Query = q
+                PropertySearch = Rotate(keyword, i, candidates) },
+            { pos with X = x },
+            Required
 
     let invokeAction (state: InternalState) (pos: Position) (props: string list) =
         function
