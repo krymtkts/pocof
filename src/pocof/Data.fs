@@ -106,7 +106,7 @@ module PocofData =
         | ScrollPageUp
         | ScrollPageDown
         // autocomplete
-        | TabExpansion
+        | CompleteProperty
         static member fromString = tryFromStringExcludes<Action> <| set [ "AddChar" ]
 
     type Matcher =
@@ -407,7 +407,7 @@ module PocofData =
         | ScrollPageUp -> state, pos, NotRequired // TODO: implement it.
         | ScrollPageDown -> state, pos, NotRequired // TODO: implement it.
         // TODO: i think it is not good to include props in invokeAction only for completion.
-        | TabExpansion -> completeProperty state pos props
+        | CompleteProperty -> completeProperty state pos props
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name

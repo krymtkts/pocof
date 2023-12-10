@@ -48,7 +48,7 @@ module PocofAction =
               (plain ConsoleKey.PageUp, PocofData.ScrollPageUp)
               (plain ConsoleKey.PageDown, PocofData.ScrollPageDown)
 
-              (plain ConsoleKey.Tab, PocofData.TabExpansion) ]
+              (plain ConsoleKey.Tab, PocofData.CompleteProperty) ]
 
     let inline toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
         match Enum.TryParse<'a>(k, true) with

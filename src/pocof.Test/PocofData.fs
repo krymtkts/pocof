@@ -625,7 +625,7 @@ module invokeAction =
     module ``with TabExpansion`` =
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with non search mode.`` () =
-            invokeAction state position [ "name"; "path" ] TabExpansion
+            invokeAction state position [ "name"; "path" ] CompleteProperty
             |> shouldEqual (state, position, NotRequired)
 
         [<Fact>]
@@ -635,7 +635,7 @@ module invokeAction =
                     Query = ":"
                     PropertySearch = Search "" }
 
-            invokeAction state position [] TabExpansion
+            invokeAction state position [] CompleteProperty
             |> shouldEqual (state, position, NotRequired)
 
         [<Fact>]
@@ -645,7 +645,7 @@ module invokeAction =
                     Query = ":a"
                     PropertySearch = Search "a" }
 
-            invokeAction state position [ "name"; "path" ] TabExpansion
+            invokeAction state position [ "name"; "path" ] CompleteProperty
             |> shouldEqual (state, position, NotRequired)
 
         [<Fact>]
@@ -657,7 +657,7 @@ module invokeAction =
 
             let position = { position with X = 2 }
 
-            invokeAction state position [ "name"; "path" ] TabExpansion
+            invokeAction state position [ "name"; "path" ] CompleteProperty
             |> shouldEqual (
                 { state with
                     Query = ":path"
@@ -675,7 +675,7 @@ module invokeAction =
 
             let position = { position with X = 2 }
 
-            invokeAction state position [ "name"; "path"; "number" ] TabExpansion
+            invokeAction state position [ "name"; "path"; "number" ] CompleteProperty
             |> shouldEqual (
                 { state with
                     Query = ":name"
@@ -693,7 +693,7 @@ module invokeAction =
 
             let position = { position with X = 2 }
 
-            invokeAction state position [ "name"; "path" ] TabExpansion
+            invokeAction state position [ "name"; "path" ] CompleteProperty
             |> shouldEqual (
                 { state with
                     Query = ":name foo"
@@ -711,7 +711,7 @@ module invokeAction =
 
             let position = { position with X = 5 }
 
-            invokeAction state position [ "name"; "path" ] TabExpansion
+            invokeAction state position [ "name"; "path" ] CompleteProperty
             |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position, Required)
 
         [<Fact>]
@@ -723,7 +723,7 @@ module invokeAction =
 
             let position = { position with X = 5 }
 
-            invokeAction state position [ "name"; "path" ] TabExpansion
+            invokeAction state position [ "name"; "path" ] CompleteProperty
             |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position, Required)
 
         [<Fact>]
@@ -735,7 +735,7 @@ module invokeAction =
 
             let position = { position with X = 5 }
 
-            invokeAction state position [ "name"; "path"; "number" ] TabExpansion
+            invokeAction state position [ "name"; "path"; "number" ] CompleteProperty
             |> shouldEqual (
                 { state with
                     Query = ":number"
@@ -753,7 +753,7 @@ module invokeAction =
 
             let position = { position with X = 7 }
 
-            invokeAction state position [ "name"; "path"; "number" ] TabExpansion
+            invokeAction state position [ "name"; "path"; "number" ] CompleteProperty
             |> shouldEqual (
                 { state with
                     Query = ":name"
