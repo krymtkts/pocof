@@ -1,12 +1,8 @@
 namespace pocof
 
-open System
-open System.Management.Automation
-open System.Collections
-open Microsoft.FSharp.Reflection
-
 // for debugging.
 module PocofDebug =
+    open System
     open System.IO
     open System.Runtime.CompilerServices
     open System.Runtime.InteropServices
@@ -41,6 +37,11 @@ module PocofDebug =
                         r))
 
 module PocofData =
+    open System
+    open System.Management.Automation
+    open System.Collections
+    open Microsoft.FSharp.Reflection
+
     type Entry =
         | Obj of PSObject
         | Dict of DictionaryEntry
