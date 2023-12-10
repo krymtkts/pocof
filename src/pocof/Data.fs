@@ -89,7 +89,7 @@ module PocofData =
         | BeginningOfLine
         | EndOfLine
         // edit query.
-        | AddChar of string
+        | AddQuery of string
         | DeleteBackwardChar
         | DeleteForwardChar
         | KillBeginningOfLine
@@ -107,7 +107,9 @@ module PocofData =
         | ScrollPageDown
         // autocomplete
         | CompleteProperty
-        static member fromString = tryFromStringExcludes<Action> <| set [ "AddChar" ]
+        static member fromString =
+            tryFromStringExcludes<Action>
+            <| set [ "AddQuery" ]
 
     type Matcher =
         | EQ
@@ -377,7 +379,7 @@ module PocofData =
 
     let invokeAction (state: InternalState) (pos: Position) (props: string list) =
         function
-        | AddChar s -> addQuery state pos s
+        | AddQuery s -> addQuery state pos s
         | BackwardChar -> moveBackward state pos
         | ForwardChar -> moveForward state pos
         | BeginningOfLine -> moveHead state pos

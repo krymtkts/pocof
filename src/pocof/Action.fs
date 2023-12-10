@@ -139,8 +139,8 @@ module PocofAction =
             (fun acc x ->
                 (acc, x)
                 |> function
-                    | PocofData.AddChar s, Char c -> string c |> (+) s |> PocofData.AddChar
-                    | _, Char c -> PocofData.AddChar <| string c
+                    | PocofData.AddQuery s, Char c -> string c |> (+) s |> PocofData.AddQuery
+                    | _, Char c -> PocofData.AddQuery <| string c
                     | _, Shortcut a -> a
                     | _, Control _ -> PocofData.Noop)
             PocofData.Noop

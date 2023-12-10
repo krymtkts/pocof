@@ -39,18 +39,18 @@ module ``toKeyPattern should returns`` =
 
 module ``get should returns`` =
     [<Fact>]
-    let ``PocofData.AddChar if no modifier is specified.`` () =
+    let ``PocofData.AddQuery if no modifier is specified.`` () =
         let key = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
         let actual = PocofAction.get Map.empty key
 
-        actual |> shouldEqual (PocofData.AddChar "a")
+        actual |> shouldEqual (PocofData.AddQuery "a")
 
     [<Fact>]
-    let ``PocofData.AddChar if symbol with shift.`` () =
+    let ``PocofData.AddQuery if symbol with shift.`` () =
         let getKey = [ new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) ]
         let actual = PocofAction.get Map.empty getKey
 
-        actual |> shouldEqual (PocofData.AddChar ":")
+        actual |> shouldEqual (PocofData.AddQuery ":")
 
     [<Fact>]
     let ``user-defined Action if matched.`` () =
@@ -99,14 +99,14 @@ module ``get should returns`` =
         actual |> shouldEqual PocofData.BeginningOfLine
 
     [<Fact>]
-    let ``PocofData.AddChar if not match the keymap.`` () =
+    let ``PocofData.AddQuery if not match the keymap.`` () =
         let keyMap: Map<PocofData.KeyPattern, PocofData.Action> =
             Map [ ({ Modifier = 1; Key = ConsoleKey.U }, PocofData.KillBeginningOfLine) ]
 
         let key = [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) ]
         let actual = PocofAction.get keyMap key
 
-        actual |> shouldEqual (PocofData.AddChar "u")
+        actual |> shouldEqual (PocofData.AddQuery "u")
 
     [<Fact>]
     let ``PocofData.None if the control character not match the keymap.`` () =

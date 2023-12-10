@@ -14,14 +14,14 @@ module ``Action fromString should returns`` =
         |> shouldEqual (Error "Unknown case 'XXX'.")
 
     [<Fact>]
-    let ``Error when AddChar.`` () =
-        Action.fromString "AddChar"
-        |> shouldEqual (Error "Unknown case 'AddChar'.")
+    let ``Error when AddQuery.`` () =
+        Action.fromString "AddQuery"
+        |> shouldEqual (Error "Unknown case 'AddQuery'.")
 
     [<Fact>]
-    let ``known actions excluding AddChar.`` () =
+    let ``known actions excluding AddQuery.`` () =
         FSharpType.GetUnionCases(typeof<Action>)
-        |> Seq.filter (fun a -> a.Name <> "AddChar")
+        |> Seq.filter (fun a -> a.Name <> "AddQuery")
         |> Seq.iter (fun a ->
             [ a.Name
               String.lower a.Name
@@ -235,10 +235,10 @@ module invokeAction =
 
     let position: Position = { X = 0; Y = 0 }
 
-    module ``with AddChar`` =
+    module ``with AddQuery`` =
         [<Fact>]
         let ``should return a property search state and position.x = 1 when the char is colon.`` () =
-            invokeAction state { X = 0; Y = 0 } [] (AddChar ":")
+            invokeAction state { X = 0; Y = 0 } [] (AddQuery ":")
             |> shouldEqual (
                 { state with
                     Query = ":"
@@ -255,7 +255,7 @@ module invokeAction =
                     PropertySearch = Search "name" }
                 { X = 5; Y = 0 }
                 []
-                (AddChar " ")
+                (AddQuery " ")
             |> shouldEqual (
                 { state with
                     Query = ":name "
