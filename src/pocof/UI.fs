@@ -133,11 +133,7 @@ module PocofScreen =
                 __.writeScreenLine
                 <| toHeight i
                 <| match List.tryItem i out with
-                   | Some s ->
-#if DEBUG
-                       PocofDebug.Logger.logFile [ s ]
-#endif
-                       s
+                   | Some s -> s
                    | None -> String.Empty)
 
             rui.SetCursorPosition
