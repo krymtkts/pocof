@@ -334,6 +334,19 @@ module PocofData =
         { state with SuppressProperties = not state.SuppressProperties }
 
     let private completeProperty (state: InternalState) (pos: Position) (props: string list) =
+        let splitQuery keyword =
+            let basePosition = pos.X - String.length keyword
+            let head = state.Query.[.. basePosition - 1]
+            let tail = state.Query.[pos.X ..]
+            basePosition, head, tail
+
+        let buildValues head next tail keyword i candidates basePosition =
+            { state with
+                Query = $"%s{head}%s{next}%s{tail}"
+                PropertySearch = Rotate(keyword, i, candidates) },
+            { pos with X = basePosition + next.Length },
+            Required
+
         match state.PropertySearch with
         | NonSearch -> state, pos, NotRequired
         | Search keyword ->
@@ -347,44 +360,20 @@ module PocofData =
             match candidate with
             | "" -> state, pos, NotRequired
             | _ ->
-                let basePosition = pos.X - String.length keyword
-
-                let q: string =
-                    let head = state.Query.[.. basePosition - 1]
-                    let tail = state.Query.[pos.X ..]
+                let basePosition, head, tail = splitQuery keyword
 #if DEBUG
-                    PocofDebug.Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
+                PocofDebug.Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
-                    $"%s{head}%s{candidate}%s{tail}"
-
-                let x = basePosition + candidate.Length
-
-                { state with
-                    Query = q
-                    PropertySearch = Rotate(keyword, 0, candidates) },
-                { pos with X = x },
-                Required
+                buildValues head candidate tail keyword 0 candidates basePosition
         | Rotate (keyword, i, candidates) ->
             let cur = candidates.[i]
             let i = (i + 1) % candidates.Length
             let next = candidates.[i]
-            let basePosition = pos.X - String.length cur
-
-            let q: string =
-                let head = state.Query.[.. basePosition - 1]
-                let tail = state.Query.[pos.X ..]
+            let basePosition, head, tail = splitQuery cur
 #if DEBUG
-                PocofDebug.Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
+            PocofDebug.Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif
-                $"%s{head}%s{next}%s{tail}"
-
-            let x = basePosition + next.Length
-
-            { state with
-                Query = q
-                PropertySearch = Rotate(keyword, i, candidates) },
-            { pos with X = x },
-            Required
+            buildValues head next tail keyword i candidates basePosition
 
     let invokeAction (state: InternalState) (pos: Position) (props: string list) =
         function
