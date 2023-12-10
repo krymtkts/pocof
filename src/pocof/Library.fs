@@ -79,7 +79,7 @@ type SelectPocofCommand() =
                     | Cancel -> []
                     | Finish -> unwrap l
                     | Noop -> loop l s pos NotRequired
-                    | a -> invokeAction s pos a |||> loop l
+                    | a -> invokeAction s pos props a |||> loop l
 
             loop input state pos Required
 

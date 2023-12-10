@@ -1,11 +1,47 @@
 namespace pocof
 
-open System
-open System.Management.Automation
-open System.Collections
-open Microsoft.FSharp.Reflection
+// for debugging.
+module PocofDebug =
+    open System
+    open System.IO
+    open System.Runtime.CompilerServices
+    open System.Runtime.InteropServices
+
+    let lockObj = new obj ()
+
+    let logPath = "./debug.log"
+
+    [<AbstractClass; Sealed>]
+    type Logger =
+        static member logFile
+            (
+                res,
+                [<Optional; DefaultParameterValue(""); CallerMemberName>] caller: string,
+                [<CallerFilePath; Optional; DefaultParameterValue("")>] path: string,
+                [<CallerLineNumber; Optional; DefaultParameterValue(0)>] line: int
+            ) =
+
+            // NOTE: lock to avoid another process error when dotnet test.
+            lock lockObj (fun () ->
+                use sw = new StreamWriter(logPath, true)
+
+                res
+                |> List.iter (fun r ->
+                    fprintfn
+                        sw
+                        "[%s] %s at %d %s <%A>"
+                        (DateTimeOffset.Now.ToString("yyyy-MM-dd'T'HH:mm:ss.fffzzz"))
+                        path
+                        line
+                        caller
+                        r))
 
 module PocofData =
+    open System
+    open System.Management.Automation
+    open System.Collections
+    open Microsoft.FSharp.Reflection
+
     type Entry =
         | Obj of PSObject
         | Dict of DictionaryEntry
@@ -54,7 +90,7 @@ module PocofData =
         | BeginningOfLine
         | EndOfLine
         // edit query.
-        | AddChar of string
+        | AddQuery of string
         | DeleteBackwardChar
         | DeleteForwardChar
         | KillBeginningOfLine
@@ -71,8 +107,10 @@ module PocofData =
         | ScrollPageUp
         | ScrollPageDown
         // autocomplete
-        | TabExpansion
-        static member fromString = tryFromStringExcludes<Action> <| set [ "AddChar" ]
+        | CompleteProperty
+        static member fromString =
+            tryFromStringExcludes<Action>
+            <| set [ "AddQuery" ]
 
     type Matcher =
         | EQ
@@ -96,6 +134,7 @@ module PocofData =
     type PropertySearch =
         | NonSearch
         | Search of string
+        | Rotate of string * int * string list
 
     type Refresh =
         | Required
@@ -297,9 +336,51 @@ module PocofData =
     let private switchSuppressProperties (state: InternalState) =
         { state with SuppressProperties = not state.SuppressProperties }
 
-    let invokeAction (state: InternalState) (pos: Position) =
+    let private completeProperty (state: InternalState) (pos: Position) (props: string list) =
+        let splitQuery keyword =
+            let basePosition = pos.X - String.length keyword
+            let head = state.Query.[.. basePosition - 1]
+            let tail = state.Query.[pos.X ..]
+            basePosition, head, tail
+
+        let buildValues head next tail keyword i candidates basePosition =
+            { state with
+                Query = $"%s{head}%s{next}%s{tail}"
+                PropertySearch = Rotate(keyword, i, candidates) },
+            { pos with X = basePosition + next.Length },
+            Required
+
+        match state.PropertySearch with
+        | NonSearch -> state, pos, NotRequired
+        | Search keyword ->
+            let candidate, candidates =
+                props
+                |> List.filter (fun p -> p.ToLower().StartsWith(keyword.ToLower()))
+                |> function
+                    | [] -> "", []
+                    | xs -> List.head xs, xs
+
+            match candidate with
+            | "" -> state, pos, NotRequired
+            | _ ->
+                let basePosition, head, tail = splitQuery keyword
+#if DEBUG
+                PocofDebug.Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
+#endif
+                buildValues head candidate tail keyword 0 candidates basePosition
+        | Rotate (keyword, i, candidates) ->
+            let cur = candidates.[i]
+            let i = (i + 1) % candidates.Length
+            let next = candidates.[i]
+            let basePosition, head, tail = splitQuery cur
+#if DEBUG
+            PocofDebug.Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
+#endif
+            buildValues head next tail keyword i candidates basePosition
+
+    let invokeAction (state: InternalState) (pos: Position) (props: string list) =
         function
-        | AddChar s -> addQuery state pos s
+        | AddQuery s -> addQuery state pos s
         | BackwardChar -> moveBackward state pos
         | ForwardChar -> moveForward state pos
         | BeginningOfLine -> moveHead state pos
@@ -317,7 +398,8 @@ module PocofData =
         | SelectDown -> state, pos, NotRequired // TODO: implement it.
         | ScrollPageUp -> state, pos, NotRequired // TODO: implement it.
         | ScrollPageDown -> state, pos, NotRequired // TODO: implement it.
-        | TabExpansion -> state, pos, NotRequired // TODO: implement it.
+        // TODO: i think it is not good to include props in invokeAction only for completion.
+        | CompleteProperty -> completeProperty state pos props
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name
