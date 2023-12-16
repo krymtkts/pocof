@@ -36,6 +36,15 @@ module PocofDebug =
                         caller
                         r))
 
+[<AutoOpen>]
+module LanguageExtension =
+    open System
+
+    type String with
+        static member inline lower(s: string) = s.ToLower()
+        static member inline upper(s: string) = s.ToUpper()
+        static member inline startsWith (value: string) (s: string) = s.StartsWith(value)
+
 module PocofData =
     open System
     open System.Management.Automation
@@ -53,10 +62,6 @@ module PocofData =
             | Dict (dct) -> dct :> obj
             | Obj (o) -> o)
 
-    type String with
-        static member lower(s: string) = s.ToLower()
-        static member upper(s: string) = s.ToUpper()
-        static member startsWith (value: string) (s: string) = s.StartsWith(value)
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
