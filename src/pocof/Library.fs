@@ -9,6 +9,52 @@ open System.Collections
 open PocofData
 
 module Pocof =
+    [<TailCall>]
+    let rec read (acc: ConsoleKeyInfo list) =
+        let acc = Console.ReadKey true :: acc
+
+        match Console.KeyAvailable with
+        | true -> read acc
+        | _ -> List.rev acc
+
+    let getKey () =
+        Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
+        |> Async.RunSynchronously
+
+    [<TailCall>]
+    let rec loop
+        (conf: InternalConfig)
+        (input: Entry list)
+        (props: string list)
+        (propMap)
+        (writeScreen)
+        (results: Entry list)
+        (state: InternalState)
+        (pos: Position)
+        (refresh: Refresh)
+        =
+
+        let s, l =
+            match refresh with
+            | NotRequired -> state, results
+            | _ ->
+                let s, l = PocofQuery.run state input propMap
+
+                writeScreen s pos.X l
+                <| match state.SuppressProperties with
+                    | true -> Ok []
+                    | _ -> PocofQuery.props state props
+
+                s, l
+
+        getKey ()
+        |> PocofAction.get conf.Keymaps
+        |> function
+            | Cancel -> []
+            | Finish -> unwrap l
+            | Noop -> loop conf input props propMap writeScreen l s pos NotRequired
+            | a -> invokeAction s pos props a |||> loop conf input props propMap writeScreen l
+
     let interact
         (conf: InternalConfig)
         (state: InternalState)
@@ -36,41 +82,7 @@ module Pocof =
                 | TopDown -> sbf.writeTopDown
                 | BottomUp -> sbf.writeBottomUp
 
-            let getKey () =
-                let rec read (acc: ConsoleKeyInfo list) =
-                    let acc = Console.ReadKey true :: acc
-
-                    match Console.KeyAvailable with
-                    | true -> read acc
-                    | _ -> List.rev acc
-
-                Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
-                |> Async.RunSynchronously
-
-            let rec loop (results: Entry list) (state: InternalState) (pos: Position) (refresh: Refresh) =
-                let s, l =
-                    match refresh with
-                    | NotRequired -> state, results
-                    | _ ->
-                        let s, l = PocofQuery.run state input propMap
-
-                        writeScreen s pos.X l
-                        <| match state.SuppressProperties with
-                           | true -> Ok []
-                           | _ -> PocofQuery.props state props
-
-                        s, l
-
-                getKey ()
-                |> PocofAction.get conf.Keymaps
-                |> function
-                    | Cancel -> []
-                    | Finish -> unwrap l
-                    | Noop -> loop l s pos NotRequired
-                    | a -> invokeAction s pos props a |||> loop l
-
-            loop input state pos Required
-
+            loop conf input props propMap writeScreen input state pos Required
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
