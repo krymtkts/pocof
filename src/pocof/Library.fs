@@ -21,13 +21,17 @@ module Pocof =
         Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
         |> Async.RunSynchronously
 
+    type LoopFixedArguments = {
+        keymaps: Map<KeyPattern,Action>
+        input: Entry list
+        props: string list
+        propMap: Map<string,string>
+        writeScreen: PocofScreen.WriteScreen
+    }
+
     [<TailCall>]
     let rec loop
-        (conf: InternalConfig)
-        (input: Entry list)
-        (props: string list)
-        (propMap)
-        (writeScreen)
+        (args: LoopFixedArguments)
         (results: Entry list)
         (state: InternalState)
         (pos: Position)
@@ -38,22 +42,22 @@ module Pocof =
             match refresh with
             | NotRequired -> state, results
             | _ ->
-                let s, l = PocofQuery.run state input propMap
+                let s, l = PocofQuery.run state args.input args.propMap
 
-                writeScreen s pos.X l
+                args.writeScreen s pos.X l
                 <| match state.SuppressProperties with
-                    | true -> Ok []
-                    | _ -> PocofQuery.props state props
+                   | true -> Ok []
+                   | _ -> PocofQuery.props state args.props
 
                 s, l
 
         getKey ()
-        |> PocofAction.get conf.Keymaps
+        |> PocofAction.get args.keymaps
         |> function
-            | Cancel -> []
-            | Finish -> unwrap l
-            | Noop -> loop conf input props propMap writeScreen l s pos NotRequired
-            | a -> invokeAction s pos props a |||> loop conf input props propMap writeScreen l
+           | Cancel -> []
+           | Finish -> unwrap l
+           | Noop -> loop args l s pos NotRequired
+           | a -> invokeAction s pos args.props a |||> loop args l
 
     let interact
         (conf: InternalConfig)
@@ -77,12 +81,18 @@ module Pocof =
         | _ ->
             use sbf = PocofScreen.init rui conf.Prompt invoke
 
-            let writeScreen =
-                match conf.Layout with
-                | TopDown -> sbf.writeTopDown
-                | BottomUp -> sbf.writeBottomUp
+            let args = {
+                keymaps = conf.Keymaps
+                input = input
+                props = props
+                propMap = propMap
+                writeScreen =
+                    match conf.Layout with
+                    | TopDown -> sbf.writeTopDown
+                    | BottomUp -> sbf.writeBottomUp
+            }
 
-            loop conf input props propMap writeScreen input state pos Required
+            loop args input state pos Required
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
