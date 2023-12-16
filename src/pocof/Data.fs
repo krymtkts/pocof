@@ -56,6 +56,7 @@ module PocofData =
     type String with
         static member lower(s: string) = s.ToLower()
         static member upper(s: string) = s.ToUpper()
+        static member startsWith (value: string) (s: string) = s.StartsWith(value)
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
@@ -191,7 +192,7 @@ module PocofData =
           Keymaps: Map<KeyPattern, Action> }
 
     let (|Prefix|_|) (p: string) (s: string) =
-        match s.StartsWith p with
+        match String.startsWith p s with
         | true -> Some s.[1..]
         | _ -> None
 
@@ -355,7 +356,10 @@ module PocofData =
         | Search keyword ->
             let candidate, candidates =
                 props
-                |> List.filter (fun p -> p.ToLower().StartsWith(keyword.ToLower()))
+                |> List.filter (
+                    String.lower
+                    >> String.startsWith (String.lower keyword)
+                )
                 |> function
                     | [] -> "", []
                     | xs -> List.head xs, xs
