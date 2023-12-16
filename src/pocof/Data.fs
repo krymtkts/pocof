@@ -66,7 +66,7 @@ module PocofData =
             | Obj (o) -> o)
 
 
-    let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
+    let inline private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
 
         match FSharpType.GetUnionCases typeof<'a>
@@ -76,7 +76,7 @@ module PocofData =
         | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| sprintf "Unknown case '%s'." s
 
-    let private fromString<'a> s =
+    let inline private fromString<'a> s =
         let name = String.lower s
 
         match FSharpType.GetUnionCases typeof<'a>
@@ -85,7 +85,7 @@ module PocofData =
         | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
         | _ -> failwithf "Unknown case '%s'." s
 
-    let private toString (x: 'a) =
+    let inline private toString (x: 'a) =
         match FSharpValue.GetUnionFields(x, typeof<'a>) with
         | case, _ -> case.Name
 
@@ -208,7 +208,7 @@ module PocofData =
         let s = query.[..x].Split [| ' ' |] |> Seq.last
 
         match s with
-        | Prefix ":" p -> Search <| p
+        | Prefix ":" p -> Search p
         | _ -> NonSearch
 
     let initConfig (p: IncomingParameters) =
