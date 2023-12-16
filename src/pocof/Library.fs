@@ -8,28 +8,16 @@ open System.Collections
 
 open PocofData
 
-[<Cmdlet(VerbsCommon.Select, "Pocof")>]
-[<Alias("pocof")>]
-[<OutputType(typeof<PSObject>)>]
-type SelectPocofCommand() =
-    inherit PSCmdlet()
-
-    let mutable input: Entry list = []
-    let mutable properties: Set<string> = set []
-
-    let mutable caseSensitive: bool = false
-    let mutable invertQuery: bool = false
-    let mutable nonInteractive: bool = false
-    let mutable suppressProperties: bool = false
-
+module Pocof =
     let interact
         (conf: InternalConfig)
         (state: InternalState)
         (pos: Position)
         (rui: PSHostRawUserInterface)
         (invoke: obj list -> seq<string>)
+        (input: Entry list)
+        (props: string list)
         =
-        let props = List.ofSeq properties
 
         let propMap =
             props
@@ -83,6 +71,16 @@ type SelectPocofCommand() =
 
             loop input state pos Required
 
+
+[<Cmdlet(VerbsCommon.Select, "Pocof")>]
+[<Alias("pocof")>]
+[<OutputType(typeof<PSObject>)>]
+type SelectPocofCommand() =
+    inherit PSCmdlet()
+
+    let mutable input: Entry list = []
+    let mutable properties: Set<string> = set []
+
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject [] = [||] with get, set
 
@@ -98,28 +96,16 @@ type SelectPocofCommand() =
     member val Operator = string AND with get, set
 
     [<Parameter>]
-    member __.CaseSensitive: SwitchParameter = new SwitchParameter false
-
-    member __.CaseSensitive
-        with set (v: SwitchParameter) = caseSensitive <- v.IsPresent
+    member val CaseSensitive: SwitchParameter = new SwitchParameter false with get, set
 
     [<Parameter>]
-    member __.InvertQuery: SwitchParameter = new SwitchParameter false
-
-    member __.InvertQuery
-        with set (v: SwitchParameter) = invertQuery <- v.IsPresent
+    member val InvertQuery: SwitchParameter = new SwitchParameter false with get,set
 
     [<Parameter>]
-    member __.NonInteractive: SwitchParameter = new SwitchParameter false
-
-    member __.NonInteractive
-        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
+    member val NonInteractive: SwitchParameter = new SwitchParameter false with get,set
 
     [<Parameter>]
-    member __.SuppressProperties: SwitchParameter = new SwitchParameter false
-
-    member __.SuppressProperties
-        with set (v: SwitchParameter) = suppressProperties <- v.IsPresent
+    member val SuppressProperties: SwitchParameter = new SwitchParameter false with get,set
 
     [<Parameter>]
     member val Prompt = "query" with get, set
@@ -145,7 +131,8 @@ type SelectPocofCommand() =
 
     override __.ProcessRecord() =
         input <-
-            List.ofArray __.InputObject
+            __.InputObject
+            |> List.ofArray
             |> List.fold
                 (fun acc o ->
                     match o.BaseObject with
@@ -173,20 +160,18 @@ type SelectPocofCommand() =
             |> Set.ofSeq)
 
     override __.EndProcessing() =
-        input <- List.rev input
-
         let conf, state, pos =
             initConfig
                 { Query = __.Query
                   Matcher = __.Matcher
                   Operator = __.Operator
-                  CaseSensitive = caseSensitive
-                  InvertQuery = invertQuery
-                  NotInteractive = nonInteractive
-                  SuppressProperties = suppressProperties
+                  CaseSensitive = __.CaseSensitive.IsPresent
+                  InvertQuery = __.InvertQuery.IsPresent
+                  NotInteractive = __.NonInteractive.IsPresent
+                  SuppressProperties = __.SuppressProperties.IsPresent
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = __.Keymaps |> PocofAction.convertKeymaps }
 
-        interact conf state pos __.Host.UI.RawUI __.invoke
+        Pocof.interact conf state pos __.Host.UI.RawUI __.invoke <| List.rev input <| List.ofSeq properties
         |> Seq.iter __.WriteObject
