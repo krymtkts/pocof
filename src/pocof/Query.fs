@@ -22,17 +22,17 @@ module PocofQuery =
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let inline private (==) opt r l =
+    let inline private equals opt r l =
         match r with
         | "" -> true
         | _ -> r.Equals(l, opt)
 
-    let inline private (=*=) (opt: WildcardOptions) wcp o =
+    let inline private likes (opt: WildcardOptions) wcp o =
         match wcp with
         | "" -> true
         | _ -> WildcardPattern.Get(wcp, opt).IsMatch o
 
-    let inline private (=~=) opt pattern (o: string) =
+    let inline private matches opt pattern (o: string) =
         try
             new Regex(pattern, opt)
         with
@@ -43,7 +43,7 @@ module PocofQuery =
         | Normal of string
         | Property of string * string
 
-    let inline private (/?) (x: 'a) (prop: string) =
+    let inline private (?=>) (x: 'a) (prop: string) =
         try
             // TODO: not so good.
             let propInfo = x.GetType().GetProperty prop
@@ -51,7 +51,7 @@ module PocofQuery =
         with
         | _ -> None
 
-    let inline private (/?/) (x: PSObject) (prop: string) =
+    let inline private (?->) (x: PSObject) (prop: string) =
         try
             Some (x.Properties.Item prop).Value
         with
@@ -106,8 +106,8 @@ module PocofQuery =
 
                         let p =
                             match o with
-                            | Dict (dct) -> dct /? pk
-                            | Obj (o) -> o /?/ pk
+                            | Dict (dct) -> dct ?=> pk
+                            | Obj (o) -> o ?-> pk
 
                         match p with
                         | Some (pv) -> (pv, v) :: acc
@@ -121,9 +121,9 @@ module PocofQuery =
 
         let is q =
             match state.QueryState.Matcher with
-            | EQ -> (==) << equalOpt
-            | LIKE -> (=*=) << likeOpt
-            | MATCH -> (=~=) << matchOpt
+            | EQ -> equals << equalOpt
+            | LIKE -> likes << likeOpt
+            | MATCH -> matches << matchOpt
             <| state.QueryState.CaseSensitive
             <| q
 
