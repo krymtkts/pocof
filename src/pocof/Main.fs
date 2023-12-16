@@ -7,14 +7,14 @@ open PocofData
 
 module Pocof =
     [<TailCall>]
-    let rec read (acc: ConsoleKeyInfo list) =
+    let rec private read (acc: ConsoleKeyInfo list) =
         let acc = Console.ReadKey true :: acc
 
         match Console.KeyAvailable with
         | true -> read acc
         | _ -> List.rev acc
 
-    let getKey () =
+    let private getKey () =
         Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
         |> Async.RunSynchronously
 
