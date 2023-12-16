@@ -156,7 +156,8 @@ type SelectPocofCommand() =
                 input
 
         properties <-
-            __.InputObject
+            Set.union properties
+            <| (__.InputObject
             |> Seq.collect (fun o ->
                 match o.BaseObject with
                 | :? IDictionary as dct ->
@@ -169,7 +170,7 @@ type SelectPocofCommand() =
                         |> _.Properties
                 | _ -> o.Properties)
             |> Seq.map _.Name
-            |> Seq.fold (fun acc n -> acc.Add n) properties
+            |> Set.ofSeq)
 
     override __.EndProcessing() =
         input <- List.rev input
