@@ -95,7 +95,7 @@ module PocofScreen =
             __.writeRightInfo state entries.Length basePosition
 
 #if DEBUG
-            PocofDebug.Logger.logFile [ List.length entries ]
+            Logger.logFile [ List.length entries ]
 #endif
 
             __.writeScreenLine firstLine
@@ -124,8 +124,8 @@ module PocofScreen =
                     []
 
 #if DEBUG
-            PocofDebug.Logger.logFile [ "out length"
-                                        $"{Seq.length out}" ]
+            Logger.logFile [ "out length"
+                             $"{Seq.length out}" ]
 #endif
 
             seq { 0..h }

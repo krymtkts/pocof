@@ -1,6 +1,8 @@
 namespace pocof
 
-// for debugging.
+#if DEBUG
+
+[<AutoOpen>]
 module PocofDebug =
     open System
     open System.IO
@@ -26,7 +28,7 @@ module PocofDebug =
                 use sw = new StreamWriter(logPath, true)
 
                 res
-                |> List.iter (fun r ->
+                |> List.iter (
                     fprintfn
                         sw
                         "[%s] %s at %d %s <%A>"
@@ -34,7 +36,8 @@ module PocofDebug =
                         path
                         line
                         caller
-                        r))
+                ))
+#endif
 
 [<AutoOpen>]
 module LanguageExtension =
@@ -374,7 +377,7 @@ module PocofData =
             | _ ->
                 let basePosition, head, tail = splitQuery keyword
 #if DEBUG
-                PocofDebug.Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
+                Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
                 buildValues head candidate tail keyword 0 candidates basePosition
         | Rotate (keyword, i, candidates) ->
@@ -383,7 +386,7 @@ module PocofData =
             let next = candidates.[i]
             let basePosition, head, tail = splitQuery cur
 #if DEBUG
-            PocofDebug.Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
+            Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif
             buildValues head next tail keyword i candidates basePosition
 
