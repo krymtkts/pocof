@@ -2,7 +2,6 @@ namespace pocof
 
 open System
 open System.Management.Automation
-open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
 open System.Collections
 
@@ -16,72 +15,6 @@ type SelectPocofCommand() =
 
     let mutable input: Entry list = []
     let mutable properties: Set<string> = set []
-
-    let mutable caseSensitive: bool = false
-    let mutable invertQuery: bool = false
-    let mutable nonInteractive: bool = false
-    let mutable suppressProperties: bool = false
-
-    let interact
-        (conf: InternalConfig)
-        (state: InternalState)
-        (pos: Position)
-        (rui: PSHostRawUserInterface)
-        (invoke: obj list -> seq<string>)
-        =
-        let props = List.ofSeq properties
-
-        let propMap =
-            props
-            |> List.map (fun p -> String.lower p, p)
-            |> Map.ofList
-
-        match conf.NotInteractive with
-        | true ->
-            let _, l = PocofQuery.run state input propMap
-            unwrap l
-        | _ ->
-            use sbf = PocofScreen.init rui conf.Prompt invoke
-
-            let writeScreen =
-                match conf.Layout with
-                | TopDown -> sbf.writeTopDown
-                | BottomUp -> sbf.writeBottomUp
-
-            let getKey () =
-                let rec read (acc: ConsoleKeyInfo list) =
-                    let acc = Console.ReadKey true :: acc
-
-                    match Console.KeyAvailable with
-                    | true -> read acc
-                    | _ -> List.rev acc
-
-                Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
-                |> Async.RunSynchronously
-
-            let rec loop (results: Entry list) (state: InternalState) (pos: Position) (refresh: Refresh) =
-                let s, l =
-                    match refresh with
-                    | NotRequired -> state, results
-                    | _ ->
-                        let s, l = PocofQuery.run state input propMap
-
-                        writeScreen s pos.X l
-                        <| match state.SuppressProperties with
-                           | true -> Ok []
-                           | _ -> PocofQuery.props state props
-
-                        s, l
-
-                getKey ()
-                |> PocofAction.get conf.Keymaps
-                |> function
-                    | Cancel -> []
-                    | Finish -> unwrap l
-                    | Noop -> loop l s pos NotRequired
-                    | a -> invokeAction s pos props a |||> loop l
-
-            loop input state pos Required
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject [] = [||] with get, set
@@ -98,28 +31,16 @@ type SelectPocofCommand() =
     member val Operator = string AND with get, set
 
     [<Parameter>]
-    member __.CaseSensitive: SwitchParameter = new SwitchParameter false
-
-    member __.CaseSensitive
-        with set (v: SwitchParameter) = caseSensitive <- v.IsPresent
+    member val CaseSensitive: SwitchParameter = new SwitchParameter false with get, set
 
     [<Parameter>]
-    member __.InvertQuery: SwitchParameter = new SwitchParameter false
-
-    member __.InvertQuery
-        with set (v: SwitchParameter) = invertQuery <- v.IsPresent
+    member val InvertQuery: SwitchParameter = new SwitchParameter false with get,set
 
     [<Parameter>]
-    member __.NonInteractive: SwitchParameter = new SwitchParameter false
-
-    member __.NonInteractive
-        with set (v: SwitchParameter) = nonInteractive <- v.IsPresent
+    member val NonInteractive: SwitchParameter = new SwitchParameter false with get,set
 
     [<Parameter>]
-    member __.SuppressProperties: SwitchParameter = new SwitchParameter false
-
-    member __.SuppressProperties
-        with set (v: SwitchParameter) = suppressProperties <- v.IsPresent
+    member val SuppressProperties: SwitchParameter = new SwitchParameter false with get,set
 
     [<Parameter>]
     member val Prompt = "query" with get, set
@@ -145,7 +66,8 @@ type SelectPocofCommand() =
 
     override __.ProcessRecord() =
         input <-
-            List.ofArray __.InputObject
+            __.InputObject
+            |> List.ofArray
             |> List.fold
                 (fun acc o ->
                     match o.BaseObject with
@@ -156,7 +78,8 @@ type SelectPocofCommand() =
                 input
 
         properties <-
-            __.InputObject
+            Set.union properties
+            <| (__.InputObject
             |> Seq.collect (fun o ->
                 match o.BaseObject with
                 | :? IDictionary as dct ->
@@ -169,23 +92,21 @@ type SelectPocofCommand() =
                         |> _.Properties
                 | _ -> o.Properties)
             |> Seq.map _.Name
-            |> Seq.fold (fun acc n -> acc.Add n) properties
+            |> Set.ofSeq)
 
     override __.EndProcessing() =
-        input <- List.rev input
-
         let conf, state, pos =
             initConfig
                 { Query = __.Query
                   Matcher = __.Matcher
                   Operator = __.Operator
-                  CaseSensitive = caseSensitive
-                  InvertQuery = invertQuery
-                  NotInteractive = nonInteractive
-                  SuppressProperties = suppressProperties
+                  CaseSensitive = __.CaseSensitive.IsPresent
+                  InvertQuery = __.InvertQuery.IsPresent
+                  NotInteractive = __.NonInteractive.IsPresent
+                  SuppressProperties = __.SuppressProperties.IsPresent
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = __.Keymaps |> PocofAction.convertKeymaps }
 
-        interact conf state pos __.Host.UI.RawUI __.invoke
+        Pocof.interact conf state pos __.Host.UI.RawUI __.invoke <| List.rev input <| List.ofSeq properties
         |> Seq.iter __.WriteObject

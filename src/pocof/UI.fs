@@ -59,6 +59,8 @@ module PocofScreen =
     let private anchor = ">"
     let private note = "note>"
 
+    type WriteScreen = PocofData.InternalState -> int -> PocofData.Entry list -> Result<string list, string> -> unit
+
     type Buff(r, p, i) =
         let rui: IRawUI = r
         let prompt: string = p
@@ -95,7 +97,7 @@ module PocofScreen =
             __.writeRightInfo state entries.Length basePosition
 
 #if DEBUG
-            PocofDebug.Logger.logFile [ List.length entries ]
+            Logger.logFile [ List.length entries ]
 #endif
 
             __.writeScreenLine firstLine
@@ -124,8 +126,8 @@ module PocofScreen =
                     []
 
 #if DEBUG
-            PocofDebug.Logger.logFile [ "out length"
-                                        $"{Seq.length out}" ]
+            Logger.logFile [ "out length"
+                             $"{Seq.length out}" ]
 #endif
 
             seq { 0..h }
@@ -140,9 +142,9 @@ module PocofScreen =
             <| rui.GetCursorPositionX topLine (prompt.Length + anchor.Length + x)
             <| basePosition
 
-        member __.writeTopDown = __.writeScreen PocofData.TopDown
+        member __.writeTopDown: WriteScreen = __.writeScreen PocofData.TopDown
 
-        member __.writeBottomUp = __.writeScreen PocofData.BottomUp
+        member __.writeBottomUp: WriteScreen = __.writeScreen PocofData.BottomUp
 
     let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: obj list -> string seq) =
         let r = new RawUI(rui)

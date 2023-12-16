@@ -1,6 +1,8 @@
 namespace pocof
 
-// for debugging.
+#if DEBUG
+
+[<AutoOpen>]
 module PocofDebug =
     open System
     open System.IO
@@ -26,7 +28,7 @@ module PocofDebug =
                 use sw = new StreamWriter(logPath, true)
 
                 res
-                |> List.iter (fun r ->
+                |> List.iter (
                     fprintfn
                         sw
                         "[%s] %s at %d %s <%A>"
@@ -34,7 +36,17 @@ module PocofDebug =
                         path
                         line
                         caller
-                        r))
+                ))
+#endif
+
+[<AutoOpen>]
+module LanguageExtension =
+    open System
+
+    type String with
+        static member inline lower(s: string) = s.ToLower()
+        static member inline upper(s: string) = s.ToUpper()
+        static member inline startsWith (value: string) (s: string) = s.StartsWith(value)
 
 module PocofData =
     open System
@@ -53,9 +65,6 @@ module PocofData =
             | Dict (dct) -> dct :> obj
             | Obj (o) -> o)
 
-    type String with
-        static member lower(s: string) = s.ToLower()
-        static member upper(s: string) = s.ToUpper()
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
@@ -191,7 +200,7 @@ module PocofData =
           Keymaps: Map<KeyPattern, Action> }
 
     let (|Prefix|_|) (p: string) (s: string) =
-        match s.StartsWith p with
+        match String.startsWith p s with
         | true -> Some s.[1..]
         | _ -> None
 
@@ -355,7 +364,10 @@ module PocofData =
         | Search keyword ->
             let candidate, candidates =
                 props
-                |> List.filter (fun p -> p.ToLower().StartsWith(keyword.ToLower()))
+                |> List.filter (
+                    String.lower
+                    >> String.startsWith (String.lower keyword)
+                )
                 |> function
                     | [] -> "", []
                     | xs -> List.head xs, xs
@@ -365,7 +377,7 @@ module PocofData =
             | _ ->
                 let basePosition, head, tail = splitQuery keyword
 #if DEBUG
-                PocofDebug.Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
+                Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
                 buildValues head candidate tail keyword 0 candidates basePosition
         | Rotate (keyword, i, candidates) ->
@@ -374,7 +386,7 @@ module PocofData =
             let next = candidates.[i]
             let basePosition, head, tail = splitQuery cur
 #if DEBUG
-            PocofDebug.Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
+            Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif
             buildValues head next tail keyword i candidates basePosition
 

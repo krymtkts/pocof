@@ -90,7 +90,7 @@ module PocofQuery =
             |> parseQuery []
 
 #if DEBUG
-        PocofDebug.Logger.logFile queries
+        Logger.logFile queries
 #endif
 
         let values (o: Entry) =
@@ -164,7 +164,7 @@ module PocofQuery =
         match state.PropertySearch with
         | Search (prefix: string) ->
             let p = transform prefix
-            let ret = List.filter (fun (s: string) -> (transform s).StartsWith p) entries
+            let ret = List.filter (transform >> String.startsWith p) entries
 
             match ret with
             | [] -> Error "Property not found"
