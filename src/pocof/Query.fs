@@ -22,22 +22,22 @@ module PocofQuery =
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let inline private equals opt r l =
+    let inline private equals (opt: StringComparison) (r: string) (l: string) =
         match r with
         | "" -> true
         | _ -> r.Equals(l, opt)
 
-    let inline private likes (opt: WildcardOptions) wcp o =
+    let inline private likes (opt: WildcardOptions) (wcp: string) (value: string) =
         match wcp with
         | "" -> true
-        | _ -> WildcardPattern.Get(wcp, opt).IsMatch o
+        | _ -> WildcardPattern.Get(wcp, opt).IsMatch value
 
-    let inline private matches opt pattern (o: string) =
+    let inline private matches (opt: RegexOptions) (pattern: string) (value: string) =
         try
             new Regex(pattern, opt)
         with
         | _ -> new Regex(String.Empty, opt)
-        |> fun r -> r.IsMatch o
+        |> fun r -> r.IsMatch value
 
     type Query =
         | Normal of string
@@ -120,13 +120,12 @@ module PocofQuery =
                 []
             |> List.map (fun (s, v) -> (string s, v))
 
-        let is q =
+        let is =
             match state.QueryState.Matcher with
             | EQ -> equals << equalOpt
             | LIKE -> likes << likeOpt
             | MATCH -> matches << matchOpt
             <| state.QueryState.CaseSensitive
-            <| q
 
         let answer =
             match String.IsNullOrWhiteSpace state.Query, state.QueryState.Invert with
