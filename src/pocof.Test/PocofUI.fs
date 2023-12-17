@@ -55,7 +55,7 @@ module ``Buff writeScreen`` =
                   Operator = AND
                   CaseSensitive = true
                   Invert = false }
-              PropertySearch = NonSearch
+              PropertySearch = NoSearch
               Notification = ""
               SuppressProperties = false }
 
@@ -78,7 +78,7 @@ module ``Buff writeScreen`` =
                   Operator = OR
                   CaseSensitive = false
                   Invert = true }
-              PropertySearch = NonSearch
+              PropertySearch = NoSearch
               Notification = ""
               SuppressProperties = false }
 

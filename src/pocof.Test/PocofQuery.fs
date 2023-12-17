@@ -12,7 +12,7 @@ let initState () : PocofData.InternalState =
           Operator = PocofData.Operator.OR
           CaseSensitive = false
           Invert = false }
-      PropertySearch = PocofData.PropertySearch.NonSearch
+      PropertySearch = PocofData.PropertySearch.NoSearch
       Notification = ""
       SuppressProperties = false }
 
@@ -29,7 +29,7 @@ module props =
 
     [<Fact>]
     let ``should returns OK with empty list.`` () =
-        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.NonSearch } entries
+        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.NoSearch } entries
         |> shouldEqual (Ok [])
 
     [<Fact>]

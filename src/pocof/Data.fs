@@ -146,7 +146,7 @@ module PocofData =
         static member fromString = fromString<Layout>
 
     type PropertySearch =
-        | NonSearch
+        | NoSearch
         | Search of string
         | Rotate of string * int * string list
 
@@ -214,7 +214,7 @@ module PocofData =
 
         match s with
         | Prefix ":" p -> Search p
-        | _ -> NonSearch
+        | _ -> NoSearch
 
     let initConfig (p: IncomingParameters) =
         // TODO: Eliminate the possibility of failure from here.
@@ -260,9 +260,9 @@ module PocofData =
         { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p, changed
 
     let private moveHead (state: InternalState) (pos: Position) =
-        { state with PropertySearch = NonSearch },
+        { state with PropertySearch = NoSearch },
         { pos with X = 0 },
-        (pos.X <> 0 && state.PropertySearch <> NonSearch)
+        (pos.X <> 0 && state.PropertySearch <> NoSearch)
         |> Refresh.ofBool
 
     let private moveTail (state: InternalState) (pos: Position) =
@@ -365,7 +365,7 @@ module PocofData =
             Required
 
         match state.PropertySearch with
-        | NonSearch -> state, pos, NotRequired
+        | NoSearch -> state, pos, NotRequired
         | Search keyword ->
             let candidate, candidates =
                 props
