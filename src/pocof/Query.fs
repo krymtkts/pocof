@@ -85,7 +85,8 @@ module PocofQuery =
 
     let run (state: InternalState) (entries: Entry list) (props: Map<string, string>) =
         let queries =
-            state.Query.Trim().Split [| ' ' |]
+            state.Query.Trim()
+            |> String.split " "
             |> List.ofSeq
             |> parseQuery []
 

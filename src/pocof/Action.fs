@@ -56,7 +56,7 @@ module PocofAction =
         | _ -> None
 
     let toKeyPattern (s: string) =
-        match s.Split '+' |> List.ofSeq |> List.rev with
+        match s |> String.split "+" |> List.ofSeq |> List.rev with
         | [] -> failwith "Unreachable pass."
         | [ k ] ->
             match toEnum<ConsoleKey> k with

@@ -47,6 +47,7 @@ module LanguageExtension =
         static member inline lower(s: string) = s.ToLower()
         static member inline upper(s: string) = s.ToUpper()
         static member inline startsWith (value: string) (s: string) = s.StartsWith(value)
+        static member inline split (separator: string) (s: string) = s.Split(separator.ToCharArray())
 
 module PocofData =
     open System
@@ -205,7 +206,7 @@ module PocofData =
         | _ -> None
 
     let private getCurrentProperty (query: string) (x: int) =
-        let s = query.[..x].Split [| ' ' |] |> Seq.last
+        let s = query.[..x] |> String.split " " |> Seq.last
 
         match s with
         | Prefix ":" p -> Search p
