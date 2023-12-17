@@ -22,22 +22,22 @@ module PocofQuery =
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let inline private equals (opt: StringComparison) (r: string) (l: string) =
+    let inline private equals (opt: StringComparison) (r: string) =
         match r with
-        | "" -> true
-        | _ -> r.Equals(l, opt)
+        | "" -> alwaysTrue
+        | _ -> String.equals opt r
 
-    let inline private likes (opt: WildcardOptions) (wcp: string) (value: string) =
+    let inline private likes (opt: WildcardOptions) (wcp: string) =
         match wcp with
-        | "" -> true
-        | _ -> WildcardPattern.Get(wcp, opt).IsMatch value
+        | "" -> alwaysTrue
+        | _ -> WildcardPattern.Get(wcp, opt).IsMatch
 
     let inline private matches (opt: RegexOptions) (pattern: string) (value: string) =
         try
-            new Regex(pattern, opt)
+            // NOTE: expect using cache.
+            Regex.IsMatch(value, pattern, opt)
         with
-        | _ -> new Regex(String.Empty, opt)
-        |> fun r -> r.IsMatch value
+        | _ -> true
 
     type Query =
         | Normal of string
@@ -120,6 +120,11 @@ module PocofQuery =
                 []
             |> List.map (fun (s, v) -> (string s, v))
 
+        let test =
+            match state.QueryState.Operator with
+            | OR -> List.exists
+            | _ -> List.forall
+
         let is =
             match state.QueryState.Matcher with
             | EQ -> equals << equalOpt
@@ -133,15 +138,9 @@ module PocofQuery =
             | _ -> id
 
         let predicate (o: Entry) =
-            let test =
-                match state.QueryState.Operator with
-                | OR -> List.exists
-                | _ -> List.forall
-
             match values o with
             | [] -> true
-            | xs -> xs |> test (fun (l, r) -> is r l |> answer)
-
+            | xs -> xs |> test (fun x -> x |> swap ||> is |> answer)
 
         let notification =
             match state.QueryState.Matcher with
