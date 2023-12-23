@@ -136,11 +136,14 @@ module ``convertKeymaps should returns`` =
              [ PocofData.Cancel; PocofData.Noop ],
              PocofAction.defaultKeymap)
             |||> List.foldBack2 Map.add
+            |> Ok
 
         PocofAction.convertKeymaps h
         |> shouldEqual expected
 
     [<Fact>]
     let ``default map from null hashtable`` () =
+        let expected = PocofAction.defaultKeymap |> Ok
+
         PocofAction.convertKeymaps null
-        |> shouldEqual PocofAction.defaultKeymap
+        |> shouldEqual expected

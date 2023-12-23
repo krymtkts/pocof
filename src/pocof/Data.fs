@@ -216,7 +216,6 @@ module PocofData =
         | _ -> NoSearch
 
     let initConfig (p: IncomingParameters) =
-        // TODO: Eliminate the possibility of failure from here.
         { Prompt = p.Prompt
           Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps

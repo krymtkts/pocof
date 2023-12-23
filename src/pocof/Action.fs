@@ -81,11 +81,9 @@ module PocofAction =
 
     let convertKeymaps (h: Hashtable) =
         match h with
-        | null -> defaultKeymap
+        | null -> defaultKeymap |> Ok
         | x ->
-            let source = defaultKeymap |> Map.toSeq
-
-            let custom =
+            let ok, ng =
                 x
                 |> Seq.cast<DictionaryEntry>
                 |> Seq.map (fun e ->
@@ -93,13 +91,23 @@ module PocofAction =
                     let v = string e.Value |> PocofData.Action.fromString
 
                     match (k, v) with
-                    | (Ok kv, Ok av) -> (kv, av)
-                    // TODO: enhance error handling.
-                    | (Error e1, Error e2) -> failwith <| e1 + e2
+                    | (Ok kv, Ok av) -> Ok(kv, av)
+                    | (Error e1, Error e2) -> e1 + e2 |> Error
                     | (Error e, _)
-                    | (_, Error e) -> failwith e)
+                    | (_, Error e) -> Error e)
+                |> Seq.fold
+                    (fun (fst, snd) o ->
+                        match o with
+                        | Ok (o) -> (o :: fst, snd)
+                        | Error e -> (fst, e :: snd))
+                    ([], [])
 
-            Seq.append source custom |> Map.ofSeq
+            match ok, ng with
+            | c, [] ->
+                let source = defaultKeymap |> Map.toList
+                List.append source c |> Map.ofSeq |> Ok
+            | _, e -> e |> List.ofSeq |> String.concat "\n" |> Error
+
 
     type private KeyInfo =
         { Pattern: PocofData.KeyPattern
