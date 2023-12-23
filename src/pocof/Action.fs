@@ -86,7 +86,8 @@ module PocofAction =
             let ok, ng =
                 x
                 |> Seq.cast<DictionaryEntry>
-                |> Seq.map (fun e ->
+                |> Seq.toList
+                |> List.map (fun e ->
                     let k = string e.Key |> toKeyPattern
                     let v = string e.Value |> PocofData.Action.fromString
 
@@ -95,7 +96,7 @@ module PocofAction =
                     | (Error e1, Error e2) -> e1 + e2 |> Error
                     | (Error e, _)
                     | (_, Error e) -> Error e)
-                |> Seq.fold
+                |> List.fold
                     (fun (fst, snd) o ->
                         match o with
                         | Ok (o) -> (o :: fst, snd)
@@ -106,7 +107,7 @@ module PocofAction =
             | c, [] ->
                 let source = defaultKeymap |> Map.toList
                 List.append source c |> Map.ofSeq |> Ok
-            | _, e -> e |> List.ofSeq |> String.concat "\n" |> Error
+            | _, e -> e |> List.rev |> String.concat "\n" |> Error
 
 
     type private KeyInfo =
