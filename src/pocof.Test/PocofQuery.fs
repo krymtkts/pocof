@@ -224,7 +224,7 @@ module run =
         let props = Map []
 
         open System.Collections
-        let mapToDict = List.map (PocofData.Dict)
+        let mapToDict = List.map PocofData.Dict
 
         let entries =
             mapToDict [ DictionaryEntry("John", "Doe")

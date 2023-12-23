@@ -27,9 +27,7 @@ module ``Action fromString should returns`` =
               String.lower a.Name
               String.upper a.Name ]
             |> List.map Action.fromString
-            |> List.iter (fun s ->
-                s
-                |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
+            |> List.iter (shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
 
 let ``Error Unknown.``<'a> (fromString: string -> 'a) =
     shouldFail (fun () -> fromString "Unknown" |> ignore)
@@ -41,9 +39,7 @@ let ``known matchers.``<'a> (fromString: string -> 'a) =
           String.lower a.Name
           String.upper a.Name ]
         |> List.map fromString
-        |> List.iter (fun s ->
-            s
-            |> shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
+        |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
 
 module ``Matcher fromString should returns`` =
     [<Fact>]

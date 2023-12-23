@@ -65,8 +65,7 @@ module PocofData =
 
     let unwrap (entries: Entry list) =
         entries
-        |> List.map (fun o ->
-            match o with
+        |> List.map (function
             | Dict (dct) -> dct :> obj
             | Obj (o) -> o)
 
