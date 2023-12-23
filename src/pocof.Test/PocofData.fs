@@ -11,12 +11,12 @@ module ``Action fromString should returns`` =
     [<Fact>]
     let ``Error Unknown.`` () =
         Action.fromString "XXX"
-        |> shouldEqual (Error "Unknown case 'XXX'.")
+        |> shouldEqual (Error "Unknown Action 'XXX'.")
 
     [<Fact>]
     let ``Error when AddQuery.`` () =
         Action.fromString "AddQuery"
-        |> shouldEqual (Error "Unknown case 'AddQuery'.")
+        |> shouldEqual (Error "Unknown Action 'AddQuery'.")
 
     [<Fact>]
     let ``known actions excluding AddQuery.`` () =
