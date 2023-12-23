@@ -47,6 +47,11 @@ module LanguageExtension =
         static member inline lower(s: string) = s.ToLower()
         static member inline upper(s: string) = s.ToUpper()
         static member inline startsWith (value: string) (s: string) = s.StartsWith(value)
+        static member inline split (separator: string) (s: string) = s.Split(separator.ToCharArray())
+        static member inline equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
+
+    let inline swap (l, r) = (r, l)
+    let inline alwaysTrue _ = true
 
 module PocofData =
     open System
@@ -60,13 +65,12 @@ module PocofData =
 
     let unwrap (entries: Entry list) =
         entries
-        |> List.map (fun o ->
-            match o with
+        |> List.map (function
             | Dict (dct) -> dct :> obj
             | Obj (o) -> o)
 
 
-    let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
+    let inline private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
 
         match FSharpType.GetUnionCases typeof<'a>
@@ -76,7 +80,7 @@ module PocofData =
         | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| sprintf "Unknown case '%s'." s
 
-    let private fromString<'a> s =
+    let inline private fromString<'a> s =
         let name = String.lower s
 
         match FSharpType.GetUnionCases typeof<'a>
@@ -85,7 +89,7 @@ module PocofData =
         | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
         | _ -> failwithf "Unknown case '%s'." s
 
-    let private toString (x: 'a) =
+    let inline private toString (x: 'a) =
         match FSharpValue.GetUnionFields(x, typeof<'a>) with
         | case, _ -> case.Name
 
@@ -141,7 +145,7 @@ module PocofData =
         static member fromString = fromString<Layout>
 
     type PropertySearch =
-        | NonSearch
+        | NoSearch
         | Search of string
         | Rotate of string * int * string list
 
@@ -205,11 +209,11 @@ module PocofData =
         | _ -> None
 
     let private getCurrentProperty (query: string) (x: int) =
-        let s = query.[..x].Split [| ' ' |] |> Seq.last
+        let s = query.[..x] |> String.split " " |> Seq.last
 
         match s with
-        | Prefix ":" p -> Search <| p
-        | _ -> NonSearch
+        | Prefix ":" p -> Search p
+        | _ -> NoSearch
 
     let initConfig (p: IncomingParameters) =
         // TODO: Eliminate the possibility of failure from here.
@@ -255,9 +259,9 @@ module PocofData =
         { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p, changed
 
     let private moveHead (state: InternalState) (pos: Position) =
-        { state with PropertySearch = NonSearch },
+        { state with PropertySearch = NoSearch },
         { pos with X = 0 },
-        (pos.X <> 0 && state.PropertySearch <> NonSearch)
+        (pos.X <> 0 && state.PropertySearch <> NoSearch)
         |> Refresh.ofBool
 
     let private moveTail (state: InternalState) (pos: Position) =
@@ -360,7 +364,7 @@ module PocofData =
             Required
 
         match state.PropertySearch with
-        | NonSearch -> state, pos, NotRequired
+        | NoSearch -> state, pos, NotRequired
         | Search keyword ->
             let candidate, candidates =
                 props

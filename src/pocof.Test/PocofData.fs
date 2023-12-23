@@ -27,9 +27,7 @@ module ``Action fromString should returns`` =
               String.lower a.Name
               String.upper a.Name ]
             |> List.map Action.fromString
-            |> List.iter (fun s ->
-                s
-                |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
+            |> List.iter (shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
 
 let ``Error Unknown.``<'a> (fromString: string -> 'a) =
     shouldFail (fun () -> fromString "Unknown" |> ignore)
@@ -41,9 +39,7 @@ let ``known matchers.``<'a> (fromString: string -> 'a) =
           String.lower a.Name
           String.upper a.Name ]
         |> List.map fromString
-        |> List.iter (fun s ->
-            s
-            |> shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
+        |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
 
 module ``Matcher fromString should returns`` =
     [<Fact>]
@@ -229,7 +225,7 @@ module invokeAction =
               Operator = OR
               CaseSensitive = false
               Invert = false }
-          PropertySearch = NonSearch
+          PropertySearch = NoSearch
           Notification = ""
           SuppressProperties = false }
 
@@ -259,7 +255,7 @@ module invokeAction =
             |> shouldEqual (
                 { state with
                     Query = ":name "
-                    PropertySearch = NonSearch },
+                    PropertySearch = NoSearch },
                 { X = 6; Y = 0 },
                 Required
             )
@@ -270,7 +266,7 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":name"
-                    PropertySearch = NonSearch }
+                    PropertySearch = NoSearch }
 
             let position: Position = { X = 0; Y = 0 }
 
@@ -344,7 +340,7 @@ module invokeAction =
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = NonSearch },
+                    PropertySearch = NoSearch },
                 { X = 0; Y = 0 },
                 Required
             )
@@ -361,7 +357,7 @@ module invokeAction =
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = NonSearch },
+                    PropertySearch = NoSearch },
                 { X = 0; Y = 0 },
                 NotRequired
             )
@@ -371,14 +367,14 @@ module invokeAction =
             invokeAction
                 { state with
                     Query = "query"
-                    PropertySearch = NonSearch }
+                    PropertySearch = NoSearch }
                 { X = 5; Y = 0 }
                 []
                 BeginningOfLine
             |> (shouldEqual (
                 { state with
                     Query = "query"
-                    PropertySearch = NonSearch },
+                    PropertySearch = NoSearch },
                 { X = 0; Y = 0 },
                 NotRequired
             ))
@@ -423,14 +419,14 @@ module invokeAction =
             invokeAction
                 { state with
                     Query = "query"
-                    PropertySearch = NonSearch }
+                    PropertySearch = NoSearch }
                 { X = 0; Y = 0 }
                 []
                 EndOfLine
             |> shouldEqual (
                 { state with
                     Query = "query"
-                    PropertySearch = NonSearch },
+                    PropertySearch = NoSearch },
                 { X = 5; Y = 0 },
                 NotRequired
             )
@@ -441,7 +437,7 @@ module invokeAction =
             invokeAction
                 { state with
                     Query = ":name "
-                    PropertySearch = NonSearch }
+                    PropertySearch = NoSearch }
                 { X = 6; Y = 0 }
                 []
                 DeleteBackwardChar
@@ -458,14 +454,14 @@ module invokeAction =
             invokeAction
                 { state with
                     Query = ":name"
-                    PropertySearch = NonSearch }
+                    PropertySearch = NoSearch }
                 { X = 0; Y = 0 }
                 []
                 DeleteBackwardChar
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = NonSearch },
+                    PropertySearch = NoSearch },
                 { X = 0; Y = 0 },
                 NotRequired
             )
@@ -483,7 +479,7 @@ module invokeAction =
             |> shouldEqual (
                 { state with
                     Query = "name "
-                    PropertySearch = NonSearch },
+                    PropertySearch = NoSearch },
                 { X = 0; Y = 0 },
                 Required
             )

@@ -7,43 +7,43 @@ open System.Text.RegularExpressions
 open PocofData
 
 module PocofQuery =
-    let private equalOpt =
-        function
+    let inline private equalOpt sensitive =
+        match sensitive with
         | true -> StringComparison.CurrentCulture
         | _ -> StringComparison.CurrentCultureIgnoreCase
 
-    let private likeOpt =
-        function
+    let inline private likeOpt sensitive =
+        match sensitive with
         | true -> WildcardOptions.None
         | _ -> WildcardOptions.IgnoreCase
 
-    let private matchOpt =
-        function
+    let inline private matchOpt sensitive =
+        match sensitive with
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let private (==) opt r l =
+    let inline private equals (opt: StringComparison) (r: string) =
         match r with
-        | "" -> true
-        | _ -> r.Equals(l, opt)
+        | "" -> alwaysTrue
+        | _ -> String.equals opt r
 
-    let private (=*=) (opt: WildcardOptions) wcp o =
+    let inline private likes (opt: WildcardOptions) (wcp: string) =
         match wcp with
-        | "" -> true
-        | _ -> WildcardPattern.Get(wcp, opt).IsMatch o
+        | "" -> alwaysTrue
+        | _ -> WildcardPattern.Get(wcp, opt).IsMatch
 
-    let private (=~=) opt pattern (o: string) =
+    let inline private matches (opt: RegexOptions) (pattern: string) (value: string) =
         try
-            new Regex(pattern, opt)
+            // NOTE: expect using cache.
+            Regex.IsMatch(value, pattern, opt)
         with
-        | _ -> new Regex(String.Empty, opt)
-        |> fun r -> r.IsMatch o
+        | _ -> true
 
     type Query =
         | Normal of string
         | Property of string * string
 
-    let inline private (/?) (x: 'a) (prop: string) =
+    let inline private (?=>) (x: 'a) (prop: string) =
         try
             // TODO: not so good.
             let propInfo = x.GetType().GetProperty prop
@@ -51,7 +51,7 @@ module PocofQuery =
         with
         | _ -> None
 
-    let inline private (/?/) (x: PSObject) (prop: string) =
+    let inline private (?->) (x: PSObject) (prop: string) =
         try
             Some (x.Properties.Item prop).Value
         with
@@ -85,7 +85,8 @@ module PocofQuery =
 
     let run (state: InternalState) (entries: Entry list) (props: Map<string, string>) =
         let queries =
-            state.Query.Trim().Split [| ' ' |]
+            state.Query.Trim()
+            |> String.split " "
             |> List.ofSeq
             |> parseQuery []
 
@@ -106,8 +107,8 @@ module PocofQuery =
 
                         let p =
                             match o with
-                            | Dict (dct) -> dct /? pk
-                            | Obj (o) -> o /?/ pk
+                            | Dict (dct) -> dct ?=> pk
+                            | Obj (o) -> o ?-> pk
 
                         match p with
                         | Some (pv) -> (pv, v) :: acc
@@ -119,13 +120,17 @@ module PocofQuery =
                 []
             |> List.map (fun (s, v) -> (string s, v))
 
-        let is q =
+        let test =
+            match state.QueryState.Operator with
+            | OR -> List.exists
+            | _ -> List.forall
+
+        let is =
             match state.QueryState.Matcher with
-            | EQ -> (==) << equalOpt
-            | LIKE -> (=*=) << likeOpt
-            | MATCH -> (=~=) << matchOpt
+            | EQ -> equals << equalOpt
+            | LIKE -> likes << likeOpt
+            | MATCH -> matches << matchOpt
             <| state.QueryState.CaseSensitive
-            <| q
 
         let answer =
             match String.IsNullOrWhiteSpace state.Query, state.QueryState.Invert with
@@ -133,15 +138,9 @@ module PocofQuery =
             | _ -> id
 
         let predicate (o: Entry) =
-            let test =
-                match state.QueryState.Operator with
-                | OR -> List.exists
-                | _ -> List.forall
-
             match values o with
             | [] -> true
-            | xs -> xs |> test (fun (l, r) -> is r l |> answer)
-
+            | xs -> xs |> test (fun x -> x |> swap ||> is |> answer)
 
         let notification =
             match state.QueryState.Matcher with

@@ -120,7 +120,8 @@ module PocofScreen =
                 |> Seq.fold
                     (fun acc s ->
                         // NOTE: This split lines is implemented complicated way because of netstandard2.0.
-                        s.Replace(Environment.NewLine, "\n").Split('\n')
+                        s.Replace(Environment.NewLine, "\n")
+                        |> String.split "\n"
                         |> List.ofArray
                         |> (@) acc)
                     []
