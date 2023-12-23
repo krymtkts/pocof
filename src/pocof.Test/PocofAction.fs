@@ -153,11 +153,12 @@ module ``convertKeymaps should returns`` =
         h.Add("TAB", "CompleteProperties")
 
         let expected =
-            Error
-                """Unsupported combination 'contrl+x'.
-Unsupported combination 'alte+a'.Unknown Action 'Finissh'.
-Unsupported key 'ESCAE'.
-Unknown Action 'CompleteProperties'."""
+            [ "Unsupported combination 'contrl+x'."
+              "Unsupported combination 'alte+a'.Unknown Action 'Finissh'."
+              "Unsupported key 'ESCAE'."
+              "Unknown Action 'CompleteProperties'." ]
+            |> String.concat "\n"
+            |> Error
 
         PocofAction.convertKeymaps h
         |> shouldEqual expected
