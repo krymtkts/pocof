@@ -57,14 +57,8 @@ module PocofQuery =
         with
         | _ -> None
 
-    // TODO: implement it.
-    // let prepare (state: InternalState)(props: Map<string, string>) =
-    //     ()
-
-    // TODO: move returning state to prepare function.
     [<TailCall>]
     let rec private parseQuery (acc: Query list) (xs: string list) =
-        // TODO: state.QueryState.Operator is NONE.
         match xs with
         | [] -> acc
         | (x :: xs) ->
@@ -83,12 +77,26 @@ module PocofQuery =
                     <| zs
                 | _ -> parseQuery <| Normal x :: acc <| xs
 
+    let prepare (state: InternalState) =
+        match state.QueryState.Operator with
+        | NONE -> [ Normal state.Query ], List.forall
+        | _ ->
+            let queries =
+                state.Query
+                |> String.trim
+                |> String.split " "
+                |> List.ofSeq
+                |> parseQuery []
+
+            let test =
+                match state.QueryState.Operator with
+                | OR -> List.exists
+                | _ -> List.forall
+
+            queries, test
+
     let run (state: InternalState) (entries: Entry list) (props: Map<string, string>) =
-        let queries =
-            state.Query.Trim()
-            |> String.split " "
-            |> List.ofSeq
-            |> parseQuery []
+        let queries, test = prepare state
 
 #if DEBUG
         Logger.logFile queries
@@ -119,11 +127,6 @@ module PocofQuery =
                         | Obj (o) -> (o, v) :: acc)
                 []
             |> List.map (fun (s, v) -> (string s, v))
-
-        let test =
-            match state.QueryState.Operator with
-            | OR -> List.exists
-            | _ -> List.forall
 
         let is =
             match state.QueryState.Matcher with

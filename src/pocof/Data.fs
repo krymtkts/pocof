@@ -49,6 +49,7 @@ module LanguageExtension =
         static member inline startsWith (value: string) (s: string) = s.StartsWith(value)
         static member inline split (separator: string) (s: string) = s.Split(separator.ToCharArray())
         static member inline equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
+        static member inline trim(s: string) = s.Trim()
 
     let inline swap (l, r) = (r, l)
     let inline alwaysTrue _ = true
