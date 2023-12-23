@@ -4,6 +4,7 @@ open System
 open System.Management.Automation.Host
 
 open PocofData
+open PocofHandle
 
 module Pocof =
     [<TailCall>]
