@@ -32,6 +32,7 @@ module Pocof =
         (results: Entry list)
         (state: InternalState)
         (pos: Position)
+        (context: QueryContext)
         (refresh: Refresh)
         =
 
@@ -39,7 +40,7 @@ module Pocof =
             match refresh with
             | NotRequired -> state, results
             | _ ->
-                let s, l = PocofQuery.run state args.input args.propMap
+                let s, l = PocofQuery.run state context args.input args.propMap
 
                 args.writeScreen s pos.X l
                 <| match state.SuppressProperties with
@@ -53,8 +54,10 @@ module Pocof =
         |> function
             | Cancel -> []
             | Finish -> unwrap l
-            | Noop -> loop args l s pos NotRequired
-            | a -> invokeAction s pos args.props a |||> loop args l
+            | Noop -> loop args l s pos context NotRequired
+            | a ->
+                invokeAction s pos context args.props a
+                |> fun (a, b, c, d) -> loop args l a b c d
 
     let interact
         (conf: InternalConfig)
@@ -66,6 +69,8 @@ module Pocof =
         (props: string list)
         =
 
+        let context = PocofQuery.prepare state
+
         let propMap =
             props
             |> List.map (fun p -> String.lower p, p)
@@ -73,7 +78,7 @@ module Pocof =
 
         match conf.NotInteractive with
         | true ->
-            let _, l = PocofQuery.run state input propMap
+            let _, l = PocofQuery.run state context input propMap
             unwrap l
         | _ ->
             use sbf = PocofScreen.init rui conf.Prompt invoke
@@ -88,4 +93,5 @@ module Pocof =
                     | TopDown -> sbf.writeTopDown
                     | BottomUp -> sbf.writeBottomUp }
 
-            loop args input state pos Required
+
+            loop args input state pos context Required

@@ -57,6 +57,15 @@ module PocofQuery =
         with
         | _ -> None
 
+    type TesterType<'a> = ('a -> bool) -> list<'a> -> bool
+
+    type QueryContext =
+        { Queries: Query list
+          Test: TesterType<string * string>
+          Is: string -> string -> bool
+          Answer: bool -> bool
+          Notification: string }
+
     [<TailCall>]
     let rec private parseQuery (acc: Query list) (xs: string list) =
         match xs with
@@ -77,33 +86,63 @@ module PocofQuery =
                     <| zs
                 | _ -> parseQuery <| Normal x :: acc <| xs
 
-    let prepare (state: InternalState) =
+    let prepareQuery (state: InternalState) =
         match state.QueryState.Operator with
-        | NONE -> [ Normal state.Query ], List.forall
+        | NONE -> [ Normal state.Query ]
         | _ ->
-            let queries =
-                state.Query
-                |> String.trim
-                |> String.split " "
-                |> List.ofSeq
-                |> parseQuery []
+            state.Query
+            |> String.trim
+            |> String.split " "
+            |> List.ofSeq
+            |> parseQuery []
 
-            let test =
-                match state.QueryState.Operator with
-                | OR -> List.exists
-                | _ -> List.forall
+    let prepareTest (state: InternalState) =
+        match state.QueryState.Operator with
+        | OR -> List.exists
+        | _ -> List.forall
 
-            queries, test
+    let prepareIs (state: InternalState) =
+        match state.QueryState.Matcher with
+        | EQ -> equals << equalOpt
+        | LIKE -> likes << likeOpt
+        | MATCH -> matches << matchOpt
+        <| state.QueryState.CaseSensitive
 
-    let run (state: InternalState) (entries: Entry list) (props: Map<string, string>) =
-        let queries, test = prepare state
+    let prepareAnswer (state: InternalState) =
+        match String.IsNullOrWhiteSpace state.Query, state.QueryState.Invert with
+        | false, true -> not
+        | _ -> id
 
+    let prepareNotification (state: InternalState) =
+        match state.QueryState.Matcher with
+        | MATCH ->
+            try
+                new Regex(state.Query) |> ignore
+                ""
+            with
+            | e -> e.Message
+        | _ -> ""
+
+    let prepare (state: InternalState) : QueryContext =
+        let queries = prepareQuery state
+        let test = prepareTest state
+        let is = prepareIs state
+        let answer = prepareAnswer state
+        let notification = prepareNotification state
+
+        { Queries = queries
+          Test = test
+          Is = is
+          Answer = answer
+          Notification = notification }
+
+    let run (state: InternalState) (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
 #if DEBUG
-        Logger.logFile queries
+        Logger.logFile context.Queries
 #endif
 
         let values (o: Entry) =
-            queries
+            context.Queries
             |> List.fold
                 (fun acc x ->
                     match x with
@@ -128,34 +167,14 @@ module PocofQuery =
                 []
             |> List.map (fun (s, v) -> (string s, v))
 
-        let is =
-            match state.QueryState.Matcher with
-            | EQ -> equals << equalOpt
-            | LIKE -> likes << likeOpt
-            | MATCH -> matches << matchOpt
-            <| state.QueryState.CaseSensitive
-
-        let answer =
-            match String.IsNullOrWhiteSpace state.Query, state.QueryState.Invert with
-            | false, true -> not
-            | _ -> id
-
         let predicate (o: Entry) =
             match values o with
             | [] -> true
-            | xs -> xs |> test (fun x -> x |> swap ||> is |> answer)
+            | xs ->
+                xs
+                |> context.Test(fun x -> x |> swap ||> context.Is |> context.Answer)
 
-        let notification =
-            match state.QueryState.Matcher with
-            | MATCH ->
-                try
-                    new Regex(state.Query) |> ignore
-                    ""
-                with
-                | e -> e.Message
-            | _ -> ""
-
-        { state with Notification = notification }, entries |> List.filter predicate
+        { state with Notification = context.Notification }, entries |> List.filter predicate
 
     let props (state: InternalState) (entries: string list) =
         let transform (x: string) =
