@@ -15,45 +15,58 @@ module PocofHandle =
             { state with
                 Query = query
                 PropertySearch = getCurrentProperty query p.X }
+            |> refresh
 
-        state, p, { context with Queries = prepareQuery state }, Required
+        state, p, { context with Queries = prepareQuery state }
 
     let private moveBackward (state: InternalState) (pos: Position) (context: QueryContext) =
-        let p, changed =
+        let p, refresh =
             match pos.X with
             | 0 -> pos, NotRequired
             | _ -> { pos with X = pos.X - 1 }, Required
 
-        { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p, context, changed
+        { state with
+            PropertySearch = getCurrentProperty state.Query <| p.X - 1
+            Refresh = refresh },
+        p,
+        context
 
     let private moveForward (state: InternalState) (pos: Position) (context: QueryContext) =
-        let p, changed =
+        let p, refresh =
             match pos.X < state.Query.Length with
             | true -> { pos with X = pos.X + 1 }, Required
             | _ -> pos, NotRequired
 
-        { state with PropertySearch = getCurrentProperty state.Query <| p.X - 1 }, p, context, changed
+        { state with
+            PropertySearch = getCurrentProperty state.Query <| p.X - 1
+            Refresh = refresh },
+        p,
+        context
 
     let private moveHead (state: InternalState) (pos: Position) (context: QueryContext) =
-        { state with PropertySearch = NoSearch },
+        { state with
+            PropertySearch = NoSearch
+            Refresh =
+                (pos.X <> 0 && state.PropertySearch <> NoSearch)
+                |> Refresh.ofBool },
         { pos with X = 0 },
-        context,
-        (pos.X <> 0 && state.PropertySearch <> NoSearch)
-        |> Refresh.ofBool
+        context
 
     let private moveTail (state: InternalState) (pos: Position) (context: QueryContext) =
         let ps = getCurrentProperty state.Query state.Query.Length
 
-        { state with PropertySearch = getCurrentProperty state.Query state.Query.Length },
+        { state with
+            PropertySearch = getCurrentProperty state.Query state.Query.Length
+            Refresh =
+                (pos.X <> state.Query.Length
+                 && ps <> state.PropertySearch)
+                |> Refresh.ofBool },
         { pos with X = state.Query.Length },
-        context,
-        (pos.X <> state.Query.Length
-         && ps <> state.PropertySearch)
-        |> Refresh.ofBool
+        context
 
     let private removeBackwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         match pos.X with
-        | 0 -> state, pos, context, NotRequired
+        | 0 -> noRefresh state, pos, context
         | _ ->
             let p = { pos with X = pos.X - 1 }
 
@@ -67,10 +80,10 @@ module PocofHandle =
                     Query = q
                     PropertySearch = getCurrentProperty q p.X }
 
-            state, p, { context with Queries = prepareQuery state }, Required
+            refresh state, p, { context with Queries = prepareQuery state }
 
     let private removeForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
-        let q, changed =
+        let q, refresh =
             match state.Query.Length > pos.X with
             | true -> state.Query.Remove(pos.X, 1), Required
             | _ -> state.Query, NotRequired
@@ -78,9 +91,10 @@ module PocofHandle =
         let state =
             { state with
                 Query = q
-                PropertySearch = getCurrentProperty q pos.X }
+                PropertySearch = getCurrentProperty q pos.X
+                Refresh = refresh }
 
-        state, pos, context, changed
+        state, pos, context
 
     let private removeQueryHead (state: InternalState) (pos: Position) (context: QueryContext) =
         let q = state.Query.[pos.X ..]
@@ -93,9 +107,10 @@ module PocofHandle =
         let state =
             { state with
                 Query = q
-                PropertySearch = ps }
+                PropertySearch = ps
+                Refresh = refresh }
 
-        state, { pos with X = 0 }, { context with Queries = prepareQuery state }, refresh
+        state, { pos with X = 0 }, { context with Queries = prepareQuery state }
 
     let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
         let q = state.Query.[.. pos.X - 1]
@@ -108,9 +123,10 @@ module PocofHandle =
         let state =
             { state with
                 Query = q
-                PropertySearch = ps }
+                PropertySearch = ps
+                Refresh = refresh }
 
-        state, pos, { context with Queries = prepareQuery state }, refresh
+        state, pos, { context with Queries = prepareQuery state }
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -120,8 +136,9 @@ module PocofHandle =
                     | EQ -> LIKE
                     | LIKE -> MATCH
                     | MATCH -> EQ }
+            |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }, Required
+        state, pos, { context with Queries = prepareQuery state }
 
     let private switchOperator (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -131,25 +148,30 @@ module PocofHandle =
                     | OR -> AND
                     | AND -> NONE
                     | NONE -> OR }
+            |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }, Required
+        state, pos, { context with Queries = prepareQuery state }
 
     let private switchCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with InternalState.QueryState.CaseSensitive = not state.QueryState.CaseSensitive }
+            |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }, Required
+        state, pos, { context with Queries = prepareQuery state }
 
     let private switchInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with InternalState.QueryState.Invert = not state.QueryState.Invert }
+            |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }, Required
+        state, pos, { context with Queries = prepareQuery state }
 
     let private switchSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state = { state with SuppressProperties = not state.SuppressProperties }
+        let state =
+            { state with SuppressProperties = not state.SuppressProperties }
+            |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }, Required
+        state, pos, { context with Queries = prepareQuery state }
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword =
@@ -163,11 +185,12 @@ module PocofHandle =
                 { state with
                     Query = $"%s{head}%s{next}%s{tail}"
                     PropertySearch = Rotate(keyword, i, candidates) }
+                |> refresh
 
-            state, { pos with X = basePosition + next.Length }, { context with Queries = prepareQuery state }, Required
+            state, { pos with X = basePosition + next.Length }, { context with Queries = prepareQuery state }
 
         match state.PropertySearch with
-        | NoSearch -> state, pos, context, NotRequired
+        | NoSearch -> noRefresh state, pos, context
         | Search keyword ->
             let candidate, candidates =
                 state.Properties
@@ -180,7 +203,7 @@ module PocofHandle =
                     | xs -> List.head xs, xs
 
             match candidate with
-            | "" -> state, pos, context, NotRequired
+            | "" -> noRefresh state, pos, context
             | _ ->
                 let basePosition, head, tail = splitQuery keyword
 #if DEBUG
@@ -213,10 +236,10 @@ module PocofHandle =
         | ToggleCaseSensitive -> switchCaseSensitive state pos context
         | ToggleInvertFilter -> switchInvertFilter state pos context
         | ToggleSuppressProperties -> switchSuppressProperties state pos context
-        | SelectUp -> state, pos, context, NotRequired // TODO: implement it.
-        | SelectDown -> state, pos, context, NotRequired // TODO: implement it.
-        | ScrollPageUp -> state, pos, context, NotRequired // TODO: implement it.
-        | ScrollPageDown -> state, pos, context, NotRequired // TODO: implement it.
+        | SelectUp -> noRefresh state, pos, context // TODO: implement it.
+        | SelectDown -> noRefresh state, pos, context // TODO: implement it.
+        | ScrollPageUp -> noRefresh state, pos, context // TODO: implement it.
+        | ScrollPageDown -> noRefresh state, pos, context // TODO: implement it.
         | CompleteProperty -> completeProperty state pos context
         | x ->
             failwithf "unrecognized Action. value='%s'"

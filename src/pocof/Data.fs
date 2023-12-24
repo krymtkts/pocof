@@ -191,7 +191,12 @@ module PocofData =
           PropertySearch: PropertySearch
           Notification: string
           SuppressProperties: bool
-          Properties: string list }
+          Properties: string list
+          Refresh: Refresh }
+
+    let refresh (state: InternalState) = { state with Refresh = Required }
+
+    let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
 
     type Position = { X: int; Y: int }
 
@@ -234,5 +239,6 @@ module PocofData =
           PropertySearch = getCurrentProperty p.Query p.Query.Length
           Notification = ""
           SuppressProperties = p.SuppressProperties
-          Properties = p.Properties },
+          Properties = p.Properties
+          Refresh = Required },
         { X = p.Query.Length; Y = 0 }

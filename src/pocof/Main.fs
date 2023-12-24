@@ -32,11 +32,10 @@ module Pocof =
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
-        (refresh: Refresh)
         =
 
         let s, l =
-            match refresh with
+            match state.Refresh with
             | NotRequired -> state, results
             | _ ->
                 let s, l = PocofQuery.run state context args.input args.propMap
@@ -53,10 +52,8 @@ module Pocof =
         |> function
             | Cancel -> []
             | Finish -> unwrap l
-            | Noop -> loop args l s pos context NotRequired
-            | a ->
-                invokeAction s pos context a
-                |> fun (a, b, c, d) -> loop args l a b c d
+            | Noop -> loop args l s pos context
+            | a -> invokeAction s pos context a |||> loop args l
 
     let interact
         (conf: InternalConfig)
@@ -91,4 +88,4 @@ module Pocof =
                     | BottomUp -> sbf.writeBottomUp }
 
 
-            loop args input state pos context Required
+            loop args input state pos context

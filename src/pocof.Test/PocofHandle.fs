@@ -17,7 +17,8 @@ module invokeAction =
           PropertySearch = NoSearch
           Notification = ""
           SuppressProperties = false
-          Properties = [] }
+          Properties = []
+          Refresh = Required }
 
     let position: Position = { X = 0; Y = 0 }
 
@@ -27,15 +28,14 @@ module invokeAction =
             let state = { state with Properties = [ "name" ] }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context (AddQuery ":")
+            let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context (AddQuery ":")
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":"
                     PropertySearch = Search "" },
-                { X = 1; Y = 0 },
-                Required
+                { X = 1; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -49,15 +49,14 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context (AddQuery " ")
+            let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context (AddQuery " ")
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name "
                     PropertySearch = NoSearch },
-                { X = 6; Y = 0 },
-                Required
+                { X = 6; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -73,10 +72,10 @@ module invokeAction =
             let context = PocofQuery.prepare state
             let position: Position = { X = 0; Y = 0 }
 
-            let a1, a2, a3, a4 = invokeAction state position context BackwardChar
+            let a1, a2, a3 = invokeAction state position context BackwardChar
 
-            (a1, a2, a4)
-            |> shouldEqual (state, position, NotRequired)
+            (a1, a2)
+            |> shouldEqual ({ state with Refresh = NotRequired }, position)
 
             a3.Queries |> shouldEqual []
 
@@ -89,16 +88,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context BackwardChar
+            let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context BackwardChar
 
-            (a1, a2, a4)
+            (a1, a2)
 
             |> shouldEqual (
                 { state with
                     Query = ":name"
                     PropertySearch = Search "nam" },
-                { X = 4; Y = 0 },
-                Required
+                { X = 4; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -113,16 +111,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 1; Y = 0 } context ForwardChar
+            let a1, a2, a3 = invokeAction state { X = 1; Y = 0 } context ForwardChar
 
-            (a1, a2, a4)
+            (a1, a2)
 
             |> shouldEqual (
                 { state with
                     Query = ":name"
                     PropertySearch = Search "n" },
-                { X = 2; Y = 0 },
-                Required
+                { X = 2; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -138,15 +135,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context ForwardChar
+            let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context ForwardChar
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = Search "name" },
-                { X = 5; Y = 0 },
-                NotRequired
+                    PropertySearch = Search "name"
+                    Refresh = NotRequired },
+                { X = 5; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -161,15 +158,14 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
+            let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
                     PropertySearch = NoSearch },
-                { X = 0; Y = 0 },
-                Required
+                { X = 0; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -183,15 +179,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context BeginningOfLine
+            let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context BeginningOfLine
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = NoSearch },
-                { X = 0; Y = 0 },
-                NotRequired
+                    PropertySearch = NoSearch
+                    Refresh = NotRequired },
+                { X = 0; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -205,15 +201,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
+            let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
 
-            (a1, a2, a4)
+            (a1, a2)
             |> (shouldEqual (
                 { state with
                     Query = "query"
-                    PropertySearch = NoSearch },
-                { X = 0; Y = 0 },
-                NotRequired
+                    PropertySearch = NoSearch
+                    Refresh = NotRequired },
+                { X = 0; Y = 0 }
             ))
 
             a3.Queries
@@ -229,15 +225,14 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 2; Y = 0 } context EndOfLine
+            let a1, a2, a3 = invokeAction state { X = 2; Y = 0 } context EndOfLine
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
                     PropertySearch = Search "name" },
-                { X = 5; Y = 0 },
-                Required
+                { X = 5; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -252,15 +247,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context EndOfLine
+            let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context EndOfLine
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = Search "name" },
-                { X = 5; Y = 0 },
-                NotRequired
+                    PropertySearch = Search "name"
+                    Refresh = NotRequired },
+                { X = 5; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -274,15 +269,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context EndOfLine
+            let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context EndOfLine
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = "query"
-                    PropertySearch = NoSearch },
-                { X = 5; Y = 0 },
-                NotRequired
+                    PropertySearch = NoSearch
+                    Refresh = NotRequired },
+                { X = 5; Y = 0 }
             )
 
             a3.Queries
@@ -298,15 +293,14 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 6; Y = 0 } context DeleteBackwardChar
+            let a1, a2, a3 = invokeAction state { X = 6; Y = 0 } context DeleteBackwardChar
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
                     PropertySearch = Search "name" },
-                { X = 5; Y = 0 },
-                Required
+                { X = 5; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -320,15 +314,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context DeleteBackwardChar
+            let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context DeleteBackwardChar
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = NoSearch },
-                { X = 0; Y = 0 },
-                NotRequired
+                    PropertySearch = NoSearch
+                    Refresh = NotRequired },
+                { X = 0; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -343,15 +337,14 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context DeleteForwardChar
+            let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context DeleteForwardChar
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = "name "
                     PropertySearch = NoSearch },
-                { X = 0; Y = 0 },
-                Required
+                { X = 0; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -365,15 +358,15 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context DeleteForwardChar
+            let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context DeleteForwardChar
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
-                    PropertySearch = Search "name" },
-                { X = 5; Y = 0 },
-                NotRequired
+                    PropertySearch = Search "name"
+                    Refresh = NotRequired },
+                { X = 5; Y = 0 }
             )
 
             a3.Queries |> shouldEqual []
@@ -384,10 +377,10 @@ module invokeAction =
             let state = { state with Query = "examplequery" }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 7; Y = 0 } context KillBeginningOfLine
+            let a1, a2, a3 = invokeAction state { X = 7; Y = 0 } context KillBeginningOfLine
 
-            (a1, a2, a4)
-            |> shouldEqual ({ state with Query = "query" }, { X = 0; Y = 0 }, Required)
+            (a1, a2)
+            |> shouldEqual ({ state with Query = "query" }, { X = 0; Y = 0 })
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("query") ]
@@ -397,10 +390,15 @@ module invokeAction =
             let state = { state with Query = "query" }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context KillBeginningOfLine
+            let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context KillBeginningOfLine
 
-            (a1, a2, a4)
-            |> shouldEqual ({ state with Query = "query" }, { X = 0; Y = 0 }, NotRequired)
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    Query = "query"
+                    Refresh = NotRequired },
+                { X = 0; Y = 0 }
+            )
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("query") ]
@@ -411,10 +409,10 @@ module invokeAction =
             let state = { state with Query = "examplequery" }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 7; Y = 0 } context KillEndOfLine
+            let a1, a2, a3 = invokeAction state { X = 7; Y = 0 } context KillEndOfLine
 
-            (a1, a2, a4)
-            |> shouldEqual ({ state with Query = "example" }, { X = 7; Y = 0 }, Required)
+            (a1, a2)
+            |> shouldEqual ({ state with Query = "example" }, { X = 7; Y = 0 })
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("example") ]
@@ -424,21 +422,25 @@ module invokeAction =
             let state = { state with Query = "example" }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 7; Y = 0 } context KillEndOfLine
+            let a1, a2, a3 = invokeAction state { X = 7; Y = 0 } context KillEndOfLine
 
-            (a1, a2, a4)
-            |> shouldEqual ({ state with Query = "example" }, { X = 7; Y = 0 }, NotRequired)
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    Query = "example"
+                    Refresh = NotRequired },
+                { X = 7; Y = 0 }
+            )
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("example") ]
 
     let testStateAndContext action state context expectedState =
-        let a1, a2, a3, a4 = invokeAction state position context action
+        let a1, a2, a3 = invokeAction state position context action
 
-        (a1, a2, a4)
-        |> shouldEqual (expectedState, position, Required)
+        (a1, a2) |> shouldEqual (expectedState, position)
 
-        (a1, a2, a3, a4)
+        (a1, a2, a3)
 
     module ``with RotateMatcher`` =
         let test before after =
@@ -464,7 +466,7 @@ module invokeAction =
             let context = PocofQuery.prepare stateBefore
             let stateAfter = { stateBefore with InternalState.QueryState.Operator = after }
 
-            let _, _, a3, _ = testStateAndContext RotateOperator stateBefore context stateAfter
+            let _, _, a3 = testStateAndContext RotateOperator stateBefore context stateAfter
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("") ]
@@ -526,10 +528,10 @@ module invokeAction =
     let noop action =
         let context = PocofQuery.prepare state
 
-        let a1, a2, a3, a4 = invokeAction state position context action
+        let a1, a2, a3 = invokeAction state position context action
 
-        (a1, a2, a3, a4)
-        |> shouldEqual (state, position, context, NotRequired)
+        (a1, a2, a3)
+        |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
 
     module ``with SelectUp`` =
         [<Fact>]
@@ -554,10 +556,10 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
-            |> shouldEqual (state, position, NotRequired)
+            (a1, a2)
+            |> shouldEqual ({ state with Refresh = NotRequired }, position)
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("") ]
@@ -571,10 +573,10 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
-            |> shouldEqual (state, position, NotRequired)
+            (a1, a2)
+            |> shouldEqual ({ state with Refresh = NotRequired }, position)
 
             a3.Queries |> shouldEqual []
 
@@ -588,10 +590,10 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
-            |> shouldEqual (state, position, NotRequired)
+            (a1, a2)
+            |> shouldEqual ({ state with Refresh = NotRequired }, position)
 
             a3.Queries |> shouldEqual []
 
@@ -606,15 +608,14 @@ module invokeAction =
             let position = { position with X = 2 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":path"
                     PropertySearch = Rotate("p", 0, [ "path" ]) },
-                { position with X = 5 },
-                Required
+                { position with X = 5 }
             )
 
             a3.Queries |> shouldEqual []
@@ -630,15 +631,14 @@ module invokeAction =
             let position = { position with X = 2 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
                     PropertySearch = Rotate("n", 0, [ "name"; "number" ]) },
-                { position with X = 5 },
-                Required
+                { position with X = 5 }
             )
 
             a3.Queries |> shouldEqual []
@@ -654,15 +654,14 @@ module invokeAction =
             let position = { position with X = 2 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name foo"
                     PropertySearch = Rotate("n", 0, [ "name" ]) },
-                { position with X = 5 },
-                Required
+                { position with X = 5 }
             )
 
             a3.Queries
@@ -679,10 +678,10 @@ module invokeAction =
             let position = { position with X = 5 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
-            |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position, Required)
+            (a1, a2)
+            |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position)
 
             a3.Queries |> shouldEqual []
 
@@ -697,10 +696,10 @@ module invokeAction =
             let position = { position with X = 5 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
-            |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position, Required)
+            (a1, a2)
+            |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position)
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Property("name", "a") ]
@@ -716,15 +715,14 @@ module invokeAction =
             let position = { position with X = 5 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":number"
                     PropertySearch = Rotate("n", 1, [ "name"; "number" ]) },
-                { position with X = 7 },
-                Required
+                { position with X = 7 }
             )
 
             a3.Queries |> shouldEqual []
@@ -740,15 +738,14 @@ module invokeAction =
             let position = { position with X = 7 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
 
-            (a1, a2, a4)
+            (a1, a2)
             |> shouldEqual (
                 { state with
                     Query = ":name"
                     PropertySearch = Rotate("n", 0, [ "name"; "number" ]) },
-                { position with X = 5 },
-                Required
+                { position with X = 5 }
             )
 
             a3.Queries |> shouldEqual []

@@ -167,7 +167,8 @@ module initConfig =
               PropertySearch = Search "name"
               Notification = ""
               SuppressProperties = true
-              Properties = [ "name"; "attributes" ] },
+              Properties = [ "name"; "attributes" ]
+              Refresh = Required },
             { X = 5; Y = 0 }
         )
 

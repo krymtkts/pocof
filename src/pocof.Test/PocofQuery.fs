@@ -15,7 +15,8 @@ let initState () : PocofData.InternalState =
       PropertySearch = PocofData.PropertySearch.NoSearch
       Notification = ""
       SuppressProperties = false
-      Properties =  [ "Name"; "Attribute"; "Length" ] }
+      Properties =  [ "Name"; "Attribute"; "Length" ]
+      Refresh = PocofData.Required }
 
 let state = initState ()
 
