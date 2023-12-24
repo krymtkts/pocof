@@ -22,7 +22,6 @@ module Pocof =
     type LoopFixedArguments =
         { keymaps: Map<KeyPattern, Action>
           input: Entry list
-          props: string list
           propMap: Map<string, string>
           writeScreen: PocofScreen.WriteScreen }
 
@@ -45,7 +44,7 @@ module Pocof =
                 args.writeScreen s pos.X l
                 <| match state.SuppressProperties with
                    | true -> Ok []
-                   | _ -> PocofQuery.props state args.props
+                   | _ -> PocofQuery.props state
 
                 s, l
 
@@ -56,7 +55,7 @@ module Pocof =
             | Finish -> unwrap l
             | Noop -> loop args l s pos context NotRequired
             | a ->
-                invokeAction s pos context args.props a
+                invokeAction s pos context a
                 |> fun (a, b, c, d) -> loop args l a b c d
 
     let interact
@@ -66,13 +65,12 @@ module Pocof =
         (rui: PSHostRawUserInterface)
         (invoke: obj list -> seq<string>)
         (input: Entry list)
-        (props: string list)
         =
 
         let context = PocofQuery.prepare state
 
         let propMap =
-            props
+            state.Properties
             |> List.map (fun p -> String.lower p, p)
             |> Map.ofList
 
@@ -86,7 +84,6 @@ module Pocof =
             let args =
                 { keymaps = conf.Keymaps
                   input = input
-                  props = props
                   propMap = propMap
                   writeScreen =
                     match conf.Layout with

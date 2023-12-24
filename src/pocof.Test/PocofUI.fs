@@ -57,7 +57,8 @@ module ``Buff writeScreen`` =
                   Invert = false }
               PropertySearch = NoSearch
               Notification = ""
-              SuppressProperties = false }
+              SuppressProperties = false
+              Properties = []}
 
         buff.writeTopDown state 0 [] <| Ok []
 
@@ -80,7 +81,8 @@ module ``Buff writeScreen`` =
                   Invert = true }
               PropertySearch = NoSearch
               Notification = ""
-              SuppressProperties = false }
+              SuppressProperties = false
+              Properties = []}
 
         buff.writeBottomUp state 0 [] <| Ok []
 

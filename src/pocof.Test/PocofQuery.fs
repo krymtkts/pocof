@@ -14,7 +14,8 @@ let initState () : PocofData.InternalState =
           Invert = false }
       PropertySearch = PocofData.PropertySearch.NoSearch
       Notification = ""
-      SuppressProperties = false }
+      SuppressProperties = false
+      Properties =  [ "Name"; "Attribute"; "Length" ] }
 
 let state = initState ()
 
@@ -25,21 +26,19 @@ module prepare =
     ()
 
 module props =
-    let entries = [ "Name"; "Attribute"; "Length" ]
-
     [<Fact>]
     let ``should returns OK with empty list.`` () =
-        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.NoSearch } entries
+        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.NoSearch }
         |> shouldEqual (Ok [])
 
     [<Fact>]
     let ``should returns Error with 'Property not found'.`` () =
-        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Search "No" } entries
+        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Search "No" }
         |> shouldEqual (Error "Property not found")
 
     [<Fact>]
     let ``should returns Ok with filtered properties.`` () =
-        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Search "Na" } entries
+        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Search "Na" }
         |> shouldEqual (Ok [ "Name" ])
 
     [<Fact>]
@@ -47,7 +46,7 @@ module props =
         let state =
             caseSensitive { state with PropertySearch = PocofData.PropertySearch.Search "Na" }
 
-        PocofQuery.props state entries
+        PocofQuery.props state
         |> shouldEqual (Ok [ "Name" ])
 
 module run =

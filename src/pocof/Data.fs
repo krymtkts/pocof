@@ -190,7 +190,8 @@ module PocofData =
           QueryState: QueryState
           PropertySearch: PropertySearch
           Notification: string
-          SuppressProperties: bool }
+          SuppressProperties: bool
+          Properties: string list }
 
     type Position = { X: int; Y: int }
 
@@ -204,7 +205,8 @@ module PocofData =
           SuppressProperties: bool
           Prompt: string
           Layout: string
-          Keymaps: Map<KeyPattern, Action> }
+          Keymaps: Map<KeyPattern, Action>
+          Properties: string list }
 
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
@@ -231,5 +233,6 @@ module PocofData =
               Invert = p.InvertQuery }
           PropertySearch = getCurrentProperty p.Query p.Query.Length
           Notification = ""
-          SuppressProperties = p.SuppressProperties },
+          SuppressProperties = p.SuppressProperties
+          Properties = p.Properties },
         { X = p.Query.Length; Y = 0 }

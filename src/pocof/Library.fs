@@ -110,7 +110,8 @@ type SelectPocofCommand() =
                   SuppressProperties = __.SuppressProperties.IsPresent
                   Prompt = __.Prompt
                   Layout = __.Layout
-                  Keymaps = keymaps }
+                  Keymaps = keymaps
+                  Properties = List.ofSeq properties}
 
-        Pocof.interact conf state pos __.Host.UI.RawUI __.invoke <| List.rev input <| List.ofSeq properties
+        Pocof.interact conf state pos __.Host.UI.RawUI __.invoke <| List.rev input
         |> Seq.iter __.WriteObject

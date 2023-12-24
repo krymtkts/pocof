@@ -151,7 +151,8 @@ module initConfig =
               SuppressProperties = true
               Prompt = "prompt"
               Layout = "TopDown"
-              Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ] }
+              Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
+              Properties = [ "name"; "attributes" ] }
         |> shouldEqual (
             { Prompt = "prompt"
               Layout = Layout.TopDown
@@ -165,7 +166,8 @@ module initConfig =
                   Invert = true }
               PropertySearch = Search "name"
               Notification = ""
-              SuppressProperties = true },
+              SuppressProperties = true
+              Properties = [ "name"; "attributes" ] },
             { X = 5; Y = 0 }
         )
 
@@ -182,7 +184,8 @@ module initConfig =
                   SuppressProperties = false
                   Prompt = "prompt"
                   Layout = "TopDown"
-                  Keymaps = Map [] }
+                  Keymaps = Map []
+                  Properties = [] }
             |> ignore)
 
     [<Fact>]
@@ -198,7 +201,8 @@ module initConfig =
                   SuppressProperties = false
                   Prompt = "prompt"
                   Layout = "TopDown"
-                  Keymaps = Map [] }
+                  Keymaps = Map []
+                  Properties = [] }
             |> ignore)
 
     [<Fact>]
@@ -214,5 +218,6 @@ module initConfig =
                   SuppressProperties = false
                   Prompt = "prompt"
                   Layout = "LeftToRight"
-                  Keymaps = Map [] }
+                  Keymaps = Map []
+                  Properties = [] }
             |> ignore)

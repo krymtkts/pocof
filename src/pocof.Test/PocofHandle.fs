@@ -16,17 +16,18 @@ module invokeAction =
               Invert = false }
           PropertySearch = NoSearch
           Notification = ""
-          SuppressProperties = false }
+          SuppressProperties = false
+          Properties = [] }
 
     let position: Position = { X = 0; Y = 0 }
 
     module ``with AddQuery`` =
         [<Fact>]
         let ``should return a property search state and position.x = 1 when the char is colon.`` () =
+            let state = { state with Properties = [ "name" ] }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state { X = 0; Y = 0 } context [ "name" ] (AddQuery ":")
+            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context (AddQuery ":")
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -48,7 +49,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context [] (AddQuery " ")
+            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context (AddQuery " ")
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -72,7 +73,7 @@ module invokeAction =
             let context = PocofQuery.prepare state
             let position: Position = { X = 0; Y = 0 }
 
-            let a1, a2, a3, a4 = invokeAction state position context [] BackwardChar
+            let a1, a2, a3, a4 = invokeAction state position context BackwardChar
 
             (a1, a2, a4)
             |> shouldEqual (state, position, NotRequired)
@@ -88,7 +89,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context [] BackwardChar
+            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context BackwardChar
 
             (a1, a2, a4)
 
@@ -112,7 +113,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 1; Y = 0 } context [] ForwardChar
+            let a1, a2, a3, a4 = invokeAction state { X = 1; Y = 0 } context ForwardChar
 
             (a1, a2, a4)
 
@@ -137,7 +138,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context [] ForwardChar
+            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context ForwardChar
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -160,7 +161,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context [] BeginningOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -182,7 +183,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context [] BeginningOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context BeginningOfLine
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -204,7 +205,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context [] BeginningOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
 
             (a1, a2, a4)
             |> (shouldEqual (
@@ -228,7 +229,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 2; Y = 0 } context [] EndOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 2; Y = 0 } context EndOfLine
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -251,7 +252,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context [] EndOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context EndOfLine
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -273,7 +274,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context [] EndOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context EndOfLine
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -297,8 +298,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state { X = 6; Y = 0 } context [] DeleteBackwardChar
+            let a1, a2, a3, a4 = invokeAction state { X = 6; Y = 0 } context DeleteBackwardChar
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -320,8 +320,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state { X = 0; Y = 0 } context [] DeleteBackwardChar
+            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context DeleteBackwardChar
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -344,8 +343,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state { X = 0; Y = 0 } context [] DeleteForwardChar
+            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context DeleteForwardChar
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -367,8 +365,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state { X = 5; Y = 0 } context [] DeleteForwardChar
+            let a1, a2, a3, a4 = invokeAction state { X = 5; Y = 0 } context DeleteForwardChar
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -387,8 +384,7 @@ module invokeAction =
             let state = { state with Query = "examplequery" }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state { X = 7; Y = 0 } context [] KillBeginningOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 7; Y = 0 } context KillBeginningOfLine
 
             (a1, a2, a4)
             |> shouldEqual ({ state with Query = "query" }, { X = 0; Y = 0 }, Required)
@@ -401,8 +397,7 @@ module invokeAction =
             let state = { state with Query = "query" }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state { X = 0; Y = 0 } context [] KillBeginningOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 0; Y = 0 } context KillBeginningOfLine
 
             (a1, a2, a4)
             |> shouldEqual ({ state with Query = "query" }, { X = 0; Y = 0 }, NotRequired)
@@ -416,7 +411,7 @@ module invokeAction =
             let state = { state with Query = "examplequery" }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 7; Y = 0 } context [] KillEndOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 7; Y = 0 } context KillEndOfLine
 
             (a1, a2, a4)
             |> shouldEqual ({ state with Query = "example" }, { X = 7; Y = 0 }, Required)
@@ -429,7 +424,7 @@ module invokeAction =
             let state = { state with Query = "example" }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state { X = 7; Y = 0 } context [] KillEndOfLine
+            let a1, a2, a3, a4 = invokeAction state { X = 7; Y = 0 } context KillEndOfLine
 
             (a1, a2, a4)
             |> shouldEqual ({ state with Query = "example" }, { X = 7; Y = 0 }, NotRequired)
@@ -438,7 +433,7 @@ module invokeAction =
             |> shouldEqual [ PocofQuery.Normal("example") ]
 
     let testStateAndContext action state context expectedState =
-        let a1, a2, a3, a4 = invokeAction state position context [] action
+        let a1, a2, a3, a4 = invokeAction state position context action
 
         (a1, a2, a4)
         |> shouldEqual (expectedState, position, Required)
@@ -531,7 +526,7 @@ module invokeAction =
     let noop action =
         let context = PocofQuery.prepare state
 
-        let a1, a2, a3, a4 = invokeAction state position context [] action
+        let a1, a2, a3, a4 = invokeAction state position context action
 
         (a1, a2, a3, a4)
         |> shouldEqual (state, position, context, NotRequired)
@@ -555,10 +550,11 @@ module invokeAction =
     module ``with TabExpansion`` =
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with non search mode.`` () =
+            let state = { state with Properties = [ "name"; "path" ] }
+
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual (state, position, NotRequired)
@@ -575,7 +571,7 @@ module invokeAction =
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 = invokeAction state position context [] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual (state, position, NotRequired)
@@ -587,12 +583,12 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":a"
-                    PropertySearch = Search "a" }
+                    PropertySearch = Search "a"
+                    Properties = [ "name"; "path" ] }
 
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual (state, position, NotRequired)
@@ -604,13 +600,13 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":p"
-                    PropertySearch = Search "p" }
+                    PropertySearch = Search "p"
+                    Properties = [ "name"; "path" ] }
 
             let position = { position with X = 2 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -628,13 +624,13 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":n"
-                    PropertySearch = Search "n" }
+                    PropertySearch = Search "n"
+                    Properties = [ "name"; "path"; "number" ] }
 
             let position = { position with X = 2 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path"; "number" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -652,13 +648,13 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":n foo"
-                    PropertySearch = Search "n" }
+                    PropertySearch = Search "n"
+                    Properties = [ "name"; "path" ] }
 
             let position = { position with X = 2 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -677,13 +673,13 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":name"
-                    PropertySearch = Search "name" }
+                    PropertySearch = Search "name"
+                    Properties = [ "name"; "path" ] }
 
             let position = { position with X = 5 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position, Required)
@@ -695,13 +691,13 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":name a"
-                    PropertySearch = Search "name" }
+                    PropertySearch = Search "name"
+                    Properties = [ "name"; "path" ] }
 
             let position = { position with X = 5 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position, Required)
@@ -714,13 +710,13 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":name"
-                    PropertySearch = Rotate("n", 0, [ "name"; "number" ]) }
+                    PropertySearch = Rotate("n", 0, [ "name"; "number" ])
+                    Properties = [ "name"; "path"; "number" ] }
 
             let position = { position with X = 5 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path"; "number" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual (
@@ -738,13 +734,13 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":number"
-                    PropertySearch = Rotate("n", 1, [ "name"; "number" ]) }
+                    PropertySearch = Rotate("n", 1, [ "name"; "number" ])
+                    Properties = [ "name"; "path"; "number" ] }
 
             let position = { position with X = 7 }
             let context = PocofQuery.prepare state
 
-            let a1, a2, a3, a4 =
-                invokeAction state position context [ "name"; "path"; "number" ] CompleteProperty
+            let a1, a2, a3, a4 = invokeAction state position context CompleteProperty
 
             (a1, a2, a4)
             |> shouldEqual (

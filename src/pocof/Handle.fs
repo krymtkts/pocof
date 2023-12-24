@@ -151,7 +151,7 @@ module PocofHandle =
 
         state, pos, { context with Queries = prepareQuery state }, Required
 
-    let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) (props: string list) =
+    let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword =
             let basePosition = pos.X - String.length keyword
             let head = state.Query.[.. basePosition - 1]
@@ -170,7 +170,7 @@ module PocofHandle =
         | NoSearch -> state, pos, context, NotRequired
         | Search keyword ->
             let candidate, candidates =
-                props
+                state.Properties
                 |> List.filter (
                     String.lower
                     >> String.startsWith (String.lower keyword)
@@ -197,7 +197,7 @@ module PocofHandle =
 #endif
             buildValues head next tail keyword i candidates basePosition
 
-    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (props: string list) =
+    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) =
         function
         | AddQuery s -> addQuery state pos context s
         | BackwardChar -> moveBackward state pos context
@@ -217,8 +217,7 @@ module PocofHandle =
         | SelectDown -> state, pos, context, NotRequired // TODO: implement it.
         | ScrollPageUp -> state, pos, context, NotRequired // TODO: implement it.
         | ScrollPageDown -> state, pos, context, NotRequired // TODO: implement it.
-        // TODO: i think it is not good to include props in invokeAction only for completion.
-        | CompleteProperty -> completeProperty state pos context props
+        | CompleteProperty -> completeProperty state pos context
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name

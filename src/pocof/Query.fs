@@ -176,7 +176,7 @@ module PocofQuery =
 
         { state with Notification = context.Notification }, entries |> List.filter predicate
 
-    let props (state: InternalState) (entries: string list) =
+    let props (state: InternalState) =
         let transform (x: string) =
             match state.QueryState.CaseSensitive with
             | true -> x
@@ -185,7 +185,7 @@ module PocofQuery =
         match state.PropertySearch with
         | Search (prefix: string) ->
             let p = transform prefix
-            let ret = List.filter (transform >> String.startsWith p) entries
+            let ret = List.filter (transform >> String.startsWith p) state.Properties
 
             match ret with
             | [] -> Error "Property not found"
