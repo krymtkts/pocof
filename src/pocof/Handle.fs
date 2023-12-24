@@ -138,7 +138,7 @@ module PocofHandle =
                     | MATCH -> EQ }
             |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }
+        state, pos, { context with Is = prepareIs state }
 
     let private switchOperator (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -150,28 +150,32 @@ module PocofHandle =
                     | NONE -> OR }
             |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }
+        state,
+        pos,
+        { context with
+            Queries = prepareQuery state
+            Test = prepareTest state }
 
     let private switchCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with InternalState.QueryState.CaseSensitive = not state.QueryState.CaseSensitive }
             |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }
+        state, pos, { context with Is = prepareIs state }
 
     let private switchInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with InternalState.QueryState.Invert = not state.QueryState.Invert }
             |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }
+        state, pos, { context with Answer = prepareAnswer state }
 
     let private switchSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with SuppressProperties = not state.SuppressProperties }
             |> refresh
 
-        state, pos, { context with Queries = prepareQuery state }
+        state, pos, context
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword =
