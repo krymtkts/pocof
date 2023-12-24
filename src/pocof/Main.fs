@@ -34,26 +34,28 @@ module Pocof =
         (context: QueryContext)
         =
 
-        let s, l =
+        let results =
             match state.Refresh with
-            | NotRequired -> state, results
+            | NotRequired -> results
             | _ ->
-                let s, l = PocofQuery.run state context args.input args.propMap
+                let results = PocofQuery.run context args.input args.propMap
 
-                args.writeScreen s pos.X l
+                args.writeScreen state pos.X results
                 <| match state.SuppressProperties with
                    | true -> Ok []
                    | _ -> PocofQuery.props state
 
-                s, l
+                results
 
         getKey ()
         |> PocofAction.get args.keymaps
         |> function
             | Cancel -> []
-            | Finish -> unwrap l
-            | Noop -> loop args l s pos context
-            | a -> invokeAction s pos context a |||> loop args l
+            | Finish -> unwrap results
+            | Noop -> loop args results state pos context
+            | action ->
+                invokeAction state pos context action
+                |||> loop args results
 
     let interact
         (conf: InternalConfig)
@@ -64,7 +66,7 @@ module Pocof =
         (input: Entry list)
         =
 
-        let context = PocofQuery.prepare state
+        let state, context = PocofQuery.prepare state
 
         let propMap =
             state.Properties
@@ -73,7 +75,7 @@ module Pocof =
 
         match conf.NotInteractive with
         | true ->
-            let _, l = PocofQuery.run state context input propMap
+            let l = PocofQuery.run context input propMap
             unwrap l
         | _ ->
             use sbf = PocofScreen.init rui conf.Prompt invoke

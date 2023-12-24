@@ -26,7 +26,7 @@ module invokeAction =
         [<Fact>]
         let ``should return a property search state and position.x = 1 when the char is colon.`` () =
             let state = { state with Properties = [ "name" ] }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context (AddQuery ":")
 
@@ -47,7 +47,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "name" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context (AddQuery " ")
 
@@ -69,7 +69,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = NoSearch }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
             let position: Position = { X = 0; Y = 0 }
 
             let a1, a2, a3 = invokeAction state position context BackwardChar
@@ -86,7 +86,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "name" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context BackwardChar
 
@@ -109,7 +109,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 1; Y = 0 } context ForwardChar
 
@@ -133,7 +133,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "name" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context ForwardChar
 
@@ -156,7 +156,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "name" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
 
@@ -177,7 +177,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "name" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context BeginningOfLine
 
@@ -199,7 +199,7 @@ module invokeAction =
                     Query = "query"
                     PropertySearch = NoSearch }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
 
@@ -223,7 +223,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "n" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 2; Y = 0 } context EndOfLine
 
@@ -245,7 +245,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "name" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context EndOfLine
 
@@ -267,7 +267,7 @@ module invokeAction =
                     Query = "query"
                     PropertySearch = NoSearch }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context EndOfLine
 
@@ -291,7 +291,7 @@ module invokeAction =
                     Query = ":name "
                     PropertySearch = NoSearch }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 6; Y = 0 } context DeleteBackwardChar
 
@@ -312,7 +312,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = NoSearch }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context DeleteBackwardChar
 
@@ -335,7 +335,7 @@ module invokeAction =
                     Query = ":name "
                     PropertySearch = Search "name" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context DeleteForwardChar
 
@@ -356,7 +356,7 @@ module invokeAction =
                     Query = ":name"
                     PropertySearch = Search "name" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context DeleteForwardChar
 
@@ -375,7 +375,7 @@ module invokeAction =
         [<Fact>]
         let ``should remove all characters before the specified position.`` () =
             let state = { state with Query = "examplequery" }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 7; Y = 0 } context KillBeginningOfLine
 
@@ -388,7 +388,7 @@ module invokeAction =
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
             let state = { state with Query = "query" }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context KillBeginningOfLine
 
@@ -407,7 +407,7 @@ module invokeAction =
         [<Fact>]
         let ``should remove characters after the current cursor position.`` () =
             let state = { state with Query = "examplequery" }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 7; Y = 0 } context KillEndOfLine
 
@@ -420,7 +420,7 @@ module invokeAction =
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
             let state = { state with Query = "example" }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state { X = 7; Y = 0 } context KillEndOfLine
 
@@ -445,7 +445,7 @@ module invokeAction =
     module ``with RotateMatcher`` =
         let test before after =
             let stateBefore = { state with InternalState.QueryState.Matcher = before }
-            let context = PocofQuery.prepare stateBefore
+            let state, context = PocofQuery.prepare stateBefore
             let stateAfter = { state with InternalState.QueryState.Matcher = after }
 
             testStateAndContext RotateMatcher stateBefore context stateAfter
@@ -463,7 +463,7 @@ module invokeAction =
     module ``with RotateOperator`` =
         let test before after =
             let stateBefore = { state with InternalState.QueryState.Operator = before }
-            let context = PocofQuery.prepare stateBefore
+            let state, context = PocofQuery.prepare stateBefore
             let stateAfter = { stateBefore with InternalState.QueryState.Operator = after }
 
             let _, _, a3 = testStateAndContext RotateOperator stateBefore context stateAfter
@@ -483,7 +483,7 @@ module invokeAction =
     module ``with ToggleCaseSensitive`` =
         let test before after =
             let stateBefore = { state with InternalState.QueryState.CaseSensitive = before }
-            let context = PocofQuery.prepare stateBefore
+            let state, context = PocofQuery.prepare stateBefore
             let stateAfter = { state with InternalState.QueryState.CaseSensitive = after }
 
             testStateAndContext ToggleCaseSensitive stateBefore context stateAfter
@@ -498,7 +498,7 @@ module invokeAction =
     module ``with ToggleInvertFilter`` =
         let test before after () =
             let stateBefore = { state with InternalState.QueryState.Invert = before }
-            let context = PocofQuery.prepare stateBefore
+            let state, context = PocofQuery.prepare stateBefore
             let stateAfter = { state with InternalState.QueryState.Invert = after }
 
             testStateAndContext ToggleInvertFilter stateBefore context stateAfter
@@ -513,7 +513,7 @@ module invokeAction =
     module ``with ToggleSuppressProperties`` =
         let test before after () =
             let stateBefore = { state with InternalState.QueryState.Invert = before }
-            let context = PocofQuery.prepare stateBefore
+            let state, context = PocofQuery.prepare stateBefore
             let stateAfter = { state with InternalState.QueryState.Invert = after }
 
             testStateAndContext ToggleSuppressProperties stateBefore context stateAfter
@@ -526,7 +526,7 @@ module invokeAction =
         let ``should return a disabled suppress property.`` () = test true false
 
     let noop action =
-        let context = PocofQuery.prepare state
+        let state, context = PocofQuery.prepare state
 
         let a1, a2, a3 = invokeAction state position context action
 
@@ -554,7 +554,7 @@ module invokeAction =
         let ``shouldn't return any difference when a tab is entered with non search mode.`` () =
             let state = { state with Properties = [ "name"; "path" ] }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -571,7 +571,7 @@ module invokeAction =
                     Query = ":"
                     PropertySearch = Search "" }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -588,7 +588,7 @@ module invokeAction =
                     PropertySearch = Search "a"
                     Properties = [ "name"; "path" ] }
 
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -606,7 +606,7 @@ module invokeAction =
                     Properties = [ "name"; "path" ] }
 
             let position = { position with X = 2 }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -629,7 +629,7 @@ module invokeAction =
                     Properties = [ "name"; "path"; "number" ] }
 
             let position = { position with X = 2 }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -652,7 +652,7 @@ module invokeAction =
                     Properties = [ "name"; "path" ] }
 
             let position = { position with X = 2 }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -676,7 +676,7 @@ module invokeAction =
                     Properties = [ "name"; "path" ] }
 
             let position = { position with X = 5 }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -694,7 +694,7 @@ module invokeAction =
                     Properties = [ "name"; "path" ] }
 
             let position = { position with X = 5 }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -713,7 +713,7 @@ module invokeAction =
                     Properties = [ "name"; "path"; "number" ] }
 
             let position = { position with X = 5 }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
@@ -736,7 +736,7 @@ module invokeAction =
                     Properties = [ "name"; "path"; "number" ] }
 
             let position = { position with X = 7 }
-            let context = PocofQuery.prepare state
+            let state, context = PocofQuery.prepare state
 
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 

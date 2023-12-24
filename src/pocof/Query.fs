@@ -63,8 +63,7 @@ module PocofQuery =
         { Queries: Query list
           Test: TesterType<string * string>
           Is: string -> string -> bool
-          Answer: bool -> bool
-          Notification: string }
+          Answer: bool -> bool }
 
     [<TailCall>]
     let rec private parseQuery (acc: Query list) (xs: string list) =
@@ -123,20 +122,20 @@ module PocofQuery =
             | e -> e.Message
         | _ -> ""
 
-    let prepare (state: InternalState) : QueryContext =
+    let prepare (state: InternalState) =
         let queries = prepareQuery state
         let test = prepareTest state
         let is = prepareIs state
         let answer = prepareAnswer state
         let notification = prepareNotification state
 
+        { state with Notification = notification },
         { Queries = queries
           Test = test
           Is = is
-          Answer = answer
-          Notification = notification }
+          Answer = answer }
 
-    let run (state: InternalState) (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
+    let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
 #if DEBUG
         Logger.logFile context.Queries
 #endif
@@ -174,7 +173,7 @@ module PocofQuery =
                 xs
                 |> context.Test(fun x -> x |> swap ||> context.Is |> context.Answer)
 
-        { state with Notification = context.Notification }, entries |> List.filter predicate
+        entries |> List.filter predicate
 
     let props (state: InternalState) =
         let transform (x: string) =

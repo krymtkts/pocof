@@ -17,7 +17,8 @@ module PocofHandle =
                 PropertySearch = getCurrentProperty query p.X }
             |> refresh
 
-        state, p, { context with Queries = prepareQuery state }
+        let notification = prepareNotification state
+        { state with Notification = notification }, p, { context with Queries = prepareQuery state }
 
     let private moveBackward (state: InternalState) (pos: Position) (context: QueryContext) =
         let p, refresh =
@@ -80,7 +81,8 @@ module PocofHandle =
                     Query = q
                     PropertySearch = getCurrentProperty q p.X }
 
-            refresh state, p, { context with Queries = prepareQuery state }
+            let notification = prepareNotification state
+            refresh { state with Notification = notification }, p, { context with Queries = prepareQuery state }
 
     let private removeForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         let q, refresh =
@@ -94,7 +96,8 @@ module PocofHandle =
                 PropertySearch = getCurrentProperty q pos.X
                 Refresh = refresh }
 
-        state, pos, context
+        let notification = prepareNotification state
+        { state with Notification = notification }, pos, context
 
     let private removeQueryHead (state: InternalState) (pos: Position) (context: QueryContext) =
         let q = state.Query.[pos.X ..]
@@ -110,7 +113,8 @@ module PocofHandle =
                 PropertySearch = ps
                 Refresh = refresh }
 
-        state, { pos with X = 0 }, { context with Queries = prepareQuery state }
+        let notification = prepareNotification state
+        { state with Notification = notification }, { pos with X = 0 }, { context with Queries = prepareQuery state }
 
     let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
         let q = state.Query.[.. pos.X - 1]
@@ -126,7 +130,8 @@ module PocofHandle =
                 PropertySearch = ps
                 Refresh = refresh }
 
-        state, pos, { context with Queries = prepareQuery state }
+        let notification = prepareNotification state
+        { state with Notification = notification }, pos, { context with Queries = prepareQuery state }
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -135,7 +140,8 @@ module PocofHandle =
                     match state.QueryState.Matcher with
                     | EQ -> LIKE
                     | LIKE -> MATCH
-                    | MATCH -> EQ }
+                    | MATCH -> EQ
+                Notification = prepareNotification state }
             |> refresh
 
         state, pos, { context with Is = prepareIs state }
