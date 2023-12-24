@@ -89,5 +89,4 @@ module Pocof =
                     | TopDown -> sbf.writeTopDown
                     | BottomUp -> sbf.writeBottomUp }
 
-
             loop args input state pos context
