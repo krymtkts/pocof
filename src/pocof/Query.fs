@@ -57,14 +57,16 @@ module PocofQuery =
         with
         | _ -> None
 
-    // TODO: implement it.
-    // let prepare (state: InternalState)(props: Map<string, string>) =
-    //     ()
+    type TesterType<'a> = ('a -> bool) -> list<'a> -> bool
 
-    // TODO: move returning state to prepare function.
+    type QueryContext =
+        { Queries: Query list
+          Test: TesterType<string * string>
+          Is: string -> string -> bool
+          Answer: bool -> bool }
+
     [<TailCall>]
     let rec private parseQuery (acc: Query list) (xs: string list) =
-        // TODO: state.QueryState.Operator is NONE.
         match xs with
         | [] -> acc
         | (x :: xs) ->
@@ -83,19 +85,63 @@ module PocofQuery =
                     <| zs
                 | _ -> parseQuery <| Normal x :: acc <| xs
 
-    let run (state: InternalState) (entries: Entry list) (props: Map<string, string>) =
-        let queries =
-            state.Query.Trim()
+    let prepareQuery (state: InternalState) =
+        match state.QueryState.Operator with
+        | NONE -> [ Normal state.Query ]
+        | _ ->
+            state.Query
+            |> String.trim
             |> String.split " "
             |> List.ofSeq
             |> parseQuery []
 
+    let prepareTest (state: InternalState) =
+        match state.QueryState.Operator with
+        | OR -> List.exists
+        | _ -> List.forall
+
+    let prepareIs (state: InternalState) =
+        match state.QueryState.Matcher with
+        | EQ -> equals << equalOpt
+        | LIKE -> likes << likeOpt
+        | MATCH -> matches << matchOpt
+        <| state.QueryState.CaseSensitive
+
+    let prepareAnswer (state: InternalState) =
+        match String.IsNullOrWhiteSpace state.Query, state.QueryState.Invert with
+        | false, true -> not
+        | _ -> id
+
+    let prepareNotification (state: InternalState) =
+        match state.QueryState.Matcher with
+        | MATCH ->
+            try
+                new Regex(state.Query) |> ignore
+                ""
+            with
+            | e -> e.Message
+        | _ -> ""
+
+    let prepare (state: InternalState) =
+        let queries = prepareQuery state
+        let test = prepareTest state
+        let is = prepareIs state
+        let answer = prepareAnswer state
+        let notification = prepareNotification state
+
+        { state with Notification = notification },
+        { Queries = queries
+          Test = test
+          Is = is
+          Answer = answer }
+
+    let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
 #if DEBUG
-        Logger.logFile queries
+        Logger.logFile context.Queries
 #endif
 
         let values (o: Entry) =
-            queries
+            context.Queries
             |> List.fold
                 (fun acc x ->
                     match x with
@@ -120,41 +166,16 @@ module PocofQuery =
                 []
             |> List.map (fun (s, v) -> (string s, v))
 
-        let test =
-            match state.QueryState.Operator with
-            | OR -> List.exists
-            | _ -> List.forall
-
-        let is =
-            match state.QueryState.Matcher with
-            | EQ -> equals << equalOpt
-            | LIKE -> likes << likeOpt
-            | MATCH -> matches << matchOpt
-            <| state.QueryState.CaseSensitive
-
-        let answer =
-            match String.IsNullOrWhiteSpace state.Query, state.QueryState.Invert with
-            | false, true -> not
-            | _ -> id
-
         let predicate (o: Entry) =
             match values o with
             | [] -> true
-            | xs -> xs |> test (fun x -> x |> swap ||> is |> answer)
+            | xs ->
+                xs
+                |> context.Test(fun x -> x |> swap ||> context.Is |> context.Answer)
 
-        let notification =
-            match state.QueryState.Matcher with
-            | MATCH ->
-                try
-                    new Regex(state.Query) |> ignore
-                    ""
-                with
-                | e -> e.Message
-            | _ -> ""
+        entries |> List.filter predicate
 
-        { state with Notification = notification }, entries |> List.filter predicate
-
-    let props (state: InternalState) (entries: string list) =
+    let props (state: InternalState) =
         let transform (x: string) =
             match state.QueryState.CaseSensitive with
             | true -> x
@@ -163,7 +184,7 @@ module PocofQuery =
         match state.PropertySearch with
         | Search (prefix: string) ->
             let p = transform prefix
-            let ret = List.filter (transform >> String.startsWith p) entries
+            let ret = List.filter (transform >> String.startsWith p) state.Properties
 
             match ret with
             | [] -> Error "Property not found"

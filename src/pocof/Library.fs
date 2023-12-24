@@ -15,6 +15,7 @@ type SelectPocofCommand() =
 
     let mutable input: Entry list = []
     let mutable properties: Set<string> = set []
+    let mutable keymaps: Map<KeyPattern,Action> = Map []
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject [] = [||] with get, set
@@ -62,7 +63,10 @@ type SelectPocofCommand() =
         )
         |> Seq.map string
 
-    override __.BeginProcessing() = base.BeginProcessing()
+    override __.BeginProcessing() =
+        match PocofAction.convertKeymaps __.Keymaps with
+        | Ok k -> keymaps <- k
+        | Error e -> new ArgumentException (e) |> raise
 
     override __.ProcessRecord() =
         input <-
@@ -106,7 +110,8 @@ type SelectPocofCommand() =
                   SuppressProperties = __.SuppressProperties.IsPresent
                   Prompt = __.Prompt
                   Layout = __.Layout
-                  Keymaps = __.Keymaps |> PocofAction.convertKeymaps }
+                  Keymaps = keymaps
+                  Properties = List.ofSeq properties}
 
-        Pocof.interact conf state pos __.Host.UI.RawUI __.invoke <| List.rev input <| List.ofSeq properties
+        Pocof.interact conf state pos __.Host.UI.RawUI __.invoke <| List.rev input
         |> Seq.iter __.WriteObject

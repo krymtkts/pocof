@@ -4,6 +4,7 @@ open System
 open System.Management.Automation.Host
 
 open PocofData
+open PocofHandle
 
 module Pocof =
     [<TailCall>]
@@ -21,7 +22,6 @@ module Pocof =
     type LoopFixedArguments =
         { keymaps: Map<KeyPattern, Action>
           input: Entry list
-          props: string list
           propMap: Map<string, string>
           writeScreen: PocofScreen.WriteScreen }
 
@@ -31,29 +31,31 @@ module Pocof =
         (results: Entry list)
         (state: InternalState)
         (pos: Position)
-        (refresh: Refresh)
+        (context: QueryContext)
         =
 
-        let s, l =
-            match refresh with
-            | NotRequired -> state, results
+        let results =
+            match state.Refresh with
+            | NotRequired -> results
             | _ ->
-                let s, l = PocofQuery.run state args.input args.propMap
+                let results = PocofQuery.run context args.input args.propMap
 
-                args.writeScreen s pos.X l
+                args.writeScreen state pos.X results
                 <| match state.SuppressProperties with
                    | true -> Ok []
-                   | _ -> PocofQuery.props state args.props
+                   | _ -> PocofQuery.props state
 
-                s, l
+                results
 
         getKey ()
         |> PocofAction.get args.keymaps
         |> function
             | Cancel -> []
-            | Finish -> unwrap l
-            | Noop -> loop args l s pos NotRequired
-            | a -> invokeAction s pos args.props a |||> loop args l
+            | Finish -> unwrap results
+            | Noop -> loop args results state pos context
+            | action ->
+                invokeAction state pos context action
+                |||> loop args results
 
     let interact
         (conf: InternalConfig)
@@ -62,17 +64,18 @@ module Pocof =
         (rui: PSHostRawUserInterface)
         (invoke: obj list -> seq<string>)
         (input: Entry list)
-        (props: string list)
         =
 
+        let state, context = PocofQuery.prepare state
+
         let propMap =
-            props
+            state.Properties
             |> List.map (fun p -> String.lower p, p)
             |> Map.ofList
 
         match conf.NotInteractive with
         | true ->
-            let _, l = PocofQuery.run state input propMap
+            let l = PocofQuery.run context input propMap
             unwrap l
         | _ ->
             use sbf = PocofScreen.init rui conf.Prompt invoke
@@ -80,11 +83,10 @@ module Pocof =
             let args =
                 { keymaps = conf.Keymaps
                   input = input
-                  props = props
                   propMap = propMap
                   writeScreen =
                     match conf.Layout with
                     | TopDown -> sbf.writeTopDown
                     | BottomUp -> sbf.writeBottomUp }
 
-            loop args input state pos Required
+            loop args input state pos context

@@ -123,6 +123,8 @@ module ``get should returns`` =
         actual |> shouldEqual PocofData.Noop
 
 module ``convertKeymaps should returns`` =
+    open System.Management.Automation
+
     [<Fact>]
     let ``map transformed from hashtable`` () =
         let h = new Hashtable()
@@ -136,11 +138,34 @@ module ``convertKeymaps should returns`` =
              [ PocofData.Cancel; PocofData.Noop ],
              PocofAction.defaultKeymap)
             |||> List.foldBack2 Map.add
+            |> Ok
+
+        PocofAction.convertKeymaps h
+        |> shouldEqual expected
+
+    [<Fact>]
+    let ``error if the hashtable contains invalid key or action.`` () =
+        let h = new OrderedHashtable()
+        h.Add("contrl+x", "cancel")
+        h.Add("alte+a", "Finissh")
+        h.Add("control+alt+shift+x", "cancel")
+        h.Add("ESCAE", "NOOP")
+        h.Add("TAB", "CompleteProperties")
+
+        let expected =
+            [ "Unsupported combination 'contrl+x'."
+              "Unsupported combination 'alte+a'.Unknown Action 'Finissh'."
+              "Unsupported key 'ESCAE'."
+              "Unknown Action 'CompleteProperties'." ]
+            |> String.concat "\n"
+            |> Error
 
         PocofAction.convertKeymaps h
         |> shouldEqual expected
 
     [<Fact>]
     let ``default map from null hashtable`` () =
+        let expected = PocofAction.defaultKeymap |> Ok
+
         PocofAction.convertKeymaps null
-        |> shouldEqual PocofAction.defaultKeymap
+        |> shouldEqual expected
