@@ -222,3 +222,33 @@ module initConfig =
                   Keymaps = Map []
                   Properties = [] }
             |> ignore)
+
+module getCurrentProperty =
+    [<Fact>]
+    let ``should returns NoSearch when no colon`` () =
+        getCurrentProperty "a" 1 |> shouldEqual NoSearch
+
+    [<Fact>]
+    let ``should returns Search with "a" when start with colon`` () =
+        getCurrentProperty ":a" 2
+        |> shouldEqual (Search "a")
+
+    [<Fact>]
+    let ``should returns Search with "a" when start with colon and cursor position 1`` () =
+        getCurrentProperty ":a" 1
+        |> shouldEqual (Search "")
+
+    [<Fact>]
+    let ``should returns Search with "a" when start with colon and trailing space`` () =
+        getCurrentProperty ":a " 2
+        |> shouldEqual (Search "a")
+
+    [<Fact>]
+    let ``should returns NoSearch when start with colon and cursor position 3`` () =
+        getCurrentProperty ":a " 3
+        |> shouldEqual (NoSearch)
+
+    [<Fact>]
+    let ``should returns Search with "a" when start with colon and trailing keyword `` () =
+        getCurrentProperty ":a a" 2
+        |> shouldEqual (Search "a")
