@@ -27,7 +27,7 @@ module PocofHandle =
             | _ -> { pos with X = pos.X - 1 }, Required
 
         { state with
-            PropertySearch = getCurrentProperty state.Query <| p.X - 1
+            PropertySearch = getCurrentProperty state.Query p.X
             Refresh = refresh },
         p,
         context
@@ -39,7 +39,7 @@ module PocofHandle =
             | _ -> pos, NotRequired
 
         { state with
-            PropertySearch = getCurrentProperty state.Query <| p.X - 1
+            PropertySearch = getCurrentProperty state.Query p.X
             Refresh = refresh },
         p,
         context

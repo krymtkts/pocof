@@ -220,7 +220,11 @@ module PocofData =
         | _ -> None
 
     let getCurrentProperty (query: string) (x: int) =
-        let s = query.[..x] |> String.split " " |> Seq.last
+        let s = query.[.. x - 1] |> String.split " " |> Seq.last
+
+#if DEBUG
+        Logger.logFile [ $"query '{query}' x '{x}' string '{s}'" ]
+#endif
 
         match s with
         | Prefix ":" p -> Search p
