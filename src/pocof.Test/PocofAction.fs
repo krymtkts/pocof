@@ -53,6 +53,19 @@ module ``get should returns`` =
         actual |> shouldEqual (PocofData.AddQuery ":")
 
     [<Fact>]
+    let ``PocofData.AddQuery multiple times.`` () =
+        let getKey =
+            [ new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false)
+              new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+              new ConsoleKeyInfo('s', ConsoleKey.S, false, false, false)
+              new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false)
+              new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) ]
+
+        let actual = PocofAction.get Map.empty getKey
+
+        actual |> shouldEqual (PocofData.AddQuery "paste")
+
+    [<Fact>]
     let ``user-defined Action if matched.`` () =
         let keyMap: Map<PocofData.KeyPattern, PocofData.Action> =
             Map [ ({ Modifier = 7; Key = ConsoleKey.E }, PocofData.Finish)
