@@ -184,7 +184,7 @@ module PocofHandle =
         state, pos, context
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
-        let splitQuery keyword (candidate: string) =
+        let splitQuery keyword candidate =
             let basePosition = pos.X - String.length keyword
             let head = state.Query.[.. basePosition - 1]
             let tail = state.Query.[pos.X ..]
@@ -192,7 +192,7 @@ module PocofHandle =
             let rest: string =
                 match keyword with
                 | "" -> candidate
-                | _ -> candidate.Replace(keyword, "")
+                | _ -> candidate |> String.replace keyword ""
 
             let tailHead = String.split " " tail |> Seq.head
 
