@@ -184,11 +184,21 @@ module PocofHandle =
         state, pos, context
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
-        let splitQuery keyword =
+        let splitQuery keyword (candidate: string) =
             let basePosition = pos.X - String.length keyword
             let head = state.Query.[.. basePosition - 1]
             let tail = state.Query.[pos.X ..]
-            basePosition, head, tail
+
+            let rest: string =
+                match keyword with
+                | "" -> candidate
+                | _ -> candidate.Replace(keyword, "")
+
+            let tailHead = String.split " " tail |> Seq.head
+
+            match rest = tailHead with
+            | true -> basePosition, head, tail.[tailHead.Length ..]
+            | _ -> basePosition, head, tail
 
         let buildValues head next tail keyword i candidates basePosition =
             let state =
@@ -214,8 +224,8 @@ module PocofHandle =
 
             match candidate with
             | "" -> noRefresh state, pos, context
-            | _ ->
-                let basePosition, head, tail = splitQuery keyword
+            | candidate ->
+                let basePosition, head, tail = splitQuery keyword candidate
 #if DEBUG
                 Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
@@ -224,7 +234,7 @@ module PocofHandle =
             let cur = candidates.[i]
             let i = (i + 1) % candidates.Length
             let next = candidates.[i]
-            let basePosition, head, tail = splitQuery cur
+            let basePosition, head, tail = splitQuery cur next
 #if DEBUG
             Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif

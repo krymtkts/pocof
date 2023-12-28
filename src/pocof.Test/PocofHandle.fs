@@ -720,7 +720,7 @@ module invokeAction =
             let a1, a2, a3 = invokeAction state position context CompleteProperty
 
             (a1, a2)
-            |> shouldEqual ({ state with PropertySearch = Rotate("name", 0, [ "name" ]) }, position)
+            |> shouldEqual ({ state with PropertySearch = Rotate("nam", 0, [ "name" ]) }, { position with X = 5 })
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Property("name", "a") ]
