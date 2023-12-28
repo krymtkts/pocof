@@ -38,6 +38,11 @@ module props =
         |> shouldEqual (Error "Property not found")
 
     [<Fact>]
+    let ``should returns Ok with non filtered properties.`` () =
+        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Search "" }
+        |> shouldEqual (Ok ["Name"; "Attribute"; "Length"])
+
+    [<Fact>]
     let ``should returns Ok with filtered properties.`` () =
         PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Search "Na" }
         |> shouldEqual (Ok [ "Name" ])
@@ -48,6 +53,16 @@ module props =
             caseSensitive { state with PropertySearch = PocofData.PropertySearch.Search "Na" }
 
         PocofQuery.props state
+        |> shouldEqual (Ok [ "Name" ])
+
+    [<Fact>]
+    let ``should returns Ok with non filtered properties when rotate.`` () =
+        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Rotate ("", 0, ["Name"]) }
+        |> shouldEqual (Ok ["Name"; "Attribute"; "Length"])
+
+    [<Fact>]
+    let ``should returns Ok with filtered properties when rotate.`` () =
+        PocofQuery.props { state with PropertySearch = PocofData.PropertySearch.Rotate ("Na", 0, ["Name"]) }
         |> shouldEqual (Ok [ "Name" ])
 
 module run =
