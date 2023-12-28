@@ -496,7 +496,7 @@ module invokeAction =
         let ``should return a disabled case sensitive.`` () = test true false
 
     module ``with ToggleInvertFilter`` =
-        let test before after () =
+        let test before after =
             let stateBefore = { state with InternalState.QueryState.Invert = before }
             let state, context = PocofQuery.prepare stateBefore
             let stateAfter = { state with InternalState.QueryState.Invert = after }
@@ -511,10 +511,10 @@ module invokeAction =
         let ``should return a disabled invert filter.`` () = test true false
 
     module ``with ToggleSuppressProperties`` =
-        let test before after () =
-            let stateBefore = { state with InternalState.QueryState.Invert = before }
+        let test before after =
+            let stateBefore = { state with InternalState.SuppressProperties = before }
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { state with InternalState.QueryState.Invert = after }
+            let stateAfter = { state with InternalState.SuppressProperties = after }
 
             testStateAndContext ToggleSuppressProperties stateBefore context stateAfter
         // TODO: test a3
