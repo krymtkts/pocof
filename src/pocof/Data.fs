@@ -50,6 +50,7 @@ module LanguageExtension =
         static member inline split (separator: string) (s: string) = s.Split(separator.ToCharArray())
         static member inline equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
         static member inline trim(s: string) = s.Trim()
+        static member inline replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
 
     let inline swap (l, r) = (r, l)
     let inline alwaysTrue _ = true
@@ -219,7 +220,11 @@ module PocofData =
         | _ -> None
 
     let getCurrentProperty (query: string) (x: int) =
-        let s = query.[..x] |> String.split " " |> Seq.last
+        let s = query.[.. x - 1] |> String.split " " |> Seq.last
+
+#if DEBUG
+        Logger.logFile [ $"query '{query}' x '{x}' string '{s}'" ]
+#endif
 
         match s with
         | Prefix ":" p -> Search p

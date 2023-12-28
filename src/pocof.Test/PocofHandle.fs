@@ -705,6 +705,27 @@ module invokeAction =
             |> shouldEqual [ PocofQuery.Property("name", "a") ]
 
         [<Fact>]
+        let ``should return current completion when a property is already completed and cursor in mid position of it.``
+            ()
+            =
+            let state =
+                { state with
+                    Query = ":name a"
+                    PropertySearch = Search "nam"
+                    Properties = [ "name"; "path" ] }
+
+            let position = { position with X = 4 }
+            let state, context = PocofQuery.prepare state
+
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
+
+            (a1, a2)
+            |> shouldEqual ({ state with PropertySearch = Rotate("nam", 0, [ "name" ]) }, { position with X = 5 })
+
+            a3.Queries
+            |> shouldEqual [ PocofQuery.Property("name", "a") ]
+
+        [<Fact>]
         let ``should return next property when rotation.`` () =
             let state =
                 { state with
