@@ -183,21 +183,26 @@ module PocofHandle =
 
         state, pos, context
 
+    let private (|AlreadyCompleted|_|) (keyword: string) (tail: string) (candidate: string) =
+        let rest: string =
+            match keyword with
+            | "" -> candidate
+            | _ -> candidate |> String.replace keyword ""
+
+        let tailHead = String.split " " tail |> Seq.head
+
+        match rest = tailHead with
+        | true -> Some(tail.[tailHead.Length ..])
+        | _ -> None
+
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = pos.X - String.length keyword
             let head = state.Query.[.. basePosition - 1]
             let tail = state.Query.[pos.X ..]
 
-            let rest: string =
-                match keyword with
-                | "" -> candidate
-                | _ -> candidate |> String.replace keyword ""
-
-            let tailHead = String.split " " tail |> Seq.head
-
-            match rest = tailHead with
-            | true -> basePosition, head, tail.[tailHead.Length ..]
+            match candidate with
+            | AlreadyCompleted keyword tail rest -> basePosition, head, rest
             | _ -> basePosition, head, tail
 
         let buildValues head next tail keyword i candidates basePosition =
@@ -212,19 +217,17 @@ module PocofHandle =
         match state.PropertySearch with
         | NoSearch -> noRefresh state, pos, context
         | Search keyword ->
-            let candidate, candidates =
+            let candidates =
                 state.Properties
                 |> List.filter (
                     String.lower
                     >> String.startsWith (String.lower keyword)
                 )
-                |> function
-                    | [] -> "", []
-                    | xs -> List.head xs, xs
 
-            match candidate with
-            | "" -> noRefresh state, pos, context
-            | candidate ->
+            match candidates with
+            | [] -> noRefresh state, pos, context
+            | candidates ->
+                let candidate = List.head candidates
                 let basePosition, head, tail = splitQuery keyword candidate
 #if DEBUG
                 Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
