@@ -182,7 +182,8 @@ module PocofQuery =
             | _ -> String.lower x
 
         match state.PropertySearch with
-        | Search (prefix: string) ->
+        | Search (prefix: string)
+        | Rotate (prefix: string, _, _) ->
             let p = transform prefix
             let ret = List.filter (transform >> String.startsWith p) state.Properties
 
