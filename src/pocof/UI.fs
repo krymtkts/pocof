@@ -110,7 +110,6 @@ module PocofScreen =
 
             let h = rui.GetWindowHeight() - 3
 
-
             let out =
                 match List.length entries < h with
                 | true -> entries

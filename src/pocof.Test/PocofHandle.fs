@@ -327,6 +327,28 @@ module invokeAction =
 
             a3.Queries |> shouldEqual []
 
+        [<Fact>]
+        let ``should correct state if the cursor position is over the query length.`` () =
+            let state =
+                { state with
+                    Query = ":name"
+                    PropertySearch = NoSearch }
+
+            let state, context = PocofQuery.prepare state
+
+            let a1, a2, a3 = invokeAction state { X = 6; Y = 0 } context DeleteBackwardChar
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    Query = ":name"
+                    PropertySearch = Search "name"
+                    Refresh = NotRequired },
+                { X = 5; Y = 0 }
+            )
+
+            a3.Queries |> shouldEqual []
+
     module ``with DeleteForwardChar`` =
         [<Fact>]
         let ``should remove the character to the right of cursor, making state.Query one character shorter.`` () =
@@ -496,7 +518,7 @@ module invokeAction =
         let ``should return a disabled case sensitive.`` () = test true false
 
     module ``with ToggleInvertFilter`` =
-        let test before after () =
+        let test before after =
             let stateBefore = { state with InternalState.QueryState.Invert = before }
             let state, context = PocofQuery.prepare stateBefore
             let stateAfter = { state with InternalState.QueryState.Invert = after }
@@ -511,10 +533,10 @@ module invokeAction =
         let ``should return a disabled invert filter.`` () = test true false
 
     module ``with ToggleSuppressProperties`` =
-        let test before after () =
-            let stateBefore = { state with InternalState.QueryState.Invert = before }
+        let test before after =
+            let stateBefore = { state with InternalState.SuppressProperties = before }
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { state with InternalState.QueryState.Invert = after }
+            let stateAfter = { state with InternalState.SuppressProperties = after }
 
             testStateAndContext ToggleSuppressProperties stateBefore context stateAfter
         // TODO: test a3
@@ -549,7 +571,7 @@ module invokeAction =
         [<Fact>]
         let ``shouldn't return any difference when a page-down is entered.`` () = noop ScrollPageDown
 
-    module ``with TabExpansion`` =
+    module ``with CompleteProperty`` =
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with non search mode.`` () =
             let state = { state with Properties = [ "name"; "path" ] }
@@ -594,6 +616,29 @@ module invokeAction =
 
             (a1, a2)
             |> shouldEqual ({ state with Refresh = NotRequired }, position)
+
+            a3.Queries |> shouldEqual []
+
+        [<Fact>]
+        let ``should return the first completion when a empty keyword.`` () =
+            let state =
+                { state with
+                    Query = ":"
+                    PropertySearch = Search ""
+                    Properties = [ "first"; "second"; "third" ] }
+
+            let position = { position with X = 1 }
+            let state, context = PocofQuery.prepare state
+
+            let a1, a2, a3 = invokeAction state position context CompleteProperty
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    Query = ":first"
+                    PropertySearch = Rotate("", 0, [ "first"; "second"; "third" ]) },
+                { position with X = 6 }
+            )
 
             a3.Queries |> shouldEqual []
 

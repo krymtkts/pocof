@@ -6,7 +6,10 @@ open System
 open pocof.PocofData
 open pocof.PocofScreen
 
-let generateLine x y = List.replicate y <| String.replicate x " "
+let generateLine x y =
+    List.replicate y <| String.replicate x " "
+
+// TODO: mock PSHostRawUserInterface.
 type MockRawUI =
     val caAsInput: bool
     val mutable x: int
@@ -22,6 +25,13 @@ type MockRawUI =
           y = MockRawUI.yy
           screen = generateLine  MockRawUI.xx MockRawUI.yy
           }
+    new(x:int, y:int) =
+        // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
+        { caAsInput = true
+          x = x
+          y = y
+          screen = generateLine x y
+          }
 
     interface IRawUI with
         member __.SetCursorPosition (x: int) (y: int) =
@@ -30,8 +40,8 @@ type MockRawUI =
 
         member __.GetCursorPositionX (_: string) (x: int) = x
 
-        member __.GetWindowWidth() = 50
-        member __.GetWindowHeight() = 30
+        member __.GetWindowWidth() = __.x
+        member __.GetWindowHeight() = __.y
         member __.Write x y s =
             __.screen <- __.screen |>List.mapi (fun i ss ->
                 match i with
@@ -43,10 +53,13 @@ type MockRawUI =
         member __.Dispose() = ()
 
 module ``Buff writeScreen`` =
+    open System.Collections
+    open System.Management.Automation
+
     [<Fact>]
     let ``should render top down.`` ()   =
         let rui = new MockRawUI()
-        let buff = new Buff(rui, "query", (fun _ -> Seq.empty))
+        use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
 
         let state: InternalState =
             { Query = "foo"
@@ -64,14 +77,16 @@ module ``Buff writeScreen`` =
         buff.writeTopDown state 0 [] <| Ok []
 
         let expected =
-            "query>foo                           cmatch and [0]" :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+            "query>foo                           cmatch and [0]"
+            :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+
         rui.screen
         |> shouldEqual expected
 
     [<Fact>]
     let ``should render bottom up.`` ()   =
         let rui = new MockRawUI()
-        let buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
+        use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
 
         let state: InternalState =
             { Query = "hello*world*"
@@ -89,10 +104,143 @@ module ``Buff writeScreen`` =
         buff.writeBottomUp state 0 [] <| Ok []
 
         let expected =
-            "prompt>hello*world*                 notlike or [0]" :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+            "prompt>hello*world*                 notlike or [0]"
+            :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
             |> List.rev
+
         rui.screen
         |> shouldEqual expected
 
-    // TODO: test notification rendering.
-    // TODO: test entries rendering.
+    [<Fact>]
+    let ``should render notification.`` ()   =
+        let rui = new MockRawUI(80,30)
+        use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
+
+        let state: InternalState =
+            { Query = @"\"
+              QueryState =
+                { Matcher = MATCH
+                  Operator = AND
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Refresh = Required}
+
+        let state = { state with Notification = pocof.PocofQuery.prepareNotification state }
+
+        buff.writeTopDown state 0 [] <| Ok []
+
+        let expected =
+            List.concat [ [ @"prompt>\                                                           match and [0]"
+                            @"note>Invalid pattern '\' at offset 1. Illegal \ at end of pattern.              " ]
+                          (generateLine 80 (28)) ]
+
+        rui.screen
+        |> shouldEqual expected
+
+    [<Fact>]
+    let ``should render props notification.`` ()   =
+        let rui = new MockRawUI(80,30)
+        use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
+
+        let state: InternalState =
+            { Query = @":unknown"
+              QueryState =
+                { Matcher = MATCH
+                  Operator = AND
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Refresh = Required}
+
+        buff.writeTopDown state 0 [] <| Error "Property not found"
+
+        let expected =
+            List.concat [ [ @"prompt>:unknown                                                    match and [0]"
+                            @"note>Property not found                                                         " ]
+                          (generateLine 80 (28)) ]
+
+        rui.screen
+        |> shouldEqual expected
+
+    let formatTableOutString ol =
+        PowerShell.Create().AddCommand("Format-Table").AddParameter("InputObject",ol).AddCommand("Out-String").Invoke() |> Seq.map string
+
+    [<Fact>]
+    let ``should render entries under y.`` ()   =
+        let rui = new MockRawUI(60,30)
+        use buff = new Buff(rui, "prompt", formatTableOutString)
+
+        let state: InternalState =
+            { Query = @""
+              QueryState =
+                { Matcher = MATCH
+                  Operator = AND
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Refresh = Required}
+
+        let entries = [1..10] |> List.map (fun i ->
+            DictionaryEntry("Number", i) |> Dict
+        )
+
+        buff.writeTopDown state 0 entries <| Ok []
+
+        let expected =
+            List.concat [ [ @"prompt>                                       match and [10]"
+                            @"                                                            "
+                            @"                                                            "
+                            @"Name                           Value                        "
+                            @"----                           -----                        " ]
+                          ([ 1..10 ]
+                           |> List.map (sprintf "Number                         %-2d                           "))
+                          (generateLine 60 (15)) ]
+
+        rui.screen
+        |> shouldEqual expected
+
+
+    [<Fact>]
+    let ``should render entries over y.`` ()   =
+        let rui = new MockRawUI(60,30)
+        use buff = new Buff(rui, "prompt", formatTableOutString)
+
+        let state: InternalState =
+            { Query = @""
+              QueryState =
+                { Matcher = MATCH
+                  Operator = AND
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Refresh = Required}
+
+        let entries = [1..100] |> List.map (fun i ->
+            DictionaryEntry("Number", i) |> Dict
+        )
+        buff.writeTopDown state 0 entries <| Ok []
+
+        let expected =
+            List.concat [ [ @"prompt>                                      match and [100]"
+                            @"                                                            "
+                            @"                                                            "
+                            @"Name                           Value                        "
+                            @"----                           -----                        " ]
+                          ([ 1..25 ]
+                           |> List.map (sprintf "Number                         %-2d                           ")) ]
+
+        rui.screen
+        |> shouldEqual expected

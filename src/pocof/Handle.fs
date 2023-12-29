@@ -69,20 +69,25 @@ module PocofHandle =
         match pos.X with
         | 0 -> noRefresh state, pos, context
         | _ ->
-            let p = { pos with X = pos.X - 1 }
+            let x = pos.X - 1
 
-            let q =
-                match state.Query.Length > p.X with
-                | true -> state.Query.Remove(p.X, 1)
-                | _ -> state.Query
+            let q, x =
+                match state.Query.Length > x with
+                | true -> state.Query.Remove(x, 1), x
+                | _ -> state.Query, state.Query.Length
 
-            let state =
+            let s =
                 { state with
                     Query = q
-                    PropertySearch = getCurrentProperty q p.X }
+                    PropertySearch = getCurrentProperty q x }
 
-            let notification = prepareNotification state
-            refresh { state with Notification = notification }, p, { context with Queries = prepareQuery state }
+            let notification = prepareNotification s
+
+            { s with
+                Notification = notification
+                Refresh = state.Query <> q |> Refresh.ofBool },
+            { pos with X = x },
+            { context with Queries = prepareQuery s }
 
     let private removeForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         let q, refresh =

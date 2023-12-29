@@ -61,7 +61,7 @@ module PocofAction =
         | [ k ] ->
             match toEnum<ConsoleKey> k with
             | Some e -> Ok <| plain e
-            | None -> Error <| sprintf "Unsupported key '%s'." k
+            | None -> Error $"Unsupported key '%s{k}'."
         | k :: ms ->
             let k = toEnum<ConsoleKey> k
 
@@ -77,7 +77,7 @@ module PocofAction =
 
             match (k, m) with
             | (Some k, Some m) -> Ok { Modifier = m; Key = k }
-            | _ -> Error <| sprintf "Unsupported combination '%s'." s
+            | _ -> Error $"Unsupported combination '%s{s}'."
 
     let convertKeymaps (h: Hashtable) =
         match h with

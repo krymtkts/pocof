@@ -7,6 +7,20 @@ open System
 open pocof
 open PocofData
 
+module unwrap =
+    open System.Management.Automation
+    open System.Collections
+
+    [<Fact>]
+    let ``should returns "a".`` () =
+        unwrap [ Obj(PSObject.AsPSObject "a") ]
+        |> shouldEqual [ PSObject.AsPSObject "a" ]
+
+    [<Fact>]
+    let ``should returns dictionary.`` () =
+        unwrap [ Dict(DictionaryEntry("Jane", "Doe")) ]
+        |> shouldEqual [ DictionaryEntry("Jane", "Doe") ]
+
 module ``Action fromString should returns`` =
     [<Fact>]
     let ``Error Unknown.`` () =
