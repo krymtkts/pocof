@@ -5,9 +5,10 @@ open FsUnitTyped
 open System
 open pocof.PocofData
 open pocof.PocofScreen
-open System.Collections
 
-let generateLine x y = List.replicate y <| String.replicate x " "
+let generateLine x y =
+    List.replicate y <| String.replicate x " "
+
 type MockRawUI =
     val caAsInput: bool
     val mutable x: int
@@ -51,7 +52,9 @@ type MockRawUI =
         member __.Dispose() = ()
 
 module ``Buff writeScreen`` =
+    open System.Collections
     open System.Management.Automation
+
     [<Fact>]
     let ``should render top down.`` ()   =
         let rui = new MockRawUI()
@@ -73,7 +76,9 @@ module ``Buff writeScreen`` =
         buff.writeTopDown state 0 [] <| Ok []
 
         let expected =
-            "query>foo                           cmatch and [0]" :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+            "query>foo                           cmatch and [0]"
+            :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+
         rui.screen
         |> shouldEqual expected
 
@@ -98,8 +103,10 @@ module ``Buff writeScreen`` =
         buff.writeBottomUp state 0 [] <| Ok []
 
         let expected =
-            "prompt>hello*world*                 notlike or [0]" :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+            "prompt>hello*world*                 notlike or [0]"
+            :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
             |> List.rev
+
         rui.screen
         |> shouldEqual expected
 
@@ -120,16 +127,16 @@ module ``Buff writeScreen`` =
               SuppressProperties = false
               Properties = []
               Refresh = Required}
+
         let state = { state with Notification = pocof.PocofQuery.prepareNotification state }
 
         buff.writeTopDown state 0 [] <| Ok []
 
-        let expected = List.concat [
-            [
-            @"prompt>\                                                           match and [0]"
-            @"note>Invalid pattern '\' at offset 1. Illegal \ at end of pattern.              "
-            ]
-            (generateLine 80 (28))]
+        let expected =
+            List.concat [ [ @"prompt>\                                                           match and [0]"
+                            @"note>Invalid pattern '\' at offset 1. Illegal \ at end of pattern.              " ]
+                          (generateLine 80 (28)) ]
+
         rui.screen
         |> shouldEqual expected
 
@@ -153,12 +160,11 @@ module ``Buff writeScreen`` =
 
         buff.writeTopDown state 0 [] <| Error "Property not found"
 
-        let expected = List.concat [
-            [
-            @"prompt>:unknown                                                    match and [0]"
-            @"note>Property not found                                                         "
-            ]
-            (generateLine 80 (28))]
+        let expected =
+            List.concat [ [ @"prompt>:unknown                                                    match and [0]"
+                            @"note>Property not found                                                         " ]
+                          (generateLine 80 (28)) ]
+
         rui.screen
         |> shouldEqual expected
 
@@ -186,17 +192,19 @@ module ``Buff writeScreen`` =
         let entries = [1..10] |> List.map (fun i ->
             DictionaryEntry("Number", i) |> Dict
         )
+
         buff.writeTopDown state 0 entries <| Ok []
-        let expected = List.concat [
-            [
-            @"prompt>                                       match and [10]"
-            @"                                                            "
-            @"                                                            "
-            @"Name                           Value                        "
-            @"----                           -----                        "
-            ]
-            ([1..10] |> List.map (sprintf "Number                         %-2d                           " ))
-            (generateLine 60 (15))]
+
+        let expected =
+            List.concat [ [ @"prompt>                                       match and [10]"
+                            @"                                                            "
+                            @"                                                            "
+                            @"Name                           Value                        "
+                            @"----                           -----                        " ]
+                          ([ 1..10 ]
+                           |> List.map (sprintf "Number                         %-2d                           "))
+                          (generateLine 60 (15)) ]
+
         rui.screen
         |> shouldEqual expected
 
@@ -224,15 +232,15 @@ module ``Buff writeScreen`` =
         )
         buff.writeTopDown state 0 entries <| Ok []
 
-        let expected = List.concat [
-            [
-            @"prompt>                                      match and [100]"
-            @"                                                            "
-            @"                                                            "
-            @"Name                           Value                        "
-            @"----                           -----                        "
-            ]
-            ([1..25] |> List.map (sprintf "Number                         %-2d                           " ))]
+        let expected =
+            List.concat [ [ @"prompt>                                      match and [100]"
+                            @"                                                            "
+                            @"                                                            "
+                            @"Name                           Value                        "
+                            @"----                           -----                        " ]
+                          ([ 1..25 ]
+                           |> List.map (sprintf "Number                         %-2d                           ")) ]
+
         rui.screen
         |> shouldEqual expected
 
