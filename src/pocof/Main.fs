@@ -7,23 +7,12 @@ open PocofData
 open PocofHandle
 
 module Pocof =
-    [<TailCall>]
-    let rec private read (acc: ConsoleKeyInfo list) =
-        let acc = Console.ReadKey true :: acc
-
-        match Console.KeyAvailable with
-        | true -> read acc
-        | _ -> List.rev acc
-
-    let private getKey () =
-        Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
-        |> Async.RunSynchronously
-
     type LoopFixedArguments =
         { keymaps: Map<KeyPattern, Action>
           input: Entry list
           propMap: Map<string, string>
-          writeScreen: PocofScreen.WriteScreen }
+          writeScreen: PocofScreen.WriteScreen
+          getKey: unit -> ConsoleKeyInfo list }
 
     [<TailCall>]
     let rec loop
@@ -47,7 +36,7 @@ module Pocof =
 
                 results
 
-        getKey ()
+        args.getKey ()
         |> PocofAction.get args.keymaps
         |> function
             | Cancel -> []
@@ -56,6 +45,18 @@ module Pocof =
             | action ->
                 invokeAction state pos context action
                 |||> loop args results
+
+    [<TailCall>]
+    let rec private read (acc: ConsoleKeyInfo list) =
+        let acc = Console.ReadKey true :: acc
+
+        match Console.KeyAvailable with
+        | true -> read acc
+        | _ -> List.rev acc
+
+    let private getKey () =
+        Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
+        |> Async.RunSynchronously
 
     let interact
         (conf: InternalConfig)
@@ -87,6 +88,7 @@ module Pocof =
                   writeScreen =
                     match conf.Layout with
                     | TopDown -> sbf.writeTopDown
-                    | BottomUp -> sbf.writeBottomUp }
+                    | BottomUp -> sbf.writeBottomUp
+                  getKey = getKey }
 
             loop args input state pos context
