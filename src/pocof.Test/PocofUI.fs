@@ -9,6 +9,7 @@ open pocof.PocofScreen
 let generateLine x y =
     List.replicate y <| String.replicate x " "
 
+// TODO: mock PSHostRawUserInterface.
 type MockRawUI =
     val caAsInput: bool
     val mutable x: int
@@ -58,7 +59,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render top down.`` ()   =
         let rui = new MockRawUI()
-        let buff = new Buff(rui, "query", (fun _ -> Seq.empty))
+        use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
 
         let state: InternalState =
             { Query = "foo"
@@ -85,7 +86,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render bottom up.`` ()   =
         let rui = new MockRawUI()
-        let buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
+        use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
 
         let state: InternalState =
             { Query = "hello*world*"
@@ -113,7 +114,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render notification.`` ()   =
         let rui = new MockRawUI(80,30)
-        let buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
+        use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
 
         let state: InternalState =
             { Query = @"\"
@@ -143,7 +144,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render props notification.`` ()   =
         let rui = new MockRawUI(80,30)
-        let buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
+        use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
 
         let state: InternalState =
             { Query = @":unknown"
@@ -174,7 +175,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render entries under y.`` ()   =
         let rui = new MockRawUI(60,30)
-        let buff = new Buff(rui, "prompt", formatTableOutString)
+        use buff = new Buff(rui, "prompt", formatTableOutString)
 
         let state: InternalState =
             { Query = @""
@@ -212,7 +213,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render entries over y.`` ()   =
         let rui = new MockRawUI(60,30)
-        let buff = new Buff(rui, "prompt", formatTableOutString)
+        use buff = new Buff(rui, "prompt", formatTableOutString)
 
         let state: InternalState =
             { Query = @""
@@ -243,4 +244,3 @@ module ``Buff writeScreen`` =
 
         rui.screen
         |> shouldEqual expected
-
