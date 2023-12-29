@@ -23,6 +23,10 @@ module loop =
           Refresh = Required }
 
     let state = initState ()
+    let writeScreen _ _ _ _ = ()
+    let pos = { X = 0; Y = 0 }
+    let propMap = Map.empty
+
     let toObj = PSObject.AsPSObject >> Obj
 
     let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
@@ -45,10 +49,6 @@ module loop =
     [<Fact>]
     let ``should return result when finishing.`` () =
         let input = results |> List.map toObj
-
-        let propMap = Map.empty
-        let writeScreen _ _ _ _ = ()
-        let pos = { X = 0; Y = 0 }
         let state, context = pocof.PocofQuery.prepare state
 
         let m =
@@ -71,11 +71,8 @@ module loop =
     let ``shouldn't return result when canceling.`` () =
         let input = results |> List.map toObj
 
-        let propMap = Map.empty
-        let writeScreen _ _ _ _ = ()
-        let state = { state with SuppressProperties = true }
-        let pos = { X = 0; Y = 0 }
-        let state, context = pocof.PocofQuery.prepare state
+        let state, context =
+            pocof.PocofQuery.prepare { state with SuppressProperties = true }
 
         let m =
             MockGetKey [ [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false) ] ]
@@ -94,11 +91,7 @@ module loop =
     let ``should return result when finishing after noop.`` () =
         let input = results |> List.map toObj
 
-        let propMap = Map.empty
-        let writeScreen _ _ _ _ = ()
-        let state = { state with Refresh = NotRequired }
-        let pos = { X = 0; Y = 0 }
-        let state, context = pocof.PocofQuery.prepare state
+        let state, context = pocof.PocofQuery.prepare { state with Refresh = NotRequired }
 
         let m =
             MockGetKey [ [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, true, true, false) ]
@@ -123,9 +116,6 @@ module loop =
     let ``should return result when finishing with filter.`` () =
         let input = results |> List.map toObj
 
-        let propMap = Map.empty
-        let writeScreen _ _ _ _ = ()
-        let pos = { X = 0; Y = 0 }
         let state, context = pocof.PocofQuery.prepare state
 
         let m =
