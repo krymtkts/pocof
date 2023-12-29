@@ -5,6 +5,7 @@ open FsUnitTyped
 open System
 open pocof.PocofData
 open pocof.PocofScreen
+open System.Collections
 
 let generateLine x y = List.replicate y <| String.replicate x " "
 type MockRawUI =
@@ -50,6 +51,7 @@ type MockRawUI =
         member __.Dispose() = ()
 
 module ``Buff writeScreen`` =
+    open System.Management.Automation
     [<Fact>]
     let ``should render top down.`` ()   =
         let rui = new MockRawUI()
@@ -124,7 +126,7 @@ module ``Buff writeScreen`` =
 
         let expected = List.concat [
             [
-            @"prompt>\                                                           match and [0]";
+            @"prompt>\                                                           match and [0]"
             @"note>Invalid pattern '\' at offset 1. Illegal \ at end of pattern.              "
             ]
             (generateLine 80 (28))]
@@ -153,11 +155,84 @@ module ``Buff writeScreen`` =
 
         let expected = List.concat [
             [
-            @"prompt>:unknown                                                    match and [0]";
+            @"prompt>:unknown                                                    match and [0]"
             @"note>Property not found                                                         "
             ]
             (generateLine 80 (28))]
         rui.screen
         |> shouldEqual expected
 
-    // TODO: test entries rendering.
+    let formatTableOutString ol =
+        PowerShell.Create().AddCommand("Format-Table").AddParameter("InputObject",ol).AddCommand("Out-String").Invoke() |> Seq.map string
+
+    [<Fact>]
+    let ``should render entries under y.`` ()   =
+        let rui = new MockRawUI(60,30)
+        let buff = new Buff(rui, "prompt", formatTableOutString)
+
+        let state: InternalState =
+            { Query = @""
+              QueryState =
+                { Matcher = MATCH
+                  Operator = AND
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Refresh = Required}
+
+        let entries = [1..10] |> List.map (fun i ->
+            DictionaryEntry("Number", i) |> Dict
+        )
+        buff.writeTopDown state 0 entries <| Ok []
+        let expected = List.concat [
+            [
+            @"prompt>                                       match and [10]"
+            @"                                                            "
+            @"                                                            "
+            @"Name                           Value                        "
+            @"----                           -----                        "
+            ]
+            ([1..10] |> List.map (sprintf "Number                         %-2d                           " ))
+            (generateLine 60 (15))]
+        rui.screen
+        |> shouldEqual expected
+
+
+    [<Fact>]
+    let ``should render entries over y.`` ()   =
+        let rui = new MockRawUI(60,30)
+        let buff = new Buff(rui, "prompt", formatTableOutString)
+
+        let state: InternalState =
+            { Query = @""
+              QueryState =
+                { Matcher = MATCH
+                  Operator = AND
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Refresh = Required}
+
+        let entries = [1..100] |> List.map (fun i ->
+            DictionaryEntry("Number", i) |> Dict
+        )
+        buff.writeTopDown state 0 entries <| Ok []
+
+        let expected = List.concat [
+            [
+            @"prompt>                                      match and [100]"
+            @"                                                            "
+            @"                                                            "
+            @"Name                           Value                        "
+            @"----                           -----                        "
+            ]
+            ([1..25] |> List.map (sprintf "Number                         %-2d                           " ))]
+        rui.screen
+        |> shouldEqual expected
+
