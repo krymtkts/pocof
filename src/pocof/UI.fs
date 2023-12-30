@@ -69,7 +69,7 @@ module PocofScreen =
         interface IDisposable with
             member __.Dispose() = (rui :> IDisposable).Dispose()
 
-        member private __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
+        member private __.writeQueryInfo (state: PocofData.InternalState) (length: int) (row: int) =
             let info = $"%O{state.QueryState} [%d{length}]"
             let x = (rui.GetWindowWidth()) - info.Length
             rui.Write x row info
@@ -94,7 +94,7 @@ module PocofScreen =
 
             let topLine = prompt + anchor + state.Query
             __.writeScreenLine basePosition topLine
-            __.writeRightInfo state entries.Length basePosition
+            __.writeQueryInfo state entries.Length basePosition
 
 #if DEBUG
             Logger.logFile [ List.length entries ]
