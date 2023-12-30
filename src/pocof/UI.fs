@@ -70,7 +70,7 @@ module PocofScreen =
             member __.Dispose() = (rui :> IDisposable).Dispose()
 
         member private __.writeQueryInfo (state: PocofData.InternalState) (length: int) (row: int) =
-            let info = $"%O{state.QueryState} [%d{length}]"
+            let info = $" %O{state.QueryState} [%d{length}]"
             let x = (rui.GetWindowWidth()) - info.Length
             rui.Write x row info
 
