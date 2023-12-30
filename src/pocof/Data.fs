@@ -169,6 +169,8 @@ module PocofData =
           Keymaps: Map<KeyPattern, Action>
           NotInteractive: bool }
 
+    type QueryState = { Query: string; Cursor: int }
+
     type QueryCondition =
         { Matcher: Matcher
           Operator: Operator
@@ -187,7 +189,7 @@ module PocofData =
             |> String.concat ""
 
     type InternalState =
-        { Query: string
+        { QueryState: QueryState
           QueryCondition: QueryCondition
           PropertySearch: PropertySearch
           Notification: string
@@ -235,7 +237,9 @@ module PocofData =
           Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
           NotInteractive = p.NotInteractive },
-        { Query = p.Query
+        { QueryState =
+            { Query = p.Query
+              Cursor = p.Query.Length }
           QueryCondition =
             { Matcher = Matcher.fromString p.Matcher
               Operator = Operator.fromString p.Operator

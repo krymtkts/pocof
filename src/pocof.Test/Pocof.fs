@@ -10,7 +10,7 @@ module loop =
     open System.Management.Automation
 
     let initState () : InternalState =
-        { Query = ""
+        { QueryState = { Query = ""; Cursor = 0 }
           QueryCondition =
             { Matcher = MATCH
               Operator = OR

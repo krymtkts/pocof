@@ -87,9 +87,9 @@ module PocofQuery =
 
     let prepareQuery (state: InternalState) =
         match state.QueryCondition.Operator with
-        | NONE -> [ Normal state.Query ]
+        | NONE -> [ Normal state.QueryState.Query ]
         | _ ->
-            state.Query
+            state.QueryState.Query
             |> String.trim
             |> String.split " "
             |> List.ofSeq
@@ -108,7 +108,7 @@ module PocofQuery =
         <| state.QueryCondition.CaseSensitive
 
     let prepareAnswer (state: InternalState) =
-        match String.IsNullOrWhiteSpace state.Query, state.QueryCondition.Invert with
+        match String.IsNullOrWhiteSpace state.QueryState.Query, state.QueryCondition.Invert with
         | false, true -> not
         | _ -> id
 
@@ -116,7 +116,7 @@ module PocofQuery =
         match state.QueryCondition.Matcher with
         | MATCH ->
             try
-                new Regex(state.Query) |> ignore
+                new Regex(state.QueryState.Query) |> ignore
                 ""
             with
             | e -> e.Message

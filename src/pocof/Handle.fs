@@ -8,12 +8,12 @@ module PocofHandle =
     type QueryContext = PocofQuery.QueryContext
 
     let private addQuery (state: InternalState) (pos: Position) (context: QueryContext) (s: string) =
-        let query = state.Query.Insert(pos.X, s)
+        let query = state.QueryState.Query.Insert(pos.X, s)
         let p = { pos with X = pos.X + String.length s }
 
         let state =
             { state with
-                Query = query
+                InternalState.QueryState.Query = query // TODO: correct cursor position.
                 PropertySearch = getCurrentProperty query p.X }
             |> refresh
 
@@ -27,19 +27,19 @@ module PocofHandle =
             | _ -> { pos with X = pos.X - 1 }, Required
 
         { state with
-            PropertySearch = getCurrentProperty state.Query p.X
+            PropertySearch = getCurrentProperty state.QueryState.Query p.X
             Refresh = refresh },
         p,
         context
 
     let private moveForward (state: InternalState) (pos: Position) (context: QueryContext) =
         let p, refresh =
-            match pos.X < state.Query.Length with
+            match pos.X < state.QueryState.Query.Length with
             | true -> { pos with X = pos.X + 1 }, Required
             | _ -> pos, NotRequired
 
         { state with
-            PropertySearch = getCurrentProperty state.Query p.X
+            PropertySearch = getCurrentProperty state.QueryState.Query p.X
             Refresh = refresh },
         p,
         context
@@ -53,9 +53,11 @@ module PocofHandle =
 
     let private moveTail (state: InternalState) (pos: Position) (context: QueryContext) =
         { state with
-            PropertySearch = getCurrentProperty state.Query state.Query.Length
-            Refresh = pos.X <> state.Query.Length |> Refresh.ofBool },
-        { pos with X = state.Query.Length },
+            PropertySearch = getCurrentProperty state.QueryState.Query state.QueryState.Query.Length
+            Refresh =
+                pos.X <> state.QueryState.Query.Length
+                |> Refresh.ofBool },
+        { pos with X = state.QueryState.Query.Length },
         context
 
     let private removeBackwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
@@ -65,32 +67,32 @@ module PocofHandle =
             let x = pos.X - 1
 
             let q, x =
-                match state.Query.Length > x with
-                | true -> state.Query.Remove(x, 1), x
-                | _ -> state.Query, state.Query.Length
+                match state.QueryState.Query.Length > x with
+                | true -> state.QueryState.Query.Remove(x, 1), x
+                | _ -> state.QueryState.Query, state.QueryState.Query.Length
 
             let s =
                 { state with
-                    Query = q
+                    InternalState.QueryState.Query = q // TODO: correct cursor position.
                     PropertySearch = getCurrentProperty q x }
 
             let notification = prepareNotification s
 
             { s with
                 Notification = notification
-                Refresh = state.Query <> q |> Refresh.ofBool },
+                Refresh = state.QueryState.Query <> q |> Refresh.ofBool },
             { pos with X = x },
             { context with Queries = prepareQuery s }
 
     let private removeForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         let q, refresh =
-            match state.Query.Length > pos.X with
-            | true -> state.Query.Remove(pos.X, 1), Required
-            | _ -> state.Query, NotRequired
+            match state.QueryState.Query.Length > pos.X with
+            | true -> state.QueryState.Query.Remove(pos.X, 1), Required
+            | _ -> state.QueryState.Query, NotRequired
 
         let state =
             { state with
-                Query = q
+                InternalState.QueryState.Query = q // TODO: correct cursor position.
                 PropertySearch = getCurrentProperty q pos.X
                 Refresh = refresh }
 
@@ -98,16 +100,17 @@ module PocofHandle =
         { state with Notification = notification }, pos, context
 
     let private removeQueryHead (state: InternalState) (pos: Position) (context: QueryContext) =
-        let q = state.Query.[pos.X ..]
+        let q = state.QueryState.Query.[pos.X ..]
         let ps = getCurrentProperty q 0
 
         let refresh =
-            (q <> state.Query || ps <> state.PropertySearch)
+            (q <> state.QueryState.Query
+             || ps <> state.PropertySearch)
             |> Refresh.ofBool
 
         let state =
             { state with
-                Query = q
+                InternalState.QueryState.Query = q // TODO: correct cursor position.
                 PropertySearch = ps
                 Refresh = refresh }
 
@@ -115,16 +118,17 @@ module PocofHandle =
         { state with Notification = notification }, { pos with X = 0 }, { context with Queries = prepareQuery state }
 
     let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
-        let q = state.Query.[.. pos.X - 1]
+        let q = state.QueryState.Query.[.. pos.X - 1]
         let ps = getCurrentProperty q pos.X
 
         let refresh =
-            (q <> state.Query || ps <> state.PropertySearch)
+            (q <> state.QueryState.Query
+             || ps <> state.PropertySearch)
             |> Refresh.ofBool
 
         let state =
             { state with
-                Query = q
+                InternalState.QueryState.Query = q // TODO: correct cursor position.
                 PropertySearch = ps
                 Refresh = refresh }
 
@@ -196,8 +200,8 @@ module PocofHandle =
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = pos.X - String.length keyword
-            let head = state.Query.[.. basePosition - 1]
-            let tail = state.Query.[pos.X ..]
+            let head = state.QueryState.Query.[.. basePosition - 1]
+            let tail = state.QueryState.Query.[pos.X ..]
 
             match candidate with
             | AlreadyCompleted keyword tail rest -> basePosition, head, rest
@@ -206,7 +210,7 @@ module PocofHandle =
         let buildValues head next tail keyword i candidates basePosition =
             let state =
                 { state with
-                    Query = $"%s{head}%s{next}%s{tail}"
+                    InternalState.QueryState.Query = $"%s{head}%s{next}%s{tail}"
                     PropertySearch = Rotate(keyword, i, candidates) }
                 |> refresh
 

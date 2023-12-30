@@ -6,7 +6,7 @@ open pocof
 open System.Management.Automation
 
 let initState () : PocofData.InternalState =
-    { Query = ""
+    { QueryState = { Query = ""; Cursor = 0 }
       QueryCondition =
         { Matcher = PocofData.Matcher.MATCH
           Operator = PocofData.Operator.OR
@@ -76,7 +76,7 @@ module run =
 
     let matcher m (s: PocofData.InternalState) = { s with QueryCondition.Matcher = m }
 
-    let query q (s: PocofData.InternalState) = { s with Query = q }
+    let query q (s: PocofData.InternalState) = { s with QueryState.Query = q }
 
     let invert (s: PocofData.InternalState) = { s with QueryCondition.Invert = true }
 

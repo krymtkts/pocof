@@ -62,7 +62,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { Query = "foo"
+            { QueryState = { Query = "foo"; Cursor = 3 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -89,7 +89,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { Query = "hello*world*"
+            { QueryState = { Query = "hello*world*"; Cursor = 12 }
               QueryCondition =
                 { Matcher = LIKE
                   Operator = OR
@@ -117,7 +117,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { Query = @"\"
+            { QueryState = { Query = @"\"; Cursor = 1 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -147,7 +147,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, "prompt", (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { Query = @":unknown"
+            { QueryState = { Query = @":unknown"; Cursor = 8 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -178,7 +178,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, "prompt", formatTableOutString)
 
         let state: InternalState =
-            { Query = @""
+            { QueryState = { Query = ""; Cursor = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -216,7 +216,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, "prompt", formatTableOutString)
 
         let state: InternalState =
-            { Query = @""
+            { QueryState = { Query = ""; Cursor = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -252,7 +252,7 @@ module ``Buff writeScreen`` =
             use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let state: InternalState =
-                { Query = query
+                { QueryState = { Query = query; Cursor = 0 }
                   QueryCondition =
                       { Matcher = MATCH
                         Operator = AND
@@ -279,7 +279,7 @@ module ``Buff writeScreen`` =
             use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let state: InternalState =
-                { Query = query
+                { QueryState = { Query = query; Cursor = 30 }
                   QueryCondition =
                       { Matcher = MATCH
                         Operator = AND
@@ -306,7 +306,7 @@ module ``Buff writeScreen`` =
             use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let state: InternalState =
-                { Query = query
+                { QueryState = { Query = query; Cursor = 45 }
                   QueryCondition =
                       { Matcher = MATCH
                         Operator = AND
@@ -318,7 +318,7 @@ module ``Buff writeScreen`` =
                   Properties = []
                   Refresh = Required}
 
-            buff.writeTopDown state 45 [] <| Ok []
+            buff.writeTopDown state 30 [] <| Ok []
 
             let expected =
                 "query>---->5-------->6-------->7---- match and [0]"
@@ -333,7 +333,7 @@ module ``Buff writeScreen`` =
             use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let state: InternalState =
-                { Query = query
+                { QueryState = { Query = query; Cursor = 90 }
                   QueryCondition =
                       { Matcher = MATCH
                         Operator = AND
@@ -345,7 +345,7 @@ module ``Buff writeScreen`` =
                   Properties = []
                   Refresh = Required}
 
-            buff.writeTopDown state 90 [] <| Ok []
+            buff.writeTopDown state 30 [] <| Ok []
 
             let expected =
                 "query>7-------->8-------->9--------> match and [0]"

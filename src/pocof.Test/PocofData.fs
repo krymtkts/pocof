@@ -172,7 +172,7 @@ module initConfig =
               Layout = Layout.TopDown
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
               NotInteractive = true },
-            { Query = ":name"
+            { QueryState = { Query = ":name"; Cursor = 5 }
               QueryCondition =
                 { Matcher = LIKE
                   Operator = AND

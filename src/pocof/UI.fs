@@ -92,7 +92,7 @@ module PocofScreen =
                     let basePosition = rui.GetWindowHeight() - 1
                     basePosition, basePosition - 1, (-) (basePosition - 2)
 
-            let topLine = prompt + anchor + state.Query
+            let topLine = prompt + anchor + state.QueryState.Query
             __.writeScreenLine basePosition topLine
             __.writeQueryInfo state entries.Length basePosition
 
