@@ -201,7 +201,11 @@ module PocofData =
 
     let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
 
-    type Position = { X: int; Y: int }
+    type Position =
+        { X: int
+          Y: int
+          Width: int
+          Height: int }
 
     type IncomingParameters =
         { Query: string
@@ -214,7 +218,9 @@ module PocofData =
           Prompt: string
           Layout: string
           Keymaps: Map<KeyPattern, Action>
-          Properties: string list }
+          Properties: string list
+          ConsoleWidth: int
+          ConsoleHeight: int }
 
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
@@ -250,4 +256,7 @@ module PocofData =
           SuppressProperties = p.SuppressProperties
           Properties = p.Properties
           Refresh = Required },
-        { X = p.Query.Length; Y = 0 }
+        { X = p.Query.Length
+          Y = 0
+          Width = p.ConsoleWidth
+          Height = p.ConsoleHeight }

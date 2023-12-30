@@ -166,7 +166,9 @@ module initConfig =
               Prompt = "prompt"
               Layout = "TopDown"
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
-              Properties = [ "name"; "attributes" ] }
+              Properties = [ "name"; "attributes" ]
+              ConsoleWidth = 20
+              ConsoleHeight = 20 }
         |> shouldEqual (
             { Prompt = "prompt"
               Layout = Layout.TopDown
@@ -183,7 +185,10 @@ module initConfig =
               SuppressProperties = true
               Properties = [ "name"; "attributes" ]
               Refresh = Required },
-            { X = 5; Y = 0 }
+            { X = 5
+              Y = 0
+              Width = 20
+              Height = 20 }
         )
 
     [<Fact>]
@@ -200,7 +205,9 @@ module initConfig =
                   Prompt = "prompt"
                   Layout = "TopDown"
                   Keymaps = Map []
-                  Properties = [] }
+                  Properties = []
+                  ConsoleWidth = 20
+                  ConsoleHeight = 20 }
             |> ignore)
 
     [<Fact>]
@@ -217,7 +224,10 @@ module initConfig =
                   Prompt = "prompt"
                   Layout = "TopDown"
                   Keymaps = Map []
-                  Properties = [] }
+                  Properties = []
+                  ConsoleWidth = 20
+                  ConsoleHeight = 20 }
+
             |> ignore)
 
     [<Fact>]
@@ -234,7 +244,9 @@ module initConfig =
                   Prompt = "prompt"
                   Layout = "LeftToRight"
                   Keymaps = Map []
-                  Properties = [] }
+                  Properties = []
+                  ConsoleWidth = 20
+                  ConsoleHeight = 20 }
             |> ignore)
 
 module getCurrentProperty =
