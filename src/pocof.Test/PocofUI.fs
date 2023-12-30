@@ -244,3 +244,112 @@ module ``Buff writeScreen`` =
 
         rui.screen
         |> shouldEqual expected
+
+    module ``display`` =
+        [<Fact>]
+        let ``should render head 30 of query when cursor 0.`` ()   =
+            let rui = new MockRawUI(50,25)
+            use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
+            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let state: InternalState =
+                { Query = query
+                  QueryState =
+                      { Matcher = MATCH
+                        Operator = AND
+                        CaseSensitive = false
+                        Invert = false }
+                  PropertySearch = NoSearch
+                  Notification = ""
+                  SuppressProperties = false
+                  Properties = []
+                  Refresh = Required}
+
+            buff.writeTopDown state 0 [] <| Ok []
+
+            let expected =
+                "query>0-------->1-------->3--------> match and [0]"
+                :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+
+            rui.screen
+            |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render head 30 of query when cursor 30.`` ()   =
+            let rui = new MockRawUI(50,25)
+            use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
+            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let state: InternalState =
+                { Query = query
+                  QueryState =
+                      { Matcher = MATCH
+                        Operator = AND
+                        CaseSensitive = false
+                        Invert = false }
+                  PropertySearch = NoSearch
+                  Notification = ""
+                  SuppressProperties = false
+                  Properties = []
+                  Refresh = Required}
+
+            buff.writeTopDown state 30 [] <| Ok []
+
+            let expected =
+                "query>0-------->1-------->3--------> match and [0]"
+                :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+
+            rui.screen
+            |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render mid 30 of query when cursor 45.`` ()   =
+            let rui = new MockRawUI(50,25)
+            use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
+            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let state: InternalState =
+                { Query = query
+                  QueryState =
+                      { Matcher = MATCH
+                        Operator = AND
+                        CaseSensitive = false
+                        Invert = false }
+                  PropertySearch = NoSearch
+                  Notification = ""
+                  SuppressProperties = false
+                  Properties = []
+                  Refresh = Required}
+
+            buff.writeTopDown state 45 [] <| Ok []
+
+            let expected =
+                "query>---->5-------->6-------->7---- match and [0]"
+                :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+
+            rui.screen
+            |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render tail 30 of query when cursor 90.`` ()   =
+            let rui = new MockRawUI(50,25)
+            use buff = new Buff(rui, "query", (fun _ -> Seq.empty))
+            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let state: InternalState =
+                { Query = query
+                  QueryState =
+                      { Matcher = MATCH
+                        Operator = AND
+                        CaseSensitive = false
+                        Invert = false }
+                  PropertySearch = NoSearch
+                  Notification = ""
+                  SuppressProperties = false
+                  Properties = []
+                  Refresh = Required}
+
+            buff.writeTopDown state 90 [] <| Ok []
+
+            let expected =
+                "query>7-------->8-------->9--------> match and [0]"
+                :: (generateLine MockRawUI.xx (MockRawUI.yy - 1))
+
+            rui.screen
+            |> shouldEqual expected
