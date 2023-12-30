@@ -134,8 +134,8 @@ module PocofHandle =
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with
-                InternalState.QueryState.Matcher =
-                    match state.QueryState.Matcher with
+                InternalState.QueryCondition.Matcher =
+                    match state.QueryCondition.Matcher with
                     | EQ -> LIKE
                     | LIKE -> MATCH
                     | MATCH -> EQ
@@ -147,8 +147,8 @@ module PocofHandle =
     let private switchOperator (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with
-                InternalState.QueryState.Operator =
-                    match state.QueryState.Operator with
+                InternalState.QueryCondition.Operator =
+                    match state.QueryCondition.Operator with
                     | OR -> AND
                     | AND -> NONE
                     | NONE -> OR }
@@ -162,14 +162,14 @@ module PocofHandle =
 
     let private switchCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
-            { state with InternalState.QueryState.CaseSensitive = not state.QueryState.CaseSensitive }
+            { state with InternalState.QueryCondition.CaseSensitive = not state.QueryCondition.CaseSensitive }
             |> refresh
 
         state, pos, { context with Is = prepareIs state }
 
     let private switchInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
-            { state with InternalState.QueryState.Invert = not state.QueryState.Invert }
+            { state with InternalState.QueryCondition.Invert = not state.QueryCondition.Invert }
             |> refresh
 
         state, pos, { context with Answer = prepareAnswer state }

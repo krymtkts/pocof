@@ -11,7 +11,7 @@ module loop =
 
     let initState () : InternalState =
         { Query = ""
-          QueryState =
+          QueryCondition =
             { Matcher = MATCH
               Operator = OR
               CaseSensitive = false

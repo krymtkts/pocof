@@ -7,7 +7,7 @@ open System.Management.Automation
 
 let initState () : PocofData.InternalState =
     { Query = ""
-      QueryState =
+      QueryCondition =
         { Matcher = PocofData.Matcher.MATCH
           Operator = PocofData.Operator.OR
           CaseSensitive = false
@@ -21,7 +21,7 @@ let initState () : PocofData.InternalState =
 let state = initState ()
 
 let caseSensitive (s: PocofData.InternalState) =
-    { s with QueryState.CaseSensitive = true }
+    { s with QueryCondition.CaseSensitive = true }
 
 module prepare =
     ()
@@ -74,14 +74,14 @@ module run =
         |> List.concat
         |> mapToObj
 
-    let matcher m (s: PocofData.InternalState) = { s with QueryState.Matcher = m }
+    let matcher m (s: PocofData.InternalState) = { s with QueryCondition.Matcher = m }
 
     let query q (s: PocofData.InternalState) = { s with Query = q }
 
-    let invert (s: PocofData.InternalState) = { s with QueryState.Invert = true }
+    let invert (s: PocofData.InternalState) = { s with QueryCondition.Invert = true }
 
     let opAnd (s: PocofData.InternalState) =
-        { s with QueryState.Operator = PocofData.AND }
+        { s with QueryCondition.Operator = PocofData.AND }
 
     module ``with a simple query`` =
         let entries =

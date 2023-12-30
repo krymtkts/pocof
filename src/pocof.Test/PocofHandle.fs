@@ -9,7 +9,7 @@ open PocofHandle
 module invokeAction =
     let state: InternalState =
         { Query = ""
-          QueryState =
+          QueryCondition =
             { Matcher = MATCH
               Operator = OR
               CaseSensitive = false
@@ -416,9 +416,9 @@ module invokeAction =
 
     module ``with RotateMatcher`` =
         let test before after =
-            let stateBefore = { state with InternalState.QueryState.Matcher = before }
+            let stateBefore = { state with InternalState.QueryCondition.Matcher = before }
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { state with InternalState.QueryState.Matcher = after }
+            let stateAfter = { state with InternalState.QueryCondition.Matcher = after }
 
             testStateAndContext RotateMatcher stateBefore context stateAfter
         // TODO: test a3
@@ -434,9 +434,9 @@ module invokeAction =
 
     module ``with RotateOperator`` =
         let test before after =
-            let stateBefore = { state with InternalState.QueryState.Operator = before }
+            let stateBefore = { state with InternalState.QueryCondition.Operator = before }
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { stateBefore with InternalState.QueryState.Operator = after }
+            let stateAfter = { stateBefore with InternalState.QueryCondition.Operator = after }
 
             let _, _, a3 = testStateAndContext RotateOperator stateBefore context stateAfter
 
@@ -454,9 +454,9 @@ module invokeAction =
 
     module ``with ToggleCaseSensitive`` =
         let test before after =
-            let stateBefore = { state with InternalState.QueryState.CaseSensitive = before }
+            let stateBefore = { state with InternalState.QueryCondition.CaseSensitive = before }
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { state with InternalState.QueryState.CaseSensitive = after }
+            let stateAfter = { state with InternalState.QueryCondition.CaseSensitive = after }
 
             testStateAndContext ToggleCaseSensitive stateBefore context stateAfter
         // TODO: test a3
@@ -469,9 +469,9 @@ module invokeAction =
 
     module ``with ToggleInvertFilter`` =
         let test before after =
-            let stateBefore = { state with InternalState.QueryState.Invert = before }
+            let stateBefore = { state with InternalState.QueryCondition.Invert = before }
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { state with InternalState.QueryState.Invert = after }
+            let stateAfter = { state with InternalState.QueryCondition.Invert = after }
 
             testStateAndContext ToggleInvertFilter stateBefore context stateAfter
         // TODO: test a3

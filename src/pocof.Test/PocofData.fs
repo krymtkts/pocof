@@ -83,14 +83,14 @@ module ``Layout fromString should returns`` =
         ``known matchers.``<Layout> Layout.fromString
 
 module ``QueryState toString should returns`` =
-    let queryState (m: Matcher) (o: Operator) : QueryState =
+    let queryState (m: Matcher) (o: Operator) : QueryCondition =
         { Matcher = m
           Operator = o
           CaseSensitive = false
           Invert = false }
 
-    let caseSensitive (s: QueryState) = { s with CaseSensitive = true }
-    let invert (s: QueryState) = { s with Invert = true }
+    let caseSensitive (s: QueryCondition) = { s with CaseSensitive = true }
+    let invert (s: QueryCondition) = { s with Invert = true }
 
     [<Fact>]
     let ``eq and`` () =
@@ -173,7 +173,7 @@ module initConfig =
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
               NotInteractive = true },
             { Query = ":name"
-              QueryState =
+              QueryCondition =
                 { Matcher = LIKE
                   Operator = AND
                   CaseSensitive = true
