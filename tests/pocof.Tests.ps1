@@ -3,9 +3,10 @@ Describe 'pocof' {
         It 'Given the pocof module, it should have a nonzero version' {
             $m = Get-Module pocof
             $m.Version | Should -Not -Be $null
-            if (-not $m.PrivateData.PSData.Prerelease) {
-                $m.Version.Major | Should -BeGreaterThan 0
-            }
+            # NOTE: to allow 0 major version.
+            # if (-not $m.PrivateData.PSData.Prerelease) {
+            #     $m.Version.Major | Should -BeGreaterThan 0
+            # }
         }
         It 'Given the pocof module, it should have <Expected> commands' -TestCases @(
             @{ Expected = 'Select-Pocof' }
