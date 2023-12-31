@@ -8,132 +8,157 @@ module PocofHandle =
     type QueryContext = PocofQuery.QueryContext
 
     let private addQuery (state: InternalState) (pos: Position) (context: QueryContext) (s: string) =
-        let query = state.QueryState.Query.Insert(pos.X, s)
-        let p = { pos with X = pos.X + String.length s }
+        let qs = QueryState.addQuery state.QueryState s
 
         let state =
             { state with
-                InternalState.QueryState.Query = query // TODO: correct cursor position.
-                PropertySearch = getCurrentProperty query p.X }
+                QueryState = qs
+                PropertySearch = QueryState.getCurrentProperty qs }
             |> refresh
 
         let notification = prepareNotification state
-        { state with Notification = notification }, p, { context with Queries = prepareQuery state }
+        { state with Notification = notification }, pos, { context with Queries = prepareQuery state }
 
     let private moveBackward (state: InternalState) (pos: Position) (context: QueryContext) =
-        let p, refresh =
-            match pos.X with
-            | 0 -> pos, NotRequired
-            | _ -> { pos with X = pos.X - 1 }, Required
+        let qs = QueryState.moveCursor state.QueryState -1
+
+        let refresh =
+            match state.QueryState.Cursor with
+            | 0 -> NotRequired
+            | _ -> Required
 
         { state with
-            PropertySearch = getCurrentProperty state.QueryState.Query p.X
+            QueryState = qs
+            PropertySearch = QueryState.getCurrentProperty qs
             Refresh = refresh },
-        p,
+        pos,
         context
 
     let private moveForward (state: InternalState) (pos: Position) (context: QueryContext) =
-        let p, refresh =
-            match pos.X < state.QueryState.Query.Length with
-            | true -> { pos with X = pos.X + 1 }, Required
-            | _ -> pos, NotRequired
+        let qs = QueryState.moveCursor state.QueryState 1
+
+        let refresh =
+            match state.QueryState.Cursor < state.QueryState.Query.Length with
+            | true -> Required
+            | _ -> NotRequired
 
         { state with
-            PropertySearch = getCurrentProperty state.QueryState.Query p.X
+            QueryState = qs
+            PropertySearch = QueryState.getCurrentProperty qs
             Refresh = refresh },
-        p,
+        pos,
         context
 
     let private moveHead (state: InternalState) (pos: Position) (context: QueryContext) =
+        let qs = QueryState.setCursor state.QueryState 0
+
         { state with
+            QueryState = qs
             PropertySearch = NoSearch
-            Refresh = pos.X <> 0 |> Refresh.ofBool },
-        { pos with X = 0 },
+            Refresh = state.QueryState.Cursor <> 0 |> Refresh.ofBool },
+        pos,
         context
 
     let private moveTail (state: InternalState) (pos: Position) (context: QueryContext) =
+        let qs = QueryState.setCursor state.QueryState state.QueryState.Query.Length
+
         { state with
-            PropertySearch = getCurrentProperty state.QueryState.Query state.QueryState.Query.Length
+            QueryState = qs
+            PropertySearch = QueryState.getCurrentProperty qs
             Refresh =
-                pos.X <> state.QueryState.Query.Length
+                state.QueryState.Cursor
+                <> state.QueryState.Query.Length
                 |> Refresh.ofBool },
-        { pos with X = state.QueryState.Query.Length },
+        pos,
         context
 
     let private removeBackwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
-        match pos.X with
+        match state.QueryState.Cursor with
         | 0 -> noRefresh state, pos, context
         | _ ->
-            let x = pos.X - 1
-
-            let q, x =
-                match state.QueryState.Query.Length > x with
-                | true -> state.QueryState.Query.Remove(x, 1), x
-                | _ -> state.QueryState.Query, state.QueryState.Query.Length
+            let qs = QueryState.backspaceQuery state.QueryState 1
 
             let s =
                 { state with
-                    InternalState.QueryState.Query = q // TODO: correct cursor position.
-                    PropertySearch = getCurrentProperty q x }
+                    QueryState = qs
+                    PropertySearch = QueryState.getCurrentProperty qs }
 
             let notification = prepareNotification s
 
             { s with
                 Notification = notification
-                Refresh = state.QueryState.Query <> q |> Refresh.ofBool },
-            { pos with X = x },
+                Refresh =
+                    state.QueryState.Query <> qs.Query
+                    |> Refresh.ofBool },
+            pos,
             { context with Queries = prepareQuery s }
 
     let private removeForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
-        let q, refresh =
-            match state.QueryState.Query.Length > pos.X with
-            | true -> state.QueryState.Query.Remove(pos.X, 1), Required
-            | _ -> state.QueryState.Query, NotRequired
+        match state.QueryState.Cursor with
+        | x when x = state.QueryState.Query.Length -> noRefresh state, pos, context
+        | _ ->
+            let qs = QueryState.deleteQuery state.QueryState 1
 
-        let state =
-            { state with
-                InternalState.QueryState.Query = q // TODO: correct cursor position.
-                PropertySearch = getCurrentProperty q pos.X
-                Refresh = refresh }
+            let s =
+                { state with
+                    QueryState = qs
+                    PropertySearch = QueryState.getCurrentProperty qs }
 
-        let notification = prepareNotification state
-        { state with Notification = notification }, pos, context
+            let notification = prepareNotification s
+
+            { s with
+                Notification = notification
+                Refresh =
+                    state.QueryState.Query <> qs.Query
+                    |> Refresh.ofBool },
+            pos,
+            { context with Queries = prepareQuery s }
 
     let private removeQueryHead (state: InternalState) (pos: Position) (context: QueryContext) =
-        let q = state.QueryState.Query.[pos.X ..]
-        let ps = getCurrentProperty q 0
+        match state.QueryState.Cursor with
+        | 0 -> noRefresh state, pos, context
+        | _ ->
+            let qs = QueryState.backspaceQuery state.QueryState state.QueryState.Cursor
 
-        let refresh =
-            (q <> state.QueryState.Query
-             || ps <> state.PropertySearch)
-            |> Refresh.ofBool
+            let s =
+                { state with
+                    QueryState = qs
+                    PropertySearch = QueryState.getCurrentProperty qs }
 
-        let state =
-            { state with
-                InternalState.QueryState.Query = q // TODO: correct cursor position.
-                PropertySearch = ps
-                Refresh = refresh }
+            let notification = prepareNotification s
 
-        let notification = prepareNotification state
-        { state with Notification = notification }, { pos with X = 0 }, { context with Queries = prepareQuery state }
+            { s with
+                Notification = notification
+                Refresh =
+                    state.QueryState.Query <> qs.Query
+                    |> Refresh.ofBool },
+            pos,
+            { context with Queries = prepareQuery s }
 
     let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
-        let q = state.QueryState.Query.[.. pos.X - 1]
-        let ps = getCurrentProperty q pos.X
+        match state.QueryState.Cursor with
+        | x when x = state.QueryState.Query.Length -> noRefresh state, pos, context
+        | _ ->
+            let qs =
+                QueryState.deleteQuery
+                    state.QueryState
+                    (state.QueryState.Query.Length
+                     - state.QueryState.Cursor)
 
-        let refresh =
-            (q <> state.QueryState.Query
-             || ps <> state.PropertySearch)
-            |> Refresh.ofBool
+            let s =
+                { state with
+                    QueryState = qs
+                    PropertySearch = QueryState.getCurrentProperty qs }
 
-        let state =
-            { state with
-                InternalState.QueryState.Query = q // TODO: correct cursor position.
-                PropertySearch = ps
-                Refresh = refresh }
+            let notification = prepareNotification s
 
-        let notification = prepareNotification state
-        { state with Notification = notification }, pos, { context with Queries = prepareQuery state }
+            { s with
+                Notification = notification
+                Refresh =
+                    state.QueryState.Query <> qs.Query
+                    |> Refresh.ofBool },
+            pos,
+            { context with Queries = prepareQuery s }
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -199,9 +224,9 @@ module PocofHandle =
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword candidate =
-            let basePosition = pos.X - String.length keyword
+            let basePosition = state.QueryState.Cursor - String.length keyword
             let head = state.QueryState.Query.[.. basePosition - 1]
-            let tail = state.QueryState.Query.[pos.X ..]
+            let tail = state.QueryState.Query.[state.QueryState.Cursor ..]
 
             match candidate with
             | AlreadyCompleted keyword tail rest -> basePosition, head, rest
@@ -211,10 +236,11 @@ module PocofHandle =
             let state =
                 { state with
                     InternalState.QueryState.Query = $"%s{head}%s{next}%s{tail}"
+                    InternalState.QueryState.Cursor = basePosition + next.Length
                     PropertySearch = Rotate(keyword, i, candidates) }
                 |> refresh
 
-            state, { pos with X = basePosition + next.Length }, { context with Queries = prepareQuery state }
+            state, pos, { context with Queries = prepareQuery state }
 
         match state.PropertySearch with
         | NoSearch -> noRefresh state, pos, context

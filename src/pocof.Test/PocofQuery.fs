@@ -6,7 +6,11 @@ open pocof
 open System.Management.Automation
 
 let initState () : PocofData.InternalState =
-    { QueryState = { Query = ""; Cursor = 0 }
+    { QueryState = {
+        Query = ""
+        Cursor = 0
+        WindowBeginningX = 0
+        WindowWidth = 0}
       QueryCondition =
         { Matcher = PocofData.Matcher.MATCH
           Operator = PocofData.Operator.OR

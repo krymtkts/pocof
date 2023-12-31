@@ -29,7 +29,7 @@ module Pocof =
             | _ ->
                 let results = PocofQuery.run context args.input args.propMap
 
-                args.writeScreen state pos.X results
+                args.writeScreen state state.QueryState.Cursor results
                 <| match state.SuppressProperties with
                    | true -> Ok []
                    | _ -> PocofQuery.props state

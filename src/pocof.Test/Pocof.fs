@@ -10,7 +10,11 @@ module loop =
     open System.Management.Automation
 
     let initState () : InternalState =
-        { QueryState = { Query = ""; Cursor = 0 }
+        { QueryState =
+            { Query = ""
+              Cursor = 0
+              WindowBeginningX = 0
+              WindowWidth = 0 }
           QueryCondition =
             { Matcher = MATCH
               Operator = OR
@@ -25,11 +29,7 @@ module loop =
     let state = initState ()
     let writeScreen _ _ _ _ = ()
 
-    let pos =
-        { X = 0
-          Y = 0
-          Width = 0 // NOTE: not used in this test.
-          Height = 0 } // NOTE: not used in this test.
+    let pos = { Y = 0; Height = 0 } // NOTE: not used in this test.
 
     let propMap = Map.empty
 
