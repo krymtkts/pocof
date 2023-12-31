@@ -174,7 +174,7 @@ module invokeAction =
             let state =
                 { state with
                     Query = ":name"
-                    PropertySearch = Search "name" }
+                    PropertySearch = NoSearch }
 
             let state, context = PocofQuery.prepare state
             let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context BeginningOfLine
