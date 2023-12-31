@@ -157,7 +157,6 @@ module invokeAction =
                     PropertySearch = Search "name" }
 
             let state, context = PocofQuery.prepare state
-
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
 
             (a1, a2)
@@ -178,7 +177,6 @@ module invokeAction =
                     PropertySearch = Search "name" }
 
             let state, context = PocofQuery.prepare state
-
             let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context BeginningOfLine
 
             (a1, a2)
@@ -192,40 +190,16 @@ module invokeAction =
 
             a3.Queries |> shouldEqual []
 
-        [<Fact>]
-        let ``should return no change with pos modified when NonSearch`` () =
-            let state =
-                { state with
-                    Query = "query"
-                    PropertySearch = NoSearch }
-
-            let state, context = PocofQuery.prepare state
-
-            let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context BeginningOfLine
-
-            (a1, a2)
-            |> (shouldEqual (
-                { state with
-                    Query = "query"
-                    PropertySearch = NoSearch
-                    Refresh = NotRequired },
-                { X = 0; Y = 0 }
-            ))
-
-            a3.Queries
-            |> shouldEqual [ PocofQuery.Normal("query") ]
-
     module ``with EndOfLine`` =
         [<Fact>]
         let ``should return state with position.X = query length.`` () =
             let state =
                 { state with
                     Query = ":name"
-                    PropertySearch = Search "n" }
+                    PropertySearch = NoSearch }
 
             let state, context = PocofQuery.prepare state
-
-            let a1, a2, a3 = invokeAction state { X = 2; Y = 0 } context EndOfLine
+            let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context EndOfLine
 
             (a1, a2)
             |> shouldEqual (
@@ -246,7 +220,6 @@ module invokeAction =
                     PropertySearch = Search "name" }
 
             let state, context = PocofQuery.prepare state
-
             let a1, a2, a3 = invokeAction state { X = 5; Y = 0 } context EndOfLine
 
             (a1, a2)
@@ -259,29 +232,6 @@ module invokeAction =
             )
 
             a3.Queries |> shouldEqual []
-
-        [<Fact>]
-        let ``should return no change with pos modified when NonSearch`` () =
-            let state =
-                { state with
-                    Query = "query"
-                    PropertySearch = NoSearch }
-
-            let state, context = PocofQuery.prepare state
-
-            let a1, a2, a3 = invokeAction state { X = 0; Y = 0 } context EndOfLine
-
-            (a1, a2)
-            |> shouldEqual (
-                { state with
-                    Query = "query"
-                    PropertySearch = NoSearch
-                    Refresh = NotRequired },
-                { X = 5; Y = 0 }
-            )
-
-            a3.Queries
-            |> shouldEqual [ PocofQuery.Normal("query") ]
 
     module ``with DeleteBackwardChar`` =
         [<Fact>]

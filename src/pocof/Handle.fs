@@ -47,21 +47,14 @@ module PocofHandle =
     let private moveHead (state: InternalState) (pos: Position) (context: QueryContext) =
         { state with
             PropertySearch = NoSearch
-            Refresh =
-                (pos.X <> 0 && state.PropertySearch <> NoSearch)
-                |> Refresh.ofBool },
+            Refresh = pos.X <> 0 |> Refresh.ofBool },
         { pos with X = 0 },
         context
 
     let private moveTail (state: InternalState) (pos: Position) (context: QueryContext) =
-        let ps = getCurrentProperty state.Query state.Query.Length
-
         { state with
             PropertySearch = getCurrentProperty state.Query state.Query.Length
-            Refresh =
-                (pos.X <> state.Query.Length
-                 && ps <> state.PropertySearch)
-                |> Refresh.ofBool },
+            Refresh = pos.X <> state.Query.Length |> Refresh.ofBool },
         { pos with X = state.Query.Length },
         context
 
