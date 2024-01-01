@@ -38,7 +38,7 @@ module PocofHandle =
         let qs = QueryState.moveCursor state.QueryState 1
 
         let refresh =
-            match state.QueryState.Cursor < state.QueryState.Query.Length with
+            match state.QueryState.Cursor < String.length state.QueryState.Query with
             | true -> Required
             | _ -> NotRequired
 
@@ -60,15 +60,13 @@ module PocofHandle =
         context
 
     let private moveTail (state: InternalState) (pos: Position) (context: QueryContext) =
-        let qs = QueryState.setCursor state.QueryState state.QueryState.Query.Length
+        let l = String.length state.QueryState.Query
+        let qs = QueryState.setCursor state.QueryState l
 
         { state with
             QueryState = qs
             PropertySearch = QueryState.getCurrentProperty qs
-            Refresh =
-                state.QueryState.Cursor
-                <> state.QueryState.Query.Length
-                |> Refresh.ofBool },
+            Refresh = state.QueryState.Cursor <> l |> Refresh.ofBool },
         pos,
         context
 
@@ -95,7 +93,7 @@ module PocofHandle =
 
     let private removeForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         match state.QueryState.Cursor with
-        | x when x = state.QueryState.Query.Length -> InternalState.noRefresh state, pos, context
+        | x when x = String.length state.QueryState.Query -> InternalState.noRefresh state, pos, context
         | _ ->
             let qs = QueryState.deleteQuery state.QueryState 1
 
@@ -136,14 +134,14 @@ module PocofHandle =
             { context with Queries = prepareQuery s }
 
     let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
+        let l = String.length state.QueryState.Query
+
         match state.QueryState.Cursor with
-        | x when x = state.QueryState.Query.Length -> InternalState.noRefresh state, pos, context
+        | x when x = l -> InternalState.noRefresh state, pos, context
         | _ ->
             let qs =
-                QueryState.deleteQuery
-                    state.QueryState
-                    (state.QueryState.Query.Length
-                     - state.QueryState.Cursor)
+                QueryState.deleteQuery state.QueryState
+                <| l - state.QueryState.Cursor
 
             let s =
                 { state with
@@ -219,7 +217,7 @@ module PocofHandle =
         let tailHead = String.split " " tail |> Seq.head
 
         match rest = tailHead with
-        | true -> Some(tail.[tailHead.Length ..])
+        | true -> Some(tail.[String.length tailHead ..])
         | _ -> None
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
@@ -236,7 +234,7 @@ module PocofHandle =
             let state =
                 { state with
                     InternalState.QueryState.Query = $"%s{head}%s{next}%s{tail}"
-                    InternalState.QueryState.Cursor = basePosition + next.Length
+                    InternalState.QueryState.Cursor = basePosition + String.length next
                     PropertySearch = Rotate(keyword, i, candidates) }
                 |> InternalState.refresh
 
@@ -263,7 +261,7 @@ module PocofHandle =
                 buildValues head candidate tail keyword 0 candidates basePosition
         | Rotate (keyword, i, candidates) ->
             let cur = candidates.[i]
-            let i = (i + 1) % candidates.Length
+            let i = (i + 1) % List.length candidates
             let next = candidates.[i]
             let basePosition, head, tail = splitQuery cur next
 #if DEBUG

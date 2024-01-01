@@ -192,13 +192,13 @@ module PocofData =
         let addQuery (state: QueryState) (query: string) =
             { state with
                 Query = state.Query.Insert(state.Cursor, query)
-                Cursor = state.Cursor + query.Length }
+                Cursor = state.Cursor + String.length query }
 
         let moveCursor (state: QueryState) (step: int) =
             let x =
                 match state.Cursor + step with
                 | x when x < 0 -> 0
-                | x when x > state.Query.Length -> state.Query.Length
+                | x when x > String.length state.Query -> String.length state.Query
                 | _ -> state.Cursor + step
 
             { state with Cursor = x } |> adjustCursor
@@ -208,8 +208,8 @@ module PocofData =
 
         let backspaceQuery (state: QueryState) (size: int) =
             let cursor, size =
-                match state.Query.Length - state.Cursor with
-                | x when x < 0 -> state.Query.Length, size + x
+                match String.length state.Query - state.Cursor with
+                | x when x < 0 -> String.length state.Query, size + x
                 | _ -> state.Cursor, size
 
             let i, c =
@@ -223,8 +223,8 @@ module PocofData =
             |> adjustCursor
 
         let deleteQuery (state: QueryState) (size: int) =
-            match state.Query.Length - state.Cursor with
-            | x when x < 0 -> { state with Cursor = state.Query.Length }
+            match String.length state.Query - state.Cursor with
+            | x when x < 0 -> { state with Cursor = String.length state.Query }
             | _ ->
                 { state with Query = state.Query.Remove(state.Cursor, size) }
                 |> adjustCursor
@@ -274,18 +274,20 @@ module PocofData =
     module InternalState =
         let private anchor = ">"
 
+        let private Prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
+
         let info (state: InternalState) =
-            let left = $"%s{state.Prompt}%s{anchor}"
+            let left = Prompt state
             let right = $"%O{state.QueryCondition} [%d{state.FilteredCount}]"
 
             let length =
                 state.QueryState.WindowWidth
-                - left.Length
-                - right.Length
+                - String.length left
+                - String.length right
 
             let q =
                 match length with
-                | l when state.QueryState.Query.Length < l -> state.QueryState.Query.PadRight(l)
+                | l when String.length state.QueryState.Query < l -> state.QueryState.Query.PadRight(l)
                 | l -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. l]
 
 #if DEBUG
@@ -295,7 +297,8 @@ module PocofData =
             left + q + right
 
         let getX (state: InternalState) =
-            state.Prompt.Length + state.QueryState.Cursor
+            (Prompt state |> String.length)
+            + state.QueryState.Cursor
             - state.QueryState.WindowBeginningX
 
         let refresh (state: InternalState) = { state with Refresh = Required }
@@ -323,18 +326,14 @@ module PocofData =
     let initConfig (p: IncomingParameters) =
         let qs =
             { Query = p.Query
-              Cursor = p.Query.Length
+              Cursor = String.length p.Query
               WindowBeginningX = 0 // TODO: adjust with query size.
-              WindowWidth = p.ConsoleWidth } // TODO: adjust with query condition size.
+              WindowWidth = p.ConsoleWidth }
 
         { Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
           NotInteractive = p.NotInteractive },
-        { QueryState =
-            { Query = p.Query
-              Cursor = p.Query.Length
-              WindowBeginningX = 0 // TODO: adjust with query size.
-              WindowWidth = p.ConsoleWidth } // TODO: adjust with query condition size.
+        { QueryState = qs
           QueryCondition =
             { Matcher = Matcher.fromString p.Matcher
               Operator = Operator.fromString p.Operator
