@@ -22,6 +22,8 @@ module invokeAction =
           Notification = ""
           SuppressProperties = false
           Properties = []
+          Prompt = "query"
+          FilteredCount = 0
           Refresh = Required }
 
     let position: Position = { Y = 0; Height = 20 }

@@ -169,8 +169,7 @@ module PocofData =
     type KeyPattern = { Modifier: int; Key: ConsoleKey }
 
     type InternalConfig =
-        { Prompt: string
-          Layout: Layout
+        { Layout: Layout
           Keymaps: Map<KeyPattern, Action>
           NotInteractive: bool }
 
@@ -181,6 +180,15 @@ module PocofData =
           WindowWidth: int }
 
     module QueryState =
+        let private adjustCursor (state: QueryState) =
+            let wx =
+                match state.Cursor - state.WindowBeginningX with
+                | bx when bx < 0 -> 0
+                | bx when bx > state.WindowWidth -> state.WindowWidth
+                | _ -> state.WindowBeginningX
+
+            { state with WindowBeginningX = wx }
+
         let addQuery (state: QueryState) (query: string) =
             { state with
                 Query = state.Query.Insert(state.Cursor, query)
@@ -193,14 +201,10 @@ module PocofData =
                 | x when x > state.Query.Length -> state.Query.Length
                 | _ -> state.Cursor + step
 
-            { state with
-                Cursor = x
-                WindowBeginningX = 0 } // TODO: adjust with windows width.
+            { state with Cursor = x } |> adjustCursor
 
         let setCursor (state: QueryState) (x: int) =
-            { state with
-                Cursor = x
-                WindowBeginningX = 0 } // TODO: adjust with windows width.
+            { state with Cursor = x } |> adjustCursor
 
         let backspaceQuery (state: QueryState) (size: int) =
             let cursor, size =
@@ -215,16 +219,15 @@ module PocofData =
 
             { state with
                 Query = state.Query.Remove(i, c)
-                Cursor = state.Cursor - size
-                WindowBeginningX = 0 } // TODO: adjust with windows width.
+                Cursor = state.Cursor - size }
+            |> adjustCursor
 
         let deleteQuery (state: QueryState) (size: int) =
             match state.Query.Length - state.Cursor with
             | x when x < 0 -> { state with Cursor = state.Query.Length }
             | _ ->
-                { state with
-                    Query = state.Query.Remove(state.Cursor, size)
-                    WindowBeginningX = 0 } // TODO: adjust with windows width.
+                { state with Query = state.Query.Remove(state.Cursor, size) }
+                |> adjustCursor
 
         let getCurrentProperty (state: QueryState) =
             let s =
@@ -264,11 +267,40 @@ module PocofData =
           Notification: string
           SuppressProperties: bool
           Properties: string list
+          Prompt: string
+          FilteredCount: int
           Refresh: Refresh }
 
-    let refresh (state: InternalState) = { state with Refresh = Required }
+    module InternalState =
+        let private anchor = ">"
 
-    let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
+        let info (state: InternalState) =
+            let left = $"%s{state.Prompt}%s{anchor}"
+            let right = $"%O{state.QueryCondition} [%d{state.FilteredCount}]"
+
+            let length =
+                state.QueryState.WindowWidth
+                - left.Length
+                - right.Length
+
+            let q =
+                match length with
+                | l when state.QueryState.Query.Length < l -> state.QueryState.Query.PadRight(l)
+                | l -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. l]
+
+#if DEBUG
+            Logger.logFile [ $"left '{left}' q '{q}' right '{right}' length '{length}'" ]
+#endif
+
+            left + q + right
+
+        let getX (state: InternalState) =
+            state.Prompt.Length + state.QueryState.Cursor
+            - state.QueryState.WindowBeginningX
+
+        let refresh (state: InternalState) = { state with Refresh = Required }
+
+        let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
 
     type Position = { Y: int; Height: int }
 
@@ -284,6 +316,7 @@ module PocofData =
           Layout: string
           Keymaps: Map<KeyPattern, Action>
           Properties: string list
+          EntryCount: int
           ConsoleWidth: int
           ConsoleHeight: int }
 
@@ -294,8 +327,7 @@ module PocofData =
               WindowBeginningX = 0 // TODO: adjust with query size.
               WindowWidth = p.ConsoleWidth } // TODO: adjust with query condition size.
 
-        { Prompt = p.Prompt
-          Layout = Layout.fromString p.Layout
+        { Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
           NotInteractive = p.NotInteractive },
         { QueryState =
@@ -312,5 +344,7 @@ module PocofData =
           Notification = ""
           SuppressProperties = p.SuppressProperties
           Properties = p.Properties
+          Prompt = p.Prompt
+          FilteredCount = p.EntryCount
           Refresh = Required },
         { Y = 0; Height = p.ConsoleHeight }

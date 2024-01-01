@@ -29,7 +29,7 @@ module Pocof =
             | _ ->
                 let results = PocofQuery.run context args.input args.propMap
 
-                args.writeScreen state state.QueryState.Cursor results
+                args.writeScreen state results
                 <| match state.SuppressProperties with
                    | true -> Ok []
                    | _ -> PocofQuery.props state
@@ -79,7 +79,7 @@ module Pocof =
             let l = PocofQuery.run context input propMap
             unwrap l
         | _ ->
-            use sbf = PocofScreen.init rui conf.Prompt invoke
+            use sbf = PocofScreen.init rui invoke
 
             let args =
                 { keymaps = conf.Keymaps

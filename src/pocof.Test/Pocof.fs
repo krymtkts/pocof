@@ -24,10 +24,12 @@ module loop =
           Notification = ""
           SuppressProperties = false
           Properties = [ "Name"; "LastModified"; "Path" ]
+          Prompt = "query"
+          FilteredCount = 0
           Refresh = Required }
 
     let state = initState ()
-    let writeScreen _ _ _ _ = ()
+    let writeScreen _ _ _ = ()
 
     let pos = { Y = 0; Height = 0 } // NOTE: not used in this test.
 

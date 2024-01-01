@@ -167,11 +167,11 @@ module initConfig =
               Layout = "TopDown"
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
               Properties = [ "name"; "attributes" ]
+              EntryCount = 10
               ConsoleWidth = 20
               ConsoleHeight = 20 }
         |> shouldEqual (
-            { Prompt = "prompt"
-              Layout = Layout.TopDown
+            { Layout = Layout.TopDown
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
               NotInteractive = true },
             { QueryState =
@@ -188,6 +188,8 @@ module initConfig =
               Notification = ""
               SuppressProperties = true
               Properties = [ "name"; "attributes" ]
+              Prompt = "prompt"
+              FilteredCount = 10
               Refresh = Required },
             { Y = 0; Height = 20 }
         )
@@ -207,6 +209,7 @@ module initConfig =
                   Layout = "TopDown"
                   Keymaps = Map []
                   Properties = []
+                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
             |> ignore)
@@ -226,6 +229,7 @@ module initConfig =
                   Layout = "TopDown"
                   Keymaps = Map []
                   Properties = []
+                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
 
@@ -246,6 +250,7 @@ module initConfig =
                   Layout = "LeftToRight"
                   Keymaps = Map []
                   Properties = []
+                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
             |> ignore)

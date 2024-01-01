@@ -112,6 +112,7 @@ type SelectPocofCommand() =
                   Layout = __.Layout
                   Keymaps = keymaps
                   Properties = List.ofSeq properties
+                  EntryCount = input |> List.length
                   ConsoleWidth = __.Host.UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.Host.UI.RawUI.WindowSize.Height}
 
