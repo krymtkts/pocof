@@ -168,7 +168,7 @@ module initConfig =
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
               Properties = [ "name"; "attributes" ]
               EntryCount = 10
-              ConsoleWidth = 20
+              ConsoleWidth = 60
               ConsoleHeight = 20 }
         |> shouldEqual (
             { Layout = Layout.TopDown
@@ -178,7 +178,10 @@ module initConfig =
                 { Query = ":name"
                   Cursor = 5
                   WindowBeginningX = 0
-                  WindowWidth = 20 }
+                  WindowWidth =
+                    60
+                    - (String.length "prompt>")
+                    - (String.length " notclike and [10]") }
               QueryCondition =
                 { Matcher = LIKE
                   Operator = AND
@@ -190,6 +193,7 @@ module initConfig =
               Properties = [ "name"; "attributes" ]
               Prompt = "prompt"
               FilteredCount = 10
+              ConsoleWidth = 60
               Refresh = Required },
             { Y = 0; Height = 20 }
         )

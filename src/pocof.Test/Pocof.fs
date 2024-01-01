@@ -26,6 +26,7 @@ module loop =
           Properties = [ "Name"; "LastModified"; "Path" ]
           Prompt = "query"
           FilteredCount = 0
+          ConsoleWidth = 60
           Refresh = Required }
 
     let state = initState ()

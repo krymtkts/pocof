@@ -8,23 +8,27 @@ open PocofHandle
 
 module invokeAction =
     let state: InternalState =
-        { QueryState =
-            { Query = ""
-              Cursor = 0
-              WindowBeginningX = 0
-              WindowWidth = 0 }
-          QueryCondition =
-            { Matcher = MATCH
-              Operator = OR
-              CaseSensitive = false
-              Invert = false }
-          PropertySearch = NoSearch
-          Notification = ""
-          SuppressProperties = false
-          Properties = []
-          Prompt = "query"
-          FilteredCount = 0
-          Refresh = Required }
+        let s =
+            { QueryState =
+                { Query = ""
+                  Cursor = 0
+                  WindowBeginningX = 0
+                  WindowWidth = 0 }
+              QueryCondition =
+                { Matcher = MATCH
+                  Operator = OR
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Prompt = "query"
+              FilteredCount = 0
+              ConsoleWidth = 60
+              Refresh = Required }
+
+        { s with InternalState.QueryState.WindowWidth = InternalState.getWindowWidth s }
 
     let position: Position = { Y = 0; Height = 20 }
 

@@ -22,6 +22,7 @@ let initState () : PocofData.InternalState =
       Properties =  [ "Name"; "Attribute"; "Length" ]
       Prompt = "query"
       FilteredCount = 0
+      ConsoleWidth = 60
       Refresh = PocofData.Required }
 
 let state = initState ()

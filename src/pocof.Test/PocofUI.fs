@@ -80,6 +80,7 @@ module ``Buff writeScreen`` =
               Properties = []
               Prompt = "query"
               FilteredCount = 0
+              ConsoleWidth = rui.width
               Refresh = Required}
 
         buff.writeTopDown state [] <| Ok []
@@ -109,6 +110,7 @@ module ``Buff writeScreen`` =
               Properties = []
               Prompt = "prompt"
               FilteredCount = 0
+              ConsoleWidth = rui.width
               Refresh = Required}
 
         buff.writeBottomUp state [] <| Ok []
@@ -139,6 +141,7 @@ module ``Buff writeScreen`` =
               Properties = []
               Prompt = "prompt"
               FilteredCount = 0
+              ConsoleWidth = rui.width
               Refresh = Required}
 
         let state = { state with Notification = pocof.PocofQuery.prepareNotification state }
@@ -171,6 +174,7 @@ module ``Buff writeScreen`` =
               Properties = []
               Prompt = "prompt"
               FilteredCount = 0
+              ConsoleWidth = rui.width
               Refresh = Required}
 
         buff.writeTopDown state [] <| Error "Property not found"
@@ -204,6 +208,7 @@ module ``Buff writeScreen`` =
               Properties = []
               Prompt = "prompt"
               FilteredCount = 10
+              ConsoleWidth = rui.width
               Refresh = Required}
 
         let entries = [1..10] |> List.map (fun i ->
@@ -244,6 +249,7 @@ module ``Buff writeScreen`` =
               Properties = []
               Prompt = "prompt"
               FilteredCount = 100
+              ConsoleWidth = rui.width
               Refresh = Required}
 
         let entries = [1..100] |> List.map (fun i ->
