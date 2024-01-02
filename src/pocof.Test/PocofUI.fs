@@ -3,6 +3,7 @@ module PocofUI
 open Xunit
 open FsUnitTyped
 open System
+open pocof.LanguageExtension
 open pocof.PocofData
 open pocof.PocofScreen
 
@@ -46,14 +47,14 @@ type MockRawUI =
 
         member __.GetCursorPositionX (_: string) (x: int) = x
 
-        member __.GetWindowWidth() = __.x
-        member __.GetWindowHeight() = __.y
+        member __.GetWindowWidth() = __.width
+        member __.GetWindowHeight() = __.height
         member __.Write x y s =
             __.screen <- __.screen |>List.mapi (fun i ss ->
                 match i with
                 | ii when ii = y ->
-                    ss.Substring(0, x) + s
-                | _ -> ss)
+                    ss.Substring(0, x) + s |> String.padRight __.x
+                | _ -> ss |> String.padRight __.x )
 
     interface IDisposable with
         member __.Dispose() = ()

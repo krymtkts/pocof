@@ -8,6 +8,8 @@ open pocof.PocofData
 
 module loop =
     open System.Management.Automation
+    open PocofUI
+    open pocof.PocofScreen
 
     let initState () : InternalState =
         { QueryState =
@@ -149,3 +151,38 @@ module loop =
         actual.[0] = results.[0] |> shouldEqual true
         actual.[1] = results.[3] |> shouldEqual true
         m.check ()
+
+    [<Fact>]
+    let ``should update QueryState.WindowWidth based on ConsoleWidth.`` () =
+        let input = results |> List.map toObj
+
+        let state, context =
+            pocof.PocofQuery.prepare { state with SuppressProperties = true }
+
+        let m =
+            MockGetKey [ [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
+                         [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ] ]
+
+        let rui = new MockRawUI(60, 30)
+        use buff = new Buff(rui, (fun _ -> Seq.empty))
+
+        let args =
+            { keymaps = pocof.PocofAction.defaultKeymap
+              input = input
+              propMap = propMap
+              writeScreen = buff.writeTopDown
+              getKey = m.getKey
+              getConsoleWidth =
+                fun () ->
+                    rui.x <- 80
+                    80 }
+
+        let actual = loop args input state pos context
+        actual |> List.length |> shouldEqual 1
+        actual.[0] = results.[0] |> shouldEqual true
+
+        let expected: string list =
+            $"""query>a{String.replicate 60 " "} match or [0]"""
+            :: (generateLine 80 (rui.height - 1))
+
+        rui.screen |> shouldEqual expected
