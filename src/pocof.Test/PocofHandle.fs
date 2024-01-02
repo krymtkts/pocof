@@ -8,27 +8,25 @@ open PocofHandle
 
 module invokeAction =
     let state: InternalState =
-        let s =
-            { QueryState =
-                { Query = ""
-                  Cursor = 0
-                  WindowBeginningX = 0
-                  WindowWidth = 0 }
-              QueryCondition =
-                { Matcher = MATCH
-                  Operator = OR
-                  CaseSensitive = false
-                  Invert = false }
-              PropertySearch = NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              Prompt = "query"
-              FilteredCount = 0
-              ConsoleWidth = 60
-              Refresh = Required }
-
-        { s with InternalState.QueryState.WindowWidth = InternalState.getWindowWidth s }
+        { QueryState =
+            { Query = ""
+              Cursor = 0
+              WindowBeginningX = 0
+              WindowWidth = 0 }
+          QueryCondition =
+            { Matcher = MATCH
+              Operator = OR
+              CaseSensitive = false
+              Invert = false }
+          PropertySearch = NoSearch
+          Notification = ""
+          SuppressProperties = false
+          Properties = []
+          Prompt = "query"
+          FilteredCount = 0
+          ConsoleWidth = 60
+          Refresh = Required }
+        |> InternalState.updateWindowWidth
 
     let position: Position = { Y = 0; Height = 20 }
 
@@ -492,9 +490,23 @@ module invokeAction =
 
     module ``with RotateMatcher`` =
         let test before after =
-            let stateBefore = { state with InternalState.QueryCondition.Matcher = before }
+            let a =
+                match before, after with
+                | EQ, LIKE -> 2
+                | LIKE, MATCH -> 1
+                | MATCH, EQ -> -3
+                | _ -> failwith "invalid case in this test."
+
+            let stateBefore =
+                { state with InternalState.QueryCondition.Matcher = before }
+                |> InternalState.updateWindowWidth
+
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { state with InternalState.QueryCondition.Matcher = after }
+
+            let stateAfter =
+                { state with
+                    InternalState.QueryCondition.Matcher = after
+                    InternalState.QueryState.WindowWidth = state.QueryState.WindowWidth - a }
 
             testStateAndContext RotateMatcher stateBefore context stateAfter
         // TODO: test a3
@@ -510,9 +522,23 @@ module invokeAction =
 
     module ``with RotateOperator`` =
         let test before after =
-            let stateBefore = { state with InternalState.QueryCondition.Operator = before }
+            let a =
+                match before, after with
+                | NONE, OR -> -2
+                | OR, AND -> 1
+                | AND, NONE -> 1
+                | _ -> failwith "invalid case in this test."
+
+            let stateBefore =
+                { state with InternalState.QueryCondition.Operator = before }
+                |> InternalState.updateWindowWidth
+
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { stateBefore with InternalState.QueryCondition.Operator = after }
+
+            let stateAfter =
+                { state with
+                    InternalState.QueryCondition.Operator = after
+                    InternalState.QueryState.WindowWidth = state.QueryState.WindowWidth - a }
 
             let _, _, a3 = testStateAndContext RotateOperator stateBefore context stateAfter
 
@@ -530,9 +556,21 @@ module invokeAction =
 
     module ``with ToggleCaseSensitive`` =
         let test before after =
-            let stateBefore = { state with InternalState.QueryCondition.CaseSensitive = before }
+            let a =
+                match after with
+                | true -> 1
+                | _ -> -1
+
+            let stateBefore =
+                { state with InternalState.QueryCondition.CaseSensitive = before }
+                |> InternalState.updateWindowWidth
+
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { state with InternalState.QueryCondition.CaseSensitive = after }
+
+            let stateAfter =
+                { state with
+                    InternalState.QueryCondition.CaseSensitive = after
+                    InternalState.QueryState.WindowWidth = state.QueryState.WindowWidth - a }
 
             testStateAndContext ToggleCaseSensitive stateBefore context stateAfter
         // TODO: test a3
@@ -545,9 +583,21 @@ module invokeAction =
 
     module ``with ToggleInvertFilter`` =
         let test before after =
-            let stateBefore = { state with InternalState.QueryCondition.Invert = before }
+            let a =
+                match after with
+                | true -> 3
+                | _ -> -3
+
+            let stateBefore =
+                { state with InternalState.QueryCondition.Invert = before }
+                |> InternalState.updateWindowWidth
+
             let state, context = PocofQuery.prepare stateBefore
-            let stateAfter = { state with InternalState.QueryCondition.Invert = after }
+
+            let stateAfter =
+                { state with
+                    InternalState.QueryCondition.Invert = after
+                    InternalState.QueryState.WindowWidth = state.QueryState.WindowWidth - a }
 
             testStateAndContext ToggleInvertFilter stateBefore context stateAfter
         // TODO: test a3
