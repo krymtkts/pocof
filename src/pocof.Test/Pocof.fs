@@ -68,7 +68,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey }
+              getKey = m.getKey
+              getConsoleWidth = fun () -> 0 }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -91,7 +92,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey }
+              getKey = m.getKey
+              getConsoleWidth = fun () -> 0 }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 0
@@ -111,7 +113,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey }
+              getKey = m.getKey
+              getConsoleWidth = fun () -> 0 }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -138,7 +141,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey }
+              getKey = m.getKey
+              getConsoleWidth = fun () -> 0 }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 2
