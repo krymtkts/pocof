@@ -111,7 +111,10 @@ type SelectPocofCommand() =
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = keymaps
-                  Properties = List.ofSeq properties}
+                  Properties = List.ofSeq properties
+                  EntryCount = input |> List.length
+                  ConsoleWidth = __.Host.UI.RawUI.WindowSize.Width
+                  ConsoleHeight = __.Host.UI.RawUI.WindowSize.Height}
 
         Pocof.interact conf state pos __.Host.UI.RawUI __.invoke <| List.rev input
         |> Seq.iter __.WriteObject

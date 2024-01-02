@@ -10,8 +10,12 @@ module loop =
     open System.Management.Automation
 
     let initState () : InternalState =
-        { Query = ""
-          QueryState =
+        { QueryState =
+            { Query = ""
+              Cursor = 0
+              WindowBeginningX = 0
+              WindowWidth = 0 }
+          QueryCondition =
             { Matcher = MATCH
               Operator = OR
               CaseSensitive = false
@@ -20,11 +24,16 @@ module loop =
           Notification = ""
           SuppressProperties = false
           Properties = [ "Name"; "LastModified"; "Path" ]
+          Prompt = "query"
+          FilteredCount = 0
+          ConsoleWidth = 60
           Refresh = Required }
 
     let state = initState ()
-    let writeScreen _ _ _ _ = ()
-    let pos = { X = 0; Y = 0 }
+    let writeScreen _ _ _ = ()
+
+    let pos = { Y = 0; Height = 0 } // NOTE: not used in this test.
+
     let propMap = Map.empty
 
     let toObj = PSObject.AsPSObject >> Obj
@@ -59,7 +68,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey }
+              getKey = m.getKey
+              getConsoleWidth = fun () -> 0 }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -82,7 +92,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey }
+              getKey = m.getKey
+              getConsoleWidth = fun () -> 0 }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 0
@@ -102,7 +113,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey }
+              getKey = m.getKey
+              getConsoleWidth = fun () -> 0 }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -129,7 +141,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey }
+              getKey = m.getKey
+              getConsoleWidth = fun () -> 0 }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 2

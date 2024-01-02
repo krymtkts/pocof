@@ -86,37 +86,37 @@ module PocofQuery =
                 | _ -> parseQuery <| Normal x :: acc <| xs
 
     let prepareQuery (state: InternalState) =
-        match state.QueryState.Operator with
-        | NONE -> [ Normal state.Query ]
+        match state.QueryCondition.Operator with
+        | NONE -> [ Normal state.QueryState.Query ]
         | _ ->
-            state.Query
+            state.QueryState.Query
             |> String.trim
             |> String.split " "
             |> List.ofSeq
             |> parseQuery []
 
     let prepareTest (state: InternalState) =
-        match state.QueryState.Operator with
+        match state.QueryCondition.Operator with
         | OR -> List.exists
         | _ -> List.forall
 
     let prepareIs (state: InternalState) =
-        match state.QueryState.Matcher with
+        match state.QueryCondition.Matcher with
         | EQ -> equals << equalOpt
         | LIKE -> likes << likeOpt
         | MATCH -> matches << matchOpt
-        <| state.QueryState.CaseSensitive
+        <| state.QueryCondition.CaseSensitive
 
     let prepareAnswer (state: InternalState) =
-        match String.IsNullOrWhiteSpace state.Query, state.QueryState.Invert with
+        match String.IsNullOrWhiteSpace state.QueryState.Query, state.QueryCondition.Invert with
         | false, true -> not
         | _ -> id
 
     let prepareNotification (state: InternalState) =
-        match state.QueryState.Matcher with
+        match state.QueryCondition.Matcher with
         | MATCH ->
             try
-                new Regex(state.Query) |> ignore
+                new Regex(state.QueryState.Query) |> ignore
                 ""
             with
             | e -> e.Message
@@ -177,7 +177,7 @@ module PocofQuery =
 
     let props (state: InternalState) =
         let transform (x: string) =
-            match state.QueryState.CaseSensitive with
+            match state.QueryCondition.CaseSensitive with
             | true -> x
             | _ -> String.lower x
 

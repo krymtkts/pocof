@@ -51,6 +51,7 @@ module LanguageExtension =
         static member inline equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
         static member inline trim(s: string) = s.Trim()
         static member inline replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
+        static member inline padRight (totalWidth: int) (s: string) = s.PadRight(totalWidth)
 
     let inline swap (l, r) = (r, l)
     let inline alwaysTrue _ = true
@@ -96,6 +97,11 @@ module PocofData =
     let inline private toString (x: 'a) =
         match FSharpValue.GetUnionFields(x, typeof<'a>) with
         | case, _ -> case.Name
+
+    let (|Prefix|_|) (p: string) (s: string) =
+        match String.startsWith p s with
+        | true -> Some s.[1..]
+        | _ -> None
 
     type Action =
         | Noop
@@ -164,12 +170,85 @@ module PocofData =
     type KeyPattern = { Modifier: int; Key: ConsoleKey }
 
     type InternalConfig =
-        { Prompt: string
-          Layout: Layout
+        { Layout: Layout
           Keymaps: Map<KeyPattern, Action>
           NotInteractive: bool }
 
     type QueryState =
+        { Query: string
+          Cursor: int
+          WindowBeginningX: int
+          WindowWidth: int }
+
+    module QueryState =
+        let adjustCursor (state: QueryState) =
+            let wx =
+                match state.Cursor - state.WindowBeginningX with
+                | bx when bx < 0 -> state.WindowBeginningX + bx
+                | bx when bx > state.WindowWidth -> state.Cursor - state.WindowWidth
+                | _ -> state.WindowBeginningX
+
+#if DEBUG
+            Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningX}' WindowWidth '{state.WindowWidth}'" ]
+#endif
+            { state with WindowBeginningX = wx }
+
+        let addQuery (state: QueryState) (query: string) =
+            { state with
+                Query = state.Query.Insert(state.Cursor, query)
+                Cursor = state.Cursor + String.length query }
+            |> adjustCursor
+
+        let moveCursor (state: QueryState) (step: int) =
+            let x =
+                match state.Cursor + step with
+                | x when x < 0 -> 0
+                | x when x > String.length state.Query -> String.length state.Query
+                | _ -> state.Cursor + step
+
+            { state with Cursor = x } |> adjustCursor
+
+        let setCursor (state: QueryState) (x: int) =
+            { state with Cursor = x } |> adjustCursor
+
+        let backspaceQuery (state: QueryState) (size: int) =
+            let cursor, size =
+                match String.length state.Query - state.Cursor with
+                | x when x < 0 -> String.length state.Query, size + x
+                | _ -> state.Cursor, size
+
+            let i, c =
+                match cursor - size with
+                | x when x < 0 -> 0, state.Cursor
+                | x -> x, size
+
+            { state with
+                Query = state.Query.Remove(i, c)
+                Cursor = state.Cursor - size }
+            |> adjustCursor
+
+        let deleteQuery (state: QueryState) (size: int) =
+            match String.length state.Query - state.Cursor with
+            | x when x < 0 -> { state with Cursor = String.length state.Query }
+            | _ ->
+                { state with Query = state.Query.Remove(state.Cursor, size) }
+                |> adjustCursor
+
+        let getCurrentProperty (state: QueryState) =
+            let s =
+                state.Query.[.. state.Cursor - 1]
+                |> String.split " "
+                |> Seq.last
+
+#if DEBUG
+            Logger.logFile [ $"query '{state.Query}' x '{state.Cursor}' string '{s}'" ]
+#endif
+
+            match s with
+            | Prefix ":" p -> Search p
+            | _ -> NoSearch
+
+    type QueryCondition =
         { Matcher: Matcher
           Operator: Operator
           CaseSensitive: bool
@@ -187,19 +266,72 @@ module PocofData =
             |> String.concat ""
 
     type InternalState =
-        { Query: string
-          QueryState: QueryState
+        { QueryState: QueryState
+          QueryCondition: QueryCondition
           PropertySearch: PropertySearch
           Notification: string
           SuppressProperties: bool
           Properties: string list
+          Prompt: string
+          FilteredCount: int
+          ConsoleWidth: int
           Refresh: Refresh }
 
-    let refresh (state: InternalState) = { state with Refresh = Required }
+    module InternalState =
+        let private anchor = ">"
 
-    let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
+        let private prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
 
-    type Position = { X: int; Y: int }
+        let private queryInfo (state: InternalState) =
+            $" %O{state.QueryCondition} [%d{state.FilteredCount}]"
+
+        let getWindowWidth (state: InternalState) =
+            let left = prompt state
+            let right = queryInfo state
+
+#if DEBUG
+            Logger.logFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}' right '{String.length right}'" ]
+#endif
+
+            state.ConsoleWidth
+            - String.length left
+            - String.length right
+
+        let info (state: InternalState) =
+            let left = prompt state
+            let right = queryInfo state
+            let l = getWindowWidth state
+
+            let q =
+                match String.length state.QueryState.Query with
+                | ql when ql < l -> ql
+                | _ -> state.QueryState.WindowBeginningX + l
+                |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. ql - 1]
+                |> String.padRight l
+
+#if DEBUG
+            Logger.logFile [ $"q '{String.length q}' WindowBeginningX '{state.QueryState.WindowBeginningX}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
+#endif
+
+            left + q + right
+
+        let getX (state: InternalState) =
+            (prompt state |> String.length)
+            + state.QueryState.Cursor
+            - state.QueryState.WindowBeginningX
+
+        let refresh (state: InternalState) = { state with Refresh = Required }
+
+        let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
+
+        let adjustCursor (state: InternalState) =
+            { state with QueryState = QueryState.adjustCursor state.QueryState }
+
+        let updateWindowWidth (state: InternalState) =
+            { state with InternalState.QueryState.WindowWidth = getWindowWidth state }
+            |> adjustCursor
+
+    type Position = { Y: int; Height: int }
 
     type IncomingParameters =
         { Query: string
@@ -212,38 +344,37 @@ module PocofData =
           Prompt: string
           Layout: string
           Keymaps: Map<KeyPattern, Action>
-          Properties: string list }
-
-    let (|Prefix|_|) (p: string) (s: string) =
-        match String.startsWith p s with
-        | true -> Some s.[1..]
-        | _ -> None
-
-    let getCurrentProperty (query: string) (x: int) =
-        let s = query.[.. x - 1] |> String.split " " |> Seq.last
-
-#if DEBUG
-        Logger.logFile [ $"query '{query}' x '{x}' string '{s}'" ]
-#endif
-
-        match s with
-        | Prefix ":" p -> Search p
-        | _ -> NoSearch
+          Properties: string list
+          EntryCount: int
+          ConsoleWidth: int
+          ConsoleHeight: int }
 
     let initConfig (p: IncomingParameters) =
-        { Prompt = p.Prompt
-          Layout = Layout.fromString p.Layout
+        let qs =
+            { Query = p.Query
+              Cursor = String.length p.Query
+              WindowBeginningX = 0 // TODO: adjust with query size.
+              WindowWidth = p.ConsoleWidth }
+
+        let s =
+            { QueryState = qs
+              QueryCondition =
+                { Matcher = Matcher.fromString p.Matcher
+                  Operator = Operator.fromString p.Operator
+                  CaseSensitive = p.CaseSensitive
+                  Invert = p.InvertQuery }
+              PropertySearch = QueryState.getCurrentProperty qs
+              Notification = ""
+              SuppressProperties = p.SuppressProperties
+              Properties = p.Properties
+              Prompt = p.Prompt
+              FilteredCount = p.EntryCount
+              ConsoleWidth = p.ConsoleWidth
+              Refresh = Required }
+            |> InternalState.updateWindowWidth
+
+        { Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
           NotInteractive = p.NotInteractive },
-        { Query = p.Query
-          QueryState =
-            { Matcher = Matcher.fromString p.Matcher
-              Operator = Operator.fromString p.Operator
-              CaseSensitive = p.CaseSensitive
-              Invert = p.InvertQuery }
-          PropertySearch = getCurrentProperty p.Query p.Query.Length
-          Notification = ""
-          SuppressProperties = p.SuppressProperties
-          Properties = p.Properties
-          Refresh = Required },
-        { X = p.Query.Length; Y = 0 }
+        s,
+        { Y = 0; Height = p.ConsoleHeight }

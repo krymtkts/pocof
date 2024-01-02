@@ -83,14 +83,14 @@ module ``Layout fromString should returns`` =
         ``known matchers.``<Layout> Layout.fromString
 
 module ``QueryState toString should returns`` =
-    let queryState (m: Matcher) (o: Operator) : QueryState =
+    let queryState (m: Matcher) (o: Operator) : QueryCondition =
         { Matcher = m
           Operator = o
           CaseSensitive = false
           Invert = false }
 
-    let caseSensitive (s: QueryState) = { s with CaseSensitive = true }
-    let invert (s: QueryState) = { s with Invert = true }
+    let caseSensitive (s: QueryCondition) = { s with CaseSensitive = true }
+    let invert (s: QueryCondition) = { s with Invert = true }
 
     [<Fact>]
     let ``eq and`` () =
@@ -166,14 +166,23 @@ module initConfig =
               Prompt = "prompt"
               Layout = "TopDown"
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
-              Properties = [ "name"; "attributes" ] }
+              Properties = [ "name"; "attributes" ]
+              EntryCount = 10
+              ConsoleWidth = 60
+              ConsoleHeight = 20 }
         |> shouldEqual (
-            { Prompt = "prompt"
-              Layout = Layout.TopDown
+            { Layout = Layout.TopDown
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
               NotInteractive = true },
-            { Query = ":name"
-              QueryState =
+            { QueryState =
+                { Query = ":name"
+                  Cursor = 5
+                  WindowBeginningX = 0
+                  WindowWidth =
+                    60
+                    - (String.length "prompt>")
+                    - (String.length " notclike and [10]") }
+              QueryCondition =
                 { Matcher = LIKE
                   Operator = AND
                   CaseSensitive = true
@@ -182,8 +191,11 @@ module initConfig =
               Notification = ""
               SuppressProperties = true
               Properties = [ "name"; "attributes" ]
+              Prompt = "prompt"
+              FilteredCount = 10
+              ConsoleWidth = 60
               Refresh = Required },
-            { X = 5; Y = 0 }
+            { Y = 0; Height = 20 }
         )
 
     [<Fact>]
@@ -200,7 +212,10 @@ module initConfig =
                   Prompt = "prompt"
                   Layout = "TopDown"
                   Keymaps = Map []
-                  Properties = [] }
+                  Properties = []
+                  EntryCount = 10
+                  ConsoleWidth = 20
+                  ConsoleHeight = 20 }
             |> ignore)
 
     [<Fact>]
@@ -217,7 +232,11 @@ module initConfig =
                   Prompt = "prompt"
                   Layout = "TopDown"
                   Keymaps = Map []
-                  Properties = [] }
+                  Properties = []
+                  EntryCount = 10
+                  ConsoleWidth = 20
+                  ConsoleHeight = 20 }
+
             |> ignore)
 
     [<Fact>]
@@ -234,35 +253,46 @@ module initConfig =
                   Prompt = "prompt"
                   Layout = "LeftToRight"
                   Keymaps = Map []
-                  Properties = [] }
+                  Properties = []
+                  EntryCount = 10
+                  ConsoleWidth = 20
+                  ConsoleHeight = 20 }
             |> ignore)
 
-module getCurrentProperty =
-    [<Fact>]
-    let ``should returns NoSearch when no colon`` () =
-        getCurrentProperty "a" 1 |> shouldEqual NoSearch
+module QueryState =
+    module getCurrentProperty =
+        let qs q x =
+            { Query = q
+              Cursor = x
+              WindowBeginningX = 0
+              WindowWidth = 0 }
 
-    [<Fact>]
-    let ``should returns Search with "a" when start with colon`` () =
-        getCurrentProperty ":a" 2
-        |> shouldEqual (Search "a")
+        [<Fact>]
+        let ``should returns NoSearch when no colon`` () =
+            QueryState.getCurrentProperty (qs "a" 1)
+            |> shouldEqual NoSearch
 
-    [<Fact>]
-    let ``should returns Search with "a" when start with colon and cursor position 1`` () =
-        getCurrentProperty ":a" 1
-        |> shouldEqual (Search "")
+        [<Fact>]
+        let ``should returns Search with "a" when start with colon`` () =
+            QueryState.getCurrentProperty (qs ":a" 2)
+            |> shouldEqual (Search "a")
 
-    [<Fact>]
-    let ``should returns Search with "a" when start with colon and trailing space`` () =
-        getCurrentProperty ":a " 2
-        |> shouldEqual (Search "a")
+        [<Fact>]
+        let ``should returns Search with "a" when start with colon and cursor position 1`` () =
+            QueryState.getCurrentProperty (qs ":a" 1)
+            |> shouldEqual (Search "")
 
-    [<Fact>]
-    let ``should returns NoSearch when start with colon and cursor position 3`` () =
-        getCurrentProperty ":a " 3
-        |> shouldEqual (NoSearch)
+        [<Fact>]
+        let ``should returns Search with "a" when start with colon and trailing space`` () =
+            QueryState.getCurrentProperty (qs ":a " 2)
+            |> shouldEqual (Search "a")
 
-    [<Fact>]
-    let ``should returns Search with "a" when start with colon and trailing keyword `` () =
-        getCurrentProperty ":a a" 2
-        |> shouldEqual (Search "a")
+        [<Fact>]
+        let ``should returns NoSearch when start with colon and cursor position 3`` () =
+            QueryState.getCurrentProperty (qs ":a " 3)
+            |> shouldEqual (NoSearch)
+
+        [<Fact>]
+        let ``should returns Search with "a" when start with colon and trailing keyword `` () =
+            QueryState.getCurrentProperty (qs ":a a" 2)
+            |> shouldEqual (Search "a")

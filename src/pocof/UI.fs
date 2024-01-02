@@ -56,23 +56,16 @@ module PocofScreen =
 
                 (__ :> IRawUI).SetCursorPosition 0 pos
 
-    let private anchor = ">"
     let private note = "note>"
 
-    type WriteScreen = PocofData.InternalState -> int -> PocofData.Entry list -> Result<string list, string> -> unit
+    type WriteScreen = PocofData.InternalState -> PocofData.Entry list -> Result<string list, string> -> unit
 
-    type Buff(r, p, i) =
+    type Buff(r, i) =
         let rui: IRawUI = r
-        let prompt: string = p
         let invoke: obj list -> string seq = i
 
         interface IDisposable with
             member __.Dispose() = (rui :> IDisposable).Dispose()
-
-        member private __.writeRightInfo (state: PocofData.InternalState) (length: int) (row: int) =
-            let info = $"%O{state.QueryState} [%d{length}]"
-            let x = (rui.GetWindowWidth()) - info.Length
-            rui.Write x row info
 
         member private __.writeScreenLine (height: int) (line: string) =
             line.PadRight(rui.GetWindowWidth())
@@ -81,7 +74,6 @@ module PocofScreen =
         member __.writeScreen
             (layout: PocofData.Layout)
             (state: PocofData.InternalState)
-            (x: int)
             (entries: PocofData.Entry list)
             (props: Result<string list, string>)
             =
@@ -92,9 +84,8 @@ module PocofScreen =
                     let basePosition = rui.GetWindowHeight() - 1
                     basePosition, basePosition - 1, (-) (basePosition - 2)
 
-            let topLine = prompt + anchor + state.Query
-            __.writeScreenLine basePosition topLine
-            __.writeRightInfo state entries.Length basePosition
+            let topLine = PocofData.InternalState.info state
+            topLine |> __.writeScreenLine basePosition
 
 #if DEBUG
             Logger.logFile [ List.length entries ]
@@ -140,14 +131,14 @@ module PocofScreen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetCursorPositionX topLine (prompt.Length + anchor.Length + x)
+            <| rui.GetCursorPositionX topLine (PocofData.InternalState.getX state)
             <| basePosition
 
         member __.writeTopDown: WriteScreen = __.writeScreen PocofData.TopDown
 
         member __.writeBottomUp: WriteScreen = __.writeScreen PocofData.BottomUp
 
-    let init (rui: PSHostRawUserInterface) (prompt: string) (invoke: obj list -> string seq) =
+    let init (rui: PSHostRawUserInterface) (invoke: obj list -> string seq) =
         let r = new RawUI(rui)
-        let buf = new Buff(r, prompt, invoke)
+        let buf = new Buff(r, invoke)
         buf

@@ -12,7 +12,8 @@ module Pocof =
           input: Entry list
           propMap: Map<string, string>
           writeScreen: PocofScreen.WriteScreen
-          getKey: unit -> ConsoleKeyInfo list }
+          getKey: unit -> ConsoleKeyInfo list
+          getConsoleWidth: unit -> int }
 
     [<TailCall>]
     let rec loop
@@ -29,20 +30,29 @@ module Pocof =
             | _ ->
                 let results = PocofQuery.run context args.input args.propMap
 
-                args.writeScreen state pos.X results
+                args.writeScreen state results
                 <| match state.SuppressProperties with
                    | true -> Ok []
                    | _ -> PocofQuery.props state
 
                 results
 
+        let updateConsoleWidth (state: InternalState) =
+            { state with ConsoleWidth = args.getConsoleWidth () }
+            |> InternalState.updateWindowWidth
+
         args.getKey ()
         |> PocofAction.get args.keymaps
         |> function
             | Cancel -> []
             | Finish -> unwrap results
-            | Noop -> loop args results state pos context
+            | Noop ->
+                let state = updateConsoleWidth state
+
+                loop args results state pos context
             | action ->
+                let state = updateConsoleWidth state
+
                 invokeAction state pos context action
                 |||> loop args results
 
@@ -57,6 +67,8 @@ module Pocof =
     let private getKey () =
         Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
         |> Async.RunSynchronously
+
+    let private getConsoleWidth () = Console.WindowWidth
 
     let interact
         (conf: InternalConfig)
@@ -79,7 +91,7 @@ module Pocof =
             let l = PocofQuery.run context input propMap
             unwrap l
         | _ ->
-            use sbf = PocofScreen.init rui conf.Prompt invoke
+            use sbf = PocofScreen.init rui invoke
 
             let args =
                 { keymaps = conf.Keymaps
@@ -89,6 +101,7 @@ module Pocof =
                     match conf.Layout with
                     | TopDown -> sbf.writeTopDown
                     | BottomUp -> sbf.writeBottomUp
-                  getKey = getKey }
+                  getKey = getKey
+                  getConsoleWidth = getConsoleWidth }
 
             loop args input state pos context
