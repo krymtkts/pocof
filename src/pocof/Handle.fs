@@ -168,6 +168,7 @@ module PocofHandle =
                     | MATCH -> EQ
                 Notification = prepareNotification state }
             |> InternalState.refresh
+            |> InternalState.updateWindowWidth
 
         state, pos, { context with Is = prepareIs state }
 
@@ -180,6 +181,7 @@ module PocofHandle =
                     | AND -> NONE
                     | NONE -> OR }
             |> InternalState.refresh
+            |> InternalState.updateWindowWidth
 
         state,
         pos,
@@ -191,6 +193,7 @@ module PocofHandle =
         let state =
             { state with InternalState.QueryCondition.CaseSensitive = not state.QueryCondition.CaseSensitive }
             |> InternalState.refresh
+            |> InternalState.updateWindowWidth
 
         state, pos, { context with Is = prepareIs state }
 
@@ -198,6 +201,7 @@ module PocofHandle =
         let state =
             { state with InternalState.QueryCondition.Invert = not state.QueryCondition.Invert }
             |> InternalState.refresh
+            |> InternalState.updateWindowWidth
 
         state, pos, { context with Answer = prepareAnswer state }
 
@@ -237,6 +241,7 @@ module PocofHandle =
                     InternalState.QueryState.Cursor = basePosition + String.length next
                     PropertySearch = Rotate(keyword, i, candidates) }
                 |> InternalState.refresh
+                |> InternalState.adjustCursor
 
             state, pos, { context with Queries = prepareQuery state }
 

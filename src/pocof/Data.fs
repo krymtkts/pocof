@@ -181,7 +181,7 @@ module PocofData =
           WindowWidth: int }
 
     module QueryState =
-        let private adjustCursor (state: QueryState) =
+        let adjustCursor (state: QueryState) =
             let wx =
                 match state.Cursor - state.WindowBeginningX with
                 | bx when bx < 0 -> state.WindowBeginningX + bx
@@ -324,6 +324,13 @@ module PocofData =
 
         let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
 
+        let adjustCursor (state: InternalState) =
+            { state with QueryState = QueryState.adjustCursor state.QueryState }
+
+        let updateWindowWidth (state: InternalState) =
+            { state with InternalState.QueryState.WindowWidth = getWindowWidth state }
+            |> adjustCursor
+
     type Position = { Y: int; Height: int }
 
     type IncomingParameters =
@@ -364,9 +371,7 @@ module PocofData =
               FilteredCount = p.EntryCount
               ConsoleWidth = p.ConsoleWidth
               Refresh = Required }
-
-        let s =
-            { s with InternalState.QueryState.WindowWidth = InternalState.getWindowWidth s }
+            |> InternalState.updateWindowWidth
 
         { Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
