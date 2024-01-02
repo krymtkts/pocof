@@ -51,6 +51,7 @@ module LanguageExtension =
         static member inline equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
         static member inline trim(s: string) = s.Trim()
         static member inline replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
+        static member inline padRight (totalWidth: int) (s: string) = s.PadRight(totalWidth)
 
     let inline swap (l, r) = (r, l)
     let inline alwaysTrue _ = true
@@ -184,9 +185,12 @@ module PocofData =
             let wx =
                 match state.Cursor - state.WindowBeginningX with
                 | bx when bx < 0 -> state.WindowBeginningX + bx
-                | bx when bx > state.WindowWidth -> bx - state.WindowWidth
+                | bx when bx > state.WindowWidth -> state.Cursor - state.WindowWidth
                 | _ -> state.WindowBeginningX
 
+#if DEBUG
+            Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningX}' WindowWidth '{state.WindowWidth}'" ]
+#endif
             { state with WindowBeginningX = wx }
 
         let addQuery (state: QueryState) (query: string) =
@@ -286,7 +290,7 @@ module PocofData =
             let right = queryInfo state
 
 #if DEBUG
-            Logger.logFile [ $"left '{left}' right '{right}'" ]
+            Logger.logFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}' right '{String.length right}'" ]
 #endif
 
             state.ConsoleWidth
@@ -296,14 +300,17 @@ module PocofData =
         let info (state: InternalState) =
             let left = prompt state
             let right = queryInfo state
+            let l = getWindowWidth state
 
             let q =
-                match getWindowWidth state with
-                | l when String.length state.QueryState.Query < l -> state.QueryState.Query.PadRight(l)
-                | l -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. l]
+                match String.length state.QueryState.Query with
+                | ql when ql < l -> ql
+                | _ -> state.QueryState.WindowBeginningX + l
+                |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. ql - 1]
+                |> String.padRight l
 
 #if DEBUG
-            Logger.logFile [ $"left '{left}' q '{q}' right '{right}' WindowWidth '{state.QueryState.WindowWidth}' ConsoleWidth '{state.ConsoleWidth}'" ]
+            Logger.logFile [ $"q '{String.length q}' WindowBeginningX '{state.QueryState.WindowBeginningX}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
 #endif
 
             left + q + right
