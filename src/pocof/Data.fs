@@ -367,7 +367,7 @@ module PocofData =
         let qs =
             { Query = p.Query
               Cursor = String.length p.Query
-              WindowBeginningX = 0 // TODO: adjust with query size.
+              WindowBeginningX = 0 // NOTE: adjust later.
               WindowWidth = p.ConsoleWidth }
 
         let s =
