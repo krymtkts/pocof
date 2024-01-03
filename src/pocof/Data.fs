@@ -171,12 +171,6 @@ module PocofData =
         | Required
         | NotRequired
 
-    module Refresh =
-        let ofBool =
-            function
-            | true -> Required
-            | _ -> NotRequired
-
     type KeyPattern = { Modifier: int; Key: ConsoleKey }
 
     type InternalConfig =
