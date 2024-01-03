@@ -79,16 +79,14 @@ module PocofHandle =
             let s =
                 { state with
                     QueryState = qs
-                    PropertySearch = QueryState.getCurrentProperty qs }
+                    PropertySearch = QueryState.getCurrentProperty qs
+                    Refresh =
+                        (state.QueryState.Query <> qs.Query
+                         || state.QueryState.Cursor <> qs.Cursor)
+                        |> Refresh.ofBool }
                 |> InternalState.prepareNotification
 
-            { s with
-                Refresh =
-                    (state.QueryState.Query <> qs.Query
-                     || state.QueryState.Cursor <> qs.Cursor)
-                    |> Refresh.ofBool },
-            pos,
-            { context with Queries = prepareQuery s }
+            s, pos, { context with Queries = prepareQuery s }
 
     let private removeForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         match state.QueryState.Cursor with
@@ -99,16 +97,14 @@ module PocofHandle =
             let s =
                 { state with
                     QueryState = qs
-                    PropertySearch = QueryState.getCurrentProperty qs }
+                    PropertySearch = QueryState.getCurrentProperty qs
+                    Refresh =
+                        (state.QueryState.Query <> qs.Query
+                         || state.QueryState.Cursor <> qs.Cursor)
+                        |> Refresh.ofBool }
                 |> InternalState.prepareNotification
 
-            { s with
-                Refresh =
-                    (state.QueryState.Query <> qs.Query
-                     || state.QueryState.Cursor <> qs.Cursor)
-                    |> Refresh.ofBool },
-            pos,
-            { context with Queries = prepareQuery s }
+            s, pos, { context with Queries = prepareQuery s }
 
     let private removeQueryHead (state: InternalState) (pos: Position) (context: QueryContext) =
         match state.QueryState.Cursor with
@@ -119,15 +115,13 @@ module PocofHandle =
             let s =
                 { state with
                     QueryState = qs
-                    PropertySearch = QueryState.getCurrentProperty qs }
+                    PropertySearch = QueryState.getCurrentProperty qs
+                    Refresh =
+                        state.QueryState.Query <> qs.Query
+                        |> Refresh.ofBool }
                 |> InternalState.prepareNotification
 
-            { s with
-                Refresh =
-                    state.QueryState.Query <> qs.Query
-                    |> Refresh.ofBool },
-            pos,
-            { context with Queries = prepareQuery s }
+            s, pos, { context with Queries = prepareQuery s }
 
     let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
         let l = String.length state.QueryState.Query
@@ -142,15 +136,13 @@ module PocofHandle =
             let s =
                 { state with
                     QueryState = qs
-                    PropertySearch = QueryState.getCurrentProperty qs }
+                    PropertySearch = QueryState.getCurrentProperty qs
+                    Refresh =
+                        state.QueryState.Query <> qs.Query
+                        |> Refresh.ofBool }
                 |> InternalState.prepareNotification
 
-            { s with
-                Refresh =
-                    state.QueryState.Query <> qs.Query
-                    |> Refresh.ofBool },
-            pos,
-            { context with Queries = prepareQuery s }
+            s, pos, { context with Queries = prepareQuery s }
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
