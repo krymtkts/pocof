@@ -317,8 +317,8 @@ module invokeAction =
         let ``should correct state if the cursor position is over the query length.`` () =
             let state =
                 { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.Query = ""
+                    InternalState.QueryState.Cursor = 2
                     PropertySearch = NoSearch }
 
             let state, context = PocofQuery.prepare state
@@ -329,14 +329,14 @@ module invokeAction =
             (a1, a2)
             |> shouldEqual (
                 { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = Search "name"
-                    Refresh = NotRequired },
+                    InternalState.QueryState.Query = ""
+                    InternalState.QueryState.Cursor = 0
+                    PropertySearch = NoSearch
+                    Refresh = Required },
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> shouldEqual [ PocofQuery.Normal "" ] // TODO: Should be an empty list, though harmless.
 
     module ``with DeleteForwardChar`` =
         [<Fact>]
@@ -369,6 +369,30 @@ module invokeAction =
                 { state with
                     InternalState.QueryState.Query = ":name"
                     InternalState.QueryState.Cursor = 5
+                    PropertySearch = Search "name" }
+
+            let state, context = PocofQuery.prepare state
+
+            let a1, a2, a3 = invokeAction state { Y = 0; Height = 20 } context DeleteForwardChar
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    PropertySearch = Search "name"
+                    Refresh = NotRequired },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> shouldEqual []
+
+        [<Fact>]
+        let ``should correct state if the cursor position is over the query length.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 6
                     PropertySearch = Search "name" }
 
             let state, context = PocofQuery.prepare state

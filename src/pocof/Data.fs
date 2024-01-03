@@ -214,7 +214,11 @@ module PocofData =
         let backspaceQuery (state: QueryState) (size: int) =
             let cursor, size =
                 match String.length state.Query - state.Cursor with
-                | x when x < 0 -> String.length state.Query, size + x
+                | x when x < 0 ->
+                    String.length state.Query,
+                    match size + x with
+                    | s when s < 0 -> 0
+                    | s -> s
                 | _ -> state.Cursor, size
 
             let i, c =
