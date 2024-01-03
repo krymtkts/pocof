@@ -405,7 +405,7 @@ module invokeAction =
                     InternalState.QueryState.Query = ":name"
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = Search "name"
-                    Refresh = NotRequired },
+                    Refresh = Required },
                 { Y = 0; Height = 20 }
             )
 

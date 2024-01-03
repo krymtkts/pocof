@@ -108,7 +108,8 @@ module PocofHandle =
             { s with
                 Notification = notification
                 Refresh =
-                    state.QueryState.Query <> qs.Query
+                    (state.QueryState.Query <> qs.Query
+                     || state.QueryState.Cursor <> qs.Cursor)
                     |> Refresh.ofBool },
             pos,
             { context with Queries = prepareQuery s }
