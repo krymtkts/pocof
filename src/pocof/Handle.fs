@@ -21,12 +21,8 @@ module PocofHandle =
     let private moveBackward (state: InternalState) (pos: Position) (context: QueryContext) =
         let qs = QueryState.moveCursor state.QueryState -1
 
-        let refresh =
-            match state.QueryState.Cursor with
-            | 0 -> NotRequired
-            | _ -> Required
-
-        { state with Refresh = refresh }
+        state
+        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> 0)
         |> InternalState.updateQueryState qs,
         pos,
         context
@@ -34,12 +30,11 @@ module PocofHandle =
     let private moveForward (state: InternalState) (pos: Position) (context: QueryContext) =
         let qs = QueryState.moveCursor state.QueryState 1
 
-        let refresh =
-            match state.QueryState.Cursor < String.length state.QueryState.Query with
-            | true -> Required
-            | _ -> NotRequired
-
-        { state with Refresh = refresh }
+        state
+        |> InternalState.refreshIfTrue (
+            state.QueryState.Cursor
+            <> String.length state.QueryState.Query
+        )
         |> InternalState.updateQueryState qs,
         pos,
         context
@@ -47,7 +42,8 @@ module PocofHandle =
     let private moveHead (state: InternalState) (pos: Position) (context: QueryContext) =
         let qs = QueryState.setCursor state.QueryState 0
 
-        { state with Refresh = state.QueryState.Cursor <> 0 |> Refresh.ofBool }
+        state
+        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> 0)
         |> InternalState.updateQueryState qs,
         pos,
         context
@@ -56,7 +52,8 @@ module PocofHandle =
         let l = String.length state.QueryState.Query
         let qs = QueryState.setCursor state.QueryState l
 
-        { state with Refresh = state.QueryState.Cursor <> l |> Refresh.ofBool }
+        state
+        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> l)
         |> InternalState.updateQueryState qs,
         pos,
         context
@@ -68,11 +65,11 @@ module PocofHandle =
             let qs = QueryState.backspaceQuery state.QueryState 1
 
             let s =
-                { state with
-                    Refresh =
-                        (state.QueryState.Query <> qs.Query
-                         || state.QueryState.Cursor <> qs.Cursor)
-                        |> Refresh.ofBool }
+                state
+                |> InternalState.refreshIfTrue (
+                    state.QueryState.Query <> qs.Query
+                    || state.QueryState.Cursor <> qs.Cursor
+                )
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
@@ -85,11 +82,11 @@ module PocofHandle =
             let qs = QueryState.deleteQuery state.QueryState 1
 
             let s =
-                { state with
-                    Refresh =
-                        (state.QueryState.Query <> qs.Query
-                         || state.QueryState.Cursor <> qs.Cursor)
-                        |> Refresh.ofBool }
+                state
+                |> InternalState.refreshIfTrue (
+                    state.QueryState.Query <> qs.Query
+                    || state.QueryState.Cursor <> qs.Cursor
+                )
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
@@ -102,10 +99,8 @@ module PocofHandle =
             let qs = QueryState.backspaceQuery state.QueryState state.QueryState.Cursor
 
             let s =
-                { state with
-                    Refresh =
-                        state.QueryState.Query <> qs.Query
-                        |> Refresh.ofBool }
+                state
+                |> InternalState.refreshIfTrue (state.QueryState.Query <> qs.Query)
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
@@ -122,10 +117,8 @@ module PocofHandle =
                 <| l - state.QueryState.Cursor
 
             let s =
-                { state with
-                    Refresh =
-                        state.QueryState.Query <> qs.Query
-                        |> Refresh.ofBool }
+                state
+                |> InternalState.refreshIfTrue (state.QueryState.Query <> qs.Query)
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 

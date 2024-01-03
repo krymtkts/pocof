@@ -350,6 +350,11 @@ module PocofData =
 
         let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
 
+        let refreshIfTrue (b: bool) (state: InternalState) =
+            match b with
+            | true -> refresh state
+            | _ -> noRefresh state
+
         let adjustCursor (state: InternalState) =
             { state with QueryState = QueryState.adjustCursor state.QueryState }
 
