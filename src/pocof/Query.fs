@@ -139,6 +139,18 @@ module PocofQuery =
         static member prepareNotification state =
             { state with Notification = prepareNotification state }
 
+    type QueryContext with // TODO: There might be a better way.
+        static member prepareQuery state context =
+            { context with Queries = prepareQuery state }
+
+        static member prepareIs state context = { context with Is = prepareIs state }
+
+        static member prepareTest state context =
+            { context with Test = prepareTest state }
+
+        static member prepareAnswer state context =
+            { context with Answer = prepareAnswer state }
+
     let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
 #if DEBUG
         Logger.logFile context.Queries

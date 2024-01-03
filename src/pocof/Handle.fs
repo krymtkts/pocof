@@ -73,7 +73,7 @@ module PocofHandle =
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
-            s, pos, { context with Queries = prepareQuery s }
+            s, pos, context |> QueryContext.prepareQuery s
 
     let private removeForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         match state.QueryState.Cursor with
@@ -90,7 +90,7 @@ module PocofHandle =
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
-            s, pos, { context with Queries = prepareQuery s }
+            s, pos, context |> QueryContext.prepareQuery s
 
     let private removeQueryHead (state: InternalState) (pos: Position) (context: QueryContext) =
         match state.QueryState.Cursor with
@@ -104,7 +104,7 @@ module PocofHandle =
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
-            s, pos, { context with Queries = prepareQuery s }
+            s, pos, context |> QueryContext.prepareQuery s
 
     let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
         let l = String.length state.QueryState.Query
@@ -122,7 +122,7 @@ module PocofHandle =
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
-            s, pos, { context with Queries = prepareQuery s }
+            s, pos, context |> QueryContext.prepareQuery s
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -136,7 +136,7 @@ module PocofHandle =
             |> InternalState.prepareNotification
             |> InternalState.updateWindowWidth
 
-        state, pos, { context with Is = prepareIs state }
+        state, pos, context |> QueryContext.prepareIs state
 
     let private switchOperator (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -151,9 +151,9 @@ module PocofHandle =
 
         state,
         pos,
-        { context with
-            Queries = prepareQuery state
-            Test = prepareTest state }
+        context
+        |> QueryContext.prepareQuery state
+        |> QueryContext.prepareTest state
 
     let private toggleCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -162,7 +162,7 @@ module PocofHandle =
             |> InternalState.refresh
             |> InternalState.updateWindowWidth
 
-        state, pos, { context with Is = prepareIs state }
+        state, pos, context |> QueryContext.prepareIs state
 
     let private toggleInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -171,7 +171,7 @@ module PocofHandle =
             |> InternalState.refresh
             |> InternalState.updateWindowWidth
 
-        state, pos, { context with Answer = prepareAnswer state }
+        state, pos, context |> QueryContext.prepareAnswer state
 
     let private toggleSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
