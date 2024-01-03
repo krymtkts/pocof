@@ -101,12 +101,8 @@ module PocofHandle =
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
-            { state with
-                InternalState.QueryCondition.Matcher =
-                    match state.QueryCondition.Matcher with
-                    | EQ -> LIKE
-                    | LIKE -> MATCH
-                    | MATCH -> EQ }
+            state
+            |> InternalState.rotateMatcher
             |> InternalState.refresh
             |> InternalState.prepareNotification
             |> InternalState.updateWindowWidth
@@ -115,12 +111,8 @@ module PocofHandle =
 
     let private switchOperator (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
-            { state with
-                InternalState.QueryCondition.Operator =
-                    match state.QueryCondition.Operator with
-                    | OR -> AND
-                    | AND -> NONE
-                    | NONE -> OR }
+            state
+            |> InternalState.rotateOperator
             |> InternalState.refresh
             |> InternalState.updateWindowWidth
 

@@ -280,6 +280,22 @@ module PocofData =
             |> String.concat ""
 
     module QueryCondition =
+        let rotateMatcher (condition: QueryCondition) =
+            { condition with
+                Matcher =
+                    match condition.Matcher with
+                    | EQ -> LIKE
+                    | LIKE -> MATCH
+                    | MATCH -> EQ }
+
+        let rotateOperator (condition: QueryCondition) =
+            { condition with
+                Operator =
+                    match condition.Operator with
+                    | OR -> AND
+                    | AND -> NONE
+                    | NONE -> OR }
+
         let toggleCaseSensitive (condition: QueryCondition) =
             { condition with CaseSensitive = not condition.CaseSensitive }
 
@@ -361,6 +377,18 @@ module PocofData =
         let updateWindowWidth (state: InternalState) =
             { state with InternalState.QueryState.WindowWidth = getWindowWidth state }
             |> adjustCursor
+
+        let rotateMatcher (state: InternalState) =
+            { state with
+                QueryCondition =
+                    state.QueryCondition
+                    |> QueryCondition.rotateMatcher }
+
+        let rotateOperator (state: InternalState) =
+            { state with
+                QueryCondition =
+                    state.QueryCondition
+                    |> QueryCondition.rotateOperator }
 
         let toggleCaseSensitive (state: InternalState) =
             { state with
