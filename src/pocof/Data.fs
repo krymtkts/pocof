@@ -334,6 +334,11 @@ module PocofData =
             + state.QueryState.Cursor
             - state.QueryState.WindowBeginningX
 
+        let updateQueryState (qs: QueryState) (state: InternalState) =
+            { state with
+                QueryState = qs
+                PropertySearch = QueryState.getCurrentProperty qs }
+
         let refresh (state: InternalState) = { state with Refresh = Required }
 
         let noRefresh (state: InternalState) = { state with Refresh = NotRequired }

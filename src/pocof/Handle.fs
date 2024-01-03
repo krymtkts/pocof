@@ -11,9 +11,8 @@ module PocofHandle =
         let qs = QueryState.addQuery state.QueryState s
 
         let state =
-            { state with
-                QueryState = qs
-                PropertySearch = QueryState.getCurrentProperty qs }
+            state
+            |> InternalState.updateQueryState qs
             |> InternalState.refresh
             |> InternalState.prepareNotification
 
@@ -27,10 +26,8 @@ module PocofHandle =
             | 0 -> NotRequired
             | _ -> Required
 
-        { state with
-            QueryState = qs
-            PropertySearch = QueryState.getCurrentProperty qs
-            Refresh = refresh },
+        { state with Refresh = refresh }
+        |> InternalState.updateQueryState qs,
         pos,
         context
 
@@ -42,20 +39,16 @@ module PocofHandle =
             | true -> Required
             | _ -> NotRequired
 
-        { state with
-            QueryState = qs
-            PropertySearch = QueryState.getCurrentProperty qs
-            Refresh = refresh },
+        { state with Refresh = refresh }
+        |> InternalState.updateQueryState qs,
         pos,
         context
 
     let private moveHead (state: InternalState) (pos: Position) (context: QueryContext) =
         let qs = QueryState.setCursor state.QueryState 0
 
-        { state with
-            QueryState = qs
-            PropertySearch = NoSearch
-            Refresh = state.QueryState.Cursor <> 0 |> Refresh.ofBool },
+        { state with Refresh = state.QueryState.Cursor <> 0 |> Refresh.ofBool }
+        |> InternalState.updateQueryState qs,
         pos,
         context
 
@@ -63,10 +56,8 @@ module PocofHandle =
         let l = String.length state.QueryState.Query
         let qs = QueryState.setCursor state.QueryState l
 
-        { state with
-            QueryState = qs
-            PropertySearch = QueryState.getCurrentProperty qs
-            Refresh = state.QueryState.Cursor <> l |> Refresh.ofBool },
+        { state with Refresh = state.QueryState.Cursor <> l |> Refresh.ofBool }
+        |> InternalState.updateQueryState qs,
         pos,
         context
 
@@ -78,12 +69,11 @@ module PocofHandle =
 
             let s =
                 { state with
-                    QueryState = qs
-                    PropertySearch = QueryState.getCurrentProperty qs
                     Refresh =
                         (state.QueryState.Query <> qs.Query
                          || state.QueryState.Cursor <> qs.Cursor)
                         |> Refresh.ofBool }
+                |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
             s, pos, { context with Queries = prepareQuery s }
@@ -96,12 +86,11 @@ module PocofHandle =
 
             let s =
                 { state with
-                    QueryState = qs
-                    PropertySearch = QueryState.getCurrentProperty qs
                     Refresh =
                         (state.QueryState.Query <> qs.Query
                          || state.QueryState.Cursor <> qs.Cursor)
                         |> Refresh.ofBool }
+                |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
             s, pos, { context with Queries = prepareQuery s }
@@ -114,11 +103,10 @@ module PocofHandle =
 
             let s =
                 { state with
-                    QueryState = qs
-                    PropertySearch = QueryState.getCurrentProperty qs
                     Refresh =
                         state.QueryState.Query <> qs.Query
                         |> Refresh.ofBool }
+                |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
             s, pos, { context with Queries = prepareQuery s }
@@ -135,11 +123,10 @@ module PocofHandle =
 
             let s =
                 { state with
-                    QueryState = qs
-                    PropertySearch = QueryState.getCurrentProperty qs
                     Refresh =
                         state.QueryState.Query <> qs.Query
                         |> Refresh.ofBool }
+                |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
             s, pos, { context with Queries = prepareQuery s }
