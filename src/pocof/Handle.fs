@@ -15,9 +15,9 @@ module PocofHandle =
                 QueryState = qs
                 PropertySearch = QueryState.getCurrentProperty qs }
             |> InternalState.refresh
+            |> InternalState.prepareNotification
 
-        let notification = prepareNotification state
-        { state with Notification = notification }, pos, { context with Queries = prepareQuery state }
+        state, pos, { context with Queries = prepareQuery state }
 
     let private moveBackward (state: InternalState) (pos: Position) (context: QueryContext) =
         let qs = QueryState.moveCursor state.QueryState -1
@@ -80,11 +80,9 @@ module PocofHandle =
                 { state with
                     QueryState = qs
                     PropertySearch = QueryState.getCurrentProperty qs }
-
-            let notification = prepareNotification s
+                |> InternalState.prepareNotification
 
             { s with
-                Notification = notification
                 Refresh =
                     (state.QueryState.Query <> qs.Query
                      || state.QueryState.Cursor <> qs.Cursor)
@@ -102,11 +100,9 @@ module PocofHandle =
                 { state with
                     QueryState = qs
                     PropertySearch = QueryState.getCurrentProperty qs }
-
-            let notification = prepareNotification s
+                |> InternalState.prepareNotification
 
             { s with
-                Notification = notification
                 Refresh =
                     (state.QueryState.Query <> qs.Query
                      || state.QueryState.Cursor <> qs.Cursor)
@@ -124,11 +120,9 @@ module PocofHandle =
                 { state with
                     QueryState = qs
                     PropertySearch = QueryState.getCurrentProperty qs }
-
-            let notification = prepareNotification s
+                |> InternalState.prepareNotification
 
             { s with
-                Notification = notification
                 Refresh =
                     state.QueryState.Query <> qs.Query
                     |> Refresh.ofBool },
@@ -149,11 +143,9 @@ module PocofHandle =
                 { state with
                     QueryState = qs
                     PropertySearch = QueryState.getCurrentProperty qs }
-
-            let notification = prepareNotification s
+                |> InternalState.prepareNotification
 
             { s with
-                Notification = notification
                 Refresh =
                     state.QueryState.Query <> qs.Query
                     |> Refresh.ofBool },
@@ -167,9 +159,9 @@ module PocofHandle =
                     match state.QueryCondition.Matcher with
                     | EQ -> LIKE
                     | LIKE -> MATCH
-                    | MATCH -> EQ
-                Notification = prepareNotification state }
+                    | MATCH -> EQ }
             |> InternalState.refresh
+            |> InternalState.prepareNotification
             |> InternalState.updateWindowWidth
 
         state, pos, { context with Is = prepareIs state }

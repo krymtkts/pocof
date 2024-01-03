@@ -112,7 +112,7 @@ module PocofQuery =
         | false, true -> not
         | _ -> id
 
-    let prepareNotification (state: InternalState) =
+    let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with
         | MATCH ->
             try
@@ -134,6 +134,10 @@ module PocofQuery =
           Test = test
           Is = is
           Answer = answer }
+
+    type InternalState with // TODO: There might be a better way.
+        static member prepareNotification state =
+            { state with Notification = prepareNotification state }
 
     let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
 #if DEBUG
