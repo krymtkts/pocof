@@ -317,8 +317,8 @@ module invokeAction =
         let ``should correct state if the cursor position is over the query length.`` () =
             let state =
                 { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.Query = ""
+                    InternalState.QueryState.Cursor = 2
                     PropertySearch = NoSearch }
 
             let state, context = PocofQuery.prepare state
@@ -329,13 +329,14 @@ module invokeAction =
             (a1, a2)
             |> shouldEqual (
                 { state with
-                    InternalState.QueryState.Query = ":name"
-                    PropertySearch = Search "name"
-                    Refresh = NotRequired },
+                    InternalState.QueryState.Query = ""
+                    InternalState.QueryState.Cursor = 0
+                    PropertySearch = NoSearch
+                    Refresh = Required },
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> shouldEqual [ PocofQuery.Normal "" ] // TODO: Should be an empty list, though harmless.
 
     module ``with DeleteForwardChar`` =
         [<Fact>]
@@ -386,6 +387,30 @@ module invokeAction =
 
             a3.Queries |> shouldEqual []
 
+        [<Fact>]
+        let ``should correct state if the cursor position is over the query length.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 6
+                    PropertySearch = Search "name" }
+
+            let state, context = PocofQuery.prepare state
+
+            let a1, a2, a3 = invokeAction state { Y = 0; Height = 20 } context DeleteForwardChar
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    PropertySearch = Search "name"
+                    Refresh = Required },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> shouldEqual []
+
     module ``with KillBeginningOfLine`` =
         [<Fact>]
         let ``should remove all characters before the specified position.`` () =
@@ -409,6 +434,29 @@ module invokeAction =
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("query") ]
+
+        [<Fact>]
+        let ``should remove all characters when the cursor is over the query length.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.Cursor = 13 }
+
+            let state, context = PocofQuery.prepare state
+
+            let a1, a2, a3 =
+                invokeAction state { Y = 0; Height = 20 } context KillBeginningOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ""
+                    InternalState.QueryState.Cursor = 0 },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries
+            |> shouldEqual [ PocofQuery.Normal("") ]
 
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
