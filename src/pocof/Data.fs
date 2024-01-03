@@ -131,7 +131,9 @@ module PocofData =
         | ScrollPageDown
         // autocomplete
         | CompleteProperty
-        static member fromString =
+
+    module Action =
+        let fromString =
             tryFromStringExcludes<Action>
             <| set [ "AddQuery" ]
 
@@ -139,20 +141,26 @@ module PocofData =
         | EQ
         | LIKE
         | MATCH
-        static member fromString = fromString<Matcher>
         override __.ToString() = toString __ |> String.lower
+
+    module Matcher =
+        let fromString = fromString<Matcher>
 
     type Operator =
         | AND
         | OR
         | NONE
-        static member fromString = fromString<Operator>
         override __.ToString() = toString __ |> String.lower
+
+    module Operator =
+        let fromString = fromString<Operator>
 
     type Layout =
         | TopDown
         | BottomUp
-        static member fromString = fromString<Layout>
+
+    module Layout =
+        let fromString = fromString<Layout>
 
     type PropertySearch =
         | NoSearch
@@ -162,7 +170,9 @@ module PocofData =
     type Refresh =
         | Required
         | NotRequired
-        static member ofBool =
+
+    module Refresh =
+        let ofBool =
             function
             | true -> Required
             | _ -> NotRequired
