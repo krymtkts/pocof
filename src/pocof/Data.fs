@@ -224,7 +224,7 @@ module PocofData =
 
             { state with
                 Query = state.Query.Remove(i, c)
-                Cursor = state.Cursor - size }
+                Cursor = i }
             |> adjustCursor
 
         let deleteQuery (state: QueryState) (size: int) =
