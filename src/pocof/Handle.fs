@@ -162,7 +162,7 @@ module PocofHandle =
             Queries = prepareQuery state
             Test = prepareTest state }
 
-    let private switchCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
+    let private toggleCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with InternalState.QueryCondition.CaseSensitive = not state.QueryCondition.CaseSensitive }
             |> InternalState.refresh
@@ -170,7 +170,7 @@ module PocofHandle =
 
         state, pos, { context with Is = prepareIs state }
 
-    let private switchInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
+    let private toggleInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with InternalState.QueryCondition.Invert = not state.QueryCondition.Invert }
             |> InternalState.refresh
@@ -178,7 +178,7 @@ module PocofHandle =
 
         state, pos, { context with Answer = prepareAnswer state }
 
-    let private switchSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
+    let private toggleSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             { state with SuppressProperties = not state.SuppressProperties }
             |> InternalState.refresh
@@ -260,9 +260,9 @@ module PocofHandle =
         | KillEndOfLine -> removeQueryTail state pos context
         | RotateMatcher -> switchMatcher state pos context
         | RotateOperator -> switchOperator state pos context
-        | ToggleCaseSensitive -> switchCaseSensitive state pos context
-        | ToggleInvertFilter -> switchInvertFilter state pos context
-        | ToggleSuppressProperties -> switchSuppressProperties state pos context
+        | ToggleCaseSensitive -> toggleCaseSensitive state pos context
+        | ToggleInvertFilter -> toggleInvertFilter state pos context
+        | ToggleSuppressProperties -> toggleSuppressProperties state pos context
         | SelectUp -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | SelectDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | ScrollPageUp -> InternalState.noRefresh state, pos, context // TODO: implement it.
