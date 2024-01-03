@@ -164,7 +164,8 @@ module PocofHandle =
 
     let private toggleCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
-            { state with InternalState.QueryCondition.CaseSensitive = not state.QueryCondition.CaseSensitive }
+            state
+            |> InternalState.toggleCaseSensitive
             |> InternalState.refresh
             |> InternalState.updateWindowWidth
 
@@ -172,7 +173,8 @@ module PocofHandle =
 
     let private toggleInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
-            { state with InternalState.QueryCondition.Invert = not state.QueryCondition.Invert }
+            state
+            |> InternalState.toggleInvertFilter
             |> InternalState.refresh
             |> InternalState.updateWindowWidth
 
@@ -180,7 +182,8 @@ module PocofHandle =
 
     let private toggleSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
-            { state with SuppressProperties = not state.SuppressProperties }
+            state
+            |> InternalState.toggleSuppressProperties
             |> InternalState.refresh
 
         state, pos, context

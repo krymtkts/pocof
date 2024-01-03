@@ -279,6 +279,13 @@ module PocofData =
             <| [ " "; string __.Operator ]
             |> String.concat ""
 
+    module QueryCondition =
+        let toggleCaseSensitive (condition: QueryCondition) =
+            { condition with CaseSensitive = not condition.CaseSensitive }
+
+        let toggleInvertFilter (condition: QueryCondition) =
+            { condition with Invert = not condition.Invert }
+
     type InternalState =
         { QueryState: QueryState
           QueryCondition: QueryCondition
@@ -349,6 +356,21 @@ module PocofData =
         let updateWindowWidth (state: InternalState) =
             { state with InternalState.QueryState.WindowWidth = getWindowWidth state }
             |> adjustCursor
+
+        let toggleCaseSensitive (state: InternalState) =
+            { state with
+                QueryCondition =
+                    state.QueryCondition
+                    |> QueryCondition.toggleCaseSensitive }
+
+        let toggleInvertFilter (state: InternalState) =
+            { state with
+                QueryCondition =
+                    state.QueryCondition
+                    |> QueryCondition.toggleInvertFilter }
+
+        let toggleSuppressProperties (state: InternalState) =
+            { state with SuppressProperties = not state.SuppressProperties }
 
     type Position = { Y: int; Height: int }
 
