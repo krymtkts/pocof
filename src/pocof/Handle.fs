@@ -57,11 +57,15 @@ module PocofHandle =
     let private removeChar
         (direction: Direction)
         (size: int)
-        (limit: int)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
         =
+        let limit =
+            match direction with
+            | Backward -> 0
+            | Forward -> String.length state.QueryState.Query
+
         match state.QueryState.Cursor with
         | x when x = limit -> InternalState.noRefresh state, pos, context
         | _ ->
@@ -82,22 +86,17 @@ module PocofHandle =
 
             s, pos, context |> QueryContext.prepareQuery s
 
-    let private removeBackwardChar = removeChar Backward 1 0
+    let private removeBackwardChar = removeChar Backward 1
 
-    let private removeForwardChar (state: InternalState) =
-        removeChar Forward 1
-        <| String.length state.QueryState.Query
-        <| state
+    let private removeForwardChar = removeChar Forward 1
 
     let private removeQueryHead (state: InternalState) =
-        removeChar Backward state.QueryState.Cursor 0 state
+        removeChar Backward state.QueryState.Cursor state
 
     let private removeQueryTail (state: InternalState) =
-        let l = String.length state.QueryState.Query
-
         removeChar Forward
-        <| l - state.QueryState.Cursor
-        <| l
+        <| String.length state.QueryState.Query
+           - state.QueryState.Cursor
         <| state
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
