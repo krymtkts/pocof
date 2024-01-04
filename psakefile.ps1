@@ -46,11 +46,12 @@ Task UnitTest {
     if (-not $?) {
         throw 'dotnet test failed.'
     }
+    Move-Item ./src/pocof.Test/TestResults/*/coverage.cobertura.xml ./src/pocof.Test/TestResults/coverage.cobertura.xml -Force
 }
 
 Task Coverage -depends UnitTest {
     Remove-Item ./coverage/*
-    reportgenerator -reports:'./src/pocof.Test/TestResults/*/coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
+    reportgenerator -reports:'./src/pocof.Test/TestResults/coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
 
 Task WorkflowTest {
