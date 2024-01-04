@@ -1,6 +1,7 @@
 # Pocof
 
-[![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/pocof?style=flat-square)](https://www.powershellgallery.com/packages/pocof)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/pocof)](https://www.powershellgallery.com/packages/pocof)
+![pull request workflow](https://github.com/krymtkts/pocof/actions/workflows/main.yml/badge.svg)
 
 An interactive pipeline filtering Cmdlet for PowerShell written in F#.
 
