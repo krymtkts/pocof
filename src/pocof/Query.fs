@@ -135,20 +135,20 @@ module PocofQuery =
           Is = is
           Answer = answer }
 
-    type InternalState with // TODO: There might be a better way.
-        static member prepareNotification state =
+    module InternalState =
+        let prepareNotification state =
             { state with Notification = prepareNotification state }
 
-    type QueryContext with // TODO: There might be a better way.
-        static member prepareQuery state context =
+    module QueryContext =
+        let prepareQuery state context =
             { context with Queries = prepareQuery state }
 
-        static member prepareIs state context = { context with Is = prepareIs state }
+        let prepareIs state context = { context with Is = prepareIs state }
 
-        static member prepareTest state context =
+        let prepareTest state context =
             { context with Test = prepareTest state }
 
-        static member prepareAnswer state context =
+        let prepareAnswer state context =
             { context with Answer = prepareAnswer state }
 
     let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
