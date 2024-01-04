@@ -1,6 +1,11 @@
 name: Test
 description: Setup .NET, install PowerShell modules and run all tests.
 
+inputs:
+  codecov_token:
+    description: "Codecov token"
+    required: true
+
 runs:
   using: composite
   steps:
@@ -16,3 +21,9 @@ runs:
     - name: Execute All Tests
       shell: pwsh
       run: Invoke-Psake -taskList TestAll
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./src/pocof.Test/TestResults/coverage.cobertura.xml
+      env:
+        CODECOV_TOKEN: ${{ inputs.codecov_token }}
