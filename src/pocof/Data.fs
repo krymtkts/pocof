@@ -131,7 +131,9 @@ module PocofData =
         | ScrollPageDown
         // autocomplete
         | CompleteProperty
-        static member fromString =
+
+    module Action =
+        let fromString =
             tryFromStringExcludes<Action>
             <| set [ "AddQuery" ]
 
@@ -139,20 +141,26 @@ module PocofData =
         | EQ
         | LIKE
         | MATCH
-        static member fromString = fromString<Matcher>
         override __.ToString() = toString __ |> String.lower
+
+    module Matcher =
+        let fromString = fromString<Matcher>
 
     type Operator =
         | AND
         | OR
         | NONE
-        static member fromString = fromString<Operator>
         override __.ToString() = toString __ |> String.lower
+
+    module Operator =
+        let fromString = fromString<Operator>
 
     type Layout =
         | TopDown
         | BottomUp
-        static member fromString = fromString<Layout>
+
+    module Layout =
+        let fromString = fromString<Layout>
 
     type PropertySearch =
         | NoSearch
@@ -162,10 +170,6 @@ module PocofData =
     type Refresh =
         | Required
         | NotRequired
-        static member ofBool =
-            function
-            | true -> Required
-            | _ -> NotRequired
 
     type KeyPattern = { Modifier: int; Key: ConsoleKey }
 
@@ -269,6 +273,29 @@ module PocofData =
             <| [ " "; string __.Operator ]
             |> String.concat ""
 
+    module QueryCondition =
+        let rotateMatcher (condition: QueryCondition) =
+            { condition with
+                Matcher =
+                    match condition.Matcher with
+                    | EQ -> LIKE
+                    | LIKE -> MATCH
+                    | MATCH -> EQ }
+
+        let rotateOperator (condition: QueryCondition) =
+            { condition with
+                Operator =
+                    match condition.Operator with
+                    | OR -> AND
+                    | AND -> NONE
+                    | NONE -> OR }
+
+        let toggleCaseSensitive (condition: QueryCondition) =
+            { condition with CaseSensitive = not condition.CaseSensitive }
+
+        let toggleInvertFilter (condition: QueryCondition) =
+            { condition with Invert = not condition.Invert }
+
     type InternalState =
         { QueryState: QueryState
           QueryCondition: QueryCondition
@@ -324,9 +351,19 @@ module PocofData =
             + state.QueryState.Cursor
             - state.QueryState.WindowBeginningX
 
+        let updateQueryState (qs: QueryState) (state: InternalState) =
+            { state with
+                QueryState = qs
+                PropertySearch = QueryState.getCurrentProperty qs }
+
         let refresh (state: InternalState) = { state with Refresh = Required }
 
         let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
+
+        let refreshIfTrue (b: bool) (state: InternalState) =
+            match b with
+            | true -> refresh state
+            | _ -> noRefresh state
 
         let adjustCursor (state: InternalState) =
             { state with QueryState = QueryState.adjustCursor state.QueryState }
@@ -334,6 +371,33 @@ module PocofData =
         let updateWindowWidth (state: InternalState) =
             { state with InternalState.QueryState.WindowWidth = getWindowWidth state }
             |> adjustCursor
+
+        let rotateMatcher (state: InternalState) =
+            { state with
+                QueryCondition =
+                    state.QueryCondition
+                    |> QueryCondition.rotateMatcher }
+
+        let rotateOperator (state: InternalState) =
+            { state with
+                QueryCondition =
+                    state.QueryCondition
+                    |> QueryCondition.rotateOperator }
+
+        let toggleCaseSensitive (state: InternalState) =
+            { state with
+                QueryCondition =
+                    state.QueryCondition
+                    |> QueryCondition.toggleCaseSensitive }
+
+        let toggleInvertFilter (state: InternalState) =
+            { state with
+                QueryCondition =
+                    state.QueryCondition
+                    |> QueryCondition.toggleInvertFilter }
+
+        let toggleSuppressProperties (state: InternalState) =
+            { state with SuppressProperties = not state.SuppressProperties }
 
     type Position = { Y: int; Height: int }
 
@@ -357,7 +421,7 @@ module PocofData =
         let qs =
             { Query = p.Query
               Cursor = String.length p.Query
-              WindowBeginningX = 0 // TODO: adjust with query size.
+              WindowBeginningX = 0 // NOTE: adjust later.
               WindowWidth = p.ConsoleWidth }
 
         let s =

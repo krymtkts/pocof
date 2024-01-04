@@ -5,6 +5,7 @@ open FsUnitTyped
 open System
 open pocof.LanguageExtension
 open pocof.PocofData
+open pocof.PocofQuery
 open pocof.PocofScreen
 
 let generateLine x y =
@@ -145,7 +146,7 @@ module ``Buff writeScreen`` =
               ConsoleWidth = rui.width
               Refresh = Required}
 
-        let state = { state with Notification = pocof.PocofQuery.prepareNotification state }
+        let state = state |> InternalState.prepareNotification
 
         buff.writeTopDown state [] <| Ok []
 

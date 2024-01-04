@@ -85,7 +85,7 @@ module PocofQuery =
                     <| zs
                 | _ -> parseQuery <| Normal x :: acc <| xs
 
-    let prepareQuery (state: InternalState) =
+    let private prepareQuery (state: InternalState) =
         match state.QueryCondition.Operator with
         | NONE -> [ Normal state.QueryState.Query ]
         | _ ->
@@ -95,24 +95,24 @@ module PocofQuery =
             |> List.ofSeq
             |> parseQuery []
 
-    let prepareTest (state: InternalState) =
+    let private prepareTest (state: InternalState) =
         match state.QueryCondition.Operator with
         | OR -> List.exists
         | _ -> List.forall
 
-    let prepareIs (state: InternalState) =
+    let private prepareIs (state: InternalState) =
         match state.QueryCondition.Matcher with
         | EQ -> equals << equalOpt
         | LIKE -> likes << likeOpt
         | MATCH -> matches << matchOpt
         <| state.QueryCondition.CaseSensitive
 
-    let prepareAnswer (state: InternalState) =
+    let private prepareAnswer (state: InternalState) =
         match String.IsNullOrWhiteSpace state.QueryState.Query, state.QueryCondition.Invert with
         | false, true -> not
         | _ -> id
 
-    let prepareNotification (state: InternalState) =
+    let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with
         | MATCH ->
             try
@@ -134,6 +134,22 @@ module PocofQuery =
           Test = test
           Is = is
           Answer = answer }
+
+    module InternalState =
+        let prepareNotification state =
+            { state with Notification = prepareNotification state }
+
+    module QueryContext =
+        let prepareQuery state context =
+            { context with Queries = prepareQuery state }
+
+        let prepareIs state context = { context with Is = prepareIs state }
+
+        let prepareTest state context =
+            { context with Test = prepareTest state }
+
+        let prepareAnswer state context =
+            { context with Answer = prepareAnswer state }
 
     let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
 #if DEBUG
