@@ -85,7 +85,7 @@ module PocofQuery =
                     <| zs
                 | _ -> parseQuery <| Normal x :: acc <| xs
 
-    let prepareQuery (state: InternalState) =
+    let private prepareQuery (state: InternalState) =
         match state.QueryCondition.Operator with
         | NONE -> [ Normal state.QueryState.Query ]
         | _ ->
@@ -95,19 +95,19 @@ module PocofQuery =
             |> List.ofSeq
             |> parseQuery []
 
-    let prepareTest (state: InternalState) =
+    let private prepareTest (state: InternalState) =
         match state.QueryCondition.Operator with
         | OR -> List.exists
         | _ -> List.forall
 
-    let prepareIs (state: InternalState) =
+    let private prepareIs (state: InternalState) =
         match state.QueryCondition.Matcher with
         | EQ -> equals << equalOpt
         | LIKE -> likes << likeOpt
         | MATCH -> matches << matchOpt
         <| state.QueryCondition.CaseSensitive
 
-    let prepareAnswer (state: InternalState) =
+    let private prepareAnswer (state: InternalState) =
         match String.IsNullOrWhiteSpace state.QueryState.Query, state.QueryCondition.Invert with
         | false, true -> not
         | _ -> id

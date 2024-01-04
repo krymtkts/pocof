@@ -16,7 +16,7 @@ module PocofHandle =
             |> InternalState.refresh
             |> InternalState.prepareNotification
 
-        state, pos, { context with Queries = prepareQuery state }
+        state, pos, context |> QueryContext.prepareQuery state
 
     let private moveCursor (cursor: int) (limit: int) (state: InternalState) (pos: Position) (context: QueryContext) =
         let qs = QueryState.moveCursor state.QueryState cursor
@@ -179,7 +179,7 @@ module PocofHandle =
                 |> InternalState.refresh
                 |> InternalState.adjustCursor
 
-            state, pos, { context with Queries = prepareQuery state }
+            state, pos, context |> QueryContext.prepareQuery state
 
         match state.PropertySearch with
         | NoSearch -> InternalState.noRefresh state, pos, context
