@@ -1,0 +1,18 @@
+name: Test
+description: Setup .NET, install PowerShell modules and run all tests.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        global-json-file: ./global.json
+    - name: Install modules from PSGallery
+      shell: pwsh
+      run: |
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        Install-Module Psake,Pester,PSScriptAnalyzer -Scope CurrentUser -Force
+    - name: Execute All Tests
+      shell: pwsh
+      run: Invoke-Psake -taskList TestAll

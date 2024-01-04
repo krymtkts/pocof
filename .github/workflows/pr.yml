@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:
@@ -14,16 +17,7 @@ jobs:
           - macos-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: ./global.json
-      - name: Install modules from PSGallery
-        shell: pwsh
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module Psake,Pester,PSScriptAnalyzer -Scope CurrentUser -Force
-      - name: Execute All Tests
-        shell: pwsh
-        run: Invoke-Psake -taskList TestAll
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test
+        uses: ./.github/actions/test
