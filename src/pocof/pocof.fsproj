@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <Version>0.7.0</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,10 +7,12 @@
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Data.fs" />
     <Compile Include="UI.fs" />
@@ -19,11 +22,14 @@
     <Compile Include="Main.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="pocof.psd1" Pack="true" CopyToOutputDirectory="Always" />
     <None Include="pocof.dll-Help.xml" Pack="true" CopyToOutputDirectory="Always" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="PowerShellStandard.Library" Version="7.0.0-preview.1" />
   </ItemGroup>
+
 </Project>
