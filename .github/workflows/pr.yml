@@ -23,3 +23,12 @@ jobs:
         uses: ./.github/actions/test
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Run Snyk to check for vulnerabilities
+        # synk/actions uses Container action that is only supported on Linux.
+        if: runner.os == 'Linux'
+        uses: snyk/actions/dotnet@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --all-projects
