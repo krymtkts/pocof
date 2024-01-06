@@ -679,13 +679,13 @@ module invokeAction =
         (a1, a2, a3)
         |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
 
-    module ``with SelectUp`` =
+    module ``with SelectLineUp`` =
         [<Fact>]
-        let ``shouldn't return any difference when a up-arrow is entered.`` () = noop SelectUp
+        let ``shouldn't return any difference when a up-arrow is entered.`` () = noop SelectLineUp
 
-    module ``with SelectDown`` =
+    module ``with SelectLineDown`` =
         [<Fact>]
-        let ``shouldn't return any difference when a down-arrow is entered.`` () = noop SelectDown
+        let ``shouldn't return any difference when a down-arrow is entered.`` () = noop SelectLineDown
 
     module ``with ScrollPageUp`` =
         [<Fact>]

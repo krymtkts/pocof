@@ -107,7 +107,7 @@ module PocofData =
         | Noop
         | Cancel
         | Finish
-        // move.
+        // move cursor.
         | BackwardChar
         | ForwardChar
         | BeginningOfLine
@@ -124,12 +124,13 @@ module PocofData =
         | ToggleCaseSensitive
         | ToggleInvertFilter
         | ToggleSuppressProperties
-        // move selection.
-        | SelectUp
-        | SelectDown
+        // move line selection.
+        | SelectLineUp
+        | SelectLineDown
+        // scroll page.
         | ScrollPageUp
         | ScrollPageDown
-        // autocomplete
+        // property completion.
         | CompleteProperty
 
     module Action =

@@ -226,9 +226,9 @@ module PocofHandle =
         | ToggleCaseSensitive -> toggleCaseSensitive state pos context
         | ToggleInvertFilter -> toggleInvertFilter state pos context
         | ToggleSuppressProperties -> toggleSuppressProperties state pos context
-        | SelectUp -> InternalState.noRefresh state, pos, context // TODO: implement it.
-        | SelectDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
-        | ScrollPageUp -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | SelectLineUp
+        | SelectLineDown
+        | ScrollPageUp
         | ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | CompleteProperty -> completeProperty state pos context
         | x ->

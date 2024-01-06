@@ -43,8 +43,8 @@ module PocofAction =
               (alt ConsoleKey.I, PocofData.ToggleInvertFilter)
 
               (ctrl ConsoleKey.Spacebar, PocofData.ToggleSuppressProperties)
-              (plain ConsoleKey.UpArrow, PocofData.SelectUp)
-              (plain ConsoleKey.DownArrow, PocofData.SelectDown)
+              (plain ConsoleKey.UpArrow, PocofData.SelectLineUp)
+              (plain ConsoleKey.DownArrow, PocofData.SelectLineDown)
               (plain ConsoleKey.PageUp, PocofData.ScrollPageUp)
               (plain ConsoleKey.PageDown, PocofData.ScrollPageDown)
 
