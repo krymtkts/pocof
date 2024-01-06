@@ -529,6 +529,30 @@ module invokeAction =
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("example") ]
 
+    let noop action =
+        let state, context = PocofQuery.prepare state
+
+        let a1, a2, a3 = invokeAction state position context action
+
+        (a1, a2, a3)
+        |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
+
+    module ``with SelectBackwardChar`` =
+        [<Fact>]
+        let ``shouldn't return any difference when a shift + left-arrow is entered.`` () = noop SelectBackwardChar
+
+    module ``with SelectForwardChar`` =
+        [<Fact>]
+        let ``shouldn't return any difference when a shift + right-arrow is entered.`` () = noop SelectForwardChar
+
+    module ``with SelectToBeginningOfLine`` =
+        [<Fact>]
+        let ``shouldn't return any difference when a shift + up-arrow is entered.`` () = noop SelectToBeginningOfLine
+
+    module ``with SelectToEndOfLine`` =
+        [<Fact>]
+        let ``shouldn't return any difference when a shift + down-arrow is entered.`` () = noop SelectToEndOfLine
+
     let testStateAndContext action state context expectedState =
         let a1, a2, a3 = invokeAction state position context action
 
@@ -670,14 +694,6 @@ module invokeAction =
 
         [<Fact>]
         let ``should return a disabled suppress property.`` () = test true false
-
-    let noop action =
-        let state, context = PocofQuery.prepare state
-
-        let a1, a2, a3 = invokeAction state position context action
-
-        (a1, a2, a3)
-        |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
 
     module ``with SelectLineUp`` =
         [<Fact>]
