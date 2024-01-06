@@ -405,6 +405,10 @@ module PocofData =
         let toggleSuppressProperties (state: InternalState) =
             { state with SuppressProperties = not state.SuppressProperties }
 
+        let updateConsoleWidth (consoleWidth: int) (state: InternalState) =
+            { state with ConsoleWidth = consoleWidth }
+            |> updateWindowWidth
+
         let updateFilteredCount (count: int) (state: InternalState) =
             { state with FilteredCount = count }
             |> updateWindowWidth

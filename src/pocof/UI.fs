@@ -15,6 +15,7 @@ module PocofScreen =
     type RawUI(rui) =
         let rui: PSHostRawUserInterface = rui
 
+        // TODO: replace backup/restore buffer contents with scrolling contents for Linux support.
         let buf: BufferCell [,] option =
             try
                 rui.GetBufferContents(Rectangle(0, 0, rui.WindowSize.Width, rui.CursorPosition.Y))
