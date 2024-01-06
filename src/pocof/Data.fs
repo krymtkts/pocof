@@ -270,12 +270,12 @@ module PocofData =
         override __.ToString() =
             List.append
             <| match __.Matcher, __.CaseSensitive, __.Invert with
-               | EQ, true, true -> [ "cne" ]
-               | EQ, false, true -> [ "ne" ]
-               | m, true, true -> [ "notc"; string m ]
-               | m, true, false -> [ "c"; string m ]
-               | m, false, true -> [ "not"; string m ]
                | m, false, false -> [ string m ]
+               | m, true, false -> [ "c"; string m ]
+               | EQ, false, true -> [ "ne" ]
+               | EQ, true, true -> [ "cne" ]
+               | m, false, true -> [ "not"; string m ]
+               | m, true, true -> [ "notc"; string m ]
             <| [ " "; string __.Operator ]
             |> String.concat ""
 
