@@ -33,9 +33,7 @@ module invokeAction =
     let noop action =
         let state, context = PocofQuery.prepare state
 
-        let a1, a2, a3 = invokeAction state position context action
-
-        (a1, a2, a3)
+        invokeAction state position context action
         |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
 
     module ``with Noop`` =
