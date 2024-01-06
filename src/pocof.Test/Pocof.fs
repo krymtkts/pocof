@@ -182,7 +182,7 @@ module loop =
         actual.[0] = results.[0] |> shouldEqual true
 
         let expected: string list =
-            $"""query>a{String.replicate 60 " "} match or [0]"""
+            $"""query>a{String.replicate 60 " "} match or [1]"""
             :: (generateLine 80 (rui.height - 1))
 
         rui.screen |> shouldEqual expected

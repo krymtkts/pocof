@@ -24,18 +24,22 @@ module Pocof =
         (context: QueryContext)
         =
 
-        let results =
+        let results, state =
             match state.Refresh with
-            | NotRequired -> results
+            | NotRequired -> results, state
             | _ ->
                 let results = PocofQuery.run context args.input args.propMap
+
+                let state =
+                    state
+                    |> InternalState.updateFilteredCount (List.length results)
 
                 args.writeScreen state results
                 <| match state.SuppressProperties with
                    | true -> Ok []
                    | _ -> PocofQuery.props state
 
-                results
+                results, state
 
         let updateConsoleWidth (state: InternalState) =
             { state with ConsoleWidth = args.getConsoleWidth () }

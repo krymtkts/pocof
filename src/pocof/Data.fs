@@ -405,6 +405,10 @@ module PocofData =
         let toggleSuppressProperties (state: InternalState) =
             { state with SuppressProperties = not state.SuppressProperties }
 
+        let updateFilteredCount (count: int) (state: InternalState) =
+            { state with FilteredCount = count }
+            |> updateWindowWidth
+
     type Position = { Y: int; Height: int }
 
     type IncomingParameters =
