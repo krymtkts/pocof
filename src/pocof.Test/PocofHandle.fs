@@ -550,19 +550,20 @@ module invokeAction =
 
     module ``with SelectBackwardChar`` =
         [<Fact>]
-        let ``shouldn't return any difference when a shift + left-arrow is entered.`` () = noop SelectBackwardChar
+        let ``shouldn't return any difference when SelectBackwardChar is entered.`` () = noop SelectBackwardChar
 
     module ``with SelectForwardChar`` =
         [<Fact>]
-        let ``shouldn't return any difference when a shift + right-arrow is entered.`` () = noop SelectForwardChar
+        let ``shouldn't return any difference when SelectForwardChar is entered.`` () = noop SelectForwardChar
 
     module ``with SelectToBeginningOfLine`` =
         [<Fact>]
-        let ``shouldn't return any difference when a shift + up-arrow is entered.`` () = noop SelectToBeginningOfLine
+        let ``shouldn't return any difference when SelectToBeginningOfLine is entered.`` () =
+            noop SelectToBeginningOfLine
 
     module ``with SelectToEndOfLine`` =
         [<Fact>]
-        let ``shouldn't return any difference when a shift + down-arrow is entered.`` () = noop SelectToEndOfLine
+        let ``shouldn't return any difference when SelectToEndOfLine is entered.`` () = noop SelectToEndOfLine
 
     let testStateAndContext action state context expectedState =
         let a1, a2, a3 = invokeAction state position context action
@@ -708,19 +709,19 @@ module invokeAction =
 
     module ``with SelectLineUp`` =
         [<Fact>]
-        let ``shouldn't return any difference when a up-arrow is entered.`` () = noop SelectLineUp
+        let ``shouldn't return any difference when SelectLineUp is entered.`` () = noop SelectLineUp
 
     module ``with SelectLineDown`` =
         [<Fact>]
-        let ``shouldn't return any difference when a down-arrow is entered.`` () = noop SelectLineDown
+        let ``shouldn't return any difference when SelectLineDown is entered.`` () = noop SelectLineDown
 
     module ``with ScrollPageUp`` =
         [<Fact>]
-        let ``shouldn't return any difference when a page-up is entered.`` () = noop ScrollPageUp
+        let ``shouldn't return any difference when ScrollPageUp is entered.`` () = noop ScrollPageUp
 
     module ``with ScrollPageDown`` =
         [<Fact>]
-        let ``shouldn't return any difference when a page-down is entered.`` () = noop ScrollPageDown
+        let ``shouldn't return any difference when ScrollPageDown is entered.`` () = noop ScrollPageDown
 
     module ``with CompleteProperty`` =
         [<Fact>]
