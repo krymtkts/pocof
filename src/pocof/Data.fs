@@ -340,6 +340,7 @@ module PocofData =
             let l = getWindowWidth state
 
             let q =
+                // TODO: should use RawUI.LengthInBufferCells instead of String.length for supporting full-width characters.
                 match String.length state.QueryState.Query with
                 | ql when ql < l -> ql
                 | _ -> state.QueryState.WindowBeginningX + l
