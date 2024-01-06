@@ -50,10 +50,6 @@ module Pocof =
         |> function
             | Cancel -> []
             | Finish -> unwrap results
-            | Noop ->
-                let state = updateConsoleWidth state
-
-                loop args results state pos context
             | action ->
                 let state = updateConsoleWidth state
 

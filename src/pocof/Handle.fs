@@ -212,6 +212,7 @@ module PocofHandle =
 
     let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) =
         function
+        | Noop -> InternalState.noRefresh state, pos, context
         | AddQuery s -> addQuery state pos context s
         | BackwardChar -> moveBackward state pos context
         | ForwardChar -> moveForward state pos context

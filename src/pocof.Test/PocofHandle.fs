@@ -30,6 +30,27 @@ module invokeAction =
 
     let position: Position = { Y = 0; Height = 20 }
 
+    let noop action =
+        let state, context = PocofQuery.prepare state
+
+        let a1, a2, a3 = invokeAction state position context action
+
+        (a1, a2, a3)
+        |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
+
+    module ``with Noop`` =
+        [<Fact>]
+        let ``shouldn't return any difference when a shift + left-arrow is entered.`` () = noop Noop
+
+    module ``with Cancel`` =
+        [<Fact>]
+        let ``should fail when unimplemented action is entered.`` () =
+            let state, context = PocofQuery.prepare state
+
+            shouldFail (fun () ->
+                invokeAction state position context Cancel
+                |> ignore)
+
     module ``with AddQuery`` =
         [<Fact>]
         let ``should return a property search state and position.x = 1 when the char is colon.`` () =
@@ -528,14 +549,6 @@ module invokeAction =
 
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("example") ]
-
-    let noop action =
-        let state, context = PocofQuery.prepare state
-
-        let a1, a2, a3 = invokeAction state position context action
-
-        (a1, a2, a3)
-        |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
 
     module ``with SelectBackwardChar`` =
         [<Fact>]
