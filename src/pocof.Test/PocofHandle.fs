@@ -30,6 +30,25 @@ module invokeAction =
 
     let position: Position = { Y = 0; Height = 20 }
 
+    let noop action =
+        let state, context = PocofQuery.prepare state
+
+        invokeAction state position context action
+        |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
+
+    module ``with Noop`` =
+        [<Fact>]
+        let ``shouldn't return any difference when a shift + left-arrow is entered.`` () = noop Noop
+
+    module ``with Cancel`` =
+        [<Fact>]
+        let ``should fail when unimplemented action is entered.`` () =
+            let state, context = PocofQuery.prepare state
+
+            shouldFail (fun () ->
+                invokeAction state position context Cancel
+                |> ignore)
+
     module ``with AddQuery`` =
         [<Fact>]
         let ``should return a property search state and position.x = 1 when the char is colon.`` () =
@@ -529,6 +548,23 @@ module invokeAction =
             a3.Queries
             |> shouldEqual [ PocofQuery.Normal("example") ]
 
+    module ``with SelectBackwardChar`` =
+        [<Fact>]
+        let ``shouldn't return any difference when SelectBackwardChar is entered.`` () = noop SelectBackwardChar
+
+    module ``with SelectForwardChar`` =
+        [<Fact>]
+        let ``shouldn't return any difference when SelectForwardChar is entered.`` () = noop SelectForwardChar
+
+    module ``with SelectToBeginningOfLine`` =
+        [<Fact>]
+        let ``shouldn't return any difference when SelectToBeginningOfLine is entered.`` () =
+            noop SelectToBeginningOfLine
+
+    module ``with SelectToEndOfLine`` =
+        [<Fact>]
+        let ``shouldn't return any difference when SelectToEndOfLine is entered.`` () = noop SelectToEndOfLine
+
     let testStateAndContext action state context expectedState =
         let a1, a2, a3 = invokeAction state position context action
 
@@ -671,29 +707,21 @@ module invokeAction =
         [<Fact>]
         let ``should return a disabled suppress property.`` () = test true false
 
-    let noop action =
-        let state, context = PocofQuery.prepare state
-
-        let a1, a2, a3 = invokeAction state position context action
-
-        (a1, a2, a3)
-        |> shouldEqual ({ state with Refresh = NotRequired }, position, context)
-
-    module ``with SelectUp`` =
+    module ``with SelectLineUp`` =
         [<Fact>]
-        let ``shouldn't return any difference when a up-arrow is entered.`` () = noop SelectUp
+        let ``shouldn't return any difference when SelectLineUp is entered.`` () = noop SelectLineUp
 
-    module ``with SelectDown`` =
+    module ``with SelectLineDown`` =
         [<Fact>]
-        let ``shouldn't return any difference when a down-arrow is entered.`` () = noop SelectDown
+        let ``shouldn't return any difference when SelectLineDown is entered.`` () = noop SelectLineDown
 
     module ``with ScrollPageUp`` =
         [<Fact>]
-        let ``shouldn't return any difference when a page-up is entered.`` () = noop ScrollPageUp
+        let ``shouldn't return any difference when ScrollPageUp is entered.`` () = noop ScrollPageUp
 
     module ``with ScrollPageDown`` =
         [<Fact>]
-        let ``shouldn't return any difference when a page-down is entered.`` () = noop ScrollPageDown
+        let ``shouldn't return any difference when ScrollPageDown is entered.`` () = noop ScrollPageDown
 
     module ``with CompleteProperty`` =
         [<Fact>]

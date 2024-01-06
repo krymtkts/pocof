@@ -210,8 +210,9 @@ module PocofHandle =
 #endif
             buildValues head next tail keyword i candidates basePosition
 
-    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) =
-        function
+    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (acton: Action) =
+        match acton with
+        | Noop -> InternalState.noRefresh state, pos, context
         | AddQuery s -> addQuery state pos context s
         | BackwardChar -> moveBackward state pos context
         | ForwardChar -> moveForward state pos context
@@ -221,14 +222,18 @@ module PocofHandle =
         | DeleteForwardChar -> removeForwardChar state pos context
         | KillBeginningOfLine -> removeQueryHead state pos context
         | KillEndOfLine -> removeQueryTail state pos context
+        | SelectBackwardChar
+        | SelectForwardChar
+        | SelectToBeginningOfLine
+        | SelectToEndOfLine -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | RotateMatcher -> switchMatcher state pos context
         | RotateOperator -> switchOperator state pos context
         | ToggleCaseSensitive -> toggleCaseSensitive state pos context
         | ToggleInvertFilter -> toggleInvertFilter state pos context
         | ToggleSuppressProperties -> toggleSuppressProperties state pos context
-        | SelectUp -> InternalState.noRefresh state, pos, context // TODO: implement it.
-        | SelectDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
-        | ScrollPageUp -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | SelectLineUp
+        | SelectLineDown
+        | ScrollPageUp
         | ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | CompleteProperty -> completeProperty state pos context
         | x ->

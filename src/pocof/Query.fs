@@ -7,32 +7,32 @@ open System.Text.RegularExpressions
 open PocofData
 
 module PocofQuery =
-    let inline private equalOpt sensitive =
+    let private equalOpt sensitive =
         match sensitive with
         | true -> StringComparison.CurrentCulture
         | _ -> StringComparison.CurrentCultureIgnoreCase
 
-    let inline private likeOpt sensitive =
+    let private likeOpt sensitive =
         match sensitive with
         | true -> WildcardOptions.None
         | _ -> WildcardOptions.IgnoreCase
 
-    let inline private matchOpt sensitive =
+    let private matchOpt sensitive =
         match sensitive with
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let inline private equals (opt: StringComparison) (r: string) =
+    let private equals (opt: StringComparison) (r: string) =
         match r with
         | "" -> alwaysTrue
         | _ -> String.equals opt r
 
-    let inline private likes (opt: WildcardOptions) (wcp: string) =
+    let private likes (opt: WildcardOptions) (wcp: string) =
         match wcp with
         | "" -> alwaysTrue
         | _ -> WildcardPattern.Get(wcp, opt).IsMatch
 
-    let inline private matches (opt: RegexOptions) (pattern: string) (value: string) =
+    let private matches (opt: RegexOptions) (pattern: string) (value: string) =
         try
             // NOTE: expect using cache.
             Regex.IsMatch(value, pattern, opt)

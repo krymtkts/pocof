@@ -21,6 +21,7 @@ module PocofAction =
     let private plain = modify Plain
     let private alt = modify <| Modifier ConsoleModifiers.Alt
     let private ctrl = modify <| Modifier ConsoleModifiers.Control
+    let private shift = modify <| Modifier ConsoleModifiers.Shift
 
     let defaultKeymap =
         Map [ (plain ConsoleKey.Escape, PocofData.Cancel)
@@ -37,20 +38,25 @@ module PocofAction =
               (alt ConsoleKey.U, PocofData.KillBeginningOfLine)
               (alt ConsoleKey.K, PocofData.KillEndOfLine)
 
+              (shift ConsoleKey.LeftArrow, PocofData.SelectBackwardChar)
+              (shift ConsoleKey.RightArrow, PocofData.SelectForwardChar)
+              (shift ConsoleKey.Home, PocofData.SelectToBeginningOfLine)
+              (shift ConsoleKey.End, PocofData.SelectToEndOfLine)
+
               (alt ConsoleKey.R, PocofData.RotateMatcher)
               (alt ConsoleKey.L, PocofData.RotateOperator)
               (alt ConsoleKey.C, PocofData.ToggleCaseSensitive)
               (alt ConsoleKey.I, PocofData.ToggleInvertFilter)
 
               (ctrl ConsoleKey.Spacebar, PocofData.ToggleSuppressProperties)
-              (plain ConsoleKey.UpArrow, PocofData.SelectUp)
-              (plain ConsoleKey.DownArrow, PocofData.SelectDown)
+              (plain ConsoleKey.UpArrow, PocofData.SelectLineUp)
+              (plain ConsoleKey.DownArrow, PocofData.SelectLineDown)
               (plain ConsoleKey.PageUp, PocofData.ScrollPageUp)
               (plain ConsoleKey.PageDown, PocofData.ScrollPageDown)
 
               (plain ConsoleKey.Tab, PocofData.CompleteProperty) ]
 
-    let inline toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
+    let toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
         match Enum.TryParse<'a>(k, true) with
         | (true, e) -> Some e
         | _ -> None

@@ -15,6 +15,30 @@ module Pocof =
           getKey: unit -> ConsoleKeyInfo list
           getConsoleWidth: unit -> int }
 
+    let queryAndRender
+        (args: LoopFixedArguments)
+        (results: Entry list)
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+
+        match state.Refresh with
+        | NotRequired -> results, state
+        | _ ->
+            let results = PocofQuery.run context args.input args.propMap
+
+            let state =
+                state
+                |> InternalState.updateFilteredCount (List.length results)
+
+            args.writeScreen state results
+            <| match state.SuppressProperties with
+               | true -> Ok []
+               | _ -> PocofQuery.props state
+
+            results, state
+
     [<TailCall>]
     let rec loop
         (args: LoopFixedArguments)
@@ -24,40 +48,25 @@ module Pocof =
         (context: QueryContext)
         =
 
-        let results =
-            match state.Refresh with
-            | NotRequired -> results
-            | _ ->
-                let results = PocofQuery.run context args.input args.propMap
-
-                args.writeScreen state results
-                <| match state.SuppressProperties with
-                   | true -> Ok []
-                   | _ -> PocofQuery.props state
-
-                results
-
-        let updateConsoleWidth (state: InternalState) =
-            { state with ConsoleWidth = args.getConsoleWidth () }
-            |> InternalState.updateWindowWidth
+        let results, state = queryAndRender args results state pos context
 
         args.getKey ()
         |> PocofAction.get args.keymaps
         |> function
             | Cancel -> []
             | Finish -> unwrap results
-            | Noop ->
-                let state = updateConsoleWidth state
-
-                loop args results state pos context
             | action ->
-                let state = updateConsoleWidth state
-
-                invokeAction state pos context action
+                action
+                |> invokeAction
+                    (state
+                     |> InternalState.updateConsoleWidth (args.getConsoleWidth ()))
+                    pos
+                    context
                 |||> loop args results
 
     [<TailCall>]
     let rec private read (acc: ConsoleKeyInfo list) =
+        // TODO: in the near future, should move Console.* to UI module for encapsulation.
         let acc = Console.ReadKey true :: acc
 
         match Console.KeyAvailable with

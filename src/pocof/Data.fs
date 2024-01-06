@@ -44,17 +44,17 @@ module LanguageExtension =
     open System
 
     type String with
-        static member inline lower(s: string) = s.ToLower()
-        static member inline upper(s: string) = s.ToUpper()
-        static member inline startsWith (value: string) (s: string) = s.StartsWith(value)
-        static member inline split (separator: string) (s: string) = s.Split(separator.ToCharArray())
-        static member inline equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
-        static member inline trim(s: string) = s.Trim()
-        static member inline replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
-        static member inline padRight (totalWidth: int) (s: string) = s.PadRight(totalWidth)
+        static member lower(s: string) = s.ToLower()
+        static member upper(s: string) = s.ToUpper()
+        static member startsWith (value: string) (s: string) = s.StartsWith(value)
+        static member split (separator: string) (s: string) = s.Split(separator.ToCharArray())
+        static member equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
+        static member trim(s: string) = s.Trim()
+        static member replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
+        static member padRight (totalWidth: int) (s: string) = s.PadRight(totalWidth)
 
-    let inline swap (l, r) = (r, l)
-    let inline alwaysTrue _ = true
+    let swap (l, r) = (r, l)
+    let alwaysTrue _ = true
 
 module PocofData =
     open System
@@ -73,7 +73,7 @@ module PocofData =
             | Obj (o) -> o)
 
 
-    let inline private tryFromStringExcludes<'a> (excludes: Set<string>) s =
+    let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
         let aType = typeof<'a>
 
@@ -84,7 +84,7 @@ module PocofData =
         | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| $"Unknown %s{aType.Name} '%s{s}'."
 
-    let inline private fromString<'a> s =
+    let private fromString<'a> s =
         let name = String.lower s
         let aType = typeof<'a>
 
@@ -94,7 +94,7 @@ module PocofData =
         | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
         | _ -> failwithf $"Unknown %s{aType.Name} '%s{s}'."
 
-    let inline private toString (x: 'a) =
+    let private toString (x: 'a) =
         match FSharpValue.GetUnionFields(x, typeof<'a>) with
         | case, _ -> case.Name
 
@@ -107,7 +107,7 @@ module PocofData =
         | Noop
         | Cancel
         | Finish
-        // move.
+        // move cursor.
         | BackwardChar
         | ForwardChar
         | BeginningOfLine
@@ -118,18 +118,24 @@ module PocofData =
         | DeleteForwardChar
         | KillBeginningOfLine
         | KillEndOfLine
+        // select query.
+        | SelectBackwardChar
+        | SelectForwardChar
+        | SelectToBeginningOfLine
+        | SelectToEndOfLine
         // toggle options.
         | RotateMatcher
         | RotateOperator
         | ToggleCaseSensitive
         | ToggleInvertFilter
         | ToggleSuppressProperties
-        // move selection.
-        | SelectUp
-        | SelectDown
+        // move line selection.
+        | SelectLineUp
+        | SelectLineDown
+        // scroll page.
         | ScrollPageUp
         | ScrollPageDown
-        // autocomplete
+        // property completion.
         | CompleteProperty
 
     module Action =
@@ -264,12 +270,12 @@ module PocofData =
         override __.ToString() =
             List.append
             <| match __.Matcher, __.CaseSensitive, __.Invert with
-               | EQ, true, true -> [ "cne" ]
-               | EQ, false, true -> [ "ne" ]
-               | m, true, true -> [ "notc"; string m ]
-               | m, true, false -> [ "c"; string m ]
-               | m, false, true -> [ "not"; string m ]
                | m, false, false -> [ string m ]
+               | m, true, false -> [ "c"; string m ]
+               | EQ, false, true -> [ "ne" ]
+               | EQ, true, true -> [ "cne" ]
+               | m, false, true -> [ "not"; string m ]
+               | m, true, true -> [ "notc"; string m ]
             <| [ " "; string __.Operator ]
             |> String.concat ""
 
@@ -334,6 +340,7 @@ module PocofData =
             let l = getWindowWidth state
 
             let q =
+                // TODO: should use RawUI.LengthInBufferCells instead of String.length for supporting full-width characters.
                 match String.length state.QueryState.Query with
                 | ql when ql < l -> ql
                 | _ -> state.QueryState.WindowBeginningX + l
@@ -398,6 +405,14 @@ module PocofData =
 
         let toggleSuppressProperties (state: InternalState) =
             { state with SuppressProperties = not state.SuppressProperties }
+
+        let updateConsoleWidth (consoleWidth: int) (state: InternalState) =
+            { state with ConsoleWidth = consoleWidth }
+            |> updateWindowWidth
+
+        let updateFilteredCount (count: int) (state: InternalState) =
+            { state with FilteredCount = count }
+            |> updateWindowWidth
 
     type Position = { Y: int; Height: int }
 
