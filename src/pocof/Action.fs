@@ -56,7 +56,7 @@ module PocofAction =
 
               (plain ConsoleKey.Tab, PocofData.CompleteProperty) ]
 
-    let inline toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
+    let toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
         match Enum.TryParse<'a>(k, true) with
         | (true, e) -> Some e
         | _ -> None
