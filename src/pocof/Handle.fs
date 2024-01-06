@@ -210,8 +210,8 @@ module PocofHandle =
 #endif
             buildValues head next tail keyword i candidates basePosition
 
-    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) =
-        function
+    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (acton: Action) =
+        match acton with
         | Noop -> InternalState.noRefresh state, pos, context
         | AddQuery s -> addQuery state pos context s
         | BackwardChar -> moveBackward state pos context
