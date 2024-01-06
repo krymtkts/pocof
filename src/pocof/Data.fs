@@ -118,6 +118,11 @@ module PocofData =
         | DeleteForwardChar
         | KillBeginningOfLine
         | KillEndOfLine
+        // select query.
+        | SelectBackwardChar
+        | SelectForwardChar
+        | SelectToBeginningOfLine
+        | SelectToEndOfLine
         // toggle options.
         | RotateMatcher
         | RotateOperator

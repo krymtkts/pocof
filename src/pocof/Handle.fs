@@ -221,6 +221,10 @@ module PocofHandle =
         | DeleteForwardChar -> removeForwardChar state pos context
         | KillBeginningOfLine -> removeQueryHead state pos context
         | KillEndOfLine -> removeQueryTail state pos context
+        | SelectBackwardChar
+        | SelectForwardChar
+        | SelectToBeginningOfLine
+        | SelectToEndOfLine -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | RotateMatcher -> switchMatcher state pos context
         | RotateOperator -> switchOperator state pos context
         | ToggleCaseSensitive -> toggleCaseSensitive state pos context

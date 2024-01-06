@@ -21,6 +21,7 @@ module PocofAction =
     let private plain = modify Plain
     let private alt = modify <| Modifier ConsoleModifiers.Alt
     let private ctrl = modify <| Modifier ConsoleModifiers.Control
+    let private shift = modify <| Modifier ConsoleModifiers.Shift
 
     let defaultKeymap =
         Map [ (plain ConsoleKey.Escape, PocofData.Cancel)
@@ -36,6 +37,11 @@ module PocofAction =
               (plain ConsoleKey.Delete, PocofData.DeleteForwardChar)
               (alt ConsoleKey.U, PocofData.KillBeginningOfLine)
               (alt ConsoleKey.K, PocofData.KillEndOfLine)
+
+              (shift ConsoleKey.LeftArrow, PocofData.SelectBackwardChar)
+              (shift ConsoleKey.RightArrow, PocofData.SelectForwardChar)
+              (shift ConsoleKey.Home, PocofData.SelectToBeginningOfLine)
+              (shift ConsoleKey.End, PocofData.SelectToEndOfLine)
 
               (alt ConsoleKey.R, PocofData.RotateMatcher)
               (alt ConsoleKey.L, PocofData.RotateOperator)
