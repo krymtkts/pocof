@@ -11,6 +11,8 @@ module PocofScreen =
         abstract member GetWindowWidth: unit -> int
         abstract member GetWindowHeight: unit -> int
         abstract member Write: int -> int -> string -> unit
+        abstract member ReadKey: bool -> ConsoleKeyInfo
+        abstract member KeyAvailable: unit -> bool
 
     type RawUI(rui) =
         let rui: PSHostRawUserInterface = rui
@@ -42,6 +44,9 @@ module PocofScreen =
                 (__ :> IRawUI).SetCursorPosition x y
                 Console.Write s
 
+            member __.ReadKey(intercept: bool) = Console.ReadKey intercept
+            member __.KeyAvailable() = Console.KeyAvailable
+
         interface IDisposable with
             member __.Dispose() =
                 Console.TreatControlCAsInput <- caAsInput
@@ -64,6 +69,14 @@ module PocofScreen =
     type Buff(r, i) =
         let rui: IRawUI = r
         let invoke: obj list -> string seq = i
+
+        [<TailCall>]
+        let rec read (acc: ConsoleKeyInfo list) =
+            let acc = rui.ReadKey true :: acc
+
+            match rui.KeyAvailable() with
+            | true -> read acc
+            | _ -> List.rev acc
 
         interface IDisposable with
             member __.Dispose() = (rui :> IDisposable).Dispose()
@@ -136,8 +149,13 @@ module PocofScreen =
             <| basePosition
 
         member __.writeTopDown: WriteScreen = __.writeScreen PocofData.TopDown
-
         member __.writeBottomUp: WriteScreen = __.writeScreen PocofData.BottomUp
+
+        member __.getConsoleWidth() = rui.GetWindowWidth()
+
+        member __.getKey() =
+            Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
+            |> Async.RunSynchronously
 
     let init (rui: PSHostRawUserInterface) (invoke: obj list -> string seq) =
         let r = new RawUI(rui)

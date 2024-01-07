@@ -47,7 +47,6 @@ type MockRawUI =
             __.y <- y
 
         member __.GetCursorPositionX (_: string) (x: int) = x
-
         member __.GetWindowWidth() = __.width
         member __.GetWindowHeight() = __.height
         member __.Write x y s =
@@ -56,6 +55,8 @@ type MockRawUI =
                 | ii when ii = y ->
                     ss.Substring(0, x) + s |> String.padRight __.x
                 | _ -> ss |> String.padRight __.x )
+        member __.ReadKey(_) = new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)
+        member __.KeyAvailable() = false
 
     interface IDisposable with
         member __.Dispose() = ()

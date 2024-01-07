@@ -64,21 +64,6 @@ module Pocof =
                     context
                 |||> loop args results
 
-    [<TailCall>]
-    let rec private read (acc: ConsoleKeyInfo list) =
-        // TODO: in the near future, should move Console.* to UI module for encapsulation.
-        let acc = Console.ReadKey true :: acc
-
-        match Console.KeyAvailable with
-        | true -> read acc
-        | _ -> List.rev acc
-
-    let private getKey () =
-        Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
-        |> Async.RunSynchronously
-
-    let private getConsoleWidth () = Console.WindowWidth
-
     let interact
         (conf: InternalConfig)
         (state: InternalState)
@@ -100,7 +85,7 @@ module Pocof =
             let l = PocofQuery.run context input propMap
             unwrap l
         | _ ->
-            use sbf = PocofScreen.init rui invoke
+            use buff = PocofScreen.init rui invoke
 
             let args =
                 { keymaps = conf.Keymaps
@@ -108,9 +93,9 @@ module Pocof =
                   propMap = propMap
                   writeScreen =
                     match conf.Layout with
-                    | TopDown -> sbf.writeTopDown
-                    | BottomUp -> sbf.writeBottomUp
-                  getKey = getKey
-                  getConsoleWidth = getConsoleWidth }
+                    | TopDown -> buff.writeTopDown
+                    | BottomUp -> buff.writeBottomUp
+                  getKey = buff.getKey
+                  getConsoleWidth = buff.getConsoleWidth }
 
             loop args input state pos context
