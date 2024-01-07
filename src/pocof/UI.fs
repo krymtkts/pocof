@@ -69,6 +69,25 @@ module PocofScreen =
         let rui: IRawUI = r
         let invoke: obj list -> string seq = i
 
+        let info (state: PocofData.InternalState) =
+            let left = PocofData.InternalState.prompt state
+            let right = PocofData.InternalState.queryInfo state
+            let l = PocofData.InternalState.getWindowWidth state
+
+            let q =
+                // TODO: should use RawUI.LengthInBufferCells instead of String.length for supporting full-width characters.
+                match String.length state.QueryState.Query with
+                | ql when ql < l -> ql
+                | _ -> state.QueryState.WindowBeginningX + l
+                |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. ql - 1]
+                |> String.padRight l
+
+#if DEBUG
+            Logger.logFile [ $"q '{String.length q}' WindowBeginningX '{state.QueryState.WindowBeginningX}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
+#endif
+
+            left + q + right
+
         [<TailCall>]
         let rec read (acc: ConsoleKeyInfo list) =
             let acc = rui.ReadKey true :: acc
@@ -97,7 +116,7 @@ module PocofScreen =
                     let basePosition = rui.GetWindowHeight() - 1
                     basePosition, basePosition - 1, (-) (basePosition - 2)
 
-            let topLine = PocofData.InternalState.info state
+            let topLine = info state
             topLine |> __.writeScreenLine basePosition
 
 #if DEBUG

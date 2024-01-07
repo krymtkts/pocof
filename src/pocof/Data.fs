@@ -317,9 +317,9 @@ module PocofData =
     module InternalState =
         let private anchor = ">"
 
-        let private prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
+        let prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
 
-        let private queryInfo (state: InternalState) =
+        let queryInfo (state: InternalState) =
             $" %O{state.QueryCondition} [%d{state.FilteredCount}]"
 
         let getWindowWidth (state: InternalState) =
@@ -333,25 +333,6 @@ module PocofData =
             state.ConsoleWidth
             - String.length left
             - String.length right
-
-        let info (state: InternalState) =
-            let left = prompt state
-            let right = queryInfo state
-            let l = getWindowWidth state
-
-            let q =
-                // TODO: should use RawUI.LengthInBufferCells instead of String.length for supporting full-width characters.
-                match String.length state.QueryState.Query with
-                | ql when ql < l -> ql
-                | _ -> state.QueryState.WindowBeginningX + l
-                |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. ql - 1]
-                |> String.padRight l
-
-#if DEBUG
-            Logger.logFile [ $"q '{String.length q}' WindowBeginningX '{state.QueryState.WindowBeginningX}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
-#endif
-
-            left + q + right
 
         let getX (state: InternalState) =
             (prompt state |> String.length)
