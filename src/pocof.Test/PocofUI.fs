@@ -46,7 +46,7 @@ type MockRawUI =
             __.x <- x
             __.y <- y
 
-        member __.GetCursorPositionX (_: string) (x: int) = x
+        member __.GetCursorPositionX (s: string) = String.length s
         member __.GetWindowWidth() = __.width
         member __.GetWindowHeight() = __.height
         member __.Write x y s =

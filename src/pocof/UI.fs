@@ -7,7 +7,7 @@ module PocofScreen =
     type IRawUI =
         inherit IDisposable
         abstract member SetCursorPosition: int -> int -> unit
-        abstract member GetCursorPositionX: string -> int -> int
+        abstract member GetCursorPositionX: string -> int
         abstract member GetWindowWidth: unit -> int
         abstract member GetWindowHeight: unit -> int
         abstract member Write: int -> int -> string -> unit
@@ -34,8 +34,7 @@ module PocofScreen =
         interface IRawUI with
             member __.SetCursorPosition (x: int) (y: int) = rui.CursorPosition <- Coordinates(x, y)
 
-            member __.GetCursorPositionX (prompt: string) (x: int) =
-                rui.LengthInBufferCells(prompt.Substring(0, x))
+            member __.GetCursorPositionX(prompt: string) = rui.LengthInBufferCells(prompt)
 
             member __.GetWindowWidth() = rui.WindowSize.Width
             member __.GetWindowHeight() = rui.WindowSize.Height
@@ -145,12 +144,11 @@ module PocofScreen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetCursorPositionX topLine (PocofData.InternalState.getX state)
+            <| rui.GetCursorPositionX topLine.[.. (PocofData.InternalState.getX state) - 1]
             <| basePosition
 
         member __.writeTopDown: WriteScreen = __.writeScreen PocofData.TopDown
         member __.writeBottomUp: WriteScreen = __.writeScreen PocofData.BottomUp
-
         member __.getConsoleWidth() = rui.GetWindowWidth()
 
         member __.getKey() =
