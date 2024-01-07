@@ -24,7 +24,7 @@ jobs:
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
       - name: Run Snyk to check for vulnerabilities
-        # synk/actions uses Container action that is only supported on Linux.
+        # snyk/actions uses Container action that is only supported on Linux.
         if: runner.os == 'Linux'
         uses: snyk/actions/dotnet@master
         env:
