@@ -25,7 +25,7 @@ module PocofScreen =
             with // NOTE: when running on Linux, this exception is thrown.
             | :? NotImplementedException -> None
 
-        let caAsInput: bool = Console.TreatControlCAsInput
+        let ctrlCAsInput: bool = Console.TreatControlCAsInput
 
         do
             Console.TreatControlCAsInput <- true
@@ -48,7 +48,7 @@ module PocofScreen =
 
         interface IDisposable with
             member __.Dispose() =
-                Console.TreatControlCAsInput <- caAsInput
+                Console.TreatControlCAsInput <- ctrlCAsInput
                 Console.Clear()
                 let origin = Coordinates(0, 0)
 
