@@ -15,6 +15,21 @@ module Pocof =
           getKey: unit -> ConsoleKeyInfo list
           getConsoleWidth: unit -> int }
 
+    let calculateWindowBeginningCursor (state: QueryState) =
+        let wx =
+            match state.Cursor - state.WindowBeginningCursor with
+            | bx when bx < 0 -> state.WindowBeginningCursor + bx
+            | bx when bx > state.WindowWidth -> state.Cursor - state.WindowWidth
+            | _ -> state.WindowBeginningCursor
+
+#if DEBUG
+        Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+#endif
+        wx
+
+    let adjustQueryWindow (state: InternalState) =
+        { state with InternalState.QueryState.WindowBeginningCursor = calculateWindowBeginningCursor state.QueryState }
+
     let queryAndRender
         (args: LoopFixedArguments)
         (results: Entry list)
@@ -30,6 +45,7 @@ module Pocof =
 
             let state =
                 state
+                |> adjustQueryWindow
                 |> InternalState.updateFilteredCount (List.length results)
 
             args.writeScreen state results

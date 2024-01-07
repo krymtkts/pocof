@@ -177,7 +177,6 @@ module PocofHandle =
                     InternalState.QueryState.Cursor = basePosition + String.length next
                     PropertySearch = Rotate(keyword, i, candidates) }
                 |> InternalState.refresh
-                |> InternalState.adjustCursor
 
             state, pos, context |> QueryContext.prepareQuery state
 

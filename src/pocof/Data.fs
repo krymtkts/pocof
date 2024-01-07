@@ -191,23 +191,10 @@ module PocofData =
           WindowWidth: int }
 
     module QueryState =
-        let adjustCursor (state: QueryState) =
-            let wx =
-                match state.Cursor - state.WindowBeginningCursor with
-                | bx when bx < 0 -> state.WindowBeginningCursor + bx
-                | bx when bx > state.WindowWidth -> state.Cursor - state.WindowWidth
-                | _ -> state.WindowBeginningCursor
-
-#if DEBUG
-            Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
-#endif
-            { state with WindowBeginningCursor = wx }
-
         let addQuery (state: QueryState) (query: string) =
             { state with
                 Query = state.Query.Insert(state.Cursor, query)
                 Cursor = state.Cursor + String.length query }
-            |> adjustCursor
 
         let moveCursor (state: QueryState) (step: int) =
             let x =
@@ -216,10 +203,9 @@ module PocofData =
                 | x when x > String.length state.Query -> String.length state.Query
                 | _ -> state.Cursor + step
 
-            { state with Cursor = x } |> adjustCursor
+            { state with Cursor = x }
 
-        let setCursor (state: QueryState) (x: int) =
-            { state with Cursor = x } |> adjustCursor
+        let setCursor (state: QueryState) (x: int) = { state with Cursor = x }
 
         let backspaceQuery (state: QueryState) (size: int) =
             let cursor, size =
@@ -239,14 +225,11 @@ module PocofData =
             { state with
                 Query = state.Query.Remove(i, c)
                 Cursor = i }
-            |> adjustCursor
 
         let deleteQuery (state: QueryState) (size: int) =
             match String.length state.Query - state.Cursor with
             | x when x < 0 -> { state with Cursor = String.length state.Query }
-            | _ ->
-                { state with Query = state.Query.Remove(state.Cursor, size) }
-                |> adjustCursor
+            | _ -> { state with Query = state.Query.Remove(state.Cursor, size) }
 
         let getCurrentProperty (state: QueryState) =
             let s =
@@ -353,12 +336,8 @@ module PocofData =
             | true -> refresh state
             | _ -> noRefresh state
 
-        let adjustCursor (state: InternalState) =
-            { state with QueryState = QueryState.adjustCursor state.QueryState }
-
         let updateWindowWidth (state: InternalState) =
             { state with InternalState.QueryState.WindowWidth = getWindowWidth state }
-            |> adjustCursor
 
         let rotateMatcher (state: InternalState) =
             { state with
