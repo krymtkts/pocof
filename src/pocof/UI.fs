@@ -70,23 +70,27 @@ module PocofScreen =
         let invoke: obj list -> string seq = i
 
         let info (state: PocofData.InternalState) =
-            let left = PocofData.InternalState.prompt state
-            let right = PocofData.InternalState.queryInfo state
             let l = PocofData.InternalState.getWindowWidth state
+            let cl = rui.GetLengthInBufferCells state.QueryState.Query
+            let ql = String.length state.QueryState.Query
 
             let q =
-                // TODO: should use RawUI.LengthInBufferCells instead of String.length for supporting full-width characters.
-                match String.length state.QueryState.Query with
+                match cl with
                 | ql when ql < l -> ql
-                | _ -> state.QueryState.WindowBeginningCursor + l
+                | _ ->
+                    state.QueryState.WindowBeginningCursor + l
+                    - (cl - ql)
                 |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. ql - 1]
-                |> String.padRight l
+                |> String.padRight (l - (cl - ql))
 
 #if DEBUG
-            Logger.logFile [ $"q '{String.length q}' WindowBeginningX '{state.QueryState.WindowBeginningCursor}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
+            Logger.logFile [ $"q '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
 #endif
 
-            left + q + right
+            [ PocofData.InternalState.prompt state
+              q
+              PocofData.InternalState.queryInfo state ]
+            |> String.concat ""
 
         [<TailCall>]
         let rec read (acc: ConsoleKeyInfo list) =
