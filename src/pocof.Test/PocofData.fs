@@ -177,7 +177,7 @@ module initConfig =
             { QueryState =
                 { Query = ":name"
                   Cursor = 5
-                  WindowBeginningX = 0
+                  WindowBeginningCursor = 0
                   WindowWidth =
                     60
                     - (String.length "prompt>")
@@ -264,7 +264,7 @@ module QueryState =
         let qs q x =
             { Query = q
               Cursor = x
-              WindowBeginningX = 0
+              WindowBeginningCursor = 0
               WindowWidth = 0 }
 
         [<Fact>]

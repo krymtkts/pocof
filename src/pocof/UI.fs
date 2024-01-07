@@ -78,12 +78,12 @@ module PocofScreen =
                 // TODO: should use RawUI.LengthInBufferCells instead of String.length for supporting full-width characters.
                 match String.length state.QueryState.Query with
                 | ql when ql < l -> ql
-                | _ -> state.QueryState.WindowBeginningX + l
-                |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. ql - 1]
+                | _ -> state.QueryState.WindowBeginningCursor + l
+                |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. ql - 1]
                 |> String.padRight l
 
 #if DEBUG
-            Logger.logFile [ $"q '{String.length q}' WindowBeginningX '{state.QueryState.WindowBeginningX}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
+            Logger.logFile [ $"q '{String.length q}' WindowBeginningX '{state.QueryState.WindowBeginningCursor}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
 #endif
 
             left + q + right

@@ -71,7 +71,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = rui.width }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -101,7 +101,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = rui.width }
               QueryCondition =
                 { Matcher = LIKE
                   Operator = OR
@@ -132,7 +132,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningCursor = 0; WindowWidth = rui.width }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -165,7 +165,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningCursor = 0; WindowWidth = rui.width }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -199,7 +199,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, formatTableOutString)
 
         let state: InternalState =
-            { QueryState = { Query = ""; Cursor = 0; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = rui.width }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -240,7 +240,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, formatTableOutString)
 
         let state: InternalState =
-            { QueryState = { Query = ""; Cursor = 0; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = rui.width }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -282,7 +282,7 @@ module ``Buff writeScreen`` =
                 { QueryState =
                       { Query = query
                         Cursor = 0
-                        WindowBeginningX = 0
+                        WindowBeginningCursor = 0
                         WindowWidth = 30 }
                   QueryCondition =
                       { Matcher = MATCH
@@ -316,7 +316,7 @@ module ``Buff writeScreen`` =
                 { QueryState =
                       { Query = query
                         Cursor = 0
-                        WindowBeginningX = 0
+                        WindowBeginningCursor = 0
                         WindowWidth = 30 }
                   QueryCondition =
                       { Matcher = MATCH
@@ -350,7 +350,7 @@ module ``Buff writeScreen`` =
                 { QueryState =
                       { Query = query
                         Cursor = 45
-                        WindowBeginningX = 15
+                        WindowBeginningCursor = 15
                         WindowWidth = 30 }
                   QueryCondition =
                       { Matcher = MATCH
@@ -384,7 +384,7 @@ module ``Buff writeScreen`` =
                 { QueryState =
                       { Query = query
                         Cursor = 90
-                        WindowBeginningX = 70
+                        WindowBeginningCursor = 70
                         WindowWidth = 30 }
                   QueryCondition =
                       { Matcher = MATCH

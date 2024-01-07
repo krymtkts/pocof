@@ -187,21 +187,21 @@ module PocofData =
     type QueryState =
         { Query: string
           Cursor: int
-          WindowBeginningX: int
+          WindowBeginningCursor: int
           WindowWidth: int }
 
     module QueryState =
         let adjustCursor (state: QueryState) =
             let wx =
-                match state.Cursor - state.WindowBeginningX with
-                | bx when bx < 0 -> state.WindowBeginningX + bx
+                match state.Cursor - state.WindowBeginningCursor with
+                | bx when bx < 0 -> state.WindowBeginningCursor + bx
                 | bx when bx > state.WindowWidth -> state.Cursor - state.WindowWidth
-                | _ -> state.WindowBeginningX
+                | _ -> state.WindowBeginningCursor
 
 #if DEBUG
-            Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningX}' WindowWidth '{state.WindowWidth}'" ]
+            Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
 #endif
-            { state with WindowBeginningX = wx }
+            { state with WindowBeginningCursor = wx }
 
         let addQuery (state: QueryState) (query: string) =
             { state with
@@ -337,7 +337,7 @@ module PocofData =
         let getX (state: InternalState) =
             (prompt state |> String.length)
             + state.QueryState.Cursor
-            - state.QueryState.WindowBeginningX
+            - state.QueryState.WindowBeginningCursor
 
         let updateQueryState (qs: QueryState) (state: InternalState) =
             { state with
@@ -417,7 +417,7 @@ module PocofData =
         let qs =
             { Query = p.Query
               Cursor = String.length p.Query
-              WindowBeginningX = 0 // NOTE: adjust later.
+              WindowBeginningCursor = 0 // NOTE: adjust later.
               WindowWidth = p.ConsoleWidth }
 
         let s =
