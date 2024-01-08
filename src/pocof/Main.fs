@@ -43,9 +43,8 @@ module Pocof =
                 let l =
                     getLengthInBufferCells state.Query.[state.WindowBeginningCursor .. state.Cursor]
 
-                match l with
-                | bx when bx < 0 -> state.WindowBeginningCursor + bx
-                | bx when bx > state.WindowWidth -> searchBeginningCursorRecursive getLengthInBufferCells state
+                match l > state.WindowWidth with
+                | true -> searchBeginningCursorRecursive getLengthInBufferCells state
                 | _ -> state.WindowBeginningCursor
 
 #if DEBUG
