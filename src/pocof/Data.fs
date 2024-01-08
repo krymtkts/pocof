@@ -51,7 +51,6 @@ module LanguageExtension =
         static member equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
         static member trim(s: string) = s.Trim()
         static member replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
-        static member padRight (totalWidth: int) (s: string) = s.PadRight(totalWidth)
 
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
