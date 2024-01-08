@@ -7,10 +7,12 @@ module PocofScreen =
     type IRawUI =
         inherit IDisposable
         abstract member SetCursorPosition: int -> int -> unit
-        abstract member GetCursorPositionX: string -> int -> int
+        abstract member GetLengthInBufferCells: string -> int
         abstract member GetWindowWidth: unit -> int
         abstract member GetWindowHeight: unit -> int
         abstract member Write: int -> int -> string -> unit
+        abstract member ReadKey: bool -> ConsoleKeyInfo
+        abstract member KeyAvailable: unit -> bool
 
     type RawUI(rui) =
         let rui: PSHostRawUserInterface = rui
@@ -23,7 +25,7 @@ module PocofScreen =
             with // NOTE: when running on Linux, this exception is thrown.
             | :? NotImplementedException -> None
 
-        let caAsInput: bool = Console.TreatControlCAsInput
+        let ctrlCAsInput: bool = Console.TreatControlCAsInput
 
         do
             Console.TreatControlCAsInput <- true
@@ -32,8 +34,7 @@ module PocofScreen =
         interface IRawUI with
             member __.SetCursorPosition (x: int) (y: int) = rui.CursorPosition <- Coordinates(x, y)
 
-            member __.GetCursorPositionX (prompt: string) (x: int) =
-                rui.LengthInBufferCells(prompt.Substring(0, x))
+            member __.GetLengthInBufferCells(prompt: string) = rui.LengthInBufferCells(prompt)
 
             member __.GetWindowWidth() = rui.WindowSize.Width
             member __.GetWindowHeight() = rui.WindowSize.Height
@@ -42,9 +43,12 @@ module PocofScreen =
                 (__ :> IRawUI).SetCursorPosition x y
                 Console.Write s
 
+            member __.ReadKey(intercept: bool) = Console.ReadKey intercept
+            member __.KeyAvailable() = Console.KeyAvailable
+
         interface IDisposable with
             member __.Dispose() =
-                Console.TreatControlCAsInput <- caAsInput
+                Console.TreatControlCAsInput <- ctrlCAsInput
                 Console.Clear()
                 let origin = Coordinates(0, 0)
 
@@ -65,11 +69,50 @@ module PocofScreen =
         let rui: IRawUI = r
         let invoke: obj list -> string seq = i
 
+        let info (state: PocofData.InternalState) =
+            let rec getQuery (q: string) =
+                let cl = rui.GetLengthInBufferCells q
+
+                match cl <= state.QueryState.WindowWidth with
+                | true ->
+                    q
+                    + String.replicate (state.QueryState.WindowWidth - cl) " "
+                | _ ->
+                    let ql = String.length q - 2
+                    let q = q.[..ql]
+                    getQuery q
+
+            let q =
+                state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. state.QueryState.WindowWidth
+                                                                                  + state.QueryState.WindowBeginningCursor]
+
+#if DEBUG
+            Logger.logFile [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+#endif
+            let q = getQuery q
+
+            [ PocofData.InternalState.prompt state
+              q
+              PocofData.InternalState.queryInfo state ]
+            |> String.concat ""
+
+        [<TailCall>]
+        let rec read (acc: ConsoleKeyInfo list) =
+            let acc = rui.ReadKey true :: acc
+
+            match rui.KeyAvailable() with
+            | true -> read acc
+            | _ -> List.rev acc
+
         interface IDisposable with
             member __.Dispose() = (rui :> IDisposable).Dispose()
 
         member private __.writeScreenLine (height: int) (line: string) =
-            line.PadRight(rui.GetWindowWidth())
+            match (rui.GetWindowWidth()
+                   - __.GetLengthInBufferCells line)
+                with
+            | x when x > 0 -> line + String.replicate x " "
+            | _ -> line
             |> rui.Write 0 height
 
         member __.writeScreen
@@ -85,7 +128,7 @@ module PocofScreen =
                     let basePosition = rui.GetWindowHeight() - 1
                     basePosition, basePosition - 1, (-) (basePosition - 2)
 
-            let topLine = PocofData.InternalState.info state
+            let topLine = info state
             topLine |> __.writeScreenLine basePosition
 
 #if DEBUG
@@ -119,8 +162,7 @@ module PocofScreen =
                     []
 
 #if DEBUG
-            Logger.logFile [ "out length"
-                             $"{Seq.length out}" ]
+            Logger.logFile [ $"out length '{Seq.length out}'" ]
 #endif
 
             seq { 0..h }
@@ -132,14 +174,17 @@ module PocofScreen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetCursorPositionX topLine (PocofData.InternalState.getX state)
+            <| rui.GetLengthInBufferCells topLine.[.. (PocofData.InternalState.getX state) - 1]
             <| basePosition
 
         member __.writeTopDown: WriteScreen = __.writeScreen PocofData.TopDown
-
         member __.writeBottomUp: WriteScreen = __.writeScreen PocofData.BottomUp
+        member __.getConsoleWidth = rui.GetWindowWidth
 
-    let init (rui: PSHostRawUserInterface) (invoke: obj list -> string seq) =
-        let r = new RawUI(rui)
-        let buf = new Buff(r, invoke)
-        buf
+        member __.getKey() =
+            Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
+            |> Async.RunSynchronously
+
+        member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
+
+    let init (rui: unit -> IRawUI) (invoke: obj list -> string seq) = new Buff(rui (), invoke)

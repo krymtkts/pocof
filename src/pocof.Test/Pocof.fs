@@ -5,17 +5,63 @@ open FsUnitTyped
 open System
 open pocof.Pocof
 open pocof.PocofData
+open pocof.PocofScreen
+open PocofUI
+
+module calculateWindowBeginningCursor =
+    [<Fact>]
+    let ``should return 0.`` () =
+        let state =
+            { Query = "a"
+              Cursor = 1
+              WindowBeginningCursor = 0
+              WindowWidth = 30 }
+
+        let rui = new MockRawUI()
+        use buff = new Buff(rui, (fun _ -> Seq.empty))
+
+        let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+
+        actual |> shouldEqual 0
+
+    [<Fact>]
+    let ``should return 1.`` () =
+        let state =
+            { Query = String.replicate 31 "a"
+              Cursor = 31
+              WindowBeginningCursor = 0
+              WindowWidth = 30 }
+
+        let rui = new MockRawUI()
+        use buff = new Buff(rui, (fun _ -> Seq.empty))
+
+        let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+
+        actual |> shouldEqual 1
+
+    [<Fact>]
+    let ``should return cursor value.`` () =
+        let state =
+            { Query = String.replicate 31 "a"
+              Cursor = 0
+              WindowBeginningCursor = 31
+              WindowWidth = 30 }
+
+        let rui = new MockRawUI()
+        use buff = new Buff(rui, (fun _ -> Seq.empty))
+
+        let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+
+        actual |> shouldEqual 0
 
 module loop =
     open System.Management.Automation
-    open PocofUI
-    open pocof.PocofScreen
 
     let initState () : InternalState =
         { QueryState =
             { Query = ""
               Cursor = 0
-              WindowBeginningX = 0
+              WindowBeginningCursor = 0
               WindowWidth = 0 }
           QueryCondition =
             { Matcher = MATCH
@@ -71,7 +117,8 @@ module loop =
               propMap = propMap
               writeScreen = writeScreen
               getKey = m.getKey
-              getConsoleWidth = fun () -> 0 }
+              getConsoleWidth = fun () -> 60
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -95,7 +142,8 @@ module loop =
               propMap = propMap
               writeScreen = writeScreen
               getKey = m.getKey
-              getConsoleWidth = fun () -> 0 }
+              getConsoleWidth = fun () -> 60
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 0
@@ -116,7 +164,8 @@ module loop =
               propMap = propMap
               writeScreen = writeScreen
               getKey = m.getKey
-              getConsoleWidth = fun () -> 0 }
+              getConsoleWidth = fun () -> 60
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -144,7 +193,8 @@ module loop =
               propMap = propMap
               writeScreen = writeScreen
               getKey = m.getKey
-              getConsoleWidth = fun () -> 0 }
+              getConsoleWidth = fun () -> 60
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 2
@@ -174,8 +224,9 @@ module loop =
               getKey = m.getKey
               getConsoleWidth =
                 fun () ->
-                    rui.x <- 80
-                    80 }
+                    rui.width <- 80
+                    80
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 1

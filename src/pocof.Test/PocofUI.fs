@@ -14,8 +14,8 @@ let generateLine x y =
 // TODO: mock PSHostRawUserInterface.
 type MockRawUI =
     val caAsInput: bool
-    val height: int
-    val width: int
+    val mutable height: int
+    val mutable width: int
     val mutable x: int
     val mutable y: int
     val mutable screen: string list
@@ -46,16 +46,26 @@ type MockRawUI =
             __.x <- x
             __.y <- y
 
-        member __.GetCursorPositionX (_: string) (x: int) = x
+        member __.GetLengthInBufferCells (s: string) =
+            let isFullWidth c = // NOTE: simple full-width character detection for test.
+                let code = int c
+                code >= 0xFF00 && code <= 0xFF60
 
+            s |> Seq.cast<char> |> Seq.map (fun c -> if isFullWidth c then 2 else 1) |> Seq.sum
         member __.GetWindowWidth() = __.width
         member __.GetWindowHeight() = __.height
         member __.Write x y s =
             __.screen <- __.screen |>List.mapi (fun i ss ->
                 match i with
                 | ii when ii = y ->
-                    ss.Substring(0, x) + s |> String.padRight __.x
-                | _ -> ss |> String.padRight __.x )
+                    ss.Substring(0, x) + s
+                | _ ->
+                    let l = (__ :> IRawUI).GetLengthInBufferCells ss
+                    match l <= __.width with
+                    | true -> ss + String.replicate (__.width - l) " "
+                    | _ -> ss)
+        member __.ReadKey(_) = new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)
+        member __.KeyAvailable() = false
 
     interface IDisposable with
         member __.Dispose() = ()
@@ -70,7 +80,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -84,6 +94,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 0
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         buff.writeTopDown state [] <| Ok []
 
@@ -100,7 +111,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = LIKE
                   Operator = OR
@@ -114,6 +125,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 0
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         buff.writeBottomUp state [] <| Ok []
 
@@ -131,7 +143,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -145,6 +157,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 0
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         let state = state |> InternalState.prepareNotification
 
@@ -164,7 +177,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -178,6 +191,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 0
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         buff.writeTopDown state [] <| Error "Property not found"
 
@@ -198,7 +212,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, formatTableOutString)
 
         let state: InternalState =
-            { QueryState = { Query = ""; Cursor = 0; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -212,6 +226,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 10
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         let entries = [1..10] |> List.map (fun i ->
             DictionaryEntry("Number", i) |> Dict
@@ -239,7 +254,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, formatTableOutString)
 
         let state: InternalState =
-            { QueryState = { Query = ""; Cursor = 0; WindowBeginningX = 0; WindowWidth = rui.width }
+            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -253,6 +268,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 100
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         let entries = [1..100] |> List.map (fun i ->
             DictionaryEntry("Number", i) |> Dict
@@ -271,17 +287,15 @@ module ``Buff writeScreen`` =
         rui.screen
         |> shouldEqual expected
 
-    module ``display`` =
-        [<Fact>]
-        let ``should render head 30 of query when cursor 0.`` ()   =
+    module ``query window`` =
+        let getRenderedScreen query cursor beginning =
             let rui = new MockRawUI(50,25)
             use buff = new Buff(rui, (fun _ -> Seq.empty))
-            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let state: InternalState =
                 { QueryState =
                       { Query = query
-                        Cursor = 0
-                        WindowBeginningX = 0
+                        Cursor = cursor
+                        WindowBeginningCursor = beginning
                         WindowWidth = 30 }
                   QueryCondition =
                       { Matcher = MATCH
@@ -296,8 +310,13 @@ module ``Buff writeScreen`` =
                   FilteredCount = 0
                   ConsoleWidth = rui.width
                   Refresh = Required}
-
             buff.writeTopDown state [] <| Ok []
+            rui
+
+        [<Fact>]
+        let ``should render head 30 of query when cursor 0.`` ()   =
+            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let rui = getRenderedScreen query 0 0
 
             let expected =
                 "query>0-------->1-------->2--------> match and [0]"
@@ -308,30 +327,8 @@ module ``Buff writeScreen`` =
 
         [<Fact>]
         let ``should render head 30 of query when cursor 30.`` ()   =
-            let rui = new MockRawUI(50,25)
-            use buff = new Buff(rui,  (fun _ -> Seq.empty))
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
-            let state: InternalState =
-                { QueryState =
-                      { Query = query
-                        Cursor = 0
-                        WindowBeginningX = 0
-                        WindowWidth = 30 }
-                  QueryCondition =
-                      { Matcher = MATCH
-                        Operator = AND
-                        CaseSensitive = false
-                        Invert = false }
-                  PropertySearch = NoSearch
-                  Notification = ""
-                  SuppressProperties = false
-                  Properties = []
-                  Prompt = "query"
-                  FilteredCount = 0
-                  ConsoleWidth = rui.width
-                  Refresh = Required}
-
-            buff.writeTopDown state  [] <| Ok []
+            let rui = getRenderedScreen query 30 0
 
             let expected =
                 "query>0-------->1-------->2--------> match and [0]"
@@ -342,30 +339,8 @@ module ``Buff writeScreen`` =
 
         [<Fact>]
         let ``should render mid 30 of query when cursor 45.`` ()   =
-            let rui = new MockRawUI(50,25)
-            use buff = new Buff(rui,  (fun _ -> Seq.empty))
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
-            let state: InternalState =
-                { QueryState =
-                      { Query = query
-                        Cursor = 45
-                        WindowBeginningX = 15
-                        WindowWidth = 30 }
-                  QueryCondition =
-                      { Matcher = MATCH
-                        Operator = AND
-                        CaseSensitive = false
-                        Invert = false }
-                  PropertySearch = NoSearch
-                  Notification = ""
-                  SuppressProperties = false
-                  Properties = []
-                  Prompt = "query"
-                  FilteredCount = 0
-                  ConsoleWidth = rui.width
-                  Refresh = Required}
-
-            buff.writeTopDown state  [] <| Ok []
+            let rui = getRenderedScreen query 45 15
 
             let expected =
                 "query>---->2-------->3-------->4---- match and [0]"
@@ -375,31 +350,9 @@ module ``Buff writeScreen`` =
             |> shouldEqual expected
 
         [<Fact>]
-        let ``should render tail 30 of query when cursor 90.`` ()   =
-            let rui = new MockRawUI(50,25)
-            use buff = new Buff(rui,  (fun _ -> Seq.empty))
+        let ``should render tail 30 of query when cursor 100.`` ()   =
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
-            let state: InternalState =
-                { QueryState =
-                      { Query = query
-                        Cursor = 90
-                        WindowBeginningX = 70
-                        WindowWidth = 30 }
-                  QueryCondition =
-                      { Matcher = MATCH
-                        Operator = AND
-                        CaseSensitive = false
-                        Invert = false }
-                  PropertySearch = NoSearch
-                  Notification = ""
-                  SuppressProperties = false
-                  Properties = []
-                  Prompt = "query"
-                  FilteredCount = 0
-                  ConsoleWidth = rui.width
-                  Refresh = Required}
-
-            buff.writeTopDown state  [] <| Ok []
+            let rui = getRenderedScreen query 100 70
 
             let expected =
                 "query>7-------->8-------->9--------> match and [0]"
@@ -407,3 +360,68 @@ module ``Buff writeScreen`` =
 
             rui.screen
             |> shouldEqual expected
+
+        let intToChar i = Char.ConvertFromUtf32(i + Char.ConvertToUtf32("０",0))
+
+        [<Fact>]
+        let ``should render head 30 of query when cursor 0 with full-width characters.`` ()   =
+            let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
+            let rui = getRenderedScreen query 0 0
+
+            let expected =
+                "query>０------->１------->２-------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen
+            |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render head 30 of query when cursor 30 with full-width characters.`` ()   =
+            let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
+            let rui = getRenderedScreen query 27 0
+
+            let expected =
+                "query>０------->１------->２-------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen
+            |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render mid 30 of query when cursor 45 with full-width characters.`` ()   =
+            let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
+            let rui = getRenderedScreen query 40 13
+
+            let expected =
+                "query>---->２------->３------->４--- match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen
+            |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render tail 30 of query when cursor 100 with full-width characters.`` ()   =
+            let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
+            let rui = getRenderedScreen query 90 63
+
+            let expected =
+                "query>７------->８------->９-------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen
+            |> shouldEqual expected
+
+module ``Buff getConsoleWidth`` =
+    [<Fact>]
+    let ``should render top down.`` ()   =
+        let rui = new MockRawUI(60,30)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty))
+        buff.getConsoleWidth() |> shouldEqual 60
+
+module ``Buff getKey`` =
+    [<Fact>]
+    let ``should render top down.`` ()   =
+        let rui = new MockRawUI()
+        use buff = new Buff(rui,  (fun _ -> Seq.empty))
+        let expected = [new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)]
+        buff.getKey() |> shouldEqual expected

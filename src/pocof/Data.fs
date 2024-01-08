@@ -51,7 +51,6 @@ module LanguageExtension =
         static member equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
         static member trim(s: string) = s.Trim()
         static member replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
-        static member padRight (totalWidth: int) (s: string) = s.PadRight(totalWidth)
 
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
@@ -187,27 +186,14 @@ module PocofData =
     type QueryState =
         { Query: string
           Cursor: int
-          WindowBeginningX: int
+          WindowBeginningCursor: int
           WindowWidth: int }
 
     module QueryState =
-        let adjustCursor (state: QueryState) =
-            let wx =
-                match state.Cursor - state.WindowBeginningX with
-                | bx when bx < 0 -> state.WindowBeginningX + bx
-                | bx when bx > state.WindowWidth -> state.Cursor - state.WindowWidth
-                | _ -> state.WindowBeginningX
-
-#if DEBUG
-            Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningX}' WindowWidth '{state.WindowWidth}'" ]
-#endif
-            { state with WindowBeginningX = wx }
-
         let addQuery (state: QueryState) (query: string) =
             { state with
                 Query = state.Query.Insert(state.Cursor, query)
                 Cursor = state.Cursor + String.length query }
-            |> adjustCursor
 
         let moveCursor (state: QueryState) (step: int) =
             let x =
@@ -216,10 +202,9 @@ module PocofData =
                 | x when x > String.length state.Query -> String.length state.Query
                 | _ -> state.Cursor + step
 
-            { state with Cursor = x } |> adjustCursor
+            { state with Cursor = x }
 
-        let setCursor (state: QueryState) (x: int) =
-            { state with Cursor = x } |> adjustCursor
+        let setCursor (state: QueryState) (x: int) = { state with Cursor = x }
 
         let backspaceQuery (state: QueryState) (size: int) =
             let cursor, size =
@@ -239,14 +224,11 @@ module PocofData =
             { state with
                 Query = state.Query.Remove(i, c)
                 Cursor = i }
-            |> adjustCursor
 
         let deleteQuery (state: QueryState) (size: int) =
             match String.length state.Query - state.Cursor with
             | x when x < 0 -> { state with Cursor = String.length state.Query }
-            | _ ->
-                { state with Query = state.Query.Remove(state.Cursor, size) }
-                |> adjustCursor
+            | _ -> { state with Query = state.Query.Remove(state.Cursor, size) }
 
         let getCurrentProperty (state: QueryState) =
             let s =
@@ -317,9 +299,9 @@ module PocofData =
     module InternalState =
         let private anchor = ">"
 
-        let private prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
+        let prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
 
-        let private queryInfo (state: InternalState) =
+        let queryInfo (state: InternalState) =
             $" %O{state.QueryCondition} [%d{state.FilteredCount}]"
 
         let getWindowWidth (state: InternalState) =
@@ -334,29 +316,10 @@ module PocofData =
             - String.length left
             - String.length right
 
-        let info (state: InternalState) =
-            let left = prompt state
-            let right = queryInfo state
-            let l = getWindowWidth state
-
-            let q =
-                // TODO: should use RawUI.LengthInBufferCells instead of String.length for supporting full-width characters.
-                match String.length state.QueryState.Query with
-                | ql when ql < l -> ql
-                | _ -> state.QueryState.WindowBeginningX + l
-                |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningX .. ql - 1]
-                |> String.padRight l
-
-#if DEBUG
-            Logger.logFile [ $"q '{String.length q}' WindowBeginningX '{state.QueryState.WindowBeginningX}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
-#endif
-
-            left + q + right
-
         let getX (state: InternalState) =
             (prompt state |> String.length)
             + state.QueryState.Cursor
-            - state.QueryState.WindowBeginningX
+            - state.QueryState.WindowBeginningCursor
 
         let updateQueryState (qs: QueryState) (state: InternalState) =
             { state with
@@ -372,12 +335,8 @@ module PocofData =
             | true -> refresh state
             | _ -> noRefresh state
 
-        let adjustCursor (state: InternalState) =
-            { state with QueryState = QueryState.adjustCursor state.QueryState }
-
         let updateWindowWidth (state: InternalState) =
             { state with InternalState.QueryState.WindowWidth = getWindowWidth state }
-            |> adjustCursor
 
         let rotateMatcher (state: InternalState) =
             { state with
@@ -436,7 +395,7 @@ module PocofData =
         let qs =
             { Query = p.Query
               Cursor = String.length p.Query
-              WindowBeginningX = 0 // NOTE: adjust later.
+              WindowBeginningCursor = 0 // NOTE: adjust later.
               WindowWidth = p.ConsoleWidth }
 
         let s =
