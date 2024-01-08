@@ -187,7 +187,4 @@ module PocofScreen =
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
-    let init (rui: PSHostRawUserInterface) (invoke: obj list -> string seq) =
-        let r = new RawUI(rui)
-        let buf = new Buff(r, invoke)
-        buf
+    let init (rui: unit -> IRawUI) (invoke: obj list -> string seq) = new Buff(rui (), invoke)

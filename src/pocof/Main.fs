@@ -1,7 +1,6 @@
 namespace pocof
 
 open System
-open System.Management.Automation.Host
 
 open PocofData
 open PocofHandle
@@ -111,7 +110,7 @@ module Pocof =
         (conf: InternalConfig)
         (state: InternalState)
         (pos: Position)
-        (rui: PSHostRawUserInterface)
+        (rui: unit -> PocofScreen.IRawUI)
         (invoke: obj list -> seq<string>)
         (input: Entry list)
         =

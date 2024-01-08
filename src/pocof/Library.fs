@@ -116,5 +116,8 @@ type SelectPocofCommand() =
                   ConsoleWidth = __.Host.UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.Host.UI.RawUI.WindowSize.Height}
 
-        Pocof.interact conf state pos __.Host.UI.RawUI __.invoke <| List.rev input
+        Pocof.interact conf state pos
+        <| fun _ -> new PocofScreen.RawUI(__.Host.UI.RawUI)
+        <| __.invoke
+        <| List.rev input
         |> Seq.iter __.WriteObject
