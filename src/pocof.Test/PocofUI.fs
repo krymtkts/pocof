@@ -71,7 +71,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = rui.width }
+            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -85,6 +85,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 0
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         buff.writeTopDown state [] <| Ok []
 
@@ -101,7 +102,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = rui.width }
+            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = LIKE
                   Operator = OR
@@ -115,6 +116,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 0
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         buff.writeBottomUp state [] <| Ok []
 
@@ -132,7 +134,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningCursor = 0; WindowWidth = rui.width }
+            { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -146,6 +148,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 0
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         let state = state |> InternalState.prepareNotification
 
@@ -165,7 +168,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui,  (fun _ -> Seq.empty))
 
         let state: InternalState =
-            { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningCursor = 0; WindowWidth = rui.width }
+            { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -179,6 +182,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 0
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         buff.writeTopDown state [] <| Error "Property not found"
 
@@ -199,7 +203,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, formatTableOutString)
 
         let state: InternalState =
-            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = rui.width }
+            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -213,6 +217,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 10
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         let entries = [1..10] |> List.map (fun i ->
             DictionaryEntry("Number", i) |> Dict
@@ -240,7 +245,7 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, formatTableOutString)
 
         let state: InternalState =
-            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = rui.width }
+            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
                 { Matcher = MATCH
                   Operator = AND
@@ -254,6 +259,7 @@ module ``Buff writeScreen`` =
               FilteredCount = 100
               ConsoleWidth = rui.width
               Refresh = Required}
+              |> InternalState.updateWindowWidth
 
         let entries = [1..100] |> List.map (fun i ->
             DictionaryEntry("Number", i) |> Dict
