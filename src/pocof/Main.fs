@@ -13,22 +13,50 @@ module Pocof =
           propMap: Map<string, string>
           writeScreen: PocofScreen.WriteScreen
           getKey: unit -> ConsoleKeyInfo list
-          getConsoleWidth: unit -> int }
+          getConsoleWidth: unit -> int
+          getLengthInBufferCells: string -> int }
 
-    let calculateWindowBeginningCursor (state: QueryState) =
-        let wx =
-            match state.Cursor - state.WindowBeginningCursor with
-            | bx when bx < 0 -> state.WindowBeginningCursor + bx
-            | bx when bx > state.WindowWidth -> state.Cursor - state.WindowWidth
-            | _ -> state.WindowBeginningCursor
+    [<TailCall>]
+    let rec searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
+        let l =
+            getLengthInBufferCells state.Query.[state.WindowBeginningCursor .. state.Cursor - 1]
+
+        match l with
+        | bx when bx <= state.WindowWidth ->
+#if DEBUG
+            Logger.logFile [ $"bx '{bx}' WindowWidth '{state.WindowWidth}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}'" ]
+#endif
+            state.WindowBeginningCursor
+        | _ ->
+            searchBeginningCursorRecursive
+                getLengthInBufferCells
+                { state with WindowBeginningCursor = state.WindowBeginningCursor + 1 }
+
+    let calculateWindowBeginningCursor (getLengthInBufferCells: string -> int) (state: QueryState) =
+#if DEBUG
+        Logger.logFile [ $"Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+#endif
+        match state.WindowBeginningCursor > state.Cursor with
+        | true -> state.Cursor
+        | _ ->
+            let wx =
+                let l =
+                    getLengthInBufferCells state.Query.[state.WindowBeginningCursor .. state.Cursor]
+
+                match l with
+                | bx when bx < 0 -> state.WindowBeginningCursor + bx
+                | bx when bx > state.WindowWidth -> searchBeginningCursorRecursive getLengthInBufferCells state
+                | _ -> state.WindowBeginningCursor
 
 #if DEBUG
-        Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+            Logger.logFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
 #endif
-        wx
+            wx
 
-    let adjustQueryWindow (state: InternalState) =
-        { state with InternalState.QueryState.WindowBeginningCursor = calculateWindowBeginningCursor state.QueryState }
+    let adjustQueryWindow (args: LoopFixedArguments) (state: InternalState) =
+        { state with
+            InternalState.QueryState.WindowBeginningCursor =
+                calculateWindowBeginningCursor args.getLengthInBufferCells state.QueryState }
 
     let queryAndRender
         (args: LoopFixedArguments)
@@ -45,8 +73,8 @@ module Pocof =
 
             let state =
                 state
-                |> adjustQueryWindow
                 |> InternalState.updateFilteredCount (List.length results)
+                |> adjustQueryWindow args
 
             args.writeScreen state results
             <| match state.SuppressProperties with
@@ -112,6 +140,7 @@ module Pocof =
                     | TopDown -> buff.writeTopDown
                     | BottomUp -> buff.writeBottomUp
                   getKey = buff.getKey
-                  getConsoleWidth = buff.getConsoleWidth }
+                  getConsoleWidth = buff.getConsoleWidth
+                  getLengthInBufferCells = buff.GetLengthInBufferCells }
 
             loop args input state pos context

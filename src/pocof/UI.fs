@@ -70,22 +70,26 @@ module PocofScreen =
         let invoke: obj list -> string seq = i
 
         let info (state: PocofData.InternalState) =
-            let l = PocofData.InternalState.getWindowWidth state
-            let cl = rui.GetLengthInBufferCells state.QueryState.Query
-            let ql = String.length state.QueryState.Query
+            let rec getQuery (q: string) =
+                let cl = rui.GetLengthInBufferCells q
+
+                match cl <= state.QueryState.WindowWidth with
+                | true ->
+                    q
+                    + String.replicate (state.QueryState.WindowWidth - cl) " "
+                | _ ->
+                    let ql = String.length q - 2
+                    let q = q.[..ql]
+                    getQuery q
 
             let q =
-                match cl with
-                | ql when ql < l -> ql
-                | _ ->
-                    state.QueryState.WindowBeginningCursor + l
-                    - (cl - ql)
-                |> fun ql -> state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. ql - 1]
-                |> String.padRight (l - (cl - ql))
+                state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. state.QueryState.WindowWidth
+                                                                                  + state.QueryState.WindowBeginningCursor]
 
 #if DEBUG
-            Logger.logFile [ $"q '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{l}' ConsoleWidth '{state.ConsoleWidth}'" ]
+            Logger.logFile [ $"ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
+            let q = getQuery q
 
             [ PocofData.InternalState.prompt state
               q
@@ -172,11 +176,13 @@ module PocofScreen =
 
         member __.writeTopDown: WriteScreen = __.writeScreen PocofData.TopDown
         member __.writeBottomUp: WriteScreen = __.writeScreen PocofData.BottomUp
-        member __.getConsoleWidth() = rui.GetWindowWidth()
+        member __.getConsoleWidth = rui.GetWindowWidth
 
         member __.getKey() =
             Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
             |> Async.RunSynchronously
+
+        member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
     let init (rui: PSHostRawUserInterface) (invoke: obj list -> string seq) =
         let r = new RawUI(rui)

@@ -71,7 +71,8 @@ module loop =
               propMap = propMap
               writeScreen = writeScreen
               getKey = m.getKey
-              getConsoleWidth = fun () -> 0 }
+              getConsoleWidth = fun () -> 60
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -95,7 +96,8 @@ module loop =
               propMap = propMap
               writeScreen = writeScreen
               getKey = m.getKey
-              getConsoleWidth = fun () -> 0 }
+              getConsoleWidth = fun () -> 60
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 0
@@ -116,7 +118,8 @@ module loop =
               propMap = propMap
               writeScreen = writeScreen
               getKey = m.getKey
-              getConsoleWidth = fun () -> 0 }
+              getConsoleWidth = fun () -> 60
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -144,7 +147,8 @@ module loop =
               propMap = propMap
               writeScreen = writeScreen
               getKey = m.getKey
-              getConsoleWidth = fun () -> 0 }
+              getConsoleWidth = fun () -> 60
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 2
@@ -175,7 +179,8 @@ module loop =
               getConsoleWidth =
                 fun () ->
                     rui.x <- 80
-                    80 }
+                    80
+              getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 1
