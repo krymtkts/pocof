@@ -410,3 +410,18 @@ module ``Buff writeScreen`` =
 
             rui.screen
             |> shouldEqual expected
+
+module ``Buff getConsoleWidth`` =
+    [<Fact>]
+    let ``should render top down.`` ()   =
+        let rui = new MockRawUI(60,30)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty))
+        buff.getConsoleWidth() |> shouldEqual 60
+
+module ``Buff getKey`` =
+    [<Fact>]
+    let ``should render top down.`` ()   =
+        let rui = new MockRawUI()
+        use buff = new Buff(rui,  (fun _ -> Seq.empty))
+        let expected = [new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)]
+        buff.getKey() |> shouldEqual expected
