@@ -178,7 +178,7 @@ module loop =
               getKey = m.getKey
               getConsoleWidth =
                 fun () ->
-                    rui.x <- 80
+                    rui.width <- 80
                     80
               getLengthInBufferCells = String.length }
 

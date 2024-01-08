@@ -87,7 +87,7 @@ module PocofScreen =
                                                                                   + state.QueryState.WindowBeginningCursor]
 
 #if DEBUG
-            Logger.logFile [ $"ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+            Logger.logFile [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
             let q = getQuery q
 
@@ -108,7 +108,11 @@ module PocofScreen =
             member __.Dispose() = (rui :> IDisposable).Dispose()
 
         member private __.writeScreenLine (height: int) (line: string) =
-            line.PadRight(rui.GetWindowWidth())
+            match (rui.GetWindowWidth()
+                   - __.GetLengthInBufferCells line)
+                with
+            | x when x > 0 -> line + String.replicate x " "
+            | _ -> line
             |> rui.Write 0 height
 
         member __.writeScreen
@@ -158,8 +162,7 @@ module PocofScreen =
                     []
 
 #if DEBUG
-            Logger.logFile [ "out length"
-                             $"{Seq.length out}" ]
+            Logger.logFile [ $"out length '{Seq.length out}'" ]
 #endif
 
             seq { 0..h }
