@@ -7,6 +7,11 @@ open pocof.Pocof
 open pocof.PocofData
 open pocof.PocofScreen
 open PocofUI
+open System.Management.Automation
+
+let toObj x = x |> (PSObject.AsPSObject >> Obj)
+
+let mapToObj x = x |> List.map toObj
 
 module calculateWindowBeginningCursor =
     [<Fact>]
@@ -55,8 +60,6 @@ module calculateWindowBeginningCursor =
         actual |> shouldEqual 0
 
 module loop =
-    open System.Management.Automation
-
     let initState () : InternalState =
         { QueryState =
             { Query = ""
@@ -83,8 +86,6 @@ module loop =
     let pos = { Y = 0; Height = 0 } // NOTE: not used in this test.
 
     let propMap = Map.empty
-
-    let toObj = PSObject.AsPSObject >> Obj
 
     let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
 
@@ -242,7 +243,6 @@ module interact =
     ()
 
 module buildInput =
-    open System.Management.Automation
     open System.Collections
 
     let mapToObj x =
@@ -280,14 +280,56 @@ module buildInput =
               DictionaryEntry("a", 1) ]
             |> List.map Dict
 
-        let input =
+        let inputObject =
             let h = new OrderedHashtable()
             h.Add("a", 1)
             h.Add("b", 2)
             h.Add("c", 3)
             [| h |> PSObject.AsPSObject |]
 
-        buildInput [] input |> shouldEqual expected
+        buildInput [] inputObject |> shouldEqual expected
 
 module buildProperties =
-    ()
+    [<Fact>]
+    let ``should return the set with added input properties.`` () =
+        let expected = set [ "a"; "b"; "c" ]
+        let input = set []
+
+        let inputObject =
+            let o = new PSObject()
+            o.Properties.Add(new PSNoteProperty("a", 1))
+            o.Properties.Add(new PSNoteProperty("b", 2))
+            o.Properties.Add(new PSNoteProperty("c", 3))
+            [| o |]
+
+        buildProperties input inputObject
+        |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return the set with added input properties without duplication.`` () =
+        let expected = set [ "a"; "b"; "c" ]
+        let input = set [ "a"; "c" ]
+
+        let inputObject =
+            let o = new PSObject()
+            o.Properties.Add(new PSNoteProperty("a", 1))
+            o.Properties.Add(new PSNoteProperty("b", 2))
+            o.Properties.Add(new PSNoteProperty("c", 3))
+            [| o |]
+
+        buildProperties input inputObject
+        |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return the set with added the keys of hashtable.`` () =
+        let expected = [ "Key"; "Value" ] |> Set.ofList
+
+        let input = set []
+
+        let inputObject =
+            let h = new OrderedHashtable()
+            h.Add("a", 1)
+            [| h |> PSObject.AsPSObject |]
+
+        buildProperties input inputObject
+        |> shouldEqual expected
