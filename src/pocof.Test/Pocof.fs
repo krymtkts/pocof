@@ -13,6 +13,50 @@ let toObj x = x |> (PSObject.AsPSObject >> Obj)
 
 let mapToObj x = x |> List.map toObj
 
+let initState () : InternalState =
+    { QueryState =
+        { Query = ""
+          Cursor = 0
+          WindowBeginningCursor = 0
+          WindowWidth = 0 }
+      QueryCondition =
+        { Matcher = MATCH
+          Operator = OR
+          CaseSensitive = false
+          Invert = false }
+      PropertySearch = NoSearch
+      Notification = ""
+      SuppressProperties = false
+      Properties = [ "Name"; "LastModified"; "Path" ]
+      Prompt = "query"
+      FilteredCount = 0
+      ConsoleWidth = 60
+      Refresh = Required }
+
+let state = initState ()
+let writeScreen _ _ _ = ()
+
+let pos = { Y = 0; Height = 0 } // NOTE: not used in this test.
+
+let propMap = Map.empty
+
+let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
+
+type MockGetKey(keys: ConsoleKeyInfo list list) =
+    let mutable keys = keys
+
+    member __.getKey() =
+        match keys with
+        | [] -> failwith "no keys remains. probably test is broken."
+        | x :: xs ->
+            keys <- xs
+            x
+
+    member __.check() =
+        match keys with
+        | [] -> ()
+        | _ -> failwith "keys remains. probably test is broken."
+
 module calculateWindowBeginningCursor =
     [<Fact>]
     let ``should return 0.`` () =
@@ -60,50 +104,6 @@ module calculateWindowBeginningCursor =
         actual |> shouldEqual 0
 
 module loop =
-    let initState () : InternalState =
-        { QueryState =
-            { Query = ""
-              Cursor = 0
-              WindowBeginningCursor = 0
-              WindowWidth = 0 }
-          QueryCondition =
-            { Matcher = MATCH
-              Operator = OR
-              CaseSensitive = false
-              Invert = false }
-          PropertySearch = NoSearch
-          Notification = ""
-          SuppressProperties = false
-          Properties = [ "Name"; "LastModified"; "Path" ]
-          Prompt = "query"
-          FilteredCount = 0
-          ConsoleWidth = 60
-          Refresh = Required }
-
-    let state = initState ()
-    let writeScreen _ _ _ = ()
-
-    let pos = { Y = 0; Height = 0 } // NOTE: not used in this test.
-
-    let propMap = Map.empty
-
-    let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
-
-    type MockGetKey(keys: ConsoleKeyInfo list list) =
-        let mutable keys = keys
-
-        member __.getKey() =
-            match keys with
-            | [] -> failwith "no keys remains. probably test is broken."
-            | x :: xs ->
-                keys <- xs
-                x
-
-        member __.check() =
-            match keys with
-            | [] -> ()
-            | _ -> failwith "keys remains. probably test is broken."
-
     [<Fact>]
     let ``should return result when finishing.`` () =
         let input = results |> List.map toObj
@@ -240,7 +240,80 @@ module loop =
         rui.screen |> shouldEqual expected
 
 module interact =
-    ()
+    type MockGetKey(keys: ConsoleKeyInfo list list) =
+        let mutable keys = keys
+
+        member __.getKey() =
+            match keys with
+            | [] -> failwith "no keys remains. probably test is broken."
+            | x :: xs ->
+                keys <- xs
+                x
+
+        member __.check() =
+            match keys with
+            | [] -> ()
+            | _ -> failwith "keys remains. probably test is broken."
+
+    [<Fact>]
+    let ``should return result with NonInteractive mode.`` () =
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = TopDown
+              Keymaps = pocof.PocofAction.defaultKeymap }
+
+        let input = results |> List.map toObj
+        let pos = { Y = 0; Height = 0 }
+        let rui = new MockRawUI()
+
+        let actual = interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        actual |> List.length |> shouldEqual 5
+
+        let expected =
+            [ "a"; "b"; "c"; "d"; "e" ]
+            |> List.map (PSObject.AsPSObject >> box)
+
+        actual |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return result when interaction finished in Interactive mode and TopDown Layout.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = TopDown
+              Keymaps = pocof.PocofAction.defaultKeymap }
+
+        let input = results |> List.map toObj
+        let pos = { Y = 0; Height = 0 }
+        let rui = new MockRawUI()
+
+        let actual = interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        actual |> List.length |> shouldEqual 5
+
+        let expected =
+            [ "a"; "b"; "c"; "d"; "e" ]
+            |> List.map (PSObject.AsPSObject >> box)
+
+        actual |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return result when interaction finished in Interactive mode and BottomUp Layout.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = BottomUp
+              Keymaps = pocof.PocofAction.defaultKeymap }
+
+        let input = results |> List.map toObj
+        let pos = { Y = 0; Height = 0 }
+        let rui = new MockRawUI()
+
+        let actual = interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        actual |> List.length |> shouldEqual 5
+
+        let expected =
+            [ "a"; "b"; "c"; "d"; "e" ]
+            |> List.map (PSObject.AsPSObject >> box)
+
+        actual |> shouldEqual expected
 
 module buildInput =
     open System.Collections
