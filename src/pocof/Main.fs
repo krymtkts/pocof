@@ -5,7 +5,22 @@ open System
 open PocofData
 open PocofHandle
 
+open System.Management.Automation
+open System.Collections
+
 module Pocof =
+    type Entry = PocofData.Entry
+    type KeyPattern = PocofData.KeyPattern
+    type Action = PocofData.Action
+    type Matcher = PocofData.Matcher
+    type Operator = PocofData.Operator
+    type Layout = PocofData.Layout
+
+    type RawUI = PocofScreen.RawUI
+
+    let convertKeymaps = PocofAction.convertKeymaps
+    let initConfig = PocofData.initConfig
+
     type LoopFixedArguments =
         { keymaps: Map<KeyPattern, Action>
           input: Entry list
@@ -16,7 +31,7 @@ module Pocof =
           getLengthInBufferCells: string -> int }
 
     [<TailCall>]
-    let rec searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
+    let rec private searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
         let l =
             getLengthInBufferCells state.Query.[state.WindowBeginningCursor .. state.Cursor - 1]
 
@@ -142,3 +157,32 @@ module Pocof =
                   getLengthInBufferCells = buff.GetLengthInBufferCells }
 
             loop args input state pos context
+
+    let buildInput acc (input: PSObject array) =
+        input
+        |> List.ofArray
+        |> List.fold
+            (fun acc o ->
+                match o.BaseObject with
+                | :? IDictionary as dct ->
+                    Seq.cast<DictionaryEntry> dct
+                    |> Seq.fold (fun a d -> Dict d :: a) acc
+                | _ -> Obj(PSObject o) :: acc)
+            acc
+
+    let buildProperties acc (input: PSObject array) =
+        Set.union acc
+        <| (input
+        |> Seq.collect (fun o ->
+            match o.BaseObject with
+            | :? IDictionary as dct ->
+                match Seq.cast<DictionaryEntry> dct with
+                | s when Seq.isEmpty s -> Seq.empty
+                | s ->
+                    s
+                    |> Seq.head
+                    |> PSObject.AsPSObject
+                    |> _.Properties
+            | _ -> o.Properties)
+        |> Seq.map _.Name
+        |> Set.ofSeq)
