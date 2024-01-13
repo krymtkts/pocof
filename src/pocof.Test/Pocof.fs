@@ -237,3 +237,57 @@ module loop =
             :: (generateLine 80 (rui.height - 1))
 
         rui.screen |> shouldEqual expected
+
+module interact =
+    ()
+
+module buildInput =
+    open System.Management.Automation
+    open System.Collections
+
+    let mapToObj x =
+        x |> List.map (PSObject.AsPSObject >> Obj)
+
+    [<Fact>]
+    let ``should return the list with added Obj`` () =
+        let expected = [ 3; 2; 1 ] |> mapToObj
+
+        buildInput
+            []
+            ([ 1; 2; 3 ]
+             |> List.map PSObject.AsPSObject
+             |> Array.ofList)
+        |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return the list with added Obj to head.`` () =
+        let expected = [ 3; 2; 1; 0 ] |> mapToObj
+
+        let input = [ 0 ] |> mapToObj
+
+        buildInput
+            input
+            ([ 1; 2; 3 ]
+             |> List.map PSObject.AsPSObject
+             |> Array.ofList)
+        |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return the list with added Dict`` () =
+        let expected =
+            [ DictionaryEntry("c", 3)
+              DictionaryEntry("b", 2)
+              DictionaryEntry("a", 1) ]
+            |> List.map Dict
+
+        let input =
+            let h = new OrderedHashtable()
+            h.Add("a", 1)
+            h.Add("b", 2)
+            h.Add("c", 3)
+            [| h |> PSObject.AsPSObject |]
+
+        buildInput [] input |> shouldEqual expected
+
+module buildProperties =
+    ()
