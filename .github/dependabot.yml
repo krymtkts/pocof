@@ -41,6 +41,10 @@ updates:
         exclude-patterns:
           - "PowerShellStandard.Library"
           - "Microsoft.PowerShell.SDK"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
     ignore:
       - dependency-name: "PowerShellStandard.Library"
         update-types:
