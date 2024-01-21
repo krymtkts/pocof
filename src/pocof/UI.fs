@@ -17,19 +17,14 @@ module PocofScreen =
     type RawUI(rui) =
         let rui: PSHostRawUserInterface = rui
 
-        // TODO: replace backup/restore buffer contents with scrolling contents for Linux support.
-        let buf: BufferCell [,] option =
-            try
-                rui.GetBufferContents(Rectangle(0, 0, rui.WindowSize.Width, rui.CursorPosition.Y))
-                |> Some
-            with // NOTE: when running on Linux, this exception is thrown.
-            | :? NotImplementedException -> None
-
         let ctrlCAsInput: bool = Console.TreatControlCAsInput
 
         do
             Console.TreatControlCAsInput <- true
-            Console.Clear()
+
+            // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
+            String.replicate (rui.WindowSize.Height - 1) "\n"
+            |> Console.Write
 
         interface IRawUI with
             member __.SetCursorPosition (x: int) (y: int) = rui.CursorPosition <- Coordinates(x, y)
@@ -49,17 +44,16 @@ module PocofScreen =
         interface IDisposable with
             member __.Dispose() =
                 Console.TreatControlCAsInput <- ctrlCAsInput
-                Console.Clear()
-                let origin = Coordinates(0, 0)
 
-                let pos =
-                    match buf with
-                    | Some buf ->
-                        rui.SetBufferContents(origin, buf)
-                        buf.GetUpperBound 0
-                    | None -> 0
+                // clear contests.
+                (__ :> IRawUI).SetCursorPosition 0 0
 
-                (__ :> IRawUI).SetCursorPosition 0 pos
+                String.replicate rui.WindowSize.Width " "
+                |> List.replicate (rui.WindowSize.Height - 1)
+                |> String.concat "\n"
+                |> Console.Write
+
+                (__ :> IRawUI).SetCursorPosition 0 0
 
     let private note = "note>"
 
