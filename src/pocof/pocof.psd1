@@ -15,7 +15,10 @@
     ModuleVersion = '0.8.0'
 
     # Supported PSEditions
-    # CompatiblePSEditions = @()
+    CompatiblePSEditions = @(
+        'Core',
+        'Desktop'
+    )
 
     # ID used to uniquely identify this module
     GUID = '8941e7b0-c999-4d44-97c2-49a6acc29b10'
@@ -95,7 +98,7 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = @('productivity', 'filter', 'pipeline')
+            Tags = @('productivity', 'filter', 'pipeline', 'Windows', 'Linux', 'MacOS')
 
             # A URL to the license for this module.
             LicenseUri = 'https://raw.githubusercontent.com/krymtkts/pocof/main/LICENSE'
