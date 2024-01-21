@@ -63,19 +63,18 @@ module PocofScreen =
         let rui: IRawUI = r
         let invoke: obj list -> string seq = i
 
+        [<TailCall>]
+        let rec getQuery (w: int) (q: string) =
+            let cl = rui.GetLengthInBufferCells q
+
+            match cl <= w with
+            | true -> q + String.replicate (w - cl) " "
+            | _ ->
+                let ql = String.length q - 2
+                let q = q.[..ql]
+                getQuery w q
+
         let info (state: PocofData.InternalState) =
-            let rec getQuery (q: string) =
-                let cl = rui.GetLengthInBufferCells q
-
-                match cl <= state.QueryState.WindowWidth with
-                | true ->
-                    q
-                    + String.replicate (state.QueryState.WindowWidth - cl) " "
-                | _ ->
-                    let ql = String.length q - 2
-                    let q = q.[..ql]
-                    getQuery q
-
             let q =
                 state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. state.QueryState.WindowWidth
                                                                                   + state.QueryState.WindowBeginningCursor]
@@ -83,7 +82,7 @@ module PocofScreen =
 #if DEBUG
             Logger.logFile [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
-            let q = getQuery q
+            let q = getQuery state.QueryState.WindowWidth q
 
             [ PocofData.InternalState.prompt state
               q
