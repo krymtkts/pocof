@@ -64,25 +64,38 @@ module PocofScreen =
         let invoke: obj list -> string seq = i
 
         [<TailCall>]
-        let rec getQuery (w: int) (q: string) =
+        let rec getQuery (w: int) (q: string) (l: int) =
             let cl = rui.GetLengthInBufferCells q
 
-            match cl <= w with
-            | true -> q + String.replicate (w - cl) " "
-            | _ ->
-                let ql = String.length q - 2
-                let q = q.[..ql]
-                getQuery w q
+            match w - cl with
+            | x when x = 0 || x = 1 -> q
+            | x ->
+                let l = l + (x + Math.Sign(x)) / 2
+                let q = q.[..l]
+#if DEBUG
+                Logger.logFile [ $"l '{l}'" ]
+#endif
+                getQuery w q l
 
         let info (state: PocofData.InternalState) =
             let q =
-                state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. state.QueryState.WindowWidth
-                                                                                  + state.QueryState.WindowBeginningCursor]
+                let q =
+                    state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. state.QueryState.WindowWidth
+                                                                                      + state.QueryState.WindowBeginningCursor]
+
+                let l =
+                    match state.QueryState.WindowWidth - String.length q with
+                    | l when l > 0 -> l
+                    | _ -> 0
+
+                q + String.replicate l " "
 
 #if DEBUG
             Logger.logFile [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
-            let q = getQuery state.QueryState.WindowWidth q
+            let q =
+                getQuery state.QueryState.WindowWidth q
+                <| String.length q
 
             [ PocofData.InternalState.prompt state
               q
