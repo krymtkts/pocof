@@ -42,21 +42,6 @@ let propMap = Map.empty
 
 let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
 
-type MockGetKey(keys: ConsoleKeyInfo list list) =
-    let mutable keys = keys
-
-    member __.getKey() =
-        match keys with
-        | [] -> failwith "no keys remains. probably test is broken."
-        | x :: xs ->
-            keys <- xs
-            x
-
-    member __.check() =
-        match keys with
-        | [] -> ()
-        | _ -> failwith "keys remains. probably test is broken."
-
 module calculateWindowBeginningCursor =
     [<Fact>]
     let ``should return 0.`` () =
@@ -104,21 +89,22 @@ module calculateWindowBeginningCursor =
         actual |> shouldEqual 0
 
 module loop =
+
     [<Fact>]
     let ``should return result when finishing.`` () =
         let input = results |> List.map toObj
         let state, context = pocof.PocofQuery.prepare state
 
-        let m =
-            MockGetKey [ [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ] ]
+        let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ])
+        use buff = new Buff(rui, (fun _ -> Seq.empty))
 
         let args =
             { keymaps = pocof.PocofAction.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey
-              getConsoleWidth = fun () -> 60
+              getKey = buff.getKey
+              getConsoleWidth = buff.getConsoleWidth
               getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
@@ -126,6 +112,8 @@ module loop =
 
         actual
         |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
+
+        rui.check ()
 
     [<Fact>]
     let ``shouldn't return result when canceling.`` () =
@@ -134,20 +122,21 @@ module loop =
         let state, context =
             pocof.PocofQuery.prepare { state with SuppressProperties = true }
 
-        let m =
-            MockGetKey [ [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false) ] ]
+        let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Escape ])
+        use buff = new Buff(rui, (fun _ -> Seq.empty))
 
         let args =
             { keymaps = pocof.PocofAction.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey
-              getConsoleWidth = fun () -> 60
+              getKey = buff.getKey
+              getConsoleWidth = buff.getConsoleWidth
               getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 0
+        rui.check ()
 
     [<Fact>]
     let ``should return result when finishing after noop.`` () =
@@ -155,17 +144,25 @@ module loop =
 
         let state, context = pocof.PocofQuery.prepare { state with Refresh = NotRequired }
 
-        let m =
-            MockGetKey [ [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, true, true, false) ]
-                         [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ] ]
+        let rui =
+            new MockRawUI(
+                60,
+                30,
+                [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, true, true, false)
+                  |> Some
+                  None
+                  MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
+            )
+
+        use buff = new Buff(rui, (fun _ -> Seq.empty))
 
         let args =
             { keymaps = pocof.PocofAction.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey
-              getConsoleWidth = fun () -> 60
+              getKey = buff.getKey
+              getConsoleWidth = buff.getConsoleWidth
               getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
@@ -174,34 +171,40 @@ module loop =
         actual
         |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
 
-        m.check ()
+        rui.check ()
 
     [<Fact>]
     let ``should return result when finishing with filter.`` () =
         let input = results |> List.map toObj
-
         let state, context = pocof.PocofQuery.prepare state
 
-        let m =
-            MockGetKey [ [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
-                           new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false)
-                           new ConsoleKeyInfo('d', ConsoleKey.D, false, false, false) ]
-                         [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ] ]
+        let rui =
+            new MockRawUI(
+                60,
+                30,
+                [ MockRawUI.consoleKey 'a' ConsoleKey.A
+                  MockRawUI.consoleKey ' ' ConsoleKey.Spacebar
+                  MockRawUI.consoleKey 'd' ConsoleKey.D
+                  None
+                  MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
+            )
+
+        use buff = new Buff(rui, (fun _ -> Seq.empty))
 
         let args =
             { keymaps = pocof.PocofAction.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = m.getKey
-              getConsoleWidth = fun () -> 60
+              getKey = buff.getKey
+              getConsoleWidth = buff.getConsoleWidth
               getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
         actual |> List.length |> shouldEqual 2
         actual.[0] = results.[0] |> shouldEqual true
         actual.[1] = results.[3] |> shouldEqual true
-        m.check ()
+        rui.check ()
 
     [<Fact>]
     let ``should update QueryState.WindowWidth based on ConsoleWidth.`` () =
@@ -210,11 +213,15 @@ module loop =
         let state, context =
             pocof.PocofQuery.prepare { state with SuppressProperties = true }
 
-        let m =
-            MockGetKey [ [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
-                         [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ] ]
+        let rui =
+            new MockRawUI(
+                60,
+                30,
+                [ MockRawUI.consoleKey 'a' ConsoleKey.A
+                  None
+                  MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
+            )
 
-        let rui = new MockRawUI(60, 30)
         use buff = new Buff(rui, (fun _ -> Seq.empty))
 
         let args =
@@ -222,7 +229,7 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = buff.writeTopDown
-              getKey = m.getKey
+              getKey = buff.getKey
               getConsoleWidth =
                 fun () ->
                     rui.width <- 80
@@ -230,6 +237,7 @@ module loop =
               getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
+        pocof.PocofDebug.Logger.logFile [ $"""actual length '{String.Join(",", actual)}'""" ]
         actual |> List.length |> shouldEqual 1
         actual.[0] = results.[0] |> shouldEqual true
 
@@ -238,6 +246,7 @@ module loop =
             :: (generateLine 80 (rui.height - 1))
 
         rui.screen |> shouldEqual expected
+        rui.check ()
 
 module interact =
     [<Fact>]

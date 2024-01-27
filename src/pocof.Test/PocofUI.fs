@@ -3,7 +3,6 @@ module PocofUI
 open Xunit
 open FsUnitTyped
 open System
-open pocof.LanguageExtension
 open pocof.PocofData
 open pocof.PocofQuery
 open pocof.PocofScreen
@@ -19,9 +18,11 @@ type MockRawUI =
     val mutable x: int
     val mutable y: int
     val mutable screen: string list
-
+    val mutable keys: ConsoleKeyInfo option list
     static xx = 50
     static yy = 30
+
+
     new() =
         // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
         { caAsInput = true
@@ -30,6 +31,7 @@ type MockRawUI =
           width = MockRawUI.xx
           height = MockRawUI.yy
           screen = generateLine  MockRawUI.xx MockRawUI.yy
+          keys = [MockRawUI.consoleKey '\000' ConsoleKey.Enter]
           }
     new(x:int, y:int) =
         // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
@@ -39,7 +41,19 @@ type MockRawUI =
           width = x
           height = y
           screen = generateLine x y
+          keys = [MockRawUI.consoleKey '\000' ConsoleKey.Enter]
           }
+
+    new(x:int, y:int, keys: ConsoleKeyInfo option list) =
+          // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
+          { caAsInput = true
+            x = x
+            y = y
+            width = x
+            height = y
+            screen = generateLine x y
+            keys = keys
+            }
 
     interface IRawUI with
         member __.SetCursorPosition (x: int) (y: int) =
@@ -52,8 +66,10 @@ type MockRawUI =
                 code >= 0xFF00 && code <= 0xFF60
 
             s |> Seq.cast<char> |> Seq.map (fun c -> if isFullWidth c then 2 else 1) |> Seq.sum
+
         member __.GetWindowWidth() = __.width
         member __.GetWindowHeight() = __.height
+
         member __.Write x y s =
             __.screen <- __.screen |>List.mapi (fun i ss ->
                 match i with
@@ -64,11 +80,38 @@ type MockRawUI =
                     match l <= __.width with
                     | true -> ss + String.replicate (__.width - l) " "
                     | _ -> ss)
-        member __.ReadKey(_) = new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)
-        member __.KeyAvailable() = false
+
+        member __.ReadKey(_) =
+            match __.keys with
+            | [] -> failwith "key sequence is empty. check your test key sequence."
+            | k::ks ->
+                match k with
+                | None -> failwith "key is none. check your test key sequence."
+                | Some k ->
+                    __.keys <- ks
+                    k
+
+        member __.KeyAvailable() =
+            match __.keys with
+            | [] -> false
+            | k::ks ->
+                match k with
+                | None ->
+                    __.keys <- ks
+                    false
+                | Some _ -> true
 
     interface IDisposable with
         member __.Dispose() = ()
+
+    static member consoleKey keyChar key =
+        new ConsoleKeyInfo(keyChar, key, false, false, false)
+        |> Some
+
+    member __.check() =
+        match __.keys with
+        | [] -> ()
+        | _ -> failwith "keys remains. probably test is broken."
 
 module ``Buff writeScreen`` =
     open System.Collections
