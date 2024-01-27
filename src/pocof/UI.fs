@@ -49,7 +49,7 @@ module PocofScreen =
                 (__ :> IRawUI).SetCursorPosition 0 0
 
                 String.replicate rui.WindowSize.Width " "
-                |> List.replicate (rui.WindowSize.Height - 1)
+                |> List.replicate rui.WindowSize.Height
                 |> String.concat "\n"
                 |> Console.Write
 
