@@ -237,7 +237,6 @@ module loop =
               getLengthInBufferCells = String.length }
 
         let actual = loop args input state pos context
-        pocof.PocofDebug.Logger.logFile [ $"""actual length '{String.Join(",", actual)}'""" ]
         actual |> List.length |> shouldEqual 1
         actual.[0] = results.[0] |> shouldEqual true
 
