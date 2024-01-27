@@ -126,7 +126,7 @@ module Pocof =
         (state: InternalState)
         (pos: Position)
         (rui: unit -> PocofScreen.IRawUI)
-        (invoke: obj list -> seq<string>)
+        (invoke: obj list -> string seq)
         (input: Entry list)
         =
 
@@ -160,8 +160,7 @@ module Pocof =
 
     let buildInput acc (input: PSObject array) =
         input
-        |> List.ofArray
-        |> List.fold
+        |> Seq.fold
             (fun acc o ->
                 match o.BaseObject with
                 | :? IDictionary as dct ->

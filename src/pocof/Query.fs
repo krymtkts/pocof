@@ -57,7 +57,7 @@ module PocofQuery =
         with
         | _ -> None
 
-    type TesterType<'a> = ('a -> bool) -> list<'a> -> bool
+    type TesterType<'a> = ('a -> bool) -> 'a list -> bool
 
     type QueryContext =
         { Queries: Query list
