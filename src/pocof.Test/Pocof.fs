@@ -240,21 +240,6 @@ module loop =
         rui.screen |> shouldEqual expected
 
 module interact =
-    type MockGetKey(keys: ConsoleKeyInfo list list) =
-        let mutable keys = keys
-
-        member __.getKey() =
-            match keys with
-            | [] -> failwith "no keys remains. probably test is broken."
-            | x :: xs ->
-                keys <- xs
-                x
-
-        member __.check() =
-            match keys with
-            | [] -> ()
-            | _ -> failwith "keys remains. probably test is broken."
-
     [<Fact>]
     let ``should return result with NonInteractive mode.`` () =
         let config: InternalConfig =
