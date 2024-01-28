@@ -28,13 +28,16 @@ Install-PSResource -Name pocof -Prerelease
 To learn how to write Cmdlet in F#.
 Also to add my own flavor to poco which I often use.
 
+## Cmdlet help
+
+See [`Select-Pocof.md`](https://github.com/krymtkts/pocof/blob/main/docs/Select-Pocof.md)
+
 ## Disclaimer
 
-Some features are not implemented yet.
-I have created issues for the planned features.
-
-I always use Windows. Linux has tested on Ubuntu on WSL. Mac has not tested because I don't have a Mac machine.
-If you encounter any bugs on Linux or Mac, please create an issue.
+- Some features are not implemented yet. I have created issues for these planned features.
+- Some objects cannot filter like PowerShell.
+- I mainly use Windows. I tested pocof in Linux on Ubuntu on WSL. I have not tested Mac as I do not have a Mac machine. If you encounter any bugs depends on Linux or Mac, please create an issue with details.
+- The help for some parameters output raw Markdown because PlatyPS cannot render table and bullet list to MAML.
 
 ## Publishing module
 
