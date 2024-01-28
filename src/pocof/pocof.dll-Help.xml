@@ -43,7 +43,35 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Keymaps</maml:name>
           <maml:description>
-            <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.</maml:para>
+            <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps. Default keymaps are following.</maml:para>
+            <maml:para></maml:para>
+            <maml:para>| Action                   | Keybinding             | Note                 |</maml:para>
+            <maml:para>| ------------------------ | ---------------------- | -------------------- |</maml:para>
+            <maml:para>| Cancel                   | `Escape`               |                      |</maml:para>
+            <maml:para>| Cancel                   | `Ctrl` + `C`           |                      |</maml:para>
+            <maml:para>| Finish                   | `Enter`                |                      |</maml:para>
+            <maml:para>| BackwardChar             | `LeftArrow`            |                      |</maml:para>
+            <maml:para>| ForwardChar              | `RightArrow`           |                      |</maml:para>
+            <maml:para>| BeginningOfLine          | `Home`                 |                      |</maml:para>
+            <maml:para>| EndOfLine                | `End`                  |                      |</maml:para>
+            <maml:para>| DeleteBackwardChar       | `Backspace`            |                      |</maml:para>
+            <maml:para>| DeleteForwardChar        | `Delete`               |                      |</maml:para>
+            <maml:para>| KillBeginningOfLine      | `Alt` + `U`            |                      |</maml:para>
+            <maml:para>| KillEndOfLine            | `Alt` + `K`            |                      |</maml:para>
+            <maml:para>| SelectBackwardChar       | `Shift` + `LeftArrow`  | Not implemented yet. |</maml:para>
+            <maml:para>| SelectForwardChar        | `Shift` + `RightArrow` | Not implemented yet. |</maml:para>
+            <maml:para>| SelectToBeginningOfLine  | `Shift` + `Home`       | Not implemented yet. |</maml:para>
+            <maml:para>| SelectToEndOfLine        | `Shift` + `End`        | Not implemented yet. |</maml:para>
+            <maml:para>| RotateMatcher            | `Alt` + `R`            |                      |</maml:para>
+            <maml:para>| RotateOperator           | `Alt` + `L`            |                      |</maml:para>
+            <maml:para>| ToggleCaseSensitive      | `Alt` + `C`            |                      |</maml:para>
+            <maml:para>| ToggleInvertFilter       | `Alt` + `I`            |                      |</maml:para>
+            <maml:para>| ToggleSuppressProperties | `Ctrl` + `Spacebar`    |                      |</maml:para>
+            <maml:para>| SelectLineUp             | `UpArrow`              | Not implemented yet. |</maml:para>
+            <maml:para>| SelectLineDown           | `DownArrow`            | Not implemented yet. |</maml:para>
+            <maml:para>| ScrollPageUp             | `PageUp`               | Not implemented yet. |</maml:para>
+            <maml:para>| ScrollPageDown           | `PageDown`             | Not implemented yet. |</maml:para>
+            <maml:para>| CompleteProperty         | `Tab`                  |                      |</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
           <dev:type>
@@ -55,7 +83,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Layout</maml:name>
           <maml:description>
-            <maml:para>Select the layout: TopDown or BottomUp. Currently, only the TopDown layout is supported.</maml:para>
+            <maml:para>Select the layout: TopDown or BottomUp.</maml:para>
           </maml:description>
           <command:parameterValueGroup>
             <command:parameterValue required="false" command:variableLength="false">TopDown</command:parameterValue>
@@ -84,6 +112,12 @@
           <maml:name>Query</maml:name>
           <maml:description>
             <maml:para>Specifies the initial query string.</maml:para>
+            <maml:para>The syntax of the query is simple. You separate the values you want to filter with a space.</maml:para>
+            <maml:para>`Value1 Value2 Value3`</maml:para>
+            <maml:para>The property query is a combination of the property name and the filtering value. The property name in the query starts with `:` followed by a space, and then the filter value like following.</maml:para>
+            <maml:para>`:PropertyName FilteringValue`</maml:para>
+            <maml:para>You can also combine normal filtering with property queries.</maml:para>
+            <maml:para>`Value1 Value2 :PropertyName Value3`</maml:para>
           </maml:description>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
@@ -185,7 +219,35 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Keymaps</maml:name>
         <maml:description>
-          <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.</maml:para>
+          <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps. Default keymaps are following.</maml:para>
+          <maml:para></maml:para>
+          <maml:para>| Action                   | Keybinding             | Note                 |</maml:para>
+          <maml:para>| ------------------------ | ---------------------- | -------------------- |</maml:para>
+          <maml:para>| Cancel                   | `Escape`               |                      |</maml:para>
+          <maml:para>| Cancel                   | `Ctrl` + `C`           |                      |</maml:para>
+          <maml:para>| Finish                   | `Enter`                |                      |</maml:para>
+          <maml:para>| BackwardChar             | `LeftArrow`            |                      |</maml:para>
+          <maml:para>| ForwardChar              | `RightArrow`           |                      |</maml:para>
+          <maml:para>| BeginningOfLine          | `Home`                 |                      |</maml:para>
+          <maml:para>| EndOfLine                | `End`                  |                      |</maml:para>
+          <maml:para>| DeleteBackwardChar       | `Backspace`            |                      |</maml:para>
+          <maml:para>| DeleteForwardChar        | `Delete`               |                      |</maml:para>
+          <maml:para>| KillBeginningOfLine      | `Alt` + `U`            |                      |</maml:para>
+          <maml:para>| KillEndOfLine            | `Alt` + `K`            |                      |</maml:para>
+          <maml:para>| SelectBackwardChar       | `Shift` + `LeftArrow`  | Not implemented yet. |</maml:para>
+          <maml:para>| SelectForwardChar        | `Shift` + `RightArrow` | Not implemented yet. |</maml:para>
+          <maml:para>| SelectToBeginningOfLine  | `Shift` + `Home`       | Not implemented yet. |</maml:para>
+          <maml:para>| SelectToEndOfLine        | `Shift` + `End`        | Not implemented yet. |</maml:para>
+          <maml:para>| RotateMatcher            | `Alt` + `R`            |                      |</maml:para>
+          <maml:para>| RotateOperator           | `Alt` + `L`            |                      |</maml:para>
+          <maml:para>| ToggleCaseSensitive      | `Alt` + `C`            |                      |</maml:para>
+          <maml:para>| ToggleInvertFilter       | `Alt` + `I`            |                      |</maml:para>
+          <maml:para>| ToggleSuppressProperties | `Ctrl` + `Spacebar`    |                      |</maml:para>
+          <maml:para>| SelectLineUp             | `UpArrow`              | Not implemented yet. |</maml:para>
+          <maml:para>| SelectLineDown           | `DownArrow`            | Not implemented yet. |</maml:para>
+          <maml:para>| ScrollPageUp             | `PageUp`               | Not implemented yet. |</maml:para>
+          <maml:para>| ScrollPageDown           | `PageDown`             | Not implemented yet. |</maml:para>
+          <maml:para>| CompleteProperty         | `Tab`                  |                      |</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
         <dev:type>
@@ -197,7 +259,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Layout</maml:name>
         <maml:description>
-          <maml:para>Select the layout: TopDown or BottomUp. Currently, only the TopDown layout is supported.</maml:para>
+          <maml:para>Select the layout: TopDown or BottomUp.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -222,6 +284,12 @@
         <maml:name>Query</maml:name>
         <maml:description>
           <maml:para>Specifies the initial query string.</maml:para>
+          <maml:para>The syntax of the query is simple. You separate the values you want to filter with a space.</maml:para>
+          <maml:para>`Value1 Value2 Value3`</maml:para>
+          <maml:para>The property query is a combination of the property name and the filtering value. The property name in the query starts with `:` followed by a space, and then the filter value like following.</maml:para>
+          <maml:para>`:PropertyName FilteringValue`</maml:para>
+          <maml:para>You can also combine normal filtering with property queries.</maml:para>
+          <maml:para>`Value1 Value2 :PropertyName Value3`</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
@@ -339,7 +407,14 @@
         </dev:remarks>
       </command:example>
       <command:example>
-        <maml:title>----------------- Example 3: Filter hashtable -----------------</maml:title>
+        <maml:title>------------ Example 3: Filter with property query ------------</maml:title>
+        <dev:code>PS C:\&gt; Get-ChildItem | Select-Pocof -NonInteractive -Query ':Name foo'</dev:code>
+        <dev:remarks>
+          <maml:para>Interactively filter the output of `Get-ChildItem` using a property query. The property name in the query starts with `:` followed by a space, and then the filter value. The format is as follows.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>----------------- Example 4: Filter hashtable -----------------</maml:title>
         <dev:code>PS C:\&gt; @{foo=100; bar=101; foobar=102} | Select-Pocof -NonInteractive -Query ':key foo' | % -Begin {$x = @{}} {$x[$_.Key]= $_.Value} -End {$x}</dev:code>
         <dev:remarks>
           <maml:para>Interactively filter hashtable and create new hashtable from filtered items.</maml:para>

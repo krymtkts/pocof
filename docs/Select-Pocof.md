@@ -50,7 +50,16 @@ PS C:\> Get-ChildItem | Select-Pocof -CaseSensitive -Query 'docs md' | Invoke-It
 Interactively filter the output of `Get-ChildItem` with an initial case-sensitive query.
 And performs the default action on the filtered items.
 
-### Example 3: Filter hashtable
+### Example 3: Filter with property query
+
+```powershell
+PS C:\> Get-ChildItem | Select-Pocof -NonInteractive -Query ':Name foo'
+```
+
+Interactively filter the output of `Get-ChildItem` using a property query.
+The property name in the query starts with `:` followed by a space, and then the filter value. The format is as follows.
+
+### Example 4: Filter hashtable
 
 ```powershell
 PS C:\> @{foo=100; bar=101; foobar=102} | Select-Pocof -NonInteractive -Query ':key foo' | % -Begin {$x = @{}} {$x[$_.Key]= $_.Value} -End {$x}
@@ -95,6 +104,37 @@ Accept wildcard characters: False
 ### -Keymaps
 
 Specifies the custom key bindings. Custom keymaps overrides default keymaps.
+Default keymaps are following.
+
+```md
+| Action                   | Keybinding             | Note                 |
+| ------------------------ | ---------------------- | -------------------- |
+| Cancel                   | `Escape`               |                      |
+| Cancel                   | `Ctrl` + `C`           |                      |
+| Finish                   | `Enter`                |                      |
+| BackwardChar             | `LeftArrow`            |                      |
+| ForwardChar              | `RightArrow`           |                      |
+| BeginningOfLine          | `Home`                 |                      |
+| EndOfLine                | `End`                  |                      |
+| DeleteBackwardChar       | `Backspace`            |                      |
+| DeleteForwardChar        | `Delete`               |                      |
+| KillBeginningOfLine      | `Alt` + `U`            |                      |
+| KillEndOfLine            | `Alt` + `K`            |                      |
+| SelectBackwardChar       | `Shift` + `LeftArrow`  | Not implemented yet. |
+| SelectForwardChar        | `Shift` + `RightArrow` | Not implemented yet. |
+| SelectToBeginningOfLine  | `Shift` + `Home`       | Not implemented yet. |
+| SelectToEndOfLine        | `Shift` + `End`        | Not implemented yet. |
+| RotateMatcher            | `Alt` + `R`            |                      |
+| RotateOperator           | `Alt` + `L`            |                      |
+| ToggleCaseSensitive      | `Alt` + `C`            |                      |
+| ToggleInvertFilter       | `Alt` + `I`            |                      |
+| ToggleSuppressProperties | `Ctrl` + `Spacebar`    |                      |
+| SelectLineUp             | `UpArrow`              | Not implemented yet. |
+| SelectLineDown           | `DownArrow`            | Not implemented yet. |
+| ScrollPageUp             | `PageUp`               | Not implemented yet. |
+| ScrollPageDown           | `PageDown`             | Not implemented yet. |
+| CompleteProperty         | `Tab`                  |                      |
+```
 
 ```yaml
 Type: Hashtable
@@ -111,7 +151,6 @@ Accept wildcard characters: False
 ### -Layout
 
 Select the layout: TopDown or BottomUp.
-Currently, only the TopDown layout is supported.
 
 ```yaml
 Type: String
@@ -145,6 +184,20 @@ Accept wildcard characters: False
 ### -Query
 
 Specifies the initial query string.
+
+The syntax of the query is simple.
+You separate the values you want to filter with a space.
+
+`Value1 Value2 Value3`
+
+The property query is a combination of the property name and the filtering value.
+The property name in the query starts with `:` followed by a space, and then the filter value like following.
+
+`:PropertyName FilteringValue`
+
+You can also combine normal filtering with property queries.
+
+`Value1 Value2 :PropertyName Value3`
 
 ```yaml
 Type: String
