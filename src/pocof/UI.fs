@@ -21,18 +21,16 @@ module PocofScreen =
 
         let height =
             match layout with
-            | PocofData.TopDown -> rui.WindowSize.Height - 1
-            | PocofData.BottomUp -> rui.WindowSize.Height - 1
-            | PocofData.TopDownHalf -> rui.WindowSize.Height / 2 - 1
+            | PocofData.TopDownHalf
             | PocofData.BottomUpHalf -> rui.WindowSize.Height / 2 - 1
+            | _ -> rui.WindowSize.Height - 1
 
         let pos =
             let pos =
                 match layout with
-                | PocofData.TopDown -> 0, 0
-                | PocofData.BottomUp -> 0, 0
-                | PocofData.TopDownHalf -> 0, rui.CursorPosition.Y
+                | PocofData.TopDownHalf
                 | PocofData.BottomUpHalf -> 0, rui.CursorPosition.Y
+                | _ -> 0, 0
 
             match pos with
             | x, y when y + height > rui.WindowSize.Height -> x, y - (y + height - rui.WindowSize.Height) - 1
@@ -48,10 +46,8 @@ module PocofScreen =
 
             let pos =
                 match layout with
-                | PocofData.TopDown
-                | PocofData.TopDownHalf
-                | PocofData.BottomUp -> pos
                 | PocofData.BottomUpHalf -> pos |> fst, pos |> snd |> (+) height
+                | _ -> pos
 
             rui.CursorPosition <- pos |> Coordinates
 
@@ -83,10 +79,9 @@ module PocofScreen =
 
                 let height =
                     match layout with
-                    | PocofData.TopDown
-                    | PocofData.BottomUp -> rui.WindowSize.Height
                     | PocofData.TopDownHalf
                     | PocofData.BottomUpHalf -> (rui.WindowSize.Height) / 2
+                    | _ -> rui.WindowSize.Height
 
                 String.replicate rui.WindowSize.Width " "
                 |> List.replicate height
