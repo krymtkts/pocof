@@ -162,7 +162,9 @@ module PocofData =
 
     type Layout =
         | TopDown
+        | TopDownHalf
         | BottomUp
+        | BottomUpHalf
 
     module Layout =
         let fromString = fromString<Layout>

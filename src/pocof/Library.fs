@@ -45,7 +45,7 @@ type SelectPocofCommand() =
     member val Prompt = "query" with get, set
 
     [<Parameter>]
-    [<ValidateSet("TopDown", "BottomUp")>]
+    [<ValidateSet("TopDown", "TopDownHalf", "BottomUp", "BottomUpHalf")>]
     member val Layout = string Pocof.Layout.TopDown with get, set
 
     [<Parameter>]
@@ -90,7 +90,7 @@ type SelectPocofCommand() =
                   ConsoleHeight = __.Host.UI.RawUI.WindowSize.Height }
 
         Pocof.interact conf state pos
-        <| fun _ -> new Pocof.RawUI(__.Host.UI.RawUI)
+        <| fun _ -> new Pocof.RawUI(__.Host.UI.RawUI, conf.Layout)
         <| __.invoke
         <| List.rev input
         |> Seq.iter __.WriteObject

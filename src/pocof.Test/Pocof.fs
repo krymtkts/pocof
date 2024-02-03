@@ -228,7 +228,7 @@ module loop =
             { keymaps = pocof.PocofAction.defaultKeymap
               input = input
               propMap = propMap
-              writeScreen = buff.writeTopDown
+              writeScreen = buff.writeScreen TopDown
               getKey = buff.getKey
               getConsoleWidth =
                 fun () ->

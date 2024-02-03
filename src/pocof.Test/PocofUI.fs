@@ -56,6 +56,7 @@ type MockRawUI =
             }
 
     interface IRawUI with
+        member __.GetCursorPosition () = __.x, __.y
         member __.SetCursorPosition (x: int) (y: int) =
             __.x <- x
             __.y <- y
@@ -139,7 +140,7 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeTopDown state [] <| Ok []
+        buff.writeScreen TopDown state [] <| Ok []
 
         let expected =
             "query>foo                           cmatch and [0]"
@@ -170,7 +171,7 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeBottomUp state [] <| Ok []
+        buff.writeScreen BottomUp state [] <| Ok []
 
         let expected =
             "prompt>hello*world*                 notlike or [0]"
@@ -204,7 +205,7 @@ module ``Buff writeScreen`` =
 
         let state = state |> InternalState.prepareNotification
 
-        buff.writeTopDown state [] <| Ok []
+        buff.writeScreen TopDown state [] <| Ok []
 
         let expected =
             List.concat [ [ @"prompt>\                                                           match and [0]"
@@ -236,7 +237,7 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeTopDown state [] <| Error "Property not found"
+        buff.writeScreen TopDown state [] <| Error "Property not found"
 
         let expected =
             List.concat [ [ @"prompt>:unknown                                                    match and [0]"
@@ -275,7 +276,7 @@ module ``Buff writeScreen`` =
             DictionaryEntry("Number", i) |> Dict
         )
 
-        buff.writeTopDown state entries <| Ok []
+        buff.writeScreen TopDown state entries <| Ok []
 
         let expected =
             List.concat [ [ @"prompt>                                       match and [10]"
@@ -316,7 +317,7 @@ module ``Buff writeScreen`` =
         let entries = [1..100] |> List.map (fun i ->
             DictionaryEntry("Number", i) |> Dict
         )
-        buff.writeTopDown state entries <| Ok []
+        buff.writeScreen TopDown state entries <| Ok []
 
         let expected =
             List.concat [ [ @"prompt>                                      match and [100]"
@@ -353,7 +354,7 @@ module ``Buff writeScreen`` =
                   FilteredCount = 0
                   ConsoleWidth = rui.width
                   Refresh = Required}
-            buff.writeTopDown state [] <| Ok []
+            buff.writeScreen TopDown state [] <| Ok []
             rui
 
         [<Fact>]

@@ -148,10 +148,7 @@ module Pocof =
                 { keymaps = conf.Keymaps
                   input = input
                   propMap = propMap
-                  writeScreen =
-                    match conf.Layout with
-                    | TopDown -> buff.writeTopDown
-                    | BottomUp -> buff.writeBottomUp
+                  writeScreen = buff.writeScreen conf.Layout
                   getKey = buff.getKey
                   getConsoleWidth = buff.getConsoleWidth
                   getLengthInBufferCells = buff.GetLengthInBufferCells }
