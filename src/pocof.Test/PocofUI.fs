@@ -120,7 +120,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render top down.`` ()   =
         let rui = new MockRawUI()
-        use buff = new Buff(rui,  (fun _ -> Seq.empty),TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
 
         let state: InternalState =
             { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -151,7 +151,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render bottom up.`` ()   =
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty),BottomUp)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), BottomUp)
 
         let state: InternalState =
             { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -183,7 +183,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render notification.`` ()   =
         let rui = new MockRawUI(80,30)
-        use buff = new Buff(rui,  (fun _ -> Seq.empty),TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
 
         let state: InternalState =
             { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -217,7 +217,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render props notification.`` ()   =
         let rui = new MockRawUI(80,30)
-        use buff = new Buff(rui,  (fun _ -> Seq.empty),TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
 
         let state: InternalState =
             { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -252,7 +252,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render entries under y.`` ()   =
         let rui = new MockRawUI(60,30)
-        use buff = new Buff(rui, formatTableOutString,TopDown)
+        use buff = new Buff(rui, formatTableOutString, TopDown)
 
         let state: InternalState =
             { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -294,7 +294,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render entries over y.`` ()   =
         let rui = new MockRawUI(60,30)
-        use buff = new Buff(rui, formatTableOutString,TopDown)
+        use buff = new Buff(rui, formatTableOutString, TopDown)
 
         let state: InternalState =
             { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -333,7 +333,7 @@ module ``Buff writeScreen`` =
     module ``query window`` =
         let getRenderedScreen query cursor beginning =
             let rui = new MockRawUI(50,25)
-            use buff = new Buff(rui, (fun _ -> Seq.empty),TopDown)
+            use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
             let state: InternalState =
                 { QueryState =
                       { Query = query
@@ -458,13 +458,13 @@ module ``Buff getConsoleWidth`` =
     [<Fact>]
     let ``should render top down.`` ()   =
         let rui = new MockRawUI(60,30)
-        use buff = new Buff(rui,  (fun _ -> Seq.empty),TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
         buff.getConsoleWidth() |> shouldEqual 60
 
 module ``Buff getKey`` =
     [<Fact>]
     let ``should render top down.`` ()   =
         let rui = new MockRawUI()
-        use buff = new Buff(rui,  (fun _ -> Seq.empty),TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
         let expected = [new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)]
         buff.getKey() |> shouldEqual expected
