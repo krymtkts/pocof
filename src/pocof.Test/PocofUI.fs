@@ -333,7 +333,8 @@ module ``Buff writeScreen`` =
     module ``query window`` =
         let getRenderedScreen query cursor beginning =
             let rui = new MockRawUI(50,25)
-            use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+            // NOTE: avoid cleanup of buff to check screen.
+            let buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
             let state: InternalState =
                 { QueryState =
                       { Query = query

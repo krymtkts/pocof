@@ -78,6 +78,7 @@ module PocofScreen =
 
             let pos =
                 match layout with
+                // TODO: Required moving the cursor to the initial position for rendering in the case of BottomUpHalf.
                 | PocofData.BottomUpHalf -> pos |> fst, pos |> snd |> (+) height
                 | _ -> pos
 
@@ -135,18 +136,16 @@ module PocofScreen =
                 (rui :> IDisposable).Dispose()
                 // TODO: not work well when the screen height is resized.
                 // clear contests.
-                pos ||> rui.SetCursorPosition
-
                 let height =
                     match layout with
                     | PocofData.TopDownHalf
                     | PocofData.BottomUpHalf -> rui.GetWindowHeight() / 2
                     | _ -> rui.GetWindowHeight()
 
-                String.replicate (rui.GetWindowWidth()) " "
-                |> List.replicate height
-                |> String.concat "\n"
-                |> Console.Write
+                pos ||> rui.Write
+                <| (String.replicate (rui.GetWindowWidth()) " "
+                    |> List.replicate height
+                    |> String.concat "\n")
 
                 pos ||> rui.SetCursorPosition
 
