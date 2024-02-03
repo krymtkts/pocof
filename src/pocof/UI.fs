@@ -61,15 +61,15 @@ module PocofScreen =
             | _ -> rui.GetWindowHeight() - 1
 
         let pos =
-            let pos =
+            let y =
                 match layout with
                 | PocofData.TopDownHalf
-                | PocofData.BottomUpHalf -> 0, rui.GetCursorPosition() |> snd
-                | _ -> 0, 0
+                | PocofData.BottomUpHalf -> rui.GetCursorPosition() |> snd
+                | _ -> 0
 
-            match pos with
-            | x, y when y + height > rui.GetWindowHeight() -> x, y - (y + height - rui.GetWindowHeight()) - 1
-            | xy -> xy
+            match (y + height) - rui.GetWindowHeight() with
+            | over when over > 0 -> 0, y - over - 1
+            | _ -> 0, y
 
         do
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
