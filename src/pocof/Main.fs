@@ -142,7 +142,7 @@ module Pocof =
             let l = PocofQuery.run context input propMap
             unwrap l
         | _ ->
-            use buff = PocofScreen.init rui invoke
+            use buff = PocofScreen.init rui invoke conf.Layout
 
             let args =
                 { keymaps = conf.Keymaps

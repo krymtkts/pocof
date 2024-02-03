@@ -15,41 +15,12 @@ module PocofScreen =
         abstract member ReadKey: bool -> ConsoleKeyInfo
         abstract member KeyAvailable: unit -> bool
 
-    type RawUI(rui, layout) =
+    type RawUI(rui) =
         let rui: PSHostRawUserInterface = rui
-        let layout: PocofData.Layout = layout
-
-        let height =
-            match layout with
-            | PocofData.TopDownHalf
-            | PocofData.BottomUpHalf -> rui.WindowSize.Height / 2 - 1
-            | _ -> rui.WindowSize.Height - 1
-
-        let pos =
-            let pos =
-                match layout with
-                | PocofData.TopDownHalf
-                | PocofData.BottomUpHalf -> 0, rui.CursorPosition.Y
-                | _ -> 0, 0
-
-            match pos with
-            | x, y when y + height > rui.WindowSize.Height -> x, y - (y + height - rui.WindowSize.Height) - 1
-            | xy -> xy
 
         let ctrlCAsInput: bool = Console.TreatControlCAsInput
 
-        do
-            Console.TreatControlCAsInput <- true
-
-            // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
-            String.replicate height "\n" |> Console.Write
-
-            let pos =
-                match layout with
-                | PocofData.BottomUpHalf -> pos |> fst, pos |> snd |> (+) height
-                | _ -> pos
-
-            rui.CursorPosition <- pos |> Coordinates
+        do Console.TreatControlCAsInput <- true
 
         interface IRawUI with
             member __.GetCursorPosition() =
@@ -73,30 +44,44 @@ module PocofScreen =
             member __.Dispose() =
                 Console.TreatControlCAsInput <- ctrlCAsInput
 
-                // TODO: not work well when the screen height is resized.
-                // clear contests.
-                pos ||> (__ :> IRawUI).SetCursorPosition
-
-                let height =
-                    match layout with
-                    | PocofData.TopDownHalf
-                    | PocofData.BottomUpHalf -> (rui.WindowSize.Height) / 2
-                    | _ -> rui.WindowSize.Height
-
-                String.replicate rui.WindowSize.Width " "
-                |> List.replicate height
-                |> String.concat "\n"
-                |> Console.Write
-
-                pos ||> (__ :> IRawUI).SetCursorPosition
-
     let private note = "note>"
 
     type WriteScreen = PocofData.InternalState -> PocofData.Entry list -> Result<string list, string> -> unit
 
-    type Buff(r, i) =
+    type Buff(r, i, layout) =
         let rui: IRawUI = r
         let invoke: obj list -> string seq = i
+
+        let layout: PocofData.Layout = layout
+
+        let height =
+            match layout with
+            | PocofData.TopDownHalf
+            | PocofData.BottomUpHalf -> rui.GetWindowHeight() / 2 - 1
+            | _ -> rui.GetWindowHeight() - 1
+
+        let pos =
+            let pos =
+                match layout with
+                | PocofData.TopDownHalf
+                | PocofData.BottomUpHalf -> 0, rui.GetCursorPosition() |> snd
+                | _ -> 0, 0
+
+            match pos with
+            | x, y when y + height > rui.GetWindowHeight() -> x, y - (y + height - rui.GetWindowHeight()) - 1
+            | xy -> xy
+
+        do
+            // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
+            rui.GetCursorPosition() ||> rui.Write
+            <| String.replicate height "\n"
+
+            let pos =
+                match layout with
+                | PocofData.BottomUpHalf -> pos |> fst, pos |> snd |> (+) height
+                | _ -> pos
+
+            pos ||> rui.SetCursorPosition
 
         [<TailCall>]
         let rec getQuery (w: int) (q: string) (l: int) =
@@ -146,7 +131,24 @@ module PocofScreen =
             | _ -> List.rev acc
 
         interface IDisposable with
-            member __.Dispose() = (rui :> IDisposable).Dispose()
+            member __.Dispose() =
+                (rui :> IDisposable).Dispose()
+                // TODO: not work well when the screen height is resized.
+                // clear contests.
+                pos ||> rui.SetCursorPosition
+
+                let height =
+                    match layout with
+                    | PocofData.TopDownHalf
+                    | PocofData.BottomUpHalf -> rui.GetWindowHeight() / 2
+                    | _ -> rui.GetWindowHeight()
+
+                String.replicate (rui.GetWindowWidth()) " "
+                |> List.replicate height
+                |> String.concat "\n"
+                |> Console.Write
+
+                pos ||> rui.SetCursorPosition
 
         member private __.writeScreenLine (height: int) (line: string) =
             match (rui.GetWindowWidth()
@@ -234,4 +236,5 @@ module PocofScreen =
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
-    let init (rui: unit -> IRawUI) (invoke: obj list -> string seq) = new Buff(rui (), invoke)
+    let init (rui: unit -> IRawUI) (invoke: obj list -> string seq) (layout: PocofData.Layout) =
+        new Buff(rui (), invoke, layout)
