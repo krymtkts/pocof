@@ -156,28 +156,29 @@ module PocofScreen =
             | _ -> line
             |> rui.Write 0 height
 
+        member private __.calculatePositions layout =
+            match layout with
+            | PocofData.TopDown ->
+                let basePosition = 0
+                basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() - 3
+            | PocofData.TopDownHalf ->
+                let basePosition = rui.GetCursorPosition() |> snd
+                basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() / 2 - 3
+            | PocofData.BottomUp ->
+                let basePosition = rui.GetWindowHeight() - 1
+                basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() - 3
+            | PocofData.BottomUpHalf ->
+                let basePosition = rui.GetCursorPosition() |> snd
+
+                basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3
+
         member __.writeScreen
             (layout: PocofData.Layout)
             (state: PocofData.InternalState)
             (entries: PocofData.Entry list)
             (props: Result<string list, string>)
             =
-            let basePosition, firstLine, toHeight, height =
-                match layout with
-                | PocofData.TopDown ->
-                    let basePosition = 0
-                    basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() - 3
-                | PocofData.TopDownHalf ->
-                    let basePosition = rui.GetCursorPosition() |> snd
-                    basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() / 2 - 3
-                | PocofData.BottomUp ->
-                    let basePosition = rui.GetWindowHeight() - 1
-                    basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() - 3
-                | PocofData.BottomUpHalf ->
-                    let basePosition = rui.GetCursorPosition() |> snd
-
-                    basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3
-
+            let basePosition, firstLine, toHeight, height = __.calculatePositions layout
             let topLine = info state
             topLine |> __.writeScreenLine basePosition
 
