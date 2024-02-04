@@ -118,9 +118,10 @@ module ``Buff writeScreen`` =
     open System.Management.Automation
 
     [<Fact>]
-    let ``should render top down.`` ()   =
+    let ``should render top down.`` () =
+        let layout = TopDown
         let rui = new MockRawUI()
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), layout)
 
         let state: InternalState =
             { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -139,7 +140,7 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeScreen TopDown state [] <| Ok []
+        buff.writeScreen layout state [] <| Ok []
 
         let expected =
             "query>foo                           cmatch and [0]"
@@ -149,9 +150,45 @@ module ``Buff writeScreen`` =
         |> shouldEqual expected
 
     [<Fact>]
-    let ``should render bottom up.`` ()   =
+    let ``should render top down half.`` () =
+        let layout = TopDownHalf
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), BottomUp)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), layout)
+
+        let state: InternalState =
+            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
+              QueryCondition =
+                { Matcher = MATCH
+                  Operator = AND
+                  CaseSensitive = true
+                  Invert = false }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Prompt = "query"
+              FilteredCount = 0
+              ConsoleWidth = rui.width
+              Refresh = Required}
+              |> InternalState.updateWindowWidth
+
+        buff.writeScreen layout state [] <| Ok []
+
+        let expected =
+            [
+                generateLine rui.width (rui.height / 2)
+                ["query>foo                           cmatch and [0]"]
+                generateLine rui.width (rui.height / 2 - 1)
+            ] |> List.concat
+
+        rui.screen
+        |> shouldEqual expected
+
+    [<Fact>]
+    let ``should render bottom up.`` () =
+        let layout = BottomUp
+        let rui = new MockRawUI()
+        use buff = new Buff(rui, (fun _ -> Seq.empty), layout)
 
         let state: InternalState =
             { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -170,7 +207,40 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeScreen BottomUp state [] <| Ok []
+        buff.writeScreen layout state [] <| Ok []
+
+        let expected =
+            "prompt>hello*world*                 notlike or [0]"
+            :: (generateLine rui.width (rui.height - 1))
+            |> List.rev
+
+        rui.screen
+        |> shouldEqual expected
+
+    [<Fact>]
+    let ``should render bottom up half.`` () =
+        let layout = BottomUpHalf
+        let rui = new MockRawUI()
+        use buff = new Buff(rui, (fun _ -> Seq.empty), layout)
+
+        let state: InternalState =
+            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
+              QueryCondition =
+                { Matcher = LIKE
+                  Operator = OR
+                  CaseSensitive = false
+                  Invert = true }
+              PropertySearch = NoSearch
+              Notification = ""
+              SuppressProperties = false
+              Properties = []
+              Prompt = "prompt"
+              FilteredCount = 0
+              ConsoleWidth = rui.width
+              Refresh = Required}
+              |> InternalState.updateWindowWidth
+
+        buff.writeScreen layout state [] <| Ok []
 
         let expected =
             "prompt>hello*world*                 notlike or [0]"
