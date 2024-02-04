@@ -142,16 +142,13 @@ module Pocof =
             let l = PocofQuery.run context input propMap
             unwrap l
         | _ ->
-            use buff = PocofScreen.init rui invoke
+            use buff = PocofScreen.init rui invoke conf.Layout
 
             let args =
                 { keymaps = conf.Keymaps
                   input = input
                   propMap = propMap
-                  writeScreen =
-                    match conf.Layout with
-                    | TopDown -> buff.writeTopDown
-                    | BottomUp -> buff.writeBottomUp
+                  writeScreen = buff.writeScreen conf.Layout
                   getKey = buff.getKey
                   getConsoleWidth = buff.getConsoleWidth
                   getLengthInBufferCells = buff.GetLengthInBufferCells }
