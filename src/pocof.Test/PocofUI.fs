@@ -117,12 +117,15 @@ module ``Buff writeScreen`` =
     open System.Collections
     open System.Management.Automation
 
+    let getRenderedScreen rui state layout =
+        // NOTE: avoid cleanup of buff to check screen.
+        let buff = new Buff(rui, (fun _ -> Seq.empty), layout)
+        buff.writeScreen layout state [] <| Ok []
+        rui
+
     [<Fact>]
     let ``should render top down.`` () =
-        let layout = TopDown
         let rui = new MockRawUI()
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), layout)
-
         let state: InternalState =
             { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
@@ -140,7 +143,7 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeScreen layout state [] <| Ok []
+        let rui = getRenderedScreen rui state TopDown
 
         let expected =
             "query>foo                           cmatch and [0]"
@@ -151,9 +154,7 @@ module ``Buff writeScreen`` =
 
     [<Fact>]
     let ``should render top down half.`` () =
-        let layout = TopDownHalf
         let rui = new MockRawUI()
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), layout)
 
         let state: InternalState =
             { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -172,7 +173,7 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeScreen layout state [] <| Ok []
+        let rui = getRenderedScreen rui state TopDownHalf
 
         let expected =
             [
@@ -186,9 +187,7 @@ module ``Buff writeScreen`` =
 
     [<Fact>]
     let ``should render bottom up.`` () =
-        let layout = BottomUp
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), layout)
 
         let state: InternalState =
             { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -207,7 +206,7 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeScreen layout state [] <| Ok []
+        let rui = getRenderedScreen rui state BottomUp
 
         let expected =
             "prompt>hello*world*                 notlike or [0]"
@@ -219,9 +218,7 @@ module ``Buff writeScreen`` =
 
     [<Fact>]
     let ``should render bottom up half.`` () =
-        let layout = BottomUpHalf
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), layout)
 
         let state: InternalState =
             { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -240,7 +237,7 @@ module ``Buff writeScreen`` =
               Refresh = Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeScreen layout state [] <| Ok []
+        let rui = getRenderedScreen rui state BottomUpHalf
 
         let expected =
             "prompt>hello*world*                 notlike or [0]"
@@ -253,7 +250,6 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render notification.`` () =
         let rui = new MockRawUI(80,30)
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
 
         let state: InternalState =
             { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningCursor = 0; WindowWidth = 0 }
@@ -271,10 +267,9 @@ module ``Buff writeScreen`` =
               ConsoleWidth = rui.width
               Refresh = Required}
               |> InternalState.updateWindowWidth
+              |> InternalState.prepareNotification
 
-        let state = state |> InternalState.prepareNotification
-
-        buff.writeScreen TopDown state [] <| Ok []
+        let rui = getRenderedScreen rui state TopDown
 
         let expected =
             List.concat [ [ @"prompt>\                                                           match and [0]"
@@ -404,7 +399,6 @@ module ``Buff writeScreen`` =
         let getRenderedScreen query cursor beginning =
             let rui = new MockRawUI(50,25)
             // NOTE: avoid cleanup of buff to check screen.
-            let buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
             let state: InternalState =
                 { QueryState =
                       { Query = query
@@ -424,8 +418,8 @@ module ``Buff writeScreen`` =
                   FilteredCount = 0
                   ConsoleWidth = rui.width
                   Refresh = Required}
-            buff.writeScreen TopDown state [] <| Ok []
-            rui
+
+            getRenderedScreen rui state TopDown
 
         [<Fact>]
         let ``should render head 30 of query when cursor 0.`` () =
