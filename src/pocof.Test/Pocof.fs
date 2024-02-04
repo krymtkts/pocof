@@ -289,10 +289,10 @@ module interact =
         actual |> shouldEqual expected
 
     [<Fact>]
-    let ``should return result when interaction finished in Interactive mode and BottomUp Layout.`` () =
+    let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
         let config: InternalConfig =
             { NotInteractive = false
-              Layout = BottomUp
+              Layout = BottomUpHalf
               Keymaps = pocof.PocofAction.defaultKeymap }
 
         let input = results |> List.map toObj
