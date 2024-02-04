@@ -251,7 +251,7 @@ module ``Buff writeScreen`` =
         |> shouldEqual expected
 
     [<Fact>]
-    let ``should render notification.`` ()   =
+    let ``should render notification.`` () =
         let rui = new MockRawUI(80,30)
         use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
 
@@ -285,7 +285,7 @@ module ``Buff writeScreen`` =
         |> shouldEqual expected
 
     [<Fact>]
-    let ``should render props notification.`` ()   =
+    let ``should render props notification.`` () =
         let rui = new MockRawUI(80,30)
         use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
 
@@ -320,7 +320,7 @@ module ``Buff writeScreen`` =
         PowerShell.Create().AddCommand("Format-Table").AddParameter("InputObject",ol).AddCommand("Out-String").Invoke() |> Seq.map string
 
     [<Fact>]
-    let ``should render entries under y.`` ()   =
+    let ``should render entries under y.`` () =
         let rui = new MockRawUI(60,30)
         use buff = new Buff(rui, formatTableOutString, TopDown)
 
@@ -362,7 +362,7 @@ module ``Buff writeScreen`` =
 
 
     [<Fact>]
-    let ``should render entries over y.`` ()   =
+    let ``should render entries over y.`` () =
         let rui = new MockRawUI(60,30)
         use buff = new Buff(rui, formatTableOutString, TopDown)
 
@@ -428,7 +428,7 @@ module ``Buff writeScreen`` =
             rui
 
         [<Fact>]
-        let ``should render head 30 of query when cursor 0.`` ()   =
+        let ``should render head 30 of query when cursor 0.`` () =
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let rui = getRenderedScreen query 0 0
 
@@ -440,7 +440,7 @@ module ``Buff writeScreen`` =
             |> shouldEqual expected
 
         [<Fact>]
-        let ``should render head 30 of query when cursor 30.`` ()   =
+        let ``should render head 30 of query when cursor 30.`` () =
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let rui = getRenderedScreen query 30 0
 
@@ -452,7 +452,7 @@ module ``Buff writeScreen`` =
             |> shouldEqual expected
 
         [<Fact>]
-        let ``should render mid 30 of query when cursor 45.`` ()   =
+        let ``should render mid 30 of query when cursor 45.`` () =
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let rui = getRenderedScreen query 45 15
 
@@ -464,7 +464,7 @@ module ``Buff writeScreen`` =
             |> shouldEqual expected
 
         [<Fact>]
-        let ``should render tail 30 of query when cursor 100.`` ()   =
+        let ``should render tail 30 of query when cursor 100.`` () =
             let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
             let rui = getRenderedScreen query 100 70
 
@@ -478,7 +478,7 @@ module ``Buff writeScreen`` =
         let intToChar i = Char.ConvertFromUtf32(i + Char.ConvertToUtf32("０",0))
 
         [<Fact>]
-        let ``should render head 30 of query when cursor 0 with full-width characters.`` ()   =
+        let ``should render head 30 of query when cursor 0 with full-width characters.`` () =
             let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
             let rui = getRenderedScreen query 0 0
 
@@ -490,7 +490,7 @@ module ``Buff writeScreen`` =
             |> shouldEqual expected
 
         [<Fact>]
-        let ``should render head 30 of query when cursor 30 with full-width characters.`` ()   =
+        let ``should render head 30 of query when cursor 30 with full-width characters.`` () =
             let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
             let rui = getRenderedScreen query 27 0
 
@@ -502,7 +502,7 @@ module ``Buff writeScreen`` =
             |> shouldEqual expected
 
         [<Fact>]
-        let ``should render mid 30 of query when cursor 45 with full-width characters.`` ()   =
+        let ``should render mid 30 of query when cursor 45 with full-width characters.`` () =
             let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
             let rui = getRenderedScreen query 40 13
 
@@ -514,7 +514,7 @@ module ``Buff writeScreen`` =
             |> shouldEqual expected
 
         [<Fact>]
-        let ``should render tail 30 of query when cursor 100 with full-width characters.`` ()   =
+        let ``should render tail 30 of query when cursor 100 with full-width characters.`` () =
             let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
             let rui = getRenderedScreen query 90 63
 
@@ -527,14 +527,14 @@ module ``Buff writeScreen`` =
 
 module ``Buff getConsoleWidth`` =
     [<Fact>]
-    let ``should render top down.`` ()   =
+    let ``should render top down.`` () =
         let rui = new MockRawUI(60,30)
         use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
         buff.getConsoleWidth() |> shouldEqual 60
 
 module ``Buff getKey`` =
     [<Fact>]
-    let ``should render top down.`` ()   =
+    let ``should render top down.`` () =
         let rui = new MockRawUI()
         use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
         let expected = [new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)]
