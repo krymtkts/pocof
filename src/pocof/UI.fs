@@ -134,12 +134,13 @@ module PocofScreen =
         interface IDisposable with
             member __.Dispose() =
                 (rui :> IDisposable).Dispose()
-                // TODO: not work well when the screen height is resized.
-                // clear contests.
+
+                let pos = rui.GetCursorPosition() |> fun (_, y) -> (0, y)
+
                 let height =
                     match layout with
                     | PocofData.TopDownHalf
-                    | PocofData.BottomUpHalf -> rui.GetWindowHeight() / 2
+                    | PocofData.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
                     | _ -> rui.GetWindowHeight()
 
                 pos ||> rui.Write
