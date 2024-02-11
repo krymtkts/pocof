@@ -6,7 +6,7 @@ open System.Text.RegularExpressions
 
 open Data
 
-module PocofQuery =
+module Query =
     let private equalOpt sensitive =
         match sensitive with
         | true -> StringComparison.CurrentCulture
@@ -39,7 +39,7 @@ module PocofQuery =
         with
         | _ -> true
 
-    type Query =
+    type QueryPart =
         | Normal of string
         | Property of string * string
 
@@ -60,13 +60,13 @@ module PocofQuery =
     type TesterType<'a> = ('a -> bool) -> 'a list -> bool
 
     type QueryContext =
-        { Queries: Query list
+        { Queries: QueryPart list
           Test: TesterType<string * string>
           Is: string -> string -> bool
           Answer: bool -> bool }
 
     [<TailCall>]
-    let rec private parseQuery (acc: Query list) (xs: string list) =
+    let rec private parseQuery (acc: QueryPart list) (xs: string list) =
         match xs with
         | [] -> acc
         | (x :: xs) ->

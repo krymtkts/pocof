@@ -81,7 +81,7 @@ module Pocof =
         match state.Refresh with
         | NotRequired -> results, state
         | _ ->
-            let results = PocofQuery.run context args.input args.propMap
+            let results = Query.run context args.input args.propMap
 
             let state =
                 state
@@ -91,7 +91,7 @@ module Pocof =
             args.writeScreen state results
             <| match state.SuppressProperties with
                | true -> Ok []
-               | _ -> PocofQuery.props state
+               | _ -> Query.props state
 
             results, state
 
@@ -129,7 +129,7 @@ module Pocof =
         (input: Entry list)
         =
 
-        let state, context = PocofQuery.prepare state
+        let state, context = Query.prepare state
 
         let propMap =
             state.Properties
@@ -138,7 +138,7 @@ module Pocof =
 
         match conf.NotInteractive with
         | true ->
-            let l = PocofQuery.run context input propMap
+            let l = Query.run context input propMap
             unwrap l
         | _ ->
             use buff = Screen.init rui invoke conf.Layout

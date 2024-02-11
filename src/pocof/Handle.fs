@@ -3,10 +3,10 @@ namespace pocof
 open System
 
 open Data
-open PocofQuery
+open Query
 
 module PocofHandle =
-    type QueryContext = PocofQuery.QueryContext
+    type QueryContext = Query.QueryContext
 
     let private addQuery (state: InternalState) (pos: Position) (context: QueryContext) (s: string) =
         let qs = QueryState.addQuery state.QueryState s

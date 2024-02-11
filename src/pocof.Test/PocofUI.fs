@@ -6,7 +6,7 @@ open Xunit
 open FsUnitTyped
 
 open pocof.Data
-open pocof.PocofQuery
+open pocof.Query
 open pocof.Screen
 
 let generateLine x y =

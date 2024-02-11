@@ -95,7 +95,7 @@ module loop =
     [<Fact>]
     let ``should return result when finishing.`` () =
         let input = results |> List.map toObj
-        let state, context = pocof.PocofQuery.prepare state
+        let state, context = pocof.Query.prepare state
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ])
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
@@ -121,8 +121,7 @@ module loop =
     let ``shouldn't return result when canceling.`` () =
         let input = results |> List.map toObj
 
-        let state, context =
-            pocof.PocofQuery.prepare { state with SuppressProperties = true }
+        let state, context = pocof.Query.prepare { state with SuppressProperties = true }
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Escape ])
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
@@ -144,7 +143,7 @@ module loop =
     let ``should return result when finishing after noop.`` () =
         let input = results |> List.map toObj
 
-        let state, context = pocof.PocofQuery.prepare { state with Refresh = NotRequired }
+        let state, context = pocof.Query.prepare { state with Refresh = NotRequired }
 
         let rui =
             new MockRawUI(
@@ -178,7 +177,7 @@ module loop =
     [<Fact>]
     let ``should return result when finishing with filter.`` () =
         let input = results |> List.map toObj
-        let state, context = pocof.PocofQuery.prepare state
+        let state, context = pocof.Query.prepare state
 
         let rui =
             new MockRawUI(
@@ -212,8 +211,7 @@ module loop =
     let ``should update QueryState.WindowWidth based on ConsoleWidth.`` () =
         let input = results |> List.map toObj
 
-        let state, context =
-            pocof.PocofQuery.prepare { state with SuppressProperties = true }
+        let state, context = pocof.Query.prepare { state with SuppressProperties = true }
 
         let rui =
             new MockRawUI(
