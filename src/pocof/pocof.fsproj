@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <Compile Include="Data.fs" />
-    <Compile Include="UI.fs" />
+    <Compile Include="Screen.fs" />
     <Compile Include="Action.fs" />
     <Compile Include="Query.fs" />
     <Compile Include="Handle.fs" />
