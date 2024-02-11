@@ -15,7 +15,7 @@ module Pocof =
     type Operator = Data.Operator
     type Layout = Data.Layout
 
-    type RawUI = PocofScreen.RawUI
+    type RawUI = Screen.RawUI
 
     let convertKeymaps = PocofAction.convertKeymaps
     let initConfig = Data.initConfig
@@ -24,7 +24,7 @@ module Pocof =
         { keymaps: Map<KeyPattern, Action>
           input: Entry list
           propMap: Map<string, string>
-          writeScreen: PocofScreen.WriteScreen
+          writeScreen: Screen.WriteScreen
           getKey: unit -> ConsoleKeyInfo list
           getConsoleWidth: unit -> int
           getLengthInBufferCells: string -> int }
@@ -124,7 +124,7 @@ module Pocof =
         (conf: InternalConfig)
         (state: InternalState)
         (pos: Position)
-        (rui: unit -> PocofScreen.IRawUI)
+        (rui: unit -> Screen.IRawUI)
         (invoke: obj list -> string seq)
         (input: Entry list)
         =
@@ -141,7 +141,7 @@ module Pocof =
             let l = PocofQuery.run context input propMap
             unwrap l
         | _ ->
-            use buff = PocofScreen.init rui invoke conf.Layout
+            use buff = Screen.init rui invoke conf.Layout
 
             let args =
                 { keymaps = conf.Keymaps

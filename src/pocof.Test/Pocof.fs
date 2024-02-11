@@ -8,7 +8,7 @@ open FsUnitTyped
 
 open pocof.Pocof
 open pocof.Data
-open pocof.PocofScreen
+open pocof.Screen
 open PocofUI
 
 let toObj x = x |> (PSObject.AsPSObject >> Obj)

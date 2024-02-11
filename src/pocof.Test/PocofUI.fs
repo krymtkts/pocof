@@ -7,7 +7,7 @@ open FsUnitTyped
 
 open pocof.Data
 open pocof.PocofQuery
-open pocof.PocofScreen
+open pocof.Screen
 
 let generateLine x y =
     List.replicate y <| String.replicate x " "

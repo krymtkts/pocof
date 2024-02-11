@@ -1,6 +1,6 @@
 namespace pocof
 
-module PocofScreen =
+module Screen =
     open System
     open System.Management.Automation.Host
 
