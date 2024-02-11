@@ -1,9 +1,9 @@
 module Library
 
 module Mock =
+    open System
     open System.Management.Automation
     open System.Management.Automation.Host
-    open System
 
     type MyRawUI() =
         inherit PSHostRawUserInterface()
@@ -105,11 +105,15 @@ module Mock =
             member __.ThrowTerminatingError(errorRecord: ErrorRecord) = errors <- errorRecord :: errors
 
 module SelectPocofCommand =
-    open Xunit
-    open FsUnitTyped
-    open pocof
+    open System
+    open System.Collections
     open System.Management.Automation
     open System.Management.Automation.Host
+
+    open Xunit
+    open FsUnitTyped
+
+    open pocof
 
     type SelectPocofCommandForTest() =
         inherit SelectPocofCommand()
@@ -128,11 +132,24 @@ module SelectPocofCommand =
         let runtime = new Mock.CommandRuntime()
         let cmdlet = new SelectPocofCommandForTest()
 
-        let a = PowerShell.Create()
-
         cmdlet.CommandRuntime <- runtime
         cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
         cmdlet.NonInteractive <- true
         cmdlet.InvokeForTest()
 
         runtime.Output |> shouldEqual [ "a" ]
+
+    [<Fact>]
+    let ``should raise ArgumentException when invalid keymaps.`` () =
+        let runtime = new Mock.CommandRuntime()
+        let cmdlet = new SelectPocofCommandForTest()
+
+        cmdlet.CommandRuntime <- runtime
+        cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+
+        cmdlet.Keymaps <-
+            let k = new Hashtable()
+            k.Add("Escape", "cancellation")
+            k
+
+        shouldFail<ArgumentException> (fun () -> cmdlet.InvokeForTest())
