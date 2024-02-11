@@ -4,7 +4,7 @@ open System
 open System.Management.Automation
 open System.Text.RegularExpressions
 
-open PocofData
+open Data
 
 module PocofQuery =
     let private equalOpt sensitive =

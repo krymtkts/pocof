@@ -4,12 +4,11 @@ open System
 open System.Collections
 
 module PocofAction =
-
     type private Modifiers =
         | Plain
         | Modifier of ConsoleModifiers
 
-    let private modify (x: Modifiers) k : PocofData.KeyPattern =
+    let private modify (x: Modifiers) k : Data.KeyPattern =
         let m =
             match x with
             | Plain -> 0
@@ -24,37 +23,37 @@ module PocofAction =
     let private shift = modify <| Modifier ConsoleModifiers.Shift
 
     let defaultKeymap =
-        Map [ (plain ConsoleKey.Escape, PocofData.Cancel)
-              (ctrl ConsoleKey.C, PocofData.Cancel)
-              (plain ConsoleKey.Enter, PocofData.Finish)
+        Map [ (plain ConsoleKey.Escape, Data.Action.Cancel)
+              (ctrl ConsoleKey.C, Data.Action.Cancel)
+              (plain ConsoleKey.Enter, Data.Action.Finish)
 
-              (plain ConsoleKey.LeftArrow, PocofData.BackwardChar)
-              (plain ConsoleKey.RightArrow, PocofData.ForwardChar)
-              (plain ConsoleKey.Home, PocofData.BeginningOfLine)
-              (plain ConsoleKey.End, PocofData.EndOfLine)
+              (plain ConsoleKey.LeftArrow, Data.Action.BackwardChar)
+              (plain ConsoleKey.RightArrow, Data.Action.ForwardChar)
+              (plain ConsoleKey.Home, Data.Action.BeginningOfLine)
+              (plain ConsoleKey.End, Data.Action.EndOfLine)
 
-              (plain ConsoleKey.Backspace, PocofData.DeleteBackwardChar)
-              (plain ConsoleKey.Delete, PocofData.DeleteForwardChar)
-              (alt ConsoleKey.U, PocofData.KillBeginningOfLine)
-              (alt ConsoleKey.K, PocofData.KillEndOfLine)
+              (plain ConsoleKey.Backspace, Data.Action.DeleteBackwardChar)
+              (plain ConsoleKey.Delete, Data.Action.DeleteForwardChar)
+              (alt ConsoleKey.U, Data.Action.KillBeginningOfLine)
+              (alt ConsoleKey.K, Data.Action.KillEndOfLine)
 
-              (shift ConsoleKey.LeftArrow, PocofData.SelectBackwardChar)
-              (shift ConsoleKey.RightArrow, PocofData.SelectForwardChar)
-              (shift ConsoleKey.Home, PocofData.SelectToBeginningOfLine)
-              (shift ConsoleKey.End, PocofData.SelectToEndOfLine)
+              (shift ConsoleKey.LeftArrow, Data.Action.SelectBackwardChar)
+              (shift ConsoleKey.RightArrow, Data.Action.SelectForwardChar)
+              (shift ConsoleKey.Home, Data.Action.SelectToBeginningOfLine)
+              (shift ConsoleKey.End, Data.Action.SelectToEndOfLine)
 
-              (alt ConsoleKey.R, PocofData.RotateMatcher)
-              (alt ConsoleKey.L, PocofData.RotateOperator)
-              (alt ConsoleKey.C, PocofData.ToggleCaseSensitive)
-              (alt ConsoleKey.I, PocofData.ToggleInvertFilter)
+              (alt ConsoleKey.R, Data.Action.RotateMatcher)
+              (alt ConsoleKey.L, Data.Action.RotateOperator)
+              (alt ConsoleKey.C, Data.Action.ToggleCaseSensitive)
+              (alt ConsoleKey.I, Data.Action.ToggleInvertFilter)
 
-              (ctrl ConsoleKey.Spacebar, PocofData.ToggleSuppressProperties)
-              (plain ConsoleKey.UpArrow, PocofData.SelectLineUp)
-              (plain ConsoleKey.DownArrow, PocofData.SelectLineDown)
-              (plain ConsoleKey.PageUp, PocofData.ScrollPageUp)
-              (plain ConsoleKey.PageDown, PocofData.ScrollPageDown)
+              (ctrl ConsoleKey.Spacebar, Data.Action.ToggleSuppressProperties)
+              (plain ConsoleKey.UpArrow, Data.Action.SelectLineUp)
+              (plain ConsoleKey.DownArrow, Data.Action.SelectLineDown)
+              (plain ConsoleKey.PageUp, Data.Action.ScrollPageUp)
+              (plain ConsoleKey.PageDown, Data.Action.ScrollPageDown)
 
-              (plain ConsoleKey.Tab, PocofData.CompleteProperty) ]
+              (plain ConsoleKey.Tab, Data.Action.CompleteProperty) ]
 
     let toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
         match Enum.TryParse<'a>(k, true) with
@@ -95,7 +94,7 @@ module PocofAction =
                 |> Seq.toList
                 |> List.map (fun e ->
                     let k = string e.Key |> toKeyPattern
-                    let v = string e.Value |> PocofData.Action.fromString
+                    let v = string e.Value |> Data.Action.fromString
 
                     match (k, v) with
                     | (Ok kv, Ok av) -> Ok(kv, av)
@@ -117,13 +116,13 @@ module PocofAction =
 
 
     type private KeyInfo =
-        { Pattern: PocofData.KeyPattern
+        { Pattern: Data.KeyPattern
           KeyChar: char }
 
     type private Key =
         | Char of char
         | Control of ConsoleKey
-        | Shortcut of PocofData.Action
+        | Shortcut of Data.Action
 
     let private key (k: ConsoleKeyInfo) =
         let m = k.Modifiers.GetHashCode()
@@ -131,7 +130,7 @@ module PocofAction =
         { KeyChar = k.KeyChar
           Pattern = { Modifier = m; Key = k.Key } }
 
-    let private (|ShortcutKey|_|) (m: Map<PocofData.KeyPattern, PocofData.Action>) (k: KeyInfo) =
+    let private (|ShortcutKey|_|) (m: Map<Data.KeyPattern, Data.Action>) (k: KeyInfo) =
         match Map.tryFind k.Pattern m with
         | Some v -> Some v
         | _ -> None
@@ -141,21 +140,21 @@ module PocofAction =
         | true -> Some k.Pattern.Key
         | _ -> None
 
-    let private keyToAction (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (key: KeyInfo) =
+    let private keyToAction (keymap: Map<Data.KeyPattern, Data.Action>) (key: KeyInfo) =
         match key with
         | ShortcutKey keymap k -> Shortcut k
         | ControlKey c -> Control c
         | _ -> Char key.KeyChar
 
-    let get (keymap: Map<PocofData.KeyPattern, PocofData.Action>) (keyInfo: ConsoleKeyInfo list) =
+    let get (keymap: Map<Data.KeyPattern, Data.Action>) (keyInfo: ConsoleKeyInfo list) =
         keyInfo
         |> List.map (key >> keyToAction keymap)
         |> List.fold
             (fun acc x ->
                 (acc, x)
                 |> function
-                    | PocofData.AddQuery s, Char c -> string c |> (+) s |> PocofData.AddQuery
-                    | _, Char c -> PocofData.AddQuery <| string c
+                    | Data.Action.AddQuery s, Char c -> string c |> (+) s |> Data.Action.AddQuery
+                    | _, Char c -> Data.Action.AddQuery <| string c
                     | _, Shortcut a -> a
-                    | _, Control _ -> PocofData.Noop)
-            PocofData.Noop
+                    | _, Control _ -> Data.Action.Noop)
+            Data.Action.Noop

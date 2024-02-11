@@ -3,7 +3,7 @@ namespace pocof
 #if DEBUG
 
 [<AutoOpen>]
-module PocofDebug =
+module Debug =
     open System
     open System.IO
     open System.Runtime.CompilerServices
@@ -55,7 +55,7 @@ module LanguageExtension =
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
 
-module PocofData =
+module Data =
     open System
     open System.Collections
     open System.Management.Automation

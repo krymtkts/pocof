@@ -46,19 +46,19 @@ module PocofScreen =
 
     let private note = "note>"
 
-    type WriteScreen = PocofData.InternalState -> PocofData.Entry list -> Result<string list, string> -> unit
+    type WriteScreen = Data.InternalState -> Data.Entry list -> Result<string list, string> -> unit
 
     type Buff(r, i, layout) =
         let rui: IRawUI = r
         let invoke: obj list -> string seq = i
 
-        let layout: PocofData.Layout = layout
+        let layout: Data.Layout = layout
 
         do
             let height =
                 match layout with
-                | PocofData.TopDownHalf
-                | PocofData.BottomUpHalf -> 2
+                | Data.TopDownHalf
+                | Data.BottomUpHalf -> 2
                 | _ -> 1
                 |> (/) (rui.GetWindowHeight())
                 |> (+) -1
@@ -66,8 +66,8 @@ module PocofScreen =
             let y =
                 let y =
                     match layout with
-                    | PocofData.TopDownHalf
-                    | PocofData.BottomUpHalf -> rui.GetCursorPosition() |> snd
+                    | Data.TopDownHalf
+                    | Data.BottomUpHalf -> rui.GetCursorPosition() |> snd
                     | _ -> 0
 
                 match (y + height) - rui.GetWindowHeight() with
@@ -81,7 +81,7 @@ module PocofScreen =
             let y =
                 match layout with
                 // NOTE: Required moving the cursor to the initial position for rendering in the case of BottomUpHalf.
-                | PocofData.BottomUpHalf -> y + height
+                | Data.BottomUpHalf -> y + height
                 | _ -> y
 
             (0, y) ||> rui.SetCursorPosition
@@ -100,7 +100,7 @@ module PocofScreen =
 #endif
                 getQuery w q l
 
-        let info (state: PocofData.InternalState) =
+        let info (state: Data.InternalState) =
             let q =
                 let q =
                     state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. state.QueryState.WindowWidth
@@ -120,9 +120,9 @@ module PocofScreen =
                 getQuery state.QueryState.WindowWidth q
                 <| String.length q
 
-            [ PocofData.InternalState.prompt state
+            [ Data.InternalState.prompt state
               q
-              PocofData.InternalState.queryInfo state ]
+              Data.InternalState.queryInfo state ]
             |> String.concat ""
 
         [<TailCall>]
@@ -141,14 +141,14 @@ module PocofScreen =
                     let y = rui.GetCursorPosition() |> snd
 
                     match layout with
-                    | PocofData.BottomUp -> (0, 0)
-                    | PocofData.BottomUpHalf -> (0, y - (rui.GetWindowHeight() / 2) + 1)
+                    | Data.BottomUp -> (0, 0)
+                    | Data.BottomUpHalf -> (0, y - (rui.GetWindowHeight() / 2) + 1)
                     | _ -> (0, y)
 
                 let height =
                     match layout with
-                    | PocofData.TopDownHalf
-                    | PocofData.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
+                    | Data.TopDownHalf
+                    | Data.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
                     | _ -> rui.GetWindowHeight()
 
                 pos ||> rui.Write
@@ -168,24 +168,24 @@ module PocofScreen =
 
         member private __.calculatePositions layout =
             match layout with
-            | PocofData.TopDown ->
+            | Data.TopDown ->
                 let basePosition = 0
                 basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() - 3
-            | PocofData.TopDownHalf ->
+            | Data.TopDownHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
                 basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() / 2 - 3
-            | PocofData.BottomUp ->
+            | Data.BottomUp ->
                 let basePosition = rui.GetWindowHeight() - 1
                 basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() - 3
-            | PocofData.BottomUpHalf ->
+            | Data.BottomUpHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
 
                 basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3
 
         member __.writeScreen
-            (layout: PocofData.Layout)
-            (state: PocofData.InternalState)
-            (entries: PocofData.Entry list)
+            (layout: Data.Layout)
+            (state: Data.InternalState)
+            (entries: Data.Entry list)
             (props: Result<string list, string>)
             =
             let basePosition, firstLine, toHeight, height = __.calculatePositions layout
@@ -208,7 +208,7 @@ module PocofScreen =
                 match List.length entries < height with
                 | true -> entries
                 | _ -> List.take height entries
-                |> PocofData.unwrap
+                |> Data.unwrap
                 |> invoke
                 |> Seq.fold
                     (fun acc s ->
@@ -233,7 +233,7 @@ module PocofScreen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetLengthInBufferCells topLine.[.. (PocofData.InternalState.getX state) - 1]
+            <| rui.GetLengthInBufferCells topLine.[.. (Data.InternalState.getX state) - 1]
             <| basePosition
 
         member __.getConsoleWidth = rui.GetWindowWidth
@@ -244,5 +244,5 @@ module PocofScreen =
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
-    let init (rui: unit -> IRawUI) (invoke: obj list -> string seq) (layout: PocofData.Layout) =
+    let init (rui: unit -> IRawUI) (invoke: obj list -> string seq) (layout: Data.Layout) =
         new Buff(rui (), invoke, layout)

@@ -2,7 +2,7 @@ namespace pocof
 
 open System
 
-open PocofData
+open Data
 open PocofQuery
 
 module PocofHandle =

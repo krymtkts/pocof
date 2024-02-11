@@ -5,7 +5,7 @@ open System
 open Xunit
 open FsUnitTyped
 
-open pocof.PocofData
+open pocof.Data
 open pocof.PocofQuery
 open pocof.PocofScreen
 

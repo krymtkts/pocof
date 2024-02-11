@@ -4,7 +4,7 @@ open Xunit
 open FsUnitTyped
 
 open pocof
-open PocofData
+open Data
 open PocofHandle
 
 module invokeAction =

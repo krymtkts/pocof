@@ -4,21 +4,21 @@ open System
 open System.Collections
 open System.Management.Automation
 
-open PocofData
+open Data
 open PocofHandle
 
 module Pocof =
-    type Entry = PocofData.Entry
-    type KeyPattern = PocofData.KeyPattern
-    type Action = PocofData.Action
-    type Matcher = PocofData.Matcher
-    type Operator = PocofData.Operator
-    type Layout = PocofData.Layout
+    type Entry = Data.Entry
+    type KeyPattern = Data.KeyPattern
+    type Action = Data.Action
+    type Matcher = Data.Matcher
+    type Operator = Data.Operator
+    type Layout = Data.Layout
 
     type RawUI = PocofScreen.RawUI
 
     let convertKeymaps = PocofAction.convertKeymaps
-    let initConfig = PocofData.initConfig
+    let initConfig = Data.initConfig
 
     type LoopFixedArguments =
         { keymaps: Map<KeyPattern, Action>
