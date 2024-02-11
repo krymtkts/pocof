@@ -102,6 +102,7 @@ module Data =
         | true -> Some s.[1..]
         | _ -> None
 
+    [<RequireQualifiedAccess>]
     type Action =
         | Noop
         | Cancel
@@ -142,6 +143,7 @@ module Data =
             tryFromStringExcludes<Action>
             <| set [ "AddQuery" ]
 
+    [<RequireQualifiedAccess>]
     type Matcher =
         | EQ
         | LIKE
@@ -151,6 +153,7 @@ module Data =
     module Matcher =
         let fromString = fromString<Matcher>
 
+    [<RequireQualifiedAccess>]
     type Operator =
         | AND
         | OR
@@ -160,6 +163,7 @@ module Data =
     module Operator =
         let fromString = fromString<Operator>
 
+    [<RequireQualifiedAccess>]
     type Layout =
         | TopDown
         | TopDownHalf
@@ -169,11 +173,13 @@ module Data =
     module Layout =
         let fromString = fromString<Layout>
 
+    [<RequireQualifiedAccess>]
     type PropertySearch =
         | NoSearch
         | Search of string
         | Rotate of string * int * string list
 
+    [<RequireQualifiedAccess>]
     type Refresh =
         | Required
         | NotRequired
@@ -243,8 +249,8 @@ module Data =
 #endif
 
             match s with
-            | Prefix ":" p -> Search p
-            | _ -> NoSearch
+            | Prefix ":" p -> PropertySearch.Search p
+            | _ -> PropertySearch.NoSearch
 
     type QueryCondition =
         { Matcher: Matcher
@@ -256,8 +262,8 @@ module Data =
             <| match __.Matcher, __.CaseSensitive, __.Invert with
                | m, false, false -> [ string m ]
                | m, true, false -> [ "c"; string m ]
-               | EQ, false, true -> [ "ne" ]
-               | EQ, true, true -> [ "cne" ]
+               | Matcher.EQ, false, true -> [ "ne" ]
+               | Matcher.EQ, true, true -> [ "cne" ]
                | m, false, true -> [ "not"; string m ]
                | m, true, true -> [ "notc"; string m ]
             <| [ " "; string __.Operator ]
@@ -268,17 +274,17 @@ module Data =
             { condition with
                 Matcher =
                     match condition.Matcher with
-                    | EQ -> LIKE
-                    | LIKE -> MATCH
-                    | MATCH -> EQ }
+                    | Matcher.EQ -> Matcher.LIKE
+                    | Matcher.LIKE -> Matcher.MATCH
+                    | Matcher.MATCH -> Matcher.EQ }
 
         let rotateOperator (condition: QueryCondition) =
             { condition with
                 Operator =
                     match condition.Operator with
-                    | OR -> AND
-                    | AND -> NONE
-                    | NONE -> OR }
+                    | Operator.OR -> Operator.AND
+                    | Operator.AND -> Operator.NONE
+                    | Operator.NONE -> Operator.OR }
 
         let toggleCaseSensitive (condition: QueryCondition) =
             { condition with CaseSensitive = not condition.CaseSensitive }
@@ -328,9 +334,11 @@ module Data =
                 QueryState = qs
                 PropertySearch = QueryState.getCurrentProperty qs }
 
-        let refresh (state: InternalState) = { state with Refresh = Required }
+        let refresh (state: InternalState) =
+            { state with Refresh = Refresh.Required }
 
-        let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
+        let noRefresh (state: InternalState) =
+            { state with Refresh = Refresh.NotRequired }
 
         let refreshIfTrue (b: bool) (state: InternalState) =
             match b with
@@ -414,7 +422,7 @@ module Data =
               Prompt = p.Prompt
               FilteredCount = p.EntryCount
               ConsoleWidth = p.ConsoleWidth
-              Refresh = Required }
+              Refresh = Refresh.Required }
             |> InternalState.updateWindowWidth
 
         { Layout = Layout.fromString p.Layout

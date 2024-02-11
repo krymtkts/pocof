@@ -57,8 +57,8 @@ module Screen =
         do
             let height =
                 match layout with
-                | Data.TopDownHalf
-                | Data.BottomUpHalf -> 2
+                | Data.Layout.TopDownHalf
+                | Data.Layout.BottomUpHalf -> 2
                 | _ -> 1
                 |> (/) (rui.GetWindowHeight())
                 |> (+) -1
@@ -66,8 +66,8 @@ module Screen =
             let y =
                 let y =
                     match layout with
-                    | Data.TopDownHalf
-                    | Data.BottomUpHalf -> rui.GetCursorPosition() |> snd
+                    | Data.Layout.TopDownHalf
+                    | Data.Layout.BottomUpHalf -> rui.GetCursorPosition() |> snd
                     | _ -> 0
 
                 match (y + height) - rui.GetWindowHeight() with
@@ -81,7 +81,7 @@ module Screen =
             let y =
                 match layout with
                 // NOTE: Required moving the cursor to the initial position for rendering in the case of BottomUpHalf.
-                | Data.BottomUpHalf -> y + height
+                | Data.Layout.BottomUpHalf -> y + height
                 | _ -> y
 
             (0, y) ||> rui.SetCursorPosition
@@ -141,14 +141,14 @@ module Screen =
                     let y = rui.GetCursorPosition() |> snd
 
                     match layout with
-                    | Data.BottomUp -> (0, 0)
-                    | Data.BottomUpHalf -> (0, y - (rui.GetWindowHeight() / 2) + 1)
+                    | Data.Layout.BottomUp -> (0, 0)
+                    | Data.Layout.BottomUpHalf -> (0, y - (rui.GetWindowHeight() / 2) + 1)
                     | _ -> (0, y)
 
                 let height =
                     match layout with
-                    | Data.TopDownHalf
-                    | Data.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
+                    | Data.Layout.TopDownHalf
+                    | Data.Layout.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
                     | _ -> rui.GetWindowHeight()
 
                 pos ||> rui.Write
@@ -168,16 +168,16 @@ module Screen =
 
         member private __.calculatePositions layout =
             match layout with
-            | Data.TopDown ->
+            | Data.Layout.TopDown ->
                 let basePosition = 0
                 basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() - 3
-            | Data.TopDownHalf ->
+            | Data.Layout.TopDownHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
                 basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() / 2 - 3
-            | Data.BottomUp ->
+            | Data.Layout.BottomUp ->
                 let basePosition = rui.GetWindowHeight() - 1
                 basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() - 3
-            | Data.BottomUpHalf ->
+            | Data.Layout.BottomUpHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
 
                 basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3

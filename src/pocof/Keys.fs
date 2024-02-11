@@ -4,6 +4,7 @@ open System
 open System.Collections
 
 module Keys =
+    [<RequireQualifiedAccess>]
     type private Modifiers =
         | Plain
         | Modifier of ConsoleModifiers
@@ -11,16 +12,22 @@ module Keys =
     let private modify (x: Modifiers) k : Data.KeyPattern =
         let m =
             match x with
-            | Plain -> 0
-            | Modifier m -> m.GetHashCode()
+            | Modifiers.Plain -> 0
+            | Modifiers.Modifier m -> m.GetHashCode()
 
         { Modifier = m; Key = k }
 
     // Shorthands for defining the default key-map.
-    let private plain = modify Plain
-    let private alt = modify <| Modifier ConsoleModifiers.Alt
-    let private ctrl = modify <| Modifier ConsoleModifiers.Control
-    let private shift = modify <| Modifier ConsoleModifiers.Shift
+    let private plain = modify Modifiers.Plain
+    let private alt = modify <| Modifiers.Modifier ConsoleModifiers.Alt
+
+    let private ctrl =
+        modify
+        <| Modifiers.Modifier ConsoleModifiers.Control
+
+    let private shift =
+        modify
+        <| Modifiers.Modifier ConsoleModifiers.Shift
 
     let defaultKeymap =
         Map [ (plain ConsoleKey.Escape, Data.Action.Cancel)

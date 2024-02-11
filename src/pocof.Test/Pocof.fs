@@ -22,18 +22,18 @@ let initState () : InternalState =
           WindowBeginningCursor = 0
           WindowWidth = 0 }
       QueryCondition =
-        { Matcher = MATCH
-          Operator = OR
+        { Matcher = Matcher.MATCH
+          Operator = Operator.OR
           CaseSensitive = false
           Invert = false }
-      PropertySearch = NoSearch
+      PropertySearch = PropertySearch.NoSearch
       Notification = ""
       SuppressProperties = false
       Properties = [ "Name"; "LastModified"; "Path" ]
       Prompt = "query"
       FilteredCount = 0
       ConsoleWidth = 60
-      Refresh = Required }
+      Refresh = Refresh.Required }
 
 let state = initState ()
 let writeScreen _ _ _ = ()
@@ -54,7 +54,7 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -69,7 +69,7 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -84,7 +84,7 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -98,7 +98,7 @@ module loop =
         let state, context = Pocof.Query.prepare state
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ])
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args =
             { keymaps = Pocof.Keys.defaultKeymap
@@ -124,7 +124,7 @@ module loop =
         let state, context = Pocof.Query.prepare { state with SuppressProperties = true }
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Escape ])
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args =
             { keymaps = Pocof.Keys.defaultKeymap
@@ -143,7 +143,8 @@ module loop =
     let ``should return result when finishing after noop.`` () =
         let input = results |> List.map toObj
 
-        let state, context = Pocof.Query.prepare { state with Refresh = NotRequired }
+        let state, context =
+            Pocof.Query.prepare { state with Refresh = Refresh.NotRequired }
 
         let rui =
             new MockRawUI(
@@ -155,7 +156,7 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args =
             { keymaps = Pocof.Keys.defaultKeymap
@@ -190,7 +191,7 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args =
             { keymaps = Pocof.Keys.defaultKeymap
@@ -222,13 +223,13 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args =
             { keymaps = Pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
-              writeScreen = buff.writeScreen TopDown
+              writeScreen = buff.writeScreen Layout.TopDown
               getKey = buff.getKey
               getConsoleWidth =
                 fun () ->
@@ -252,7 +253,7 @@ module interact =
     let ``should return result with NonInteractive mode.`` () =
         let config: InternalConfig =
             { NotInteractive = true
-              Layout = TopDown
+              Layout = Layout.TopDown
               Keymaps = Pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
@@ -272,7 +273,7 @@ module interact =
     let ``should return result when interaction finished in Interactive mode and TopDown Layout.`` () =
         let config: InternalConfig =
             { NotInteractive = false
-              Layout = TopDown
+              Layout = Layout.TopDown
               Keymaps = Pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
@@ -293,7 +294,7 @@ module interact =
     let ``should return result when interaction finished in Interactive mode and BottomUp Layout.`` () =
         let config: InternalConfig =
             { NotInteractive = false
-              Layout = BottomUp
+              Layout = Layout.BottomUp
               Keymaps = Pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
@@ -313,7 +314,7 @@ module interact =
     let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
         let config: InternalConfig =
             { NotInteractive = false
-              Layout = BottomUpHalf
+              Layout = Layout.BottomUpHalf
               Keymaps = Pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj

@@ -45,14 +45,14 @@ module ``get should returns`` =
         let key = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
         let actual = Keys.get Map.empty key
 
-        actual |> shouldEqual (Data.AddQuery "a")
+        actual |> shouldEqual (Data.Action.AddQuery "a")
 
     [<Fact>]
     let ``PocofData.AddQuery if symbol with shift.`` () =
         let getKey = [ new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) ]
         let actual = Keys.get Map.empty getKey
 
-        actual |> shouldEqual (Data.AddQuery ":")
+        actual |> shouldEqual (Data.Action.AddQuery ":")
 
     [<Fact>]
     let ``PocofData.AddQuery multiple times.`` () =
@@ -65,20 +65,21 @@ module ``get should returns`` =
 
         let actual = Keys.get Map.empty getKey
 
-        actual |> shouldEqual (Data.AddQuery "paste")
+        actual
+        |> shouldEqual (Data.Action.AddQuery "paste")
 
     [<Fact>]
     let ``user-defined Action if matched.`` () =
         let keyMap: Map<Data.KeyPattern, Data.Action> =
-            Map [ ({ Modifier = 7; Key = ConsoleKey.E }, Data.Finish)
+            Map [ ({ Modifier = 7; Key = ConsoleKey.E }, Data.Action.Finish)
                   ({ Modifier = 0
                      Key = ConsoleKey.Escape },
-                   Data.Noop) ]
+                   Data.Action.Noop) ]
 
         let key = [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
         let actual = Keys.get keyMap key
 
-        actual |> shouldEqual Data.Finish
+        actual |> shouldEqual Data.Action.Finish
 
     [<Fact>]
     let ``Action if matched.`` () =
@@ -86,55 +87,56 @@ module ``get should returns`` =
             ([ ({ Modifier = 7; Key = ConsoleKey.E }: Data.KeyPattern)
                { Modifier = 0
                  Key = ConsoleKey.Escape } ],
-             [ Data.Finish; Data.Noop ],
+             [ Data.Action.Finish; Data.Action.Noop ],
              Keys.defaultKeymap)
             |||> List.foldBack2 Map.add
 
         let actual =
             Keys.get keyMap [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false) ]
 
-        actual |> shouldEqual Data.KillBeginningOfLine
+        actual
+        |> shouldEqual Data.Action.KillBeginningOfLine
 
         let actual =
             Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
 
-        actual |> shouldEqual Data.Finish
+        actual |> shouldEqual Data.Action.Finish
 
         let actual =
             Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
 
-        actual |> shouldEqual Data.Noop
+        actual |> shouldEqual Data.Action.Noop
 
     [<Fact>]
     let ``Action if matched to no modifier key.`` () =
         let keu = [ new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false) ]
         let actual = Keys.get Keys.defaultKeymap keu
 
-        actual |> shouldEqual Data.BeginningOfLine
+        actual |> shouldEqual Data.Action.BeginningOfLine
 
     [<Fact>]
     let ``PocofData.AddQuery if not match the keymap.`` () =
         let keyMap: Map<Data.KeyPattern, Data.Action> =
-            Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.KillBeginningOfLine) ]
+            Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.Action.KillBeginningOfLine) ]
 
         let key = [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) ]
         let actual = Keys.get keyMap key
 
-        actual |> shouldEqual (Data.AddQuery "u")
+        actual |> shouldEqual (Data.Action.AddQuery "u")
 
     [<Fact>]
     let ``PocofData.None if the control character not match the keymap.`` () =
         let key = [ new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true) ]
         let actual = Keys.get Keys.defaultKeymap key
 
-        actual |> shouldEqual Data.Noop
+        actual |> shouldEqual Data.Action.Noop
 
     [<Fact>]
     let ``None if not match the keymap.`` () =
         let key = [ new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false) ]
         let actual = Keys.get Keys.defaultKeymap key
 
-        actual |> shouldEqual Data.Noop
+        actual |> shouldEqual Data.Action.Noop
 
 module ``convertKeymaps should returns`` =
     open System.Management.Automation
@@ -149,7 +151,7 @@ module ``convertKeymaps should returns`` =
             ([ ({ Modifier = 7; Key = ConsoleKey.X }: Data.KeyPattern)
                { Modifier = 0
                  Key = ConsoleKey.Escape } ],
-             [ Data.Cancel; Data.Noop ],
+             [ Data.Action.Cancel; Data.Action.Noop ],
              Keys.defaultKeymap)
             |||> List.foldBack2 Map.add
             |> Ok

@@ -131,21 +131,21 @@ module ``Buff writeScreen`` =
         let state: InternalState =
             { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
-                { Matcher = MATCH
-                  Operator = AND
+                { Matcher = Matcher.MATCH
+                  Operator = Operator.AND
                   CaseSensitive = true
                   Invert = false }
-              PropertySearch = NoSearch
+              PropertySearch = PropertySearch.NoSearch
               Notification = ""
               SuppressProperties = false
               Properties = []
               Prompt = "query"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Required}
+              Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
 
-        let rui = getRenderedScreen rui state TopDown
+        let rui = getRenderedScreen rui state Layout.TopDown
 
         let expected =
             "query>foo                           cmatch and [0]"
@@ -161,21 +161,21 @@ module ``Buff writeScreen`` =
         let state: InternalState =
             { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
-                { Matcher = MATCH
-                  Operator = AND
+                { Matcher = Matcher.MATCH
+                  Operator = Operator.AND
                   CaseSensitive = true
                   Invert = false }
-              PropertySearch = NoSearch
+              PropertySearch = PropertySearch.NoSearch
               Notification = ""
               SuppressProperties = false
               Properties = []
               Prompt = "query"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Required}
+              Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
 
-        let rui = getRenderedScreen rui state TopDownHalf
+        let rui = getRenderedScreen rui state Layout.TopDownHalf
 
         let expected =
             [
@@ -194,21 +194,21 @@ module ``Buff writeScreen`` =
         let state: InternalState =
             { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
-                { Matcher = LIKE
-                  Operator = OR
+                { Matcher = Matcher.LIKE
+                  Operator = Operator.OR
                   CaseSensitive = false
                   Invert = true }
-              PropertySearch = NoSearch
+              PropertySearch = PropertySearch.NoSearch
               Notification = ""
               SuppressProperties = false
               Properties = []
               Prompt = "prompt"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Required}
+              Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
 
-        let rui = getRenderedScreen rui state BottomUp
+        let rui = getRenderedScreen rui state Layout.BottomUp
 
         let expected =
             "prompt>hello*world*                 notlike or [0]"
@@ -225,21 +225,21 @@ module ``Buff writeScreen`` =
         let state: InternalState =
             { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
-                { Matcher = LIKE
-                  Operator = OR
+                { Matcher = Matcher.LIKE
+                  Operator = Operator.OR
                   CaseSensitive = false
                   Invert = true }
-              PropertySearch = NoSearch
+              PropertySearch = PropertySearch.NoSearch
               Notification = ""
               SuppressProperties = false
               Properties = []
               Prompt = "prompt"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Required}
+              Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
 
-        let rui = getRenderedScreen rui state BottomUpHalf
+        let rui = getRenderedScreen rui state Layout. BottomUpHalf
 
         let expected =
             "prompt>hello*world*                 notlike or [0]"
@@ -256,22 +256,22 @@ module ``Buff writeScreen`` =
         let state: InternalState =
             { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
-                { Matcher = MATCH
-                  Operator = AND
+                { Matcher = Matcher.MATCH
+                  Operator = Operator.AND
                   CaseSensitive = false
                   Invert = false }
-              PropertySearch = NoSearch
+              PropertySearch = PropertySearch.NoSearch
               Notification = ""
               SuppressProperties = false
               Properties = []
               Prompt = "prompt"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Required}
+              Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
               |> InternalState.prepareNotification
 
-        let rui = getRenderedScreen rui state TopDown
+        let rui = getRenderedScreen rui state Layout.TopDown
 
         let expected =
             List.concat [ [ @"prompt>\                                                           match and [0]"
@@ -284,26 +284,26 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render props notification.`` () =
         let rui = new MockRawUI(80,30)
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), Layout.TopDown)
 
         let state: InternalState =
             { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
-                { Matcher = MATCH
-                  Operator = AND
+                { Matcher = Matcher.MATCH
+                  Operator = Operator.AND
                   CaseSensitive = false
                   Invert = false }
-              PropertySearch = NoSearch
+              PropertySearch = PropertySearch.NoSearch
               Notification = ""
               SuppressProperties = false
               Properties = []
               Prompt = "prompt"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Required}
+              Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
 
-        buff.writeScreen TopDown state [] <| Error "Property not found"
+        buff.writeScreen Layout.TopDown state [] <| Error "Property not found"
 
         let expected =
             List.concat [ [ @"prompt>:unknown                                                    match and [0]"
@@ -319,30 +319,30 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render entries under y.`` () =
         let rui = new MockRawUI(60,30)
-        use buff = new Buff(rui, formatTableOutString, TopDown)
+        use buff = new Buff(rui, formatTableOutString, Layout.TopDown)
 
         let state: InternalState =
             { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
-                { Matcher = MATCH
-                  Operator = AND
+                { Matcher = Matcher.MATCH
+                  Operator = Operator.AND
                   CaseSensitive = false
                   Invert = false }
-              PropertySearch = NoSearch
+              PropertySearch = PropertySearch.NoSearch
               Notification = ""
               SuppressProperties = false
               Properties = []
               Prompt = "prompt"
               FilteredCount = 10
               ConsoleWidth = rui.width
-              Refresh = Required}
+              Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
 
         let entries = [1..10] |> List.map (fun i ->
             DictionaryEntry("Number", i) |> Dict
         )
 
-        buff.writeScreen TopDown state entries <| Ok []
+        buff.writeScreen Layout.TopDown state entries <| Ok []
 
         let expected =
             List.concat [ [ @"prompt>                                       match and [10]"
@@ -361,29 +361,29 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render entries over y.`` () =
         let rui = new MockRawUI(60,30)
-        use buff = new Buff(rui, formatTableOutString, TopDown)
+        use buff = new Buff(rui, formatTableOutString, Layout.TopDown)
 
         let state: InternalState =
             { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
               QueryCondition =
-                { Matcher = MATCH
-                  Operator = AND
+                { Matcher = Matcher.MATCH
+                  Operator = Operator.AND
                   CaseSensitive = false
                   Invert = false }
-              PropertySearch = NoSearch
+              PropertySearch = PropertySearch.NoSearch
               Notification = ""
               SuppressProperties = false
               Properties = []
               Prompt = "prompt"
               FilteredCount = 100
               ConsoleWidth = rui.width
-              Refresh = Required}
+              Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
 
         let entries = [1..100] |> List.map (fun i ->
             DictionaryEntry("Number", i) |> Dict
         )
-        buff.writeScreen TopDown state entries <| Ok []
+        buff.writeScreen Layout.TopDown state entries <| Ok []
 
         let expected =
             List.concat [ [ @"prompt>                                      match and [100]"
@@ -408,20 +408,20 @@ module ``Buff writeScreen`` =
                         WindowBeginningCursor = beginning
                         WindowWidth = 30 }
                   QueryCondition =
-                      { Matcher = MATCH
-                        Operator = AND
+                      { Matcher = Matcher.MATCH
+                        Operator = Operator.AND
                         CaseSensitive = false
                         Invert = false }
-                  PropertySearch = NoSearch
+                  PropertySearch = PropertySearch.NoSearch
                   Notification = ""
                   SuppressProperties = false
                   Properties = []
                   Prompt = "query"
                   FilteredCount = 0
                   ConsoleWidth = rui.width
-                  Refresh = Required}
+                  Refresh = Refresh.Required}
 
-            getRenderedScreen rui state TopDown
+            getRenderedScreen rui state Layout.TopDown
 
         [<Fact>]
         let ``should render head 30 of query when cursor 0.`` () =
@@ -525,13 +525,13 @@ module ``Buff getConsoleWidth`` =
     [<Fact>]
     let ``should render top down.`` () =
         let rui = new MockRawUI(60,30)
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), Layout.TopDown)
         buff.getConsoleWidth() |> shouldEqual 60
 
 module ``Buff getKey`` =
     [<Fact>]
     let ``should render top down.`` () =
         let rui = new MockRawUI()
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), TopDown)
+        use buff = new Buff(rui,  (fun _ -> Seq.empty), Layout.TopDown)
         let expected = [new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)]
         buff.getKey() |> shouldEqual expected

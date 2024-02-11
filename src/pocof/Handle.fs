@@ -51,6 +51,7 @@ module Handle =
         <| String.length state.QueryState.Query
         <| state
 
+    [<RequireQualifiedAccess>]
     type private Direction =
         | Backward
         | Forward
@@ -64,16 +65,16 @@ module Handle =
         =
         let limit =
             match direction with
-            | Backward -> 0
-            | Forward -> String.length state.QueryState.Query
+            | Direction.Backward -> 0
+            | Direction.Forward -> String.length state.QueryState.Query
 
         match state.QueryState.Cursor with
         | x when x = limit -> InternalState.noRefresh state, pos, context
         | _ ->
             let qs =
                 match direction with
-                | Backward -> QueryState.backspaceQuery state.QueryState
-                | Forward -> QueryState.deleteQuery state.QueryState
+                | Direction.Backward -> QueryState.backspaceQuery state.QueryState
+                | Direction.Forward -> QueryState.deleteQuery state.QueryState
                 <| size
 
             let s =
@@ -87,15 +88,15 @@ module Handle =
 
             s, pos, context |> QueryContext.prepareQuery s
 
-    let private removeBackwardChar = removeChar Backward 1
+    let private removeBackwardChar = removeChar Direction.Backward 1
 
-    let private removeForwardChar = removeChar Forward 1
+    let private removeForwardChar = removeChar Direction.Forward 1
 
     let private removeQueryHead (state: InternalState) =
-        removeChar Backward state.QueryState.Cursor state
+        removeChar Direction.Backward state.QueryState.Cursor state
 
     let private removeQueryTail (state: InternalState) =
-        removeChar Forward
+        removeChar Direction.Forward
         <| String.length state.QueryState.Query
            - state.QueryState.Cursor
         <| state
@@ -176,14 +177,14 @@ module Handle =
                 { state with
                     InternalState.QueryState.Query = $"%s{head}%s{next}%s{tail}"
                     InternalState.QueryState.Cursor = basePosition + String.length next
-                    PropertySearch = Rotate(keyword, i, candidates) }
+                    PropertySearch = PropertySearch.Rotate(keyword, i, candidates) }
                 |> InternalState.refresh
 
             state, pos, context |> QueryContext.prepareQuery state
 
         match state.PropertySearch with
-        | NoSearch -> InternalState.noRefresh state, pos, context
-        | Search keyword ->
+        | PropertySearch.NoSearch -> InternalState.noRefresh state, pos, context
+        | PropertySearch.Search keyword ->
             let candidates =
                 state.Properties
                 |> List.filter (
@@ -200,7 +201,7 @@ module Handle =
                 Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
                 buildValues head candidate tail keyword 0 candidates basePosition
-        | Rotate (keyword, i, candidates) ->
+        | PropertySearch.Rotate (keyword, i, candidates) ->
             let cur = candidates.[i]
             let i = (i + 1) % List.length candidates
             let next = candidates.[i]
@@ -212,30 +213,30 @@ module Handle =
 
     let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (acton: Action) =
         match acton with
-        | Noop -> InternalState.noRefresh state, pos, context
-        | AddQuery s -> addQuery state pos context s
-        | BackwardChar -> moveBackward state pos context
-        | ForwardChar -> moveForward state pos context
-        | BeginningOfLine -> moveHead state pos context
-        | EndOfLine -> moveTail state pos context
-        | DeleteBackwardChar -> removeBackwardChar state pos context
-        | DeleteForwardChar -> removeForwardChar state pos context
-        | KillBeginningOfLine -> removeQueryHead state pos context
-        | KillEndOfLine -> removeQueryTail state pos context
-        | SelectBackwardChar
-        | SelectForwardChar
-        | SelectToBeginningOfLine
-        | SelectToEndOfLine -> InternalState.noRefresh state, pos, context // TODO: implement it.
-        | RotateMatcher -> switchMatcher state pos context
-        | RotateOperator -> switchOperator state pos context
-        | ToggleCaseSensitive -> toggleCaseSensitive state pos context
-        | ToggleInvertFilter -> toggleInvertFilter state pos context
-        | ToggleSuppressProperties -> toggleSuppressProperties state pos context
-        | SelectLineUp
-        | SelectLineDown
-        | ScrollPageUp
-        | ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
-        | CompleteProperty -> completeProperty state pos context
+        | Action.Noop -> InternalState.noRefresh state, pos, context
+        | Action.AddQuery s -> addQuery state pos context s
+        | Action.BackwardChar -> moveBackward state pos context
+        | Action.ForwardChar -> moveForward state pos context
+        | Action.BeginningOfLine -> moveHead state pos context
+        | Action.EndOfLine -> moveTail state pos context
+        | Action.DeleteBackwardChar -> removeBackwardChar state pos context
+        | Action.DeleteForwardChar -> removeForwardChar state pos context
+        | Action.KillBeginningOfLine -> removeQueryHead state pos context
+        | Action.KillEndOfLine -> removeQueryTail state pos context
+        | Action.SelectBackwardChar
+        | Action.SelectForwardChar
+        | Action.SelectToBeginningOfLine
+        | Action.SelectToEndOfLine -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | Action.RotateMatcher -> switchMatcher state pos context
+        | Action.RotateOperator -> switchOperator state pos context
+        | Action.ToggleCaseSensitive -> toggleCaseSensitive state pos context
+        | Action.ToggleInvertFilter -> toggleInvertFilter state pos context
+        | Action.ToggleSuppressProperties -> toggleSuppressProperties state pos context
+        | Action.SelectLineUp
+        | Action.SelectLineDown
+        | Action.ScrollPageUp
+        | Action.ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | Action.CompleteProperty -> completeProperty state pos context
         | x ->
             failwithf "unrecognized Action. value='%s'"
             <| x.GetType().Name

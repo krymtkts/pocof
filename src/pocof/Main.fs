@@ -79,7 +79,7 @@ module Pocof =
         =
 
         match state.Refresh with
-        | NotRequired -> results, state
+        | Refresh.NotRequired -> results, state
         | _ ->
             let results = Query.run context args.input args.propMap
 
@@ -109,8 +109,8 @@ module Pocof =
         args.getKey ()
         |> Keys.get args.keymaps
         |> function
-            | Cancel -> []
-            | Finish -> unwrap results
+            | Action.Cancel -> []
+            | Action.Finish -> unwrap results
             | action ->
                 action
                 |> invokeAction

@@ -87,7 +87,7 @@ module Query =
 
     let private prepareQuery (state: InternalState) =
         match state.QueryCondition.Operator with
-        | NONE -> [ Normal state.QueryState.Query ]
+        | Operator.NONE -> [ Normal state.QueryState.Query ]
         | _ ->
             state.QueryState.Query
             |> String.trim
@@ -97,14 +97,14 @@ module Query =
 
     let private prepareTest (state: InternalState) =
         match state.QueryCondition.Operator with
-        | OR -> List.exists
+        | Operator.OR -> List.exists
         | _ -> List.forall
 
     let private prepareIs (state: InternalState) =
         match state.QueryCondition.Matcher with
-        | EQ -> equals << equalOpt
-        | LIKE -> likes << likeOpt
-        | MATCH -> matches << matchOpt
+        | Matcher.EQ -> equals << equalOpt
+        | Matcher.LIKE -> likes << likeOpt
+        | Matcher.MATCH -> matches << matchOpt
         <| state.QueryCondition.CaseSensitive
 
     let private prepareAnswer (state: InternalState) =
@@ -114,7 +114,7 @@ module Query =
 
     let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with
-        | MATCH ->
+        | Matcher.MATCH ->
             try
                 new Regex(state.QueryState.Query) |> ignore
                 ""
@@ -198,8 +198,8 @@ module Query =
             | _ -> String.lower x
 
         match state.PropertySearch with
-        | Search (prefix: string)
-        | Rotate (prefix: string, _, _) ->
+        | PropertySearch.Search (prefix: string)
+        | PropertySearch.Rotate (prefix: string, _, _) ->
             let p = transform prefix
             let ret = List.filter (transform >> String.startsWith p) state.Properties
 

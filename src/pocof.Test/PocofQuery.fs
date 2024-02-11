@@ -25,7 +25,7 @@ let initState () : Data.InternalState =
       Prompt = "query"
       FilteredCount = 0
       ConsoleWidth = 60
-      Refresh = Data.Required }
+      Refresh = Data.Refresh.Required }
 
 let state = initState ()
 
@@ -90,7 +90,7 @@ module run =
     let invert (s: Data.InternalState) = { s with QueryCondition.Invert = true }
 
     let opAnd (s: Data.InternalState) =
-        { s with QueryCondition.Operator = Data.AND }
+        { s with QueryCondition.Operator = Data.Operator.AND }
 
     module ``with a simple query`` =
         let entries =
@@ -107,11 +107,11 @@ module run =
             |> shouldEqual []
 
         module ``of MATCH`` =
-            let state = state |> matcher Data.MATCH |> query "a"
+            let state = state |> matcher Data.Matcher.MATCH |> query "a"
 
             [<Fact>]
             let ``should returns all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.MATCH
+                let state = initState () |> matcher Data.Matcher.MATCH
                 let _, context = Query.prepare state
 
                 Query.run context entries props
@@ -163,11 +163,11 @@ module run =
                 |> shouldEqual ( genList [ "Name" ])
 
         module ``of LIKE`` =
-            let state = state |> matcher Data.LIKE |> query "a*"
+            let state = state |> matcher Data.Matcher.LIKE |> query "a*"
 
             [<Fact>]
             let ``should returns all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.LIKE
+                let state = initState () |> matcher Data.Matcher.LIKE
                 let _, context = Query.prepare state
 
                 Query.run context entries props
@@ -215,11 +215,11 @@ module run =
                 |> shouldEqual ( genList [ "Name" ])
 
         module ``of EQ`` =
-            let state = state |> matcher Data.EQ |> query "Name"
+            let state = state |> matcher Data.Matcher.EQ |> query "Name"
 
             [<Fact>]
             let ``should returns all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.EQ
+                let state = initState () |> matcher Data.Matcher.EQ
                 let _, context = Query.prepare state
 
                 Query.run context entries props
