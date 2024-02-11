@@ -1,4 +1,4 @@
 module Program
 
 [<EntryPoint>]
-let main argv = 0
+let main _ = 0

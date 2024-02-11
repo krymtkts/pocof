@@ -57,8 +57,8 @@ module LanguageExtension =
 
 module PocofData =
     open System
-    open System.Management.Automation
     open System.Collections
+    open System.Management.Automation
     open Microsoft.FSharp.Reflection
 
     type Entry =

@@ -1,13 +1,15 @@
 module Pocof
 
+open System
+open System.Management.Automation
+
 open Xunit
 open FsUnitTyped
-open System
+
 open pocof.Pocof
 open pocof.PocofData
 open pocof.PocofScreen
 open PocofUI
-open System.Management.Automation
 
 let toObj x = x |> (PSObject.AsPSObject >> Obj)
 

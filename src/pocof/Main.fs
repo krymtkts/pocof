@@ -1,12 +1,11 @@
 namespace pocof
 
 open System
+open System.Collections
+open System.Management.Automation
 
 open PocofData
 open PocofHandle
-
-open System.Management.Automation
-open System.Collections
 
 module Pocof =
     type Entry = PocofData.Entry

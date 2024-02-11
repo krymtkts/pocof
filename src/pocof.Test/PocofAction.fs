@@ -1,9 +1,11 @@
 module PocofAction
 
-open Xunit
-open FsUnitTyped
 open System
 open System.Collections
+
+open Xunit
+open FsUnitTyped
+
 open pocof
 
 module ``toKeyPattern should returns`` =
