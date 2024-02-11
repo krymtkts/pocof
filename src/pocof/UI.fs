@@ -54,35 +54,37 @@ module PocofScreen =
 
         let layout: PocofData.Layout = layout
 
-        let height =
-            match layout with
-            | PocofData.TopDownHalf
-            | PocofData.BottomUpHalf -> rui.GetWindowHeight() / 2 - 1
-            | _ -> rui.GetWindowHeight() - 1
-
-        let pos =
-            let y =
+        do
+            let height =
                 match layout with
                 | PocofData.TopDownHalf
-                | PocofData.BottomUpHalf -> rui.GetCursorPosition() |> snd
-                | _ -> 0
+                | PocofData.BottomUpHalf -> 2
+                | _ -> 1
+                |> (/) (rui.GetWindowHeight())
+                |> (+) -1
 
-            match (y + height) - rui.GetWindowHeight() with
-            | over when over > 0 -> 0, y - over - 1
-            | _ -> 0, y
+            let y =
+                let y =
+                    match layout with
+                    | PocofData.TopDownHalf
+                    | PocofData.BottomUpHalf -> rui.GetCursorPosition() |> snd
+                    | _ -> 0
 
-        do
+                match (y + height) - rui.GetWindowHeight() with
+                | over when over > 0 -> y - over - 1
+                | _ -> y
+
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
             rui.GetCursorPosition() ||> rui.Write
             <| String.replicate height "\n"
 
-            let pos =
+            let y =
                 match layout with
-                // TODO: Required moving the cursor to the initial position for rendering in the case of BottomUpHalf.
-                | PocofData.BottomUpHalf -> pos |> fst, pos |> snd |> (+) height
-                | _ -> pos
+                // NOTE: Required moving the cursor to the initial position for rendering in the case of BottomUpHalf.
+                | PocofData.BottomUpHalf -> y + height
+                | _ -> y
 
-            pos ||> rui.SetCursorPosition
+            (0, y) ||> rui.SetCursorPosition
 
         [<TailCall>]
         let rec getQuery (w: int) (q: string) (l: int) =
@@ -134,12 +136,19 @@ module PocofScreen =
         interface IDisposable with
             member __.Dispose() =
                 (rui :> IDisposable).Dispose()
-                // TODO: not work well when the screen height is resized.
-                // clear contests.
+
+                let pos =
+                    let y = rui.GetCursorPosition() |> snd
+
+                    match layout with
+                    | PocofData.BottomUp -> (0, 0)
+                    | PocofData.BottomUpHalf -> (0, y - (rui.GetWindowHeight() / 2) + 1)
+                    | _ -> (0, y)
+
                 let height =
                     match layout with
                     | PocofData.TopDownHalf
-                    | PocofData.BottomUpHalf -> rui.GetWindowHeight() / 2
+                    | PocofData.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
                     | _ -> rui.GetWindowHeight()
 
                 pos ||> rui.Write

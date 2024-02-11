@@ -288,6 +288,27 @@ module interact =
 
         actual |> shouldEqual expected
 
+
+    [<Fact>]
+    let ``should return result when interaction finished in Interactive mode and BottomUp Layout.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = BottomUp
+              Keymaps = pocof.PocofAction.defaultKeymap }
+
+        let input = results |> List.map toObj
+        let pos = { Y = 0; Height = 0 }
+        let rui = new MockRawUI()
+
+        let actual = interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        actual |> List.length |> shouldEqual 5
+
+        let expected =
+            [ "a"; "b"; "c"; "d"; "e" ]
+            |> List.map (PSObject.AsPSObject >> box)
+
+        actual |> shouldEqual expected
+
     [<Fact>]
     let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
         let config: InternalConfig =
