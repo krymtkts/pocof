@@ -101,7 +101,7 @@ module loop =
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+            { keymaps = pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -128,7 +128,7 @@ module loop =
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+            { keymaps = pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -159,7 +159,7 @@ module loop =
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+            { keymaps = pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -194,7 +194,7 @@ module loop =
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+            { keymaps = pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -227,7 +227,7 @@ module loop =
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+            { keymaps = pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = buff.writeScreen TopDown
@@ -255,7 +255,7 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = true
               Layout = TopDown
-              Keymaps = pocof.PocofAction.defaultKeymap }
+              Keymaps = pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -275,7 +275,7 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = TopDown
-              Keymaps = pocof.PocofAction.defaultKeymap }
+              Keymaps = pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -296,7 +296,7 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = BottomUp
-              Keymaps = pocof.PocofAction.defaultKeymap }
+              Keymaps = pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -316,7 +316,7 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = BottomUpHalf
-              Keymaps = pocof.PocofAction.defaultKeymap }
+              Keymaps = pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }

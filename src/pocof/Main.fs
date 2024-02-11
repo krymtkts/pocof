@@ -17,7 +17,7 @@ module Pocof =
 
     type RawUI = Screen.RawUI
 
-    let convertKeymaps = PocofAction.convertKeymaps
+    let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
 
     type LoopFixedArguments =
@@ -107,7 +107,7 @@ module Pocof =
         let results, state = queryAndRender args results state pos context
 
         args.getKey ()
-        |> PocofAction.get args.keymaps
+        |> Keys.get args.keymaps
         |> function
             | Cancel -> []
             | Finish -> unwrap results

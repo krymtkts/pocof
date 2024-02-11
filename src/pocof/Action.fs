@@ -3,7 +3,7 @@ namespace pocof
 open System
 open System.Collections
 
-module PocofAction =
+module Keys =
     type private Modifiers =
         | Plain
         | Modifier of ConsoleModifiers

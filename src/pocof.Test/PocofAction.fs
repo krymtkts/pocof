@@ -11,46 +11,46 @@ open pocof
 module ``toKeyPattern should returns`` =
     [<Fact>]
     let ``A without modifiers.`` () =
-        PocofAction.toKeyPattern "A"
+        Keys.toKeyPattern "A"
         |> shouldEqual (Ok { Modifier = 0; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``A with Alt.`` () =
-        PocofAction.toKeyPattern "alt+a"
+        Keys.toKeyPattern "alt+a"
         |> shouldEqual (Ok { Modifier = 1; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``A with Alt and Shift.`` () =
-        PocofAction.toKeyPattern "Alt+Shift+A"
+        Keys.toKeyPattern "Alt+Shift+A"
         |> shouldEqual (Ok { Modifier = 3; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``A with Ctrl, Alt and Shift.`` () =
-        PocofAction.toKeyPattern "control+alt+shift+A"
+        Keys.toKeyPattern "control+alt+shift+A"
         |> shouldEqual (Ok { Modifier = 7; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``Error when empty.`` () =
-        PocofAction.toKeyPattern ""
+        Keys.toKeyPattern ""
         |> shouldEqual (Error "Unsupported key ''.")
 
     [<Fact>]
     let ``Error when unsupported combination.`` () =
-        PocofAction.toKeyPattern "c+c+c"
+        Keys.toKeyPattern "c+c+c"
         |> shouldEqual (Error "Unsupported combination 'c+c+c'.")
 
 module ``get should returns`` =
     [<Fact>]
     let ``PocofData.AddQuery if no modifier is specified.`` () =
         let key = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
-        let actual = PocofAction.get Map.empty key
+        let actual = Keys.get Map.empty key
 
         actual |> shouldEqual (Data.AddQuery "a")
 
     [<Fact>]
     let ``PocofData.AddQuery if symbol with shift.`` () =
         let getKey = [ new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) ]
-        let actual = PocofAction.get Map.empty getKey
+        let actual = Keys.get Map.empty getKey
 
         actual |> shouldEqual (Data.AddQuery ":")
 
@@ -63,7 +63,7 @@ module ``get should returns`` =
               new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false)
               new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) ]
 
-        let actual = PocofAction.get Map.empty getKey
+        let actual = Keys.get Map.empty getKey
 
         actual |> shouldEqual (Data.AddQuery "paste")
 
@@ -76,7 +76,7 @@ module ``get should returns`` =
                    Data.Noop) ]
 
         let key = [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
-        let actual = PocofAction.get keyMap key
+        let actual = Keys.get keyMap key
 
         actual |> shouldEqual Data.Finish
 
@@ -87,28 +87,28 @@ module ``get should returns`` =
                { Modifier = 0
                  Key = ConsoleKey.Escape } ],
              [ Data.Finish; Data.Noop ],
-             PocofAction.defaultKeymap)
+             Keys.defaultKeymap)
             |||> List.foldBack2 Map.add
 
         let actual =
-            PocofAction.get keyMap [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false) ]
+            Keys.get keyMap [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false) ]
 
         actual |> shouldEqual Data.KillBeginningOfLine
 
         let actual =
-            PocofAction.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
+            Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
 
         actual |> shouldEqual Data.Finish
 
         let actual =
-            PocofAction.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
+            Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
 
         actual |> shouldEqual Data.Noop
 
     [<Fact>]
     let ``Action if matched to no modifier key.`` () =
         let keu = [ new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false) ]
-        let actual = PocofAction.get PocofAction.defaultKeymap keu
+        let actual = Keys.get Keys.defaultKeymap keu
 
         actual |> shouldEqual Data.BeginningOfLine
 
@@ -118,21 +118,21 @@ module ``get should returns`` =
             Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.KillBeginningOfLine) ]
 
         let key = [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) ]
-        let actual = PocofAction.get keyMap key
+        let actual = Keys.get keyMap key
 
         actual |> shouldEqual (Data.AddQuery "u")
 
     [<Fact>]
     let ``PocofData.None if the control character not match the keymap.`` () =
         let key = [ new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true) ]
-        let actual = PocofAction.get PocofAction.defaultKeymap key
+        let actual = Keys.get Keys.defaultKeymap key
 
         actual |> shouldEqual Data.Noop
 
     [<Fact>]
     let ``None if not match the keymap.`` () =
         let key = [ new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false) ]
-        let actual = PocofAction.get PocofAction.defaultKeymap key
+        let actual = Keys.get Keys.defaultKeymap key
 
         actual |> shouldEqual Data.Noop
 
@@ -150,12 +150,11 @@ module ``convertKeymaps should returns`` =
                { Modifier = 0
                  Key = ConsoleKey.Escape } ],
              [ Data.Cancel; Data.Noop ],
-             PocofAction.defaultKeymap)
+             Keys.defaultKeymap)
             |||> List.foldBack2 Map.add
             |> Ok
 
-        PocofAction.convertKeymaps h
-        |> shouldEqual expected
+        Keys.convertKeymaps h |> shouldEqual expected
 
     [<Fact>]
     let ``error if the hashtable contains invalid key or action.`` () =
@@ -174,12 +173,10 @@ module ``convertKeymaps should returns`` =
             |> String.concat "\n"
             |> Error
 
-        PocofAction.convertKeymaps h
-        |> shouldEqual expected
+        Keys.convertKeymaps h |> shouldEqual expected
 
     [<Fact>]
     let ``default map from null hashtable`` () =
-        let expected = PocofAction.defaultKeymap |> Ok
+        let expected = Keys.defaultKeymap |> Ok
 
-        PocofAction.convertKeymaps null
-        |> shouldEqual expected
+        Keys.convertKeymaps null |> shouldEqual expected
