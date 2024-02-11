@@ -1,15 +1,17 @@
 module PocofData
 
+open System
+open Microsoft.FSharp.Reflection
+
 open Xunit
 open FsUnitTyped
-open Microsoft.FSharp.Reflection
-open System
+
 open pocof
 open PocofData
 
 module unwrap =
-    open System.Management.Automation
     open System.Collections
+    open System.Management.Automation
 
     [<Fact>]
     let ``should returns "a".`` () =

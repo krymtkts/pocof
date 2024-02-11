@@ -1,8 +1,10 @@
 module PocofUI
 
+open System
+
 open Xunit
 open FsUnitTyped
-open System
+
 open pocof.PocofData
 open pocof.PocofQuery
 open pocof.PocofScreen

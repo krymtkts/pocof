@@ -1,9 +1,11 @@
 module PocofQuery
 
+open System.Management.Automation
+
 open Xunit
 open FsUnitTyped
+
 open pocof
-open System.Management.Automation
 
 let initState () : PocofData.InternalState =
     { QueryState = {
