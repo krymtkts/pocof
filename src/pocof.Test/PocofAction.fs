@@ -6,7 +6,7 @@ open System.Collections
 open Xunit
 open FsUnitTyped
 
-open pocof
+open Pocof
 
 module ``toKeyPattern should returns`` =
     [<Fact>]

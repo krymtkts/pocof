@@ -5,9 +5,9 @@ open System
 open Xunit
 open FsUnitTyped
 
-open pocof.Data
-open pocof.Query
-open pocof.Screen
+open Pocof.Data
+open Pocof.Query
+open Pocof.Screen
 
 let generateLine x y =
     List.replicate y <| String.replicate x " "

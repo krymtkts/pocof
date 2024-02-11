@@ -1,4 +1,4 @@
-namespace pocof
+namespace Pocof
 
 #if DEBUG
 

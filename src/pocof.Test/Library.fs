@@ -113,7 +113,7 @@ module SelectPocofCommand =
     open Xunit
     open FsUnitTyped
 
-    open pocof
+    open Pocof
 
     type SelectPocofCommandForTest() =
         inherit SelectPocofCommand()

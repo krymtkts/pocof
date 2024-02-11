@@ -6,9 +6,9 @@ open System.Management.Automation
 open Xunit
 open FsUnitTyped
 
-open pocof.Pocof
-open pocof.Data
-open pocof.Screen
+open Pocof.Pocof
+open Pocof.Data
+open Pocof.Screen
 open PocofUI
 
 let toObj x = x |> (PSObject.AsPSObject >> Obj)
@@ -95,13 +95,13 @@ module loop =
     [<Fact>]
     let ``should return result when finishing.`` () =
         let input = results |> List.map toObj
-        let state, context = pocof.Query.prepare state
+        let state, context = Pocof.Query.prepare state
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ])
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.Keys.defaultKeymap
+            { keymaps = Pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -121,13 +121,13 @@ module loop =
     let ``shouldn't return result when canceling.`` () =
         let input = results |> List.map toObj
 
-        let state, context = pocof.Query.prepare { state with SuppressProperties = true }
+        let state, context = Pocof.Query.prepare { state with SuppressProperties = true }
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Escape ])
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.Keys.defaultKeymap
+            { keymaps = Pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -143,7 +143,7 @@ module loop =
     let ``should return result when finishing after noop.`` () =
         let input = results |> List.map toObj
 
-        let state, context = pocof.Query.prepare { state with Refresh = NotRequired }
+        let state, context = Pocof.Query.prepare { state with Refresh = NotRequired }
 
         let rui =
             new MockRawUI(
@@ -158,7 +158,7 @@ module loop =
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.Keys.defaultKeymap
+            { keymaps = Pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -177,7 +177,7 @@ module loop =
     [<Fact>]
     let ``should return result when finishing with filter.`` () =
         let input = results |> List.map toObj
-        let state, context = pocof.Query.prepare state
+        let state, context = Pocof.Query.prepare state
 
         let rui =
             new MockRawUI(
@@ -193,7 +193,7 @@ module loop =
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.Keys.defaultKeymap
+            { keymaps = Pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -211,7 +211,7 @@ module loop =
     let ``should update QueryState.WindowWidth based on ConsoleWidth.`` () =
         let input = results |> List.map toObj
 
-        let state, context = pocof.Query.prepare { state with SuppressProperties = true }
+        let state, context = Pocof.Query.prepare { state with SuppressProperties = true }
 
         let rui =
             new MockRawUI(
@@ -225,7 +225,7 @@ module loop =
         use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
 
         let args =
-            { keymaps = pocof.Keys.defaultKeymap
+            { keymaps = Pocof.Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = buff.writeScreen TopDown
@@ -253,7 +253,7 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = true
               Layout = TopDown
-              Keymaps = pocof.Keys.defaultKeymap }
+              Keymaps = Pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -273,7 +273,7 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = TopDown
-              Keymaps = pocof.Keys.defaultKeymap }
+              Keymaps = Pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -294,7 +294,7 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = BottomUp
-              Keymaps = pocof.Keys.defaultKeymap }
+              Keymaps = Pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -314,7 +314,7 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = BottomUpHalf
-              Keymaps = pocof.Keys.defaultKeymap }
+              Keymaps = Pocof.Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }

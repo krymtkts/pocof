@@ -6,7 +6,7 @@ open Microsoft.FSharp.Reflection
 open Xunit
 open FsUnitTyped
 
-open pocof
+open Pocof
 open Data
 
 module unwrap =

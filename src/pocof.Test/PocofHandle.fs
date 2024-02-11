@@ -3,7 +3,7 @@ module PocofHandle
 open Xunit
 open FsUnitTyped
 
-open pocof
+open Pocof
 open Data
 open Handle
 
