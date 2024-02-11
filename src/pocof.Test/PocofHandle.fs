@@ -5,7 +5,7 @@ open FsUnitTyped
 
 open pocof
 open Data
-open PocofHandle
+open Handle
 
 module invokeAction =
     let state: InternalState =

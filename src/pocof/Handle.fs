@@ -5,7 +5,7 @@ open System
 open Data
 open Query
 
-module PocofHandle =
+module Handle =
     type QueryContext = Query.QueryContext
 
     let private addQuery (state: InternalState) (pos: Position) (context: QueryContext) (s: string) =

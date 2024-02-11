@@ -5,7 +5,7 @@ open System.Collections
 open System.Management.Automation
 
 open Data
-open PocofHandle
+open Handle
 
 module Pocof =
     type Entry = Data.Entry
