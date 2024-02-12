@@ -101,7 +101,7 @@ module Data =
 
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
-        | true -> Some s.[1..]
+        | true -> Some s.[String.length p ..]
         | _ -> None
 
     [<RequireQualifiedAccess>]
