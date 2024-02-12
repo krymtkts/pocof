@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="PocofData.fs" />
-    <Compile Include="PocofUI.fs" />
-    <Compile Include="PocofAction.fs" />
-    <Compile Include="PocofQuery.fs" />
-    <Compile Include="PocofHandle.fs" />
+    <Compile Include="Data.fs" />
+    <Compile Include="Screen.fs" />
+    <Compile Include="Keys.fs" />
+    <Compile Include="Query.fs" />
+    <Compile Include="Handle.fs" />
     <Compile Include="Pocof.fs" />
     <Compile Include="Library.fs" />
     <Compile Include="Program.fs" />

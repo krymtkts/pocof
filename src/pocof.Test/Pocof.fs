@@ -1,4 +1,4 @@
-module Pocof
+module PocofTest.Pocof
 
 open System
 open System.Management.Automation
@@ -9,7 +9,7 @@ open FsUnitTyped
 open Pocof.Pocof
 open Pocof.Data
 open Pocof.Screen
-open PocofUI
+open Screen
 
 let toObj x = x |> (PSObject.AsPSObject >> Obj)
 

@@ -1,4 +1,4 @@
-module Library
+module PocofTest.Library
 
 module Mock =
     open System

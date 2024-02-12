@@ -1,4 +1,4 @@
-module PocofQuery
+module PocofTest.Query
 
 open System.Management.Automation
 

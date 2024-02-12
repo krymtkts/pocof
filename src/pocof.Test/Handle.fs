@@ -1,4 +1,4 @@
-module PocofHandle
+module PocofTest.Handle
 
 open Xunit
 open FsUnitTyped

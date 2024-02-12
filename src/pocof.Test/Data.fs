@@ -1,4 +1,4 @@
-module PocofData
+module PocofTest.Data
 
 open System
 open Microsoft.FSharp.Reflection
