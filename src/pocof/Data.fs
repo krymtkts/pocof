@@ -397,6 +397,8 @@ module Data =
 
     type Position = { Y: int; Height: int }
 
+    [<NoComparison>]
+    [<NoEquality>]
     type IncomingParameters =
         { Query: string
           Matcher: string

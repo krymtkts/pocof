@@ -123,6 +123,8 @@ module Keys =
             | _, e -> e |> List.rev |> String.concat "\n" |> Error
 
 
+    [<NoComparison>]
+    [<NoEquality>]
     type private KeyInfo =
         { Pattern: Data.KeyPattern
           KeyChar: char }

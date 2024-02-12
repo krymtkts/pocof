@@ -62,6 +62,7 @@ module Query =
     type TesterType<'a> = ('a -> bool) -> 'a list -> bool
 
     [<NoComparison>]
+    [<NoEquality>]
     type QueryContext =
         { Queries: QueryPart list
           Test: TesterType<string * string>

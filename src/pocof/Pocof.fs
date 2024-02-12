@@ -22,6 +22,7 @@ module Pocof =
     let initConfig = Data.initConfig
 
     [<NoComparison>]
+    [<NoEquality>]
     type LoopFixedArguments =
         { keymaps: Map<KeyPattern, Action>
           input: Entry list
