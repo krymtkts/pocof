@@ -20,7 +20,7 @@
     <Compile Include="Keys.fs" />
     <Compile Include="Query.fs" />
     <Compile Include="Handle.fs" />
-    <Compile Include="Main.fs" />
+    <Compile Include="Pocof.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
 
