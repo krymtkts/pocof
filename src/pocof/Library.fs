@@ -24,11 +24,11 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     [<ValidateSet("match", "like", "eq")>]
-    member val Matcher = string Pocof.Matcher.MATCH with get, set
+    member val Matcher = string Pocof.Matcher.Match with get, set
 
     [<Parameter>]
     [<ValidateSet("and", "or", "none")>]
-    member val Operator = string Pocof.Operator.AND with get, set
+    member val Operator = string Pocof.Operator.And with get, set
 
     [<Parameter>]
     member val CaseSensitive: SwitchParameter = new SwitchParameter false with get, set

@@ -34,7 +34,9 @@ Describe 'pocof' {
     } {
         Context 'In <Layout> mode with empty query' -ForEach @(
             @{ Layout = 'TopDown' },
+            @{ Layout = 'TopDownHalf' },
             @{ Layout = 'BottomUp' }
+            @{ Layout = 'BottomUpHalf' }
         ) {
             It "Given Layout '<Layout>', '<Expected>' should be returned." -TestCases @(
                 @{Params = $BaseParam + $_ }

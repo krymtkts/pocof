@@ -96,13 +96,13 @@ module ``QueryState toString should returns`` =
 
     [<Fact>]
     let ``eq and`` () =
-        let actual = queryState Matcher.EQ Operator.AND
+        let actual = queryState Matcher.Eq Operator.And
         string actual |> shouldEqual "eq and"
 
     [<Fact>]
     let ``cne or`` () =
         let actual =
-            queryState Matcher.EQ Operator.OR
+            queryState Matcher.Eq Operator.Or
             |> caseSensitive
             |> invert
 
@@ -111,38 +111,38 @@ module ``QueryState toString should returns`` =
     [<Fact>]
     let ``ceq and`` () =
         let actual =
-            queryState Matcher.EQ Operator.AND
+            queryState Matcher.Eq Operator.And
             |> caseSensitive
 
         string actual |> shouldEqual "ceq and"
 
     [<Fact>]
     let ``ne or`` () =
-        let actual = queryState Matcher.EQ Operator.OR |> invert
+        let actual = queryState Matcher.Eq Operator.Or |> invert
         string actual |> shouldEqual "ne or"
 
     [<Fact>]
     let ``like and`` () =
-        let actual = queryState Matcher.LIKE Operator.AND
+        let actual = queryState Matcher.Like Operator.And
         string actual |> shouldEqual "like and"
 
     [<Fact>]
     let ``clike and`` () =
         let actual =
-            queryState Matcher.LIKE Operator.AND
+            queryState Matcher.Like Operator.And
             |> caseSensitive
 
         string actual |> shouldEqual "clike and"
 
     [<Fact>]
     let ``notlike and`` () =
-        let actual = queryState Matcher.LIKE Operator.AND |> invert
+        let actual = queryState Matcher.Like Operator.And |> invert
         string actual |> shouldEqual "notlike and"
 
     [<Fact>]
     let ``notclike and`` () =
         let actual =
-            queryState Matcher.LIKE Operator.AND
+            queryState Matcher.Like Operator.And
             |> caseSensitive
             |> invert
 
@@ -151,7 +151,7 @@ module ``QueryState toString should returns`` =
     [<Fact>]
     let ``notcmatch or`` () =
         let actual =
-            queryState Matcher.MATCH Operator.OR
+            queryState Matcher.Match Operator.Or
             |> caseSensitive
             |> invert
 
@@ -159,20 +159,20 @@ module ``QueryState toString should returns`` =
 
     [<Fact>]
     let ``notmatch or`` () =
-        let actual = queryState Matcher.MATCH Operator.OR |> invert
+        let actual = queryState Matcher.Match Operator.Or |> invert
         string actual |> shouldEqual "notmatch or"
 
     [<Fact>]
     let ``cmatch or`` () =
         let actual =
-            queryState Matcher.MATCH Operator.OR
+            queryState Matcher.Match Operator.Or
             |> caseSensitive
 
         string actual |> shouldEqual "cmatch or"
 
     [<Fact>]
     let ``match or`` () =
-        let actual = queryState Matcher.MATCH Operator.OR
+        let actual = queryState Matcher.Match Operator.Or
         string actual |> shouldEqual "match or"
 
 module initConfig =
@@ -206,8 +206,8 @@ module initConfig =
                     - (String.length "prompt>")
                     - (String.length " notclike and [10]") }
               QueryCondition =
-                { Matcher = Matcher.LIKE
-                  Operator = Operator.AND
+                { Matcher = Matcher.Like
+                  Operator = Operator.And
                   CaseSensitive = true
                   Invert = true }
               PropertySearch = PropertySearch.Search "name"

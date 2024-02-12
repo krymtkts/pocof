@@ -101,7 +101,7 @@ module Data =
 
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
-        | true -> Some s.[1..]
+        | true -> Some s.[String.length p ..]
         | _ -> None
 
     [<RequireQualifiedAccess>]
@@ -150,9 +150,9 @@ module Data =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     type Matcher =
-        | EQ
-        | LIKE
-        | MATCH
+        | Eq
+        | Like
+        | Match
         override __.ToString() = toString __ |> String.lower
 
     [<RequireQualifiedAccess>]
@@ -162,9 +162,9 @@ module Data =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     type Operator =
-        | AND
-        | OR
-        | NONE
+        | And
+        | Or
+        | None
         override __.ToString() = toString __ |> String.lower
 
     [<RequireQualifiedAccess>]
@@ -227,27 +227,25 @@ module Data =
         let setCursor (state: QueryState) (x: int) = { state with Cursor = x }
 
         let backspaceQuery (state: QueryState) (size: int) =
-            let cursor, size =
-                match String.length state.Query - state.Cursor with
-                | x when x < 0 ->
-                    String.length state.Query,
-                    match size + x with
+            let index, count =
+                match String.length state.Query, state.Cursor with
+                | len, cur when len - cur < 0 ->
+                    len,
+                    match size + len - cur with
                     | s when s < 0 -> 0
                     | s -> s
-                | _ -> state.Cursor, size
-
-            let i, c =
-                match cursor - size with
-                | x when x < 0 -> 0, state.Cursor
-                | x -> x, size
+                | _, cur -> cur, size
+                |> function
+                    | cursor, size when cursor - size < 0 -> 0, state.Cursor
+                    | cursor, size -> cursor - size, size
 
             { state with
-                Query = state.Query.Remove(i, c)
-                Cursor = i }
+                Query = state.Query.Remove(index, count)
+                Cursor = index }
 
         let deleteQuery (state: QueryState) (size: int) =
-            match String.length state.Query - state.Cursor with
-            | x when x < 0 -> { state with Cursor = String.length state.Query }
+            match String.length state.Query, state.Cursor with
+            | len, cur when len - cur < 0 -> { state with Cursor = len }
             | _ -> { state with Query = state.Query.Remove(state.Cursor, size) }
 
         let getCurrentProperty (state: QueryState) =
@@ -274,8 +272,8 @@ module Data =
             <| match __.Matcher, __.CaseSensitive, __.Invert with
                | m, false, false -> [ string m ]
                | m, true, false -> [ "c"; string m ]
-               | Matcher.EQ, false, true -> [ "ne" ]
-               | Matcher.EQ, true, true -> [ "cne" ]
+               | Matcher.Eq, false, true -> [ "ne" ]
+               | Matcher.Eq, true, true -> [ "cne" ]
                | m, false, true -> [ "not"; string m ]
                | m, true, true -> [ "notc"; string m ]
             <| [ " "; string __.Operator ]
@@ -286,17 +284,17 @@ module Data =
             { condition with
                 Matcher =
                     match condition.Matcher with
-                    | Matcher.EQ -> Matcher.LIKE
-                    | Matcher.LIKE -> Matcher.MATCH
-                    | Matcher.MATCH -> Matcher.EQ }
+                    | Matcher.Eq -> Matcher.Like
+                    | Matcher.Like -> Matcher.Match
+                    | Matcher.Match -> Matcher.Eq }
 
         let rotateOperator (condition: QueryCondition) =
             { condition with
                 Operator =
                     match condition.Operator with
-                    | Operator.OR -> Operator.AND
-                    | Operator.AND -> Operator.NONE
-                    | Operator.NONE -> Operator.OR }
+                    | Operator.Or -> Operator.And
+                    | Operator.And -> Operator.None
+                    | Operator.None -> Operator.Or }
 
         let toggleCaseSensitive (condition: QueryCondition) =
             { condition with CaseSensitive = not condition.CaseSensitive }

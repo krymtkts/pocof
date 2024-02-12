@@ -36,8 +36,8 @@ module ``toKeyPattern should returns`` =
 
     [<Fact>]
     let ``Error when unsupported combination.`` () =
-        Keys.toKeyPattern "c+c+c"
-        |> shouldEqual (Error "Unsupported combination 'c+c+c'.")
+        Keys.toKeyPattern "cnt+alt+c+ESC"
+        |> shouldEqual (Error "Unsupported modifier 'cnt'. Unsupported modifier 'c'. Unsupported key 'ESC'.")
 
 module ``get should returns`` =
     [<Fact>]
@@ -168,8 +168,8 @@ module ``convertKeymaps should returns`` =
         h.Add("TAB", "CompleteProperties")
 
         let expected =
-            [ "Unsupported combination 'contrl+x'."
-              "Unsupported combination 'alte+a'.Unknown Action 'Finissh'."
+            [ "Unsupported modifier 'contrl'."
+              "Unsupported modifier 'alte'.Unknown Action 'Finissh'."
               "Unsupported key 'ESCAE'."
               "Unknown Action 'CompleteProperties'." ]
             |> String.concat "\n"

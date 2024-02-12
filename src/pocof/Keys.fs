@@ -63,34 +63,37 @@ module Keys =
 
               (plain ConsoleKey.Tab, Data.Action.CompleteProperty) ]
 
-    let toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
+    let private toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
         match Enum.TryParse<'a>(k, true) with
         | (true, e) -> Some e
         | _ -> None
 
-    let toKeyPattern (s: string) =
-        match s |> String.split "+" |> List.ofSeq |> List.rev with
-        | [] -> failwith "Unreachable pass."
+    [<TailCall>]
+    let rec private processKeys (keys: string list) (result: Result<Data.KeyPattern, string>) =
+        match keys with
+        | [] -> result
         | [ k ] ->
-            match toEnum<ConsoleKey> k with
-            | Some e -> Ok <| plain e
-            | None -> Error $"Unsupported key '%s{k}'."
-        | k :: ms ->
-            let k = toEnum<ConsoleKey> k
+            match result, toEnum<ConsoleKey> k with
+            | Ok r, Some e -> { r with Key = e } |> Ok
+            | Ok _, None -> Error $"Unsupported key '%s{k}'."
+            | Error e, None -> Error $"%s{e} Unsupported key '%s{k}'."
+            | Error _ as e, _ -> e
+            |> processKeys []
+        | m :: keys ->
+            match result, toEnum<ConsoleModifiers> m with
+            | Ok r, Some x ->
+                { r with Modifier = r.Modifier ||| x.GetHashCode() }
+                |> Ok
+            | Ok _, None -> Error $"Unsupported modifier '%s{m}'."
+            | Error e, None -> Error $"%s{e} Unsupported modifier '%s{m}'."
+            | Error _ as e, _ -> e
+            |> processKeys keys
 
-            let m =
-                ms
-                |> List.map toEnum<ConsoleModifiers>
-                |> List.fold
-                    (fun acc e ->
-                        match (acc, e) with
-                        | (Some a, Some x) -> a ||| x.GetHashCode() |> Some
-                        | _ -> None)
-                    (Some 0)
-
-            match (k, m) with
-            | (Some k, Some m) -> Ok { Modifier = m; Key = k }
-            | _ -> Error $"Unsupported combination '%s{s}'."
+    let toKeyPattern (s: string) =
+        s |> String.split "+" |> List.ofSeq |> processKeys
+        <| Ok
+            { Data.KeyPattern.Modifier = 0
+              Data.KeyPattern.Key = ConsoleKey.NoName }
 
     let convertKeymaps (h: Hashtable) =
         match h with
