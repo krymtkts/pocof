@@ -5,6 +5,7 @@ open System.Collections
 
 module Keys =
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type private Modifiers =
         | Plain
         | Modifier of ConsoleModifiers
@@ -126,6 +127,8 @@ module Keys =
         { Pattern: Data.KeyPattern
           KeyChar: char }
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type private Key =
         | Char of char
         | Control of ConsoleKey
@@ -149,9 +152,9 @@ module Keys =
 
     let private keyToAction (keymap: Map<Data.KeyPattern, Data.Action>) (key: KeyInfo) =
         match key with
-        | ShortcutKey keymap k -> Shortcut k
-        | ControlKey c -> Control c
-        | _ -> Char key.KeyChar
+        | ShortcutKey keymap k -> Key.Shortcut k
+        | ControlKey c -> Key.Control c
+        | _ -> Key.Char key.KeyChar
 
     let get (keymap: Map<Data.KeyPattern, Data.Action>) (keyInfo: ConsoleKeyInfo list) =
         keyInfo
@@ -160,8 +163,8 @@ module Keys =
             (fun acc x ->
                 (acc, x)
                 |> function
-                    | Data.Action.AddQuery s, Char c -> string c |> (+) s |> Data.Action.AddQuery
-                    | _, Char c -> Data.Action.AddQuery <| string c
-                    | _, Shortcut a -> a
-                    | _, Control _ -> Data.Action.Noop)
+                    | Data.Action.AddQuery s, Key.Char c -> string c |> (+) s |> Data.Action.AddQuery
+                    | _, Key.Char c -> Data.Action.AddQuery <| string c
+                    | _, Key.Shortcut a -> a
+                    | _, Key.Control _ -> Data.Action.Noop)
             Data.Action.Noop

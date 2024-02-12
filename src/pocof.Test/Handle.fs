@@ -4,8 +4,8 @@ open Xunit
 open FsUnitTyped
 
 open Pocof
-open Data
-open Handle
+open Pocof.Data
+open Pocof.Handle
 
 module invokeAction =
     let state: InternalState =
@@ -362,7 +362,8 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.Normal "" ] // TODO: Should be an empty list, though harmless.
+            a3.Queries
+            |> shouldEqual [ Query.QueryPart.Normal "" ] // TODO: Should be an empty list, though harmless.
 
     module ``with DeleteForwardChar`` =
         [<Fact>]
@@ -387,7 +388,8 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.Normal "name" ]
+            a3.Queries
+            |> shouldEqual [ Query.QueryPart.Normal "name" ]
 
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
@@ -461,7 +463,7 @@ module invokeAction =
             )
 
             a3.Queries
-            |> shouldEqual [ Query.Normal("query") ]
+            |> shouldEqual [ Query.QueryPart.Normal("query") ]
 
         [<Fact>]
         let ``should remove all characters when the cursor is over the query length.`` () =
@@ -483,7 +485,8 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.Normal("") ]
+            a3.Queries
+            |> shouldEqual [ Query.QueryPart.Normal("") ]
 
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
@@ -508,7 +511,7 @@ module invokeAction =
             )
 
             a3.Queries
-            |> shouldEqual [ Query.Normal("query") ]
+            |> shouldEqual [ Query.QueryPart.Normal("query") ]
 
     module ``with KillEndOfLine`` =
         [<Fact>]
@@ -532,7 +535,7 @@ module invokeAction =
             )
 
             a3.Queries
-            |> shouldEqual [ Query.Normal("example") ]
+            |> shouldEqual [ Query.QueryPart.Normal("example") ]
 
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
@@ -556,7 +559,7 @@ module invokeAction =
             )
 
             a3.Queries
-            |> shouldEqual [ Query.Normal("example") ]
+            |> shouldEqual [ Query.QueryPart.Normal("example") ]
 
     module ``with SelectBackwardChar`` =
         [<Fact>]
@@ -637,7 +640,8 @@ module invokeAction =
             let _, _, a3 =
                 testStateAndContext Action.RotateOperator stateBefore context stateAfter
 
-            a3.Queries |> shouldEqual [ Query.Normal("") ]
+            a3.Queries
+            |> shouldEqual [ Query.QueryPart.Normal("") ]
 
         [<Fact>]
         let ``should switch NONE to OR.`` () = test Operator.NONE Operator.OR
@@ -745,7 +749,8 @@ module invokeAction =
             (a1, a2)
             |> shouldEqual ({ state with Refresh = Refresh.NotRequired }, position)
 
-            a3.Queries |> shouldEqual [ Query.Normal("") ]
+            a3.Queries
+            |> shouldEqual [ Query.QueryPart.Normal("") ]
 
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with empty properties list.`` () =
@@ -875,7 +880,7 @@ module invokeAction =
             )
 
             a3.Queries
-            |> shouldEqual [ Query.Property("name", "foo") ]
+            |> shouldEqual [ Query.QueryPart.Property("name", "foo") ]
 
         [<Fact>]
         let ``shouldn't return any difference when a property is already completed.`` () =
@@ -912,7 +917,7 @@ module invokeAction =
             |> shouldEqual ({ state with PropertySearch = PropertySearch.Rotate("name", 0, [ "name" ]) }, position)
 
             a3.Queries
-            |> shouldEqual [ Query.Property("name", "a") ]
+            |> shouldEqual [ Query.QueryPart.Property("name", "a") ]
 
         [<Fact>]
         let ``should return current completion when a property is already completed and cursor in mid position of it.``
@@ -938,7 +943,7 @@ module invokeAction =
             )
 
             a3.Queries
-            |> shouldEqual [ Query.Property("name", "a") ]
+            |> shouldEqual [ Query.QueryPart.Property("name", "a") ]
 
         [<Fact>]
         let ``should return next property when rotation.`` () =

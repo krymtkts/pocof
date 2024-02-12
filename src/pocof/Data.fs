@@ -105,6 +105,7 @@ module Data =
         | _ -> None
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Action =
         | Noop
         | Cancel
@@ -140,48 +141,57 @@ module Data =
         // property completion.
         | CompleteProperty
 
+    [<RequireQualifiedAccess>]
     module Action =
         let fromString =
             tryFromStringExcludes<Action>
             <| set [ "AddQuery" ]
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Matcher =
         | EQ
         | LIKE
         | MATCH
         override __.ToString() = toString __ |> String.lower
 
+    [<RequireQualifiedAccess>]
     module Matcher =
         let fromString = fromString<Matcher>
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Operator =
         | AND
         | OR
         | NONE
         override __.ToString() = toString __ |> String.lower
 
+    [<RequireQualifiedAccess>]
     module Operator =
         let fromString = fromString<Operator>
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Layout =
         | TopDown
         | TopDownHalf
         | BottomUp
         | BottomUpHalf
 
+    [<RequireQualifiedAccess>]
     module Layout =
         let fromString = fromString<Layout>
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type PropertySearch =
         | NoSearch
         | Search of string
         | Rotate of string * int * string list
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Refresh =
         | Required
         | NotRequired

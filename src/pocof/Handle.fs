@@ -52,6 +52,7 @@ module Handle =
         <| state
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type private Direction =
         | Backward
         | Forward

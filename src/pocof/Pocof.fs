@@ -21,6 +21,7 @@ module Pocof =
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
 
+    [<NoComparison>]
     type LoopFixedArguments =
         { keymaps: Map<KeyPattern, Action>
           input: Entry list

@@ -39,6 +39,8 @@ module Query =
         with
         | _ -> true
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type QueryPart =
         | Normal of string
         | Property of string * string
@@ -59,6 +61,7 @@ module Query =
 
     type TesterType<'a> = ('a -> bool) -> 'a list -> bool
 
+    [<NoComparison>]
     type QueryContext =
         { Queries: QueryPart list
           Test: TesterType<string * string>
@@ -75,19 +78,19 @@ module Query =
                 parseQuery
                 <| match x with
                    | Prefix ":" _ -> acc
-                   | _ -> Normal x :: acc
+                   | _ -> QueryPart.Normal x :: acc
                 <| []
             | y :: zs ->
                 match x with
                 | Prefix ":" p ->
                     parseQuery
-                    <| Property(String.lower p, y) :: acc
+                    <| QueryPart.Property(String.lower p, y) :: acc
                     <| zs
-                | _ -> parseQuery <| Normal x :: acc <| xs
+                | _ -> parseQuery <| QueryPart.Normal x :: acc <| xs
 
     let private prepareQuery (state: InternalState) =
         match state.QueryCondition.Operator with
-        | Operator.NONE -> [ Normal state.QueryState.Query ]
+        | Operator.NONE -> [ QueryPart.Normal state.QueryState.Query ]
         | _ ->
             state.QueryState.Query
             |> String.trim
@@ -161,7 +164,7 @@ module Query =
             |> List.fold
                 (fun acc x ->
                     match x with
-                    | Property (k, v) ->
+                    | QueryPart.Property (k, v) ->
                         let pk =
                             match props.TryGetValue k with
                             | true, v -> v
@@ -175,7 +178,7 @@ module Query =
                         match p with
                         | Some (pv) -> (pv, v) :: acc
                         | None -> acc
-                    | Normal (v) ->
+                    | QueryPart.Normal (v) ->
                         match o with
                         | Entry.Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
                         | Entry.Obj (o) -> (o, v) :: acc)

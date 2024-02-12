@@ -7,7 +7,7 @@ open Xunit
 open FsUnitTyped
 
 open Pocof
-open Data
+open Pocof.Data
 
 module unwrap =
     open System.Collections
