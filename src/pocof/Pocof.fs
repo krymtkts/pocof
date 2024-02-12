@@ -7,6 +7,7 @@ open System.Management.Automation
 open Data
 open Handle
 
+[<RequireQualifiedAccess>]
 module Pocof =
     type Entry = Data.Entry
     type KeyPattern = Data.KeyPattern
