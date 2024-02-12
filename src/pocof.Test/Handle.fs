@@ -15,8 +15,8 @@ module invokeAction =
               WindowBeginningCursor = 0
               WindowWidth = 0 }
           QueryCondition =
-            { Matcher = Matcher.MATCH
-              Operator = Operator.OR
+            { Matcher = Matcher.Match
+              Operator = Operator.Or
               CaseSensitive = false
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
@@ -589,9 +589,9 @@ module invokeAction =
         let test before after =
             let a =
                 match before, after with
-                | Matcher.EQ, Matcher.LIKE -> 2
-                | Matcher.LIKE, Matcher.MATCH -> 1
-                | Matcher.MATCH, Matcher.EQ -> -3
+                | Matcher.Eq, Matcher.Like -> 2
+                | Matcher.Like, Matcher.Match -> 1
+                | Matcher.Match, Matcher.Eq -> -3
                 | _ -> failwith "invalid case in this test."
 
             let stateBefore =
@@ -609,21 +609,21 @@ module invokeAction =
         // TODO: test a3
 
         [<Fact>]
-        let ``should switch EQ to LIKE.`` () = test Matcher.EQ Matcher.LIKE
+        let ``should switch EQ to LIKE.`` () = test Matcher.Eq Matcher.Like
 
         [<Fact>]
-        let ``should switch LIKE to MATCH.`` () = test Matcher.LIKE Matcher.MATCH
+        let ``should switch LIKE to MATCH.`` () = test Matcher.Like Matcher.Match
 
         [<Fact>]
-        let ``should switch MATCh to EQ.`` () = test Matcher.MATCH Matcher.EQ
+        let ``should switch MATCh to EQ.`` () = test Matcher.Match Matcher.Eq
 
     module ``with RotateOperator`` =
         let test before after =
             let a =
                 match before, after with
-                | Operator.NONE, Operator.OR -> -2
-                | Operator.OR, Operator.AND -> 1
-                | Operator.AND, Operator.NONE -> 1
+                | Operator.None, Operator.Or -> -2
+                | Operator.Or, Operator.And -> 1
+                | Operator.And, Operator.None -> 1
                 | _ -> failwith "invalid case in this test."
 
             let stateBefore =
@@ -644,13 +644,13 @@ module invokeAction =
             |> shouldEqual [ Query.QueryPart.Normal("") ]
 
         [<Fact>]
-        let ``should switch NONE to OR.`` () = test Operator.NONE Operator.OR
+        let ``should switch NONE to OR.`` () = test Operator.None Operator.Or
 
         [<Fact>]
-        let ``should switch OR to AND.`` () = test Operator.OR Operator.AND
+        let ``should switch OR to AND.`` () = test Operator.Or Operator.And
 
         [<Fact>]
-        let ``should switch AND to NONE.`` () = test Operator.AND Operator.NONE
+        let ``should switch AND to NONE.`` () = test Operator.And Operator.None
 
     module ``with ToggleCaseSensitive`` =
         let test before after =

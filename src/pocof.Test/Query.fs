@@ -14,8 +14,8 @@ let initState () : Data.InternalState =
         WindowBeginningCursor = 0
         WindowWidth = 0}
       QueryCondition =
-        { Matcher = Data.Matcher.MATCH
-          Operator = Data.Operator.OR
+        { Matcher = Data.Matcher.Match
+          Operator = Data.Operator.Or
           CaseSensitive = false
           Invert = false }
       PropertySearch = Data.PropertySearch.NoSearch
@@ -90,7 +90,7 @@ module run =
     let invert (s: Data.InternalState) = { s with QueryCondition.Invert = true }
 
     let opAnd (s: Data.InternalState) =
-        { s with QueryCondition.Operator = Data.Operator.AND }
+        { s with QueryCondition.Operator = Data.Operator.And }
 
     module ``with a simple query`` =
         let entries =
@@ -107,11 +107,11 @@ module run =
             |> shouldEqual []
 
         module ``of MATCH`` =
-            let state = state |> matcher Data.Matcher.MATCH |> query "a"
+            let state = state |> matcher Data.Matcher.Match |> query "a"
 
             [<Fact>]
             let ``should returns all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.Matcher.MATCH
+                let state = initState () |> matcher Data.Matcher.Match
                 let _, context = Query.prepare state
 
                 Query.run context entries props
@@ -163,11 +163,11 @@ module run =
                 |> shouldEqual ( genList [ "Name" ])
 
         module ``of LIKE`` =
-            let state = state |> matcher Data.Matcher.LIKE |> query "a*"
+            let state = state |> matcher Data.Matcher.Like |> query "a*"
 
             [<Fact>]
             let ``should returns all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.Matcher.LIKE
+                let state = initState () |> matcher Data.Matcher.Like
                 let _, context = Query.prepare state
 
                 Query.run context entries props
@@ -215,11 +215,11 @@ module run =
                 |> shouldEqual ( genList [ "Name" ])
 
         module ``of EQ`` =
-            let state = state |> matcher Data.Matcher.EQ |> query "Name"
+            let state = state |> matcher Data.Matcher.Eq |> query "Name"
 
             [<Fact>]
             let ``should returns all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.Matcher.EQ
+                let state = initState () |> matcher Data.Matcher.Eq
                 let _, context = Query.prepare state
 
                 Query.run context entries props

@@ -91,7 +91,7 @@ module Query =
 
     let private prepareQuery (state: InternalState) =
         match state.QueryCondition.Operator with
-        | Operator.NONE -> [ QueryPart.Normal state.QueryState.Query ]
+        | Operator.None -> [ QueryPart.Normal state.QueryState.Query ]
         | _ ->
             state.QueryState.Query
             |> String.trim
@@ -101,14 +101,14 @@ module Query =
 
     let private prepareTest (state: InternalState) =
         match state.QueryCondition.Operator with
-        | Operator.OR -> List.exists
+        | Operator.Or -> List.exists
         | _ -> List.forall
 
     let private prepareIs (state: InternalState) =
         match state.QueryCondition.Matcher with
-        | Matcher.EQ -> equals << equalOpt
-        | Matcher.LIKE -> likes << likeOpt
-        | Matcher.MATCH -> matches << matchOpt
+        | Matcher.Eq -> equals << equalOpt
+        | Matcher.Like -> likes << likeOpt
+        | Matcher.Match -> matches << matchOpt
         <| state.QueryCondition.CaseSensitive
 
     let private prepareAnswer (state: InternalState) =
@@ -118,7 +118,7 @@ module Query =
 
     let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with
-        | Matcher.MATCH ->
+        | Matcher.Match ->
             try
                 new Regex(state.QueryState.Query) |> ignore
                 ""

@@ -150,9 +150,9 @@ module Data =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     type Matcher =
-        | EQ
-        | LIKE
-        | MATCH
+        | Eq
+        | Like
+        | Match
         override __.ToString() = toString __ |> String.lower
 
     [<RequireQualifiedAccess>]
@@ -162,9 +162,9 @@ module Data =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     type Operator =
-        | AND
-        | OR
-        | NONE
+        | And
+        | Or
+        | None
         override __.ToString() = toString __ |> String.lower
 
     [<RequireQualifiedAccess>]
@@ -272,8 +272,8 @@ module Data =
             <| match __.Matcher, __.CaseSensitive, __.Invert with
                | m, false, false -> [ string m ]
                | m, true, false -> [ "c"; string m ]
-               | Matcher.EQ, false, true -> [ "ne" ]
-               | Matcher.EQ, true, true -> [ "cne" ]
+               | Matcher.Eq, false, true -> [ "ne" ]
+               | Matcher.Eq, true, true -> [ "cne" ]
                | m, false, true -> [ "not"; string m ]
                | m, true, true -> [ "notc"; string m ]
             <| [ " "; string __.Operator ]
@@ -284,17 +284,17 @@ module Data =
             { condition with
                 Matcher =
                     match condition.Matcher with
-                    | Matcher.EQ -> Matcher.LIKE
-                    | Matcher.LIKE -> Matcher.MATCH
-                    | Matcher.MATCH -> Matcher.EQ }
+                    | Matcher.Eq -> Matcher.Like
+                    | Matcher.Like -> Matcher.Match
+                    | Matcher.Match -> Matcher.Eq }
 
         let rotateOperator (condition: QueryCondition) =
             { condition with
                 Operator =
                     match condition.Operator with
-                    | Operator.OR -> Operator.AND
-                    | Operator.AND -> Operator.NONE
-                    | Operator.NONE -> Operator.OR }
+                    | Operator.Or -> Operator.And
+                    | Operator.And -> Operator.None
+                    | Operator.None -> Operator.Or }
 
         let toggleCaseSensitive (condition: QueryCondition) =
             { condition with CaseSensitive = not condition.CaseSensitive }
