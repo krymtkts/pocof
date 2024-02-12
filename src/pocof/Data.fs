@@ -227,27 +227,25 @@ module Data =
         let setCursor (state: QueryState) (x: int) = { state with Cursor = x }
 
         let backspaceQuery (state: QueryState) (size: int) =
-            let cursor, size =
-                match String.length state.Query - state.Cursor with
-                | x when x < 0 ->
-                    String.length state.Query,
-                    match size + x with
+            let index, count =
+                match String.length state.Query, state.Cursor with
+                | len, cur when len - cur < 0 ->
+                    len,
+                    match size + len - cur with
                     | s when s < 0 -> 0
                     | s -> s
-                | _ -> state.Cursor, size
-
-            let i, c =
-                match cursor - size with
-                | x when x < 0 -> 0, state.Cursor
-                | x -> x, size
+                | _, cur -> cur, size
+                |> function
+                    | cursor, size when cursor - size < 0 -> 0, state.Cursor
+                    | cursor, size -> cursor - size, size
 
             { state with
-                Query = state.Query.Remove(i, c)
-                Cursor = i }
+                Query = state.Query.Remove(index, count)
+                Cursor = index }
 
         let deleteQuery (state: QueryState) (size: int) =
-            match String.length state.Query - state.Cursor with
-            | x when x < 0 -> { state with Cursor = String.length state.Query }
+            match String.length state.Query, state.Cursor with
+            | len, cur when len - cur < 0 -> { state with Cursor = len }
             | _ -> { state with Query = state.Query.Remove(state.Cursor, size) }
 
         let getCurrentProperty (state: QueryState) =
