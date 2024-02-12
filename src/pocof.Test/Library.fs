@@ -122,6 +122,7 @@ module SelectPocofCommand =
         override __.invoke(input: 'a list) = input |> Seq.map string
         override __.host() = __.Host
 
+        // NOTE: PSCmdlet cannot invoke directly. So, use this method for testing.
         member __.InvokeForTest() =
             __.BeginProcessing()
             __.ProcessRecord()
