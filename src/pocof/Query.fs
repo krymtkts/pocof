@@ -169,16 +169,16 @@ module Query =
 
                         let p =
                             match o with
-                            | Dict (dct) -> dct ?=> pk
-                            | Obj (o) -> o ?-> pk
+                            | Entry.Dict (dct) -> dct ?=> pk
+                            | Entry.Obj (o) -> o ?-> pk
 
                         match p with
                         | Some (pv) -> (pv, v) :: acc
                         | None -> acc
                     | Normal (v) ->
                         match o with
-                        | Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
-                        | Obj (o) -> (o, v) :: acc)
+                        | Entry.Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
+                        | Entry.Obj (o) -> (o, v) :: acc)
                 []
             |> List.map (fun (s, v) -> (string s, v))
 

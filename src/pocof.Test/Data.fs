@@ -15,12 +15,12 @@ module unwrap =
 
     [<Fact>]
     let ``should returns "a".`` () =
-        unwrap [ Obj(PSObject.AsPSObject "a") ]
+        unwrap [ Entry.Obj(PSObject.AsPSObject "a") ]
         |> shouldEqual [ PSObject.AsPSObject "a" ]
 
     [<Fact>]
     let ``should returns dictionary.`` () =
-        unwrap [ Dict(DictionaryEntry("Jane", "Doe")) ]
+        unwrap [ Entry.Dict(DictionaryEntry("Jane", "Doe")) ]
         |> shouldEqual [ DictionaryEntry("Jane", "Doe") ]
 
 module ``Action fromString should returns`` =

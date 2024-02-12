@@ -61,6 +61,8 @@ module Data =
     open System.Management.Automation
     open Microsoft.FSharp.Reflection
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Entry =
         | Obj of PSObject
         | Dict of DictionaryEntry
@@ -68,8 +70,8 @@ module Data =
     let unwrap (entries: Entry list) =
         entries
         |> List.map (function
-            | Dict (dct) -> dct :> obj
-            | Obj (o) -> o)
+            | Entry.Dict (dct) -> dct :> obj
+            | Entry.Obj (o) -> o)
 
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =

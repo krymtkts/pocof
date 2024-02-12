@@ -10,7 +10,7 @@ open Pocof
 open Pocof.Data
 open Screen
 
-let toObj x = x |> (PSObject.AsPSObject >> Obj)
+let toObj x = x |> (PSObject.AsPSObject >> Entry.Obj)
 
 let mapToObj x = x |> List.map toObj
 
@@ -340,7 +340,7 @@ module buildInput =
     open System.Collections
 
     let mapToObj x =
-        x |> List.map (PSObject.AsPSObject >> Obj)
+        x |> List.map (PSObject.AsPSObject >> Entry.Obj)
 
     [<Fact>]
     let ``should return the list with added Obj`` () =
@@ -372,7 +372,7 @@ module buildInput =
             [ DictionaryEntry("c", 3)
               DictionaryEntry("b", 2)
               DictionaryEntry("a", 1) ]
-            |> List.map Dict
+            |> List.map Entry.Dict
 
         let inputObject =
             let h = new OrderedHashtable()

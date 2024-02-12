@@ -339,7 +339,7 @@ module ``Buff writeScreen`` =
               |> InternalState.updateWindowWidth
 
         let entries = [1..10] |> List.map (fun i ->
-            DictionaryEntry("Number", i) |> Dict
+            DictionaryEntry("Number", i) |> Entry.Dict
         )
 
         buff.writeScreen Layout.TopDown state entries <| Ok []
@@ -381,7 +381,7 @@ module ``Buff writeScreen`` =
               |> InternalState.updateWindowWidth
 
         let entries = [1..100] |> List.map (fun i ->
-            DictionaryEntry("Number", i) |> Dict
+            DictionaryEntry("Number", i) |> Entry.Dict
         )
         buff.writeScreen Layout.TopDown state entries <| Ok []
 

@@ -76,7 +76,7 @@ module props =
 
 module run =
     let duplicateCase (s: string) = [ s; s.ToLower() ]
-    let mapToObj = List.map (PSObject.AsPSObject >> Data.Obj)
+    let mapToObj = List.map (PSObject.AsPSObject >> Data.Entry.Obj)
 
     let genList s =
         List.map duplicateCase s
@@ -268,7 +268,7 @@ module run =
         let props = Map []
 
         open System.Collections
-        let mapToDict = List.map Data.Dict
+        let mapToDict = List.map Data.Entry.Dict
 
         let entries =
             mapToDict [ DictionaryEntry("John", "Doe")
@@ -319,7 +319,7 @@ module run =
 
             ret
 
-        let mapToPsObj = List.map (getPsObj >> Data.Obj)
+        let mapToPsObj = List.map (getPsObj >> Data.Entry.Obj)
 
         let entries =
             mapToPsObj [ ("John", "Doe")

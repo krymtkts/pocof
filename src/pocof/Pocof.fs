@@ -162,8 +162,8 @@ module Pocof =
                 match o.BaseObject with
                 | :? IDictionary as dct ->
                     Seq.cast<DictionaryEntry> dct
-                    |> Seq.fold (fun a d -> Dict d :: a) acc
-                | _ -> Obj(PSObject o) :: acc)
+                    |> Seq.fold (fun a d -> Entry.Dict d :: a) acc
+                | _ -> Entry.Obj(PSObject o) :: acc)
             acc
 
     let buildProperties acc (input: PSObject array) =
