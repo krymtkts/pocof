@@ -1,4 +1,4 @@
-module Pocof
+module PocofTest.Pocof
 
 open System
 open System.Management.Automation
@@ -6,12 +6,11 @@ open System.Management.Automation
 open Xunit
 open FsUnitTyped
 
-open pocof.Pocof
-open pocof.PocofData
-open pocof.PocofScreen
-open PocofUI
+open Pocof
+open Pocof.Data
+open Screen.Mock
 
-let toObj x = x |> (PSObject.AsPSObject >> Obj)
+let toObj x = x |> (PSObject.AsPSObject >> Entry.Obj)
 
 let mapToObj x = x |> List.map toObj
 
@@ -22,18 +21,18 @@ let initState () : InternalState =
           WindowBeginningCursor = 0
           WindowWidth = 0 }
       QueryCondition =
-        { Matcher = MATCH
-          Operator = OR
+        { Matcher = Matcher.MATCH
+          Operator = Operator.OR
           CaseSensitive = false
           Invert = false }
-      PropertySearch = NoSearch
+      PropertySearch = PropertySearch.NoSearch
       Notification = ""
       SuppressProperties = false
       Properties = [ "Name"; "LastModified"; "Path" ]
       Prompt = "query"
       FilteredCount = 0
       ConsoleWidth = 60
-      Refresh = Required }
+      Refresh = Refresh.Required }
 
 let state = initState ()
 let writeScreen _ _ _ = ()
@@ -54,9 +53,9 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+        let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
         actual |> shouldEqual 0
 
@@ -69,9 +68,9 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+        let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
         actual |> shouldEqual 1
 
@@ -84,9 +83,9 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let actual = calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+        let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
         actual |> shouldEqual 0
 
@@ -95,13 +94,13 @@ module loop =
     [<Fact>]
     let ``should return result when finishing.`` () =
         let input = results |> List.map toObj
-        let state, context = pocof.PocofQuery.prepare state
+        let state, context = Query.prepare state
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ])
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+        let args: Pocof.LoopFixedArguments =
+            { keymaps = Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -109,7 +108,7 @@ module loop =
               getConsoleWidth = buff.getConsoleWidth
               getLengthInBufferCells = String.length }
 
-        let actual = loop args input state pos context
+        let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 5
 
         actual
@@ -121,14 +120,13 @@ module loop =
     let ``shouldn't return result when canceling.`` () =
         let input = results |> List.map toObj
 
-        let state, context =
-            pocof.PocofQuery.prepare { state with SuppressProperties = true }
+        let state, context = Query.prepare { state with SuppressProperties = true }
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Escape ])
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+        let args: Pocof.LoopFixedArguments =
+            { keymaps = Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -136,7 +134,7 @@ module loop =
               getConsoleWidth = buff.getConsoleWidth
               getLengthInBufferCells = String.length }
 
-        let actual = loop args input state pos context
+        let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 0
         rui.check ()
 
@@ -144,7 +142,7 @@ module loop =
     let ``should return result when finishing after noop.`` () =
         let input = results |> List.map toObj
 
-        let state, context = pocof.PocofQuery.prepare { state with Refresh = NotRequired }
+        let state, context = Query.prepare { state with Refresh = Refresh.NotRequired }
 
         let rui =
             new MockRawUI(
@@ -156,10 +154,10 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+        let args: Pocof.LoopFixedArguments =
+            { keymaps = Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -167,7 +165,7 @@ module loop =
               getConsoleWidth = buff.getConsoleWidth
               getLengthInBufferCells = String.length }
 
-        let actual = loop args input state pos context
+        let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 5
 
         actual
@@ -178,7 +176,7 @@ module loop =
     [<Fact>]
     let ``should return result when finishing with filter.`` () =
         let input = results |> List.map toObj
-        let state, context = pocof.PocofQuery.prepare state
+        let state, context = Query.prepare state
 
         let rui =
             new MockRawUI(
@@ -191,10 +189,10 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+        let args: Pocof.LoopFixedArguments =
+            { keymaps = Keys.defaultKeymap
               input = input
               propMap = propMap
               writeScreen = writeScreen
@@ -202,7 +200,7 @@ module loop =
               getConsoleWidth = buff.getConsoleWidth
               getLengthInBufferCells = String.length }
 
-        let actual = loop args input state pos context
+        let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 2
         actual.[0] = results.[0] |> shouldEqual true
         actual.[1] = results.[3] |> shouldEqual true
@@ -212,8 +210,7 @@ module loop =
     let ``should update QueryState.WindowWidth based on ConsoleWidth.`` () =
         let input = results |> List.map toObj
 
-        let state, context =
-            pocof.PocofQuery.prepare { state with SuppressProperties = true }
+        let state, context = Query.prepare { state with SuppressProperties = true }
 
         let rui =
             new MockRawUI(
@@ -224,13 +221,13 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args =
-            { keymaps = pocof.PocofAction.defaultKeymap
+        let args: Pocof.LoopFixedArguments =
+            { keymaps = Keys.defaultKeymap
               input = input
               propMap = propMap
-              writeScreen = buff.writeScreen TopDown
+              writeScreen = buff.writeScreen Layout.TopDown
               getKey = buff.getKey
               getConsoleWidth =
                 fun () ->
@@ -238,7 +235,7 @@ module loop =
                     80
               getLengthInBufferCells = String.length }
 
-        let actual = loop args input state pos context
+        let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 1
         actual.[0] = results.[0] |> shouldEqual true
 
@@ -254,14 +251,16 @@ module interact =
     let ``should return result with NonInteractive mode.`` () =
         let config: InternalConfig =
             { NotInteractive = true
-              Layout = TopDown
-              Keymaps = pocof.PocofAction.defaultKeymap }
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let actual = interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        let actual =
+            Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+
         actual |> List.length |> shouldEqual 5
 
         let expected =
@@ -274,14 +273,16 @@ module interact =
     let ``should return result when interaction finished in Interactive mode and TopDown Layout.`` () =
         let config: InternalConfig =
             { NotInteractive = false
-              Layout = TopDown
-              Keymaps = pocof.PocofAction.defaultKeymap }
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let actual = interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        let actual =
+            Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+
         actual |> List.length |> shouldEqual 5
 
         let expected =
@@ -295,14 +296,16 @@ module interact =
     let ``should return result when interaction finished in Interactive mode and BottomUp Layout.`` () =
         let config: InternalConfig =
             { NotInteractive = false
-              Layout = BottomUp
-              Keymaps = pocof.PocofAction.defaultKeymap }
+              Layout = Layout.BottomUp
+              Keymaps = Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let actual = interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        let actual =
+            Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+
         actual |> List.length |> shouldEqual 5
 
         let expected =
@@ -315,14 +318,16 @@ module interact =
     let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
         let config: InternalConfig =
             { NotInteractive = false
-              Layout = BottomUpHalf
-              Keymaps = pocof.PocofAction.defaultKeymap }
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let actual = interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        let actual =
+            Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+
         actual |> List.length |> shouldEqual 5
 
         let expected =
@@ -335,13 +340,13 @@ module buildInput =
     open System.Collections
 
     let mapToObj x =
-        x |> List.map (PSObject.AsPSObject >> Obj)
+        x |> List.map (PSObject.AsPSObject >> Entry.Obj)
 
     [<Fact>]
     let ``should return the list with added Obj`` () =
         let expected = [ 3; 2; 1 ] |> mapToObj
 
-        buildInput
+        Pocof.buildInput
             []
             ([ 1; 2; 3 ]
              |> List.map PSObject.AsPSObject
@@ -354,7 +359,7 @@ module buildInput =
 
         let input = [ 0 ] |> mapToObj
 
-        buildInput
+        Pocof.buildInput
             input
             ([ 1; 2; 3 ]
              |> List.map PSObject.AsPSObject
@@ -367,7 +372,7 @@ module buildInput =
             [ DictionaryEntry("c", 3)
               DictionaryEntry("b", 2)
               DictionaryEntry("a", 1) ]
-            |> List.map Dict
+            |> List.map Entry.Dict
 
         let inputObject =
             let h = new OrderedHashtable()
@@ -376,7 +381,8 @@ module buildInput =
             h.Add("c", 3)
             [| h |> PSObject.AsPSObject |]
 
-        buildInput [] inputObject |> shouldEqual expected
+        Pocof.buildInput [] inputObject
+        |> shouldEqual expected
 
 module buildProperties =
     [<Fact>]
@@ -391,7 +397,7 @@ module buildProperties =
             o.Properties.Add(new PSNoteProperty("c", 3))
             [| o |]
 
-        buildProperties input inputObject
+        Pocof.buildProperties input inputObject
         |> shouldEqual expected
 
     [<Fact>]
@@ -406,7 +412,7 @@ module buildProperties =
             o.Properties.Add(new PSNoteProperty("c", 3))
             [| o |]
 
-        buildProperties input inputObject
+        Pocof.buildProperties input inputObject
         |> shouldEqual expected
 
     [<Fact>]
@@ -420,5 +426,5 @@ module buildProperties =
             h.Add("a", 1)
             [| h |> PSObject.AsPSObject |]
 
-        buildProperties input inputObject
+        Pocof.buildProperties input inputObject
         |> shouldEqual expected

@@ -1,4 +1,4 @@
-module PocofAction
+module PocofTest.Keys
 
 open System
 open System.Collections
@@ -6,53 +6,53 @@ open System.Collections
 open Xunit
 open FsUnitTyped
 
-open pocof
+open Pocof
 
 module ``toKeyPattern should returns`` =
     [<Fact>]
     let ``A without modifiers.`` () =
-        PocofAction.toKeyPattern "A"
+        Keys.toKeyPattern "A"
         |> shouldEqual (Ok { Modifier = 0; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``A with Alt.`` () =
-        PocofAction.toKeyPattern "alt+a"
+        Keys.toKeyPattern "alt+a"
         |> shouldEqual (Ok { Modifier = 1; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``A with Alt and Shift.`` () =
-        PocofAction.toKeyPattern "Alt+Shift+A"
+        Keys.toKeyPattern "Alt+Shift+A"
         |> shouldEqual (Ok { Modifier = 3; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``A with Ctrl, Alt and Shift.`` () =
-        PocofAction.toKeyPattern "control+alt+shift+A"
+        Keys.toKeyPattern "control+alt+shift+A"
         |> shouldEqual (Ok { Modifier = 7; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``Error when empty.`` () =
-        PocofAction.toKeyPattern ""
+        Keys.toKeyPattern ""
         |> shouldEqual (Error "Unsupported key ''.")
 
     [<Fact>]
     let ``Error when unsupported combination.`` () =
-        PocofAction.toKeyPattern "c+c+c"
+        Keys.toKeyPattern "c+c+c"
         |> shouldEqual (Error "Unsupported combination 'c+c+c'.")
 
 module ``get should returns`` =
     [<Fact>]
     let ``PocofData.AddQuery if no modifier is specified.`` () =
         let key = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
-        let actual = PocofAction.get Map.empty key
+        let actual = Keys.get Map.empty key
 
-        actual |> shouldEqual (PocofData.AddQuery "a")
+        actual |> shouldEqual (Data.Action.AddQuery "a")
 
     [<Fact>]
     let ``PocofData.AddQuery if symbol with shift.`` () =
         let getKey = [ new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) ]
-        let actual = PocofAction.get Map.empty getKey
+        let actual = Keys.get Map.empty getKey
 
-        actual |> shouldEqual (PocofData.AddQuery ":")
+        actual |> shouldEqual (Data.Action.AddQuery ":")
 
     [<Fact>]
     let ``PocofData.AddQuery multiple times.`` () =
@@ -63,79 +63,80 @@ module ``get should returns`` =
               new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false)
               new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) ]
 
-        let actual = PocofAction.get Map.empty getKey
+        let actual = Keys.get Map.empty getKey
 
-        actual |> shouldEqual (PocofData.AddQuery "paste")
+        actual
+        |> shouldEqual (Data.Action.AddQuery "paste")
 
     [<Fact>]
     let ``user-defined Action if matched.`` () =
-        let keyMap: Map<PocofData.KeyPattern, PocofData.Action> =
-            Map [ ({ Modifier = 7; Key = ConsoleKey.E }, PocofData.Finish)
+        let keyMap: Map<Data.KeyPattern, Data.Action> =
+            Map [ ({ Modifier = 7; Key = ConsoleKey.E }, Data.Action.Finish)
                   ({ Modifier = 0
                      Key = ConsoleKey.Escape },
-                   PocofData.Noop) ]
+                   Data.Action.Noop) ]
 
         let key = [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
-        let actual = PocofAction.get keyMap key
+        let actual = Keys.get keyMap key
 
-        actual |> shouldEqual PocofData.Finish
+        actual |> shouldEqual Data.Action.Finish
 
     [<Fact>]
     let ``Action if matched.`` () =
         let keyMap =
-            ([ ({ Modifier = 7; Key = ConsoleKey.E }: PocofData.KeyPattern)
+            ([ ({ Modifier = 7; Key = ConsoleKey.E }: Data.KeyPattern)
                { Modifier = 0
                  Key = ConsoleKey.Escape } ],
-             [ PocofData.Finish; PocofData.Noop ],
-             PocofAction.defaultKeymap)
+             [ Data.Action.Finish; Data.Action.Noop ],
+             Keys.defaultKeymap)
             |||> List.foldBack2 Map.add
 
         let actual =
-            PocofAction.get keyMap [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false) ]
+            Keys.get keyMap [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false) ]
 
         actual
-        |> shouldEqual PocofData.KillBeginningOfLine
+        |> shouldEqual Data.Action.KillBeginningOfLine
 
         let actual =
-            PocofAction.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
+            Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
 
-        actual |> shouldEqual PocofData.Finish
+        actual |> shouldEqual Data.Action.Finish
 
         let actual =
-            PocofAction.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
+            Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
 
-        actual |> shouldEqual PocofData.Noop
+        actual |> shouldEqual Data.Action.Noop
 
     [<Fact>]
     let ``Action if matched to no modifier key.`` () =
         let keu = [ new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false) ]
-        let actual = PocofAction.get PocofAction.defaultKeymap keu
+        let actual = Keys.get Keys.defaultKeymap keu
 
-        actual |> shouldEqual PocofData.BeginningOfLine
+        actual |> shouldEqual Data.Action.BeginningOfLine
 
     [<Fact>]
     let ``PocofData.AddQuery if not match the keymap.`` () =
-        let keyMap: Map<PocofData.KeyPattern, PocofData.Action> =
-            Map [ ({ Modifier = 1; Key = ConsoleKey.U }, PocofData.KillBeginningOfLine) ]
+        let keyMap: Map<Data.KeyPattern, Data.Action> =
+            Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.Action.KillBeginningOfLine) ]
 
         let key = [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) ]
-        let actual = PocofAction.get keyMap key
+        let actual = Keys.get keyMap key
 
-        actual |> shouldEqual (PocofData.AddQuery "u")
+        actual |> shouldEqual (Data.Action.AddQuery "u")
 
     [<Fact>]
     let ``PocofData.None if the control character not match the keymap.`` () =
         let key = [ new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true) ]
-        let actual = PocofAction.get PocofAction.defaultKeymap key
+        let actual = Keys.get Keys.defaultKeymap key
 
-        actual |> shouldEqual PocofData.Noop
+        actual |> shouldEqual Data.Action.Noop
 
     [<Fact>]
     let ``None if not match the keymap.`` () =
         let key = [ new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false) ]
-        let actual = PocofAction.get PocofAction.defaultKeymap key
+        let actual = Keys.get Keys.defaultKeymap key
 
-        actual |> shouldEqual PocofData.Noop
+        actual |> shouldEqual Data.Action.Noop
 
 module ``convertKeymaps should returns`` =
     open System.Management.Automation
@@ -147,16 +148,15 @@ module ``convertKeymaps should returns`` =
         h.Add("ESCAPE", "NOOP")
 
         let expected =
-            ([ ({ Modifier = 7; Key = ConsoleKey.X }: PocofData.KeyPattern)
+            ([ ({ Modifier = 7; Key = ConsoleKey.X }: Data.KeyPattern)
                { Modifier = 0
                  Key = ConsoleKey.Escape } ],
-             [ PocofData.Cancel; PocofData.Noop ],
-             PocofAction.defaultKeymap)
+             [ Data.Action.Cancel; Data.Action.Noop ],
+             Keys.defaultKeymap)
             |||> List.foldBack2 Map.add
             |> Ok
 
-        PocofAction.convertKeymaps h
-        |> shouldEqual expected
+        Keys.convertKeymaps h |> shouldEqual expected
 
     [<Fact>]
     let ``error if the hashtable contains invalid key or action.`` () =
@@ -175,12 +175,10 @@ module ``convertKeymaps should returns`` =
             |> String.concat "\n"
             |> Error
 
-        PocofAction.convertKeymaps h
-        |> shouldEqual expected
+        Keys.convertKeymaps h |> shouldEqual expected
 
     [<Fact>]
     let ``default map from null hashtable`` () =
-        let expected = PocofAction.defaultKeymap |> Ok
+        let expected = Keys.defaultKeymap |> Ok
 
-        PocofAction.convertKeymaps null
-        |> shouldEqual expected
+        Keys.convertKeymaps null |> shouldEqual expected

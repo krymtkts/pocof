@@ -1,30 +1,33 @@
-namespace pocof
+namespace Pocof
 
 open System
 open System.Collections
 open System.Management.Automation
 
-open PocofData
-open PocofHandle
+open Data
+open Handle
 
+[<RequireQualifiedAccess>]
 module Pocof =
-    type Entry = PocofData.Entry
-    type KeyPattern = PocofData.KeyPattern
-    type Action = PocofData.Action
-    type Matcher = PocofData.Matcher
-    type Operator = PocofData.Operator
-    type Layout = PocofData.Layout
+    type Entry = Data.Entry
+    type KeyPattern = Data.KeyPattern
+    type Action = Data.Action
+    type Matcher = Data.Matcher
+    type Operator = Data.Operator
+    type Layout = Data.Layout
 
-    type RawUI = PocofScreen.RawUI
+    type RawUI = Screen.RawUI
 
-    let convertKeymaps = PocofAction.convertKeymaps
-    let initConfig = PocofData.initConfig
+    let convertKeymaps = Keys.convertKeymaps
+    let initConfig = Data.initConfig
 
+    [<NoComparison>]
+    [<NoEquality>]
     type LoopFixedArguments =
         { keymaps: Map<KeyPattern, Action>
           input: Entry list
           propMap: Map<string, string>
-          writeScreen: PocofScreen.WriteScreen
+          writeScreen: Screen.WriteScreen
           getKey: unit -> ConsoleKeyInfo list
           getConsoleWidth: unit -> int
           getLengthInBufferCells: string -> int }
@@ -79,9 +82,9 @@ module Pocof =
         =
 
         match state.Refresh with
-        | NotRequired -> results, state
+        | Refresh.NotRequired -> results, state
         | _ ->
-            let results = PocofQuery.run context args.input args.propMap
+            let results = Query.run context args.input args.propMap
 
             let state =
                 state
@@ -91,7 +94,7 @@ module Pocof =
             args.writeScreen state results
             <| match state.SuppressProperties with
                | true -> Ok []
-               | _ -> PocofQuery.props state
+               | _ -> Query.props state
 
             results, state
 
@@ -107,10 +110,10 @@ module Pocof =
         let results, state = queryAndRender args results state pos context
 
         args.getKey ()
-        |> PocofAction.get args.keymaps
+        |> Keys.get args.keymaps
         |> function
-            | Cancel -> []
-            | Finish -> unwrap results
+            | Action.Cancel -> []
+            | Action.Finish -> unwrap results
             | action ->
                 action
                 |> invokeAction
@@ -124,12 +127,12 @@ module Pocof =
         (conf: InternalConfig)
         (state: InternalState)
         (pos: Position)
-        (rui: unit -> PocofScreen.IRawUI)
+        (rui: unit -> Screen.IRawUI)
         (invoke: obj list -> string seq)
         (input: Entry list)
         =
 
-        let state, context = PocofQuery.prepare state
+        let state, context = Query.prepare state
 
         let propMap =
             state.Properties
@@ -138,10 +141,10 @@ module Pocof =
 
         match conf.NotInteractive with
         | true ->
-            let l = PocofQuery.run context input propMap
+            let l = Query.run context input propMap
             unwrap l
         | _ ->
-            use buff = PocofScreen.init rui invoke conf.Layout
+            use buff = Screen.init rui invoke conf.Layout
 
             let args =
                 { keymaps = conf.Keymaps
@@ -161,8 +164,8 @@ module Pocof =
                 match o.BaseObject with
                 | :? IDictionary as dct ->
                     Seq.cast<DictionaryEntry> dct
-                    |> Seq.fold (fun a d -> Dict d :: a) acc
-                | _ -> Obj(PSObject o) :: acc)
+                    |> Seq.fold (fun a d -> Entry.Dict d :: a) acc
+                | _ -> Entry.Obj(PSObject o) :: acc)
             acc
 
     let buildProperties acc (input: PSObject array) =

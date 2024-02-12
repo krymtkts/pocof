@@ -1,11 +1,11 @@
-module Library
+module PocofTest.Library
 
 module Mock =
     open System
     open System.Management.Automation
     open System.Management.Automation.Host
 
-    type MyRawUI() =
+    type RawUI() =
         inherit PSHostRawUserInterface()
         override val ForegroundColor = ConsoleColor.White with get, set
         override val BackgroundColor = ConsoleColor.Black with get, set
@@ -35,9 +35,9 @@ module Mock =
             ) =
             ()
 
-    type MyUI() =
+    type UI() =
         inherit PSHostUserInterface()
-        override __.RawUI: PSHostRawUserInterface = new MyRawUI()
+        override __.RawUI: PSHostRawUserInterface = new RawUI()
         override __.ReadLine() = ""
         override __.ReadLineAsSecureString() = null
         override __.Write(value: string) = ()
@@ -57,13 +57,13 @@ module Mock =
         override __.PromptForCredential(_, _, _, _, _, _) = null
         override __.PromptForChoice(_, _, _, _) = 0
 
-    type MyHost() =
+    type Host() =
         inherit PSHost()
 
         override __.Name: string = "MyHost"
         override __.Version = new Version(1, 0, 0, 0)
         override __.InstanceId = Guid.NewGuid()
-        override __.UI = new MyUI()
+        override __.UI = new UI()
         override __.CurrentCulture = Globalization.CultureInfo.InvariantCulture
         override __.CurrentUICulture = Globalization.CultureInfo.InvariantCulture
         override __.SetShouldExit(exitCode: int) = ()
@@ -83,7 +83,7 @@ module Mock =
         member __.Warnings = warnings
 
         interface ICommandRuntime with
-            member __.Host: PSHost = new MyHost()
+            member __.Host: PSHost = new Host()
             member __.CurrentPSTransaction = null
             member __.WriteDebug(_) = ()
             member __.WriteError(errorRecord: ErrorRecord) = errors <- errorRecord :: errors
@@ -113,15 +113,16 @@ module SelectPocofCommand =
     open Xunit
     open FsUnitTyped
 
-    open pocof
+    open Pocof
 
     type SelectPocofCommandForTest() =
         inherit SelectPocofCommand()
 
-        member val Host: PSHost = new Mock.MyHost()
+        member val Host: PSHost = new Mock.Host()
         override __.invoke(input: 'a list) = input |> Seq.map string
         override __.host() = __.Host
 
+        // NOTE: PSCmdlet cannot invoke directly. So, use this method for testing.
         member __.InvokeForTest() =
             __.BeginProcessing()
             __.ProcessRecord()

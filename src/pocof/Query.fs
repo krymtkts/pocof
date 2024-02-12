@@ -1,12 +1,12 @@
-namespace pocof
+namespace Pocof
 
 open System
 open System.Management.Automation
 open System.Text.RegularExpressions
 
-open PocofData
+open Data
 
-module PocofQuery =
+module Query =
     let private equalOpt sensitive =
         match sensitive with
         | true -> StringComparison.CurrentCulture
@@ -39,7 +39,9 @@ module PocofQuery =
         with
         | _ -> true
 
-    type Query =
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    type QueryPart =
         | Normal of string
         | Property of string * string
 
@@ -59,14 +61,16 @@ module PocofQuery =
 
     type TesterType<'a> = ('a -> bool) -> 'a list -> bool
 
+    [<NoComparison>]
+    [<NoEquality>]
     type QueryContext =
-        { Queries: Query list
+        { Queries: QueryPart list
           Test: TesterType<string * string>
           Is: string -> string -> bool
           Answer: bool -> bool }
 
     [<TailCall>]
-    let rec private parseQuery (acc: Query list) (xs: string list) =
+    let rec private parseQuery (acc: QueryPart list) (xs: string list) =
         match xs with
         | [] -> acc
         | (x :: xs) ->
@@ -75,19 +79,19 @@ module PocofQuery =
                 parseQuery
                 <| match x with
                    | Prefix ":" _ -> acc
-                   | _ -> Normal x :: acc
+                   | _ -> QueryPart.Normal x :: acc
                 <| []
             | y :: zs ->
                 match x with
                 | Prefix ":" p ->
                     parseQuery
-                    <| Property(String.lower p, y) :: acc
+                    <| QueryPart.Property(String.lower p, y) :: acc
                     <| zs
-                | _ -> parseQuery <| Normal x :: acc <| xs
+                | _ -> parseQuery <| QueryPart.Normal x :: acc <| xs
 
     let private prepareQuery (state: InternalState) =
         match state.QueryCondition.Operator with
-        | NONE -> [ Normal state.QueryState.Query ]
+        | Operator.NONE -> [ QueryPart.Normal state.QueryState.Query ]
         | _ ->
             state.QueryState.Query
             |> String.trim
@@ -97,14 +101,14 @@ module PocofQuery =
 
     let private prepareTest (state: InternalState) =
         match state.QueryCondition.Operator with
-        | OR -> List.exists
+        | Operator.OR -> List.exists
         | _ -> List.forall
 
     let private prepareIs (state: InternalState) =
         match state.QueryCondition.Matcher with
-        | EQ -> equals << equalOpt
-        | LIKE -> likes << likeOpt
-        | MATCH -> matches << matchOpt
+        | Matcher.EQ -> equals << equalOpt
+        | Matcher.LIKE -> likes << likeOpt
+        | Matcher.MATCH -> matches << matchOpt
         <| state.QueryCondition.CaseSensitive
 
     let private prepareAnswer (state: InternalState) =
@@ -114,7 +118,7 @@ module PocofQuery =
 
     let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with
-        | MATCH ->
+        | Matcher.MATCH ->
             try
                 new Regex(state.QueryState.Query) |> ignore
                 ""
@@ -161,7 +165,7 @@ module PocofQuery =
             |> List.fold
                 (fun acc x ->
                     match x with
-                    | Property (k, v) ->
+                    | QueryPart.Property (k, v) ->
                         let pk =
                             match props.TryGetValue k with
                             | true, v -> v
@@ -169,16 +173,16 @@ module PocofQuery =
 
                         let p =
                             match o with
-                            | Dict (dct) -> dct ?=> pk
-                            | Obj (o) -> o ?-> pk
+                            | Entry.Dict (dct) -> dct ?=> pk
+                            | Entry.Obj (o) -> o ?-> pk
 
                         match p with
                         | Some (pv) -> (pv, v) :: acc
                         | None -> acc
-                    | Normal (v) ->
+                    | QueryPart.Normal (v) ->
                         match o with
-                        | Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
-                        | Obj (o) -> (o, v) :: acc)
+                        | Entry.Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
+                        | Entry.Obj (o) -> (o, v) :: acc)
                 []
             |> List.map (fun (s, v) -> (string s, v))
 
@@ -198,8 +202,8 @@ module PocofQuery =
             | _ -> String.lower x
 
         match state.PropertySearch with
-        | Search (prefix: string)
-        | Rotate (prefix: string, _, _) ->
+        | PropertySearch.Search (prefix: string)
+        | PropertySearch.Rotate (prefix: string, _, _) ->
             let p = transform prefix
             let ret = List.filter (transform >> String.startsWith p) state.Properties
 

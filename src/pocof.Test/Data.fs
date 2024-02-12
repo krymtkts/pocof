@@ -1,4 +1,4 @@
-module PocofData
+module PocofTest.Data
 
 open System
 open Microsoft.FSharp.Reflection
@@ -6,8 +6,8 @@ open Microsoft.FSharp.Reflection
 open Xunit
 open FsUnitTyped
 
-open pocof
-open PocofData
+open Pocof
+open Pocof.Data
 
 module unwrap =
     open System.Collections
@@ -15,12 +15,12 @@ module unwrap =
 
     [<Fact>]
     let ``should returns "a".`` () =
-        unwrap [ Obj(PSObject.AsPSObject "a") ]
+        unwrap [ Entry.Obj(PSObject.AsPSObject "a") ]
         |> shouldEqual [ PSObject.AsPSObject "a" ]
 
     [<Fact>]
     let ``should returns dictionary.`` () =
-        unwrap [ Dict(DictionaryEntry("Jane", "Doe")) ]
+        unwrap [ Entry.Dict(DictionaryEntry("Jane", "Doe")) ]
         |> shouldEqual [ DictionaryEntry("Jane", "Doe") ]
 
 module ``Action fromString should returns`` =
@@ -96,62 +96,83 @@ module ``QueryState toString should returns`` =
 
     [<Fact>]
     let ``eq and`` () =
-        let actual = queryState EQ AND
+        let actual = queryState Matcher.EQ Operator.AND
         string actual |> shouldEqual "eq and"
 
     [<Fact>]
     let ``cne or`` () =
-        let actual = queryState EQ OR |> caseSensitive |> invert
+        let actual =
+            queryState Matcher.EQ Operator.OR
+            |> caseSensitive
+            |> invert
+
         string actual |> shouldEqual "cne or"
 
     [<Fact>]
     let ``ceq and`` () =
-        let actual = queryState EQ AND |> caseSensitive
+        let actual =
+            queryState Matcher.EQ Operator.AND
+            |> caseSensitive
+
         string actual |> shouldEqual "ceq and"
 
     [<Fact>]
     let ``ne or`` () =
-        let actual = queryState EQ OR |> invert
+        let actual = queryState Matcher.EQ Operator.OR |> invert
         string actual |> shouldEqual "ne or"
 
     [<Fact>]
     let ``like and`` () =
-        let actual = queryState LIKE AND
+        let actual = queryState Matcher.LIKE Operator.AND
         string actual |> shouldEqual "like and"
 
     [<Fact>]
     let ``clike and`` () =
-        let actual = queryState LIKE AND |> caseSensitive
+        let actual =
+            queryState Matcher.LIKE Operator.AND
+            |> caseSensitive
+
         string actual |> shouldEqual "clike and"
 
     [<Fact>]
     let ``notlike and`` () =
-        let actual = queryState LIKE AND |> invert
+        let actual = queryState Matcher.LIKE Operator.AND |> invert
         string actual |> shouldEqual "notlike and"
 
     [<Fact>]
     let ``notclike and`` () =
-        let actual = queryState LIKE AND |> caseSensitive |> invert
+        let actual =
+            queryState Matcher.LIKE Operator.AND
+            |> caseSensitive
+            |> invert
+
         string actual |> shouldEqual "notclike and"
 
     [<Fact>]
     let ``notcmatch or`` () =
-        let actual = queryState MATCH OR |> caseSensitive |> invert
+        let actual =
+            queryState Matcher.MATCH Operator.OR
+            |> caseSensitive
+            |> invert
+
         string actual |> shouldEqual "notcmatch or"
 
     [<Fact>]
     let ``notmatch or`` () =
-        let actual = queryState MATCH OR |> invert
+        let actual = queryState Matcher.MATCH Operator.OR |> invert
         string actual |> shouldEqual "notmatch or"
 
     [<Fact>]
     let ``cmatch or`` () =
-        let actual = queryState MATCH OR |> caseSensitive
+        let actual =
+            queryState Matcher.MATCH Operator.OR
+            |> caseSensitive
+
         string actual |> shouldEqual "cmatch or"
 
     [<Fact>]
     let ``match or`` () =
-        let actual = queryState MATCH OR
+        let actual = queryState Matcher.MATCH Operator.OR
         string actual |> shouldEqual "match or"
 
 module initConfig =
@@ -167,14 +188,14 @@ module initConfig =
               SuppressProperties = true
               Prompt = "prompt"
               Layout = "TopDown"
-              Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
+              Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
               Properties = [ "name"; "attributes" ]
               EntryCount = 10
               ConsoleWidth = 60
               ConsoleHeight = 20 }
         |> shouldEqual (
             { Layout = Layout.TopDown
-              Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Cancel) ]
+              Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
               NotInteractive = true },
             { QueryState =
                 { Query = ":name"
@@ -185,18 +206,18 @@ module initConfig =
                     - (String.length "prompt>")
                     - (String.length " notclike and [10]") }
               QueryCondition =
-                { Matcher = LIKE
-                  Operator = AND
+                { Matcher = Matcher.LIKE
+                  Operator = Operator.AND
                   CaseSensitive = true
                   Invert = true }
-              PropertySearch = Search "name"
+              PropertySearch = PropertySearch.Search "name"
               Notification = ""
               SuppressProperties = true
               Properties = [ "name"; "attributes" ]
               Prompt = "prompt"
               FilteredCount = 10
               ConsoleWidth = 60
-              Refresh = Required },
+              Refresh = Refresh.Required },
             { Y = 0; Height = 20 }
         )
 
@@ -272,29 +293,29 @@ module QueryState =
         [<Fact>]
         let ``should returns NoSearch when no colon`` () =
             QueryState.getCurrentProperty (qs "a" 1)
-            |> shouldEqual NoSearch
+            |> shouldEqual PropertySearch.NoSearch
 
         [<Fact>]
         let ``should returns Search with "a" when start with colon`` () =
             QueryState.getCurrentProperty (qs ":a" 2)
-            |> shouldEqual (Search "a")
+            |> shouldEqual (PropertySearch.Search "a")
 
         [<Fact>]
         let ``should returns Search with "a" when start with colon and cursor position 1`` () =
             QueryState.getCurrentProperty (qs ":a" 1)
-            |> shouldEqual (Search "")
+            |> shouldEqual (PropertySearch.Search "")
 
         [<Fact>]
         let ``should returns Search with "a" when start with colon and trailing space`` () =
             QueryState.getCurrentProperty (qs ":a " 2)
-            |> shouldEqual (Search "a")
+            |> shouldEqual (PropertySearch.Search "a")
 
         [<Fact>]
         let ``should returns NoSearch when start with colon and cursor position 3`` () =
             QueryState.getCurrentProperty (qs ":a " 3)
-            |> shouldEqual (NoSearch)
+            |> shouldEqual (PropertySearch.NoSearch)
 
         [<Fact>]
         let ``should returns Search with "a" when start with colon and trailing keyword `` () =
             QueryState.getCurrentProperty (qs ":a a" 2)
-            |> shouldEqual (Search "a")
+            |> shouldEqual (PropertySearch.Search "a")

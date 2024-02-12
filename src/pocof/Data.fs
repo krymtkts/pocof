@@ -1,9 +1,9 @@
-namespace pocof
+namespace Pocof
 
 #if DEBUG
 
 [<AutoOpen>]
-module PocofDebug =
+module Debug =
     open System
     open System.IO
     open System.Runtime.CompilerServices
@@ -55,12 +55,14 @@ module LanguageExtension =
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
 
-module PocofData =
+module Data =
     open System
     open System.Collections
     open System.Management.Automation
     open Microsoft.FSharp.Reflection
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Entry =
         | Obj of PSObject
         | Dict of DictionaryEntry
@@ -68,8 +70,8 @@ module PocofData =
     let unwrap (entries: Entry list) =
         entries
         |> List.map (function
-            | Dict (dct) -> dct :> obj
-            | Obj (o) -> o)
+            | Entry.Dict (dct) -> dct :> obj
+            | Entry.Obj (o) -> o)
 
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
@@ -102,6 +104,8 @@ module PocofData =
         | true -> Some s.[1..]
         | _ -> None
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Action =
         | Noop
         | Cancel
@@ -137,43 +141,57 @@ module PocofData =
         // property completion.
         | CompleteProperty
 
+    [<RequireQualifiedAccess>]
     module Action =
         let fromString =
             tryFromStringExcludes<Action>
             <| set [ "AddQuery" ]
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Matcher =
         | EQ
         | LIKE
         | MATCH
         override __.ToString() = toString __ |> String.lower
 
+    [<RequireQualifiedAccess>]
     module Matcher =
         let fromString = fromString<Matcher>
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Operator =
         | AND
         | OR
         | NONE
         override __.ToString() = toString __ |> String.lower
 
+    [<RequireQualifiedAccess>]
     module Operator =
         let fromString = fromString<Operator>
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Layout =
         | TopDown
         | TopDownHalf
         | BottomUp
         | BottomUpHalf
 
+    [<RequireQualifiedAccess>]
     module Layout =
         let fromString = fromString<Layout>
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type PropertySearch =
         | NoSearch
         | Search of string
         | Rotate of string * int * string list
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
     type Refresh =
         | Required
         | NotRequired
@@ -243,8 +261,8 @@ module PocofData =
 #endif
 
             match s with
-            | Prefix ":" p -> Search p
-            | _ -> NoSearch
+            | Prefix ":" p -> PropertySearch.Search p
+            | _ -> PropertySearch.NoSearch
 
     type QueryCondition =
         { Matcher: Matcher
@@ -256,8 +274,8 @@ module PocofData =
             <| match __.Matcher, __.CaseSensitive, __.Invert with
                | m, false, false -> [ string m ]
                | m, true, false -> [ "c"; string m ]
-               | EQ, false, true -> [ "ne" ]
-               | EQ, true, true -> [ "cne" ]
+               | Matcher.EQ, false, true -> [ "ne" ]
+               | Matcher.EQ, true, true -> [ "cne" ]
                | m, false, true -> [ "not"; string m ]
                | m, true, true -> [ "notc"; string m ]
             <| [ " "; string __.Operator ]
@@ -268,17 +286,17 @@ module PocofData =
             { condition with
                 Matcher =
                     match condition.Matcher with
-                    | EQ -> LIKE
-                    | LIKE -> MATCH
-                    | MATCH -> EQ }
+                    | Matcher.EQ -> Matcher.LIKE
+                    | Matcher.LIKE -> Matcher.MATCH
+                    | Matcher.MATCH -> Matcher.EQ }
 
         let rotateOperator (condition: QueryCondition) =
             { condition with
                 Operator =
                     match condition.Operator with
-                    | OR -> AND
-                    | AND -> NONE
-                    | NONE -> OR }
+                    | Operator.OR -> Operator.AND
+                    | Operator.AND -> Operator.NONE
+                    | Operator.NONE -> Operator.OR }
 
         let toggleCaseSensitive (condition: QueryCondition) =
             { condition with CaseSensitive = not condition.CaseSensitive }
@@ -328,9 +346,11 @@ module PocofData =
                 QueryState = qs
                 PropertySearch = QueryState.getCurrentProperty qs }
 
-        let refresh (state: InternalState) = { state with Refresh = Required }
+        let refresh (state: InternalState) =
+            { state with Refresh = Refresh.Required }
 
-        let noRefresh (state: InternalState) = { state with Refresh = NotRequired }
+        let noRefresh (state: InternalState) =
+            { state with Refresh = Refresh.NotRequired }
 
         let refreshIfTrue (b: bool) (state: InternalState) =
             match b with
@@ -377,6 +397,8 @@ module PocofData =
 
     type Position = { Y: int; Height: int }
 
+    [<NoComparison>]
+    [<NoEquality>]
     type IncomingParameters =
         { Query: string
           Matcher: string
@@ -414,7 +436,7 @@ module PocofData =
               Prompt = p.Prompt
               FilteredCount = p.EntryCount
               ConsoleWidth = p.ConsoleWidth
-              Refresh = Required }
+              Refresh = Refresh.Required }
             |> InternalState.updateWindowWidth
 
         { Layout = Layout.fromString p.Layout
