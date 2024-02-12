@@ -8,7 +8,7 @@ open FsUnitTyped
 
 open Pocof
 open Pocof.Data
-open Screen
+open Screen.Mock
 
 let toObj x = x |> (PSObject.AsPSObject >> Entry.Obj)
 
@@ -53,7 +53,7 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -68,7 +68,7 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -83,7 +83,7 @@ module calculateWindowBeginningCursor =
               WindowWidth = 30 }
 
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -97,7 +97,7 @@ module loop =
         let state, context = Query.prepare state
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ])
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
             { keymaps = Keys.defaultKeymap
@@ -123,7 +123,7 @@ module loop =
         let state, context = Query.prepare { state with SuppressProperties = true }
 
         let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Escape ])
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
             { keymaps = Keys.defaultKeymap
@@ -154,7 +154,7 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
             { keymaps = Keys.defaultKeymap
@@ -189,7 +189,7 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
             { keymaps = Keys.defaultKeymap
@@ -221,7 +221,7 @@ module loop =
                   MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
             { keymaps = Keys.defaultKeymap

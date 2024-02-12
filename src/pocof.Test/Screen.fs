@@ -6,114 +6,116 @@ open Xunit
 open FsUnitTyped
 
 open Pocof.Data
-open Pocof.Query
 open Pocof.Screen
 
-let generateLine x y =
-    List.replicate y <| String.replicate x " "
+module Mock =
+    let generateLine x y =
+        List.replicate y <| String.replicate x " "
 
-// TODO: mock PSHostRawUserInterface.
-type MockRawUI =
-    val caAsInput: bool
-    val mutable height: int
-    val mutable width: int
-    val mutable x: int
-    val mutable y: int
-    val mutable screen: string list
-    val mutable keys: ConsoleKeyInfo option list
-    static xx = 50
-    static yy = 30
+    // TODO: mock PSHostRawUserInterface.
+    type MockRawUI =
+        val caAsInput: bool
+        val mutable height: int
+        val mutable width: int
+        val mutable x: int
+        val mutable y: int
+        val mutable screen: string list
+        val mutable keys: ConsoleKeyInfo option list
+        static xx = 50
+        static yy = 30
 
-    new() =
-        // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
-        { caAsInput = true
-          x = MockRawUI.xx
-          y = MockRawUI.yy
-          width = MockRawUI.xx
-          height = MockRawUI.yy
-          screen = generateLine  MockRawUI.xx MockRawUI.yy
-          keys = [MockRawUI.consoleKey '\000' ConsoleKey.Enter]
-          }
-    new(x:int, y:int) =
-        // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
-        { caAsInput = true
-          x = x
-          y = y
-          width = x
-          height = y
-          screen = generateLine x y
-          keys = [MockRawUI.consoleKey '\000' ConsoleKey.Enter]
-          }
-
-    new(x:int, y:int, keys: ConsoleKeyInfo option list) =
-          // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
-          { caAsInput = true
-            x = x
-            y = y
-            width = x
-            height = y
-            screen = generateLine x y
-            keys = keys
+        new() =
+            // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
+            { caAsInput = true
+              x = MockRawUI.xx
+              y = MockRawUI.yy
+              width = MockRawUI.xx
+              height = MockRawUI.yy
+              screen = generateLine  MockRawUI.xx MockRawUI.yy
+              keys = [MockRawUI.consoleKey '\000' ConsoleKey.Enter]
+            }
+        new(x:int, y:int) =
+            // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
+            { caAsInput = true
+              x = x
+              y = y
+              width = x
+              height = y
+              screen = generateLine x y
+              keys = [MockRawUI.consoleKey '\000' ConsoleKey.Enter]
             }
 
-    interface IRawUI with
-        member __.GetCursorPosition () = __.x, __.y
-        member __.SetCursorPosition (x: int) (y: int) =
-            __.x <- x
-            __.y <- y
+        new(x:int, y:int, keys: ConsoleKeyInfo option list) =
+            // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
+            { caAsInput = true
+              x = x
+              y = y
+              width = x
+              height = y
+              screen = generateLine x y
+              keys = keys
+                }
 
-        member __.GetLengthInBufferCells (s: string) =
-            let isFullWidth c = // NOTE: simple full-width character detection for test.
-                let code = int c
-                code >= 0xFF00 && code <= 0xFF60
+        interface IRawUI with
+            member __.GetCursorPosition () = __.x, __.y
+            member __.SetCursorPosition (x: int) (y: int) =
+                __.x <- x
+                __.y <- y
 
-            s |> Seq.cast<char> |> Seq.map (fun c -> if isFullWidth c then 2 else 1) |> Seq.sum
+            member __.GetLengthInBufferCells (s: string) =
+                let isFullWidth c = // NOTE: simple full-width character detection for test.
+                    let code = int c
+                    code >= 0xFF00 && code <= 0xFF60
 
-        member __.GetWindowWidth() = __.width
-        member __.GetWindowHeight() = __.height
+                s |> Seq.cast<char> |> Seq.map (fun c -> if isFullWidth c then 2 else 1) |> Seq.sum
 
-        member __.Write x y s =
-            __.screen <- __.screen |>List.mapi (fun i ss ->
-                match i with
-                | ii when ii = y ->
-                    ss.Substring(0, x) + s
-                | _ ->
-                    let l = (__ :> IRawUI).GetLengthInBufferCells ss
-                    match l <= __.width with
-                    | true -> ss + String.replicate (__.width - l) " "
-                    | _ -> ss)
+            member __.GetWindowWidth() = __.width
+            member __.GetWindowHeight() = __.height
 
-        member __.ReadKey(_) =
+            member __.Write x y s =
+                __.screen <- __.screen |>List.mapi (fun i ss ->
+                    match i with
+                    | ii when ii = y ->
+                        ss.Substring(0, x) + s
+                    | _ ->
+                        let l = (__ :> IRawUI).GetLengthInBufferCells ss
+                        match l <= __.width with
+                        | true -> ss + String.replicate (__.width - l) " "
+                        | _ -> ss)
+
+            member __.ReadKey(_) =
+                match __.keys with
+                | [] -> failwith "key sequence is empty. check your test key sequence."
+                | k::ks ->
+                    match k with
+                    | None -> failwith "key is none. check your test key sequence."
+                    | Some k ->
+                        __.keys <- ks
+                        k
+
+            member __.KeyAvailable() =
+                match __.keys with
+                | [] -> false
+                | k::ks ->
+                    match k with
+                    | None ->
+                        __.keys <- ks
+                        false
+                    | Some _ -> true
+
+        interface IDisposable with
+            member __.Dispose() = ()
+
+        static member consoleKey keyChar key =
+            new ConsoleKeyInfo(keyChar, key, false, false, false)
+            |> Some
+
+        member __.check() =
             match __.keys with
-            | [] -> failwith "key sequence is empty. check your test key sequence."
-            | k::ks ->
-                match k with
-                | None -> failwith "key is none. check your test key sequence."
-                | Some k ->
-                    __.keys <- ks
-                    k
+            | [] -> ()
+            | _ -> failwith "keys remains. probably test is broken."
 
-        member __.KeyAvailable() =
-            match __.keys with
-            | [] -> false
-            | k::ks ->
-                match k with
-                | None ->
-                    __.keys <- ks
-                    false
-                | Some _ -> true
-
-    interface IDisposable with
-        member __.Dispose() = ()
-
-    static member consoleKey keyChar key =
-        new ConsoleKeyInfo(keyChar, key, false, false, false)
-        |> Some
-
-    member __.check() =
-        match __.keys with
-        | [] -> ()
-        | _ -> failwith "keys remains. probably test is broken."
+open Mock
 
 module ``Buff writeScreen`` =
     open System.Collections
@@ -269,7 +271,7 @@ module ``Buff writeScreen`` =
               ConsoleWidth = rui.width
               Refresh = Refresh.Required}
               |> InternalState.updateWindowWidth
-              |> InternalState.prepareNotification
+              |> Pocof.Query.InternalState.prepareNotification
 
         let rui = getRenderedScreen rui state Layout.TopDown
 
