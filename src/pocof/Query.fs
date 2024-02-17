@@ -184,7 +184,8 @@ module Query =
                         | Entry.Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
                         | Entry.Obj (o) -> (o, v) :: acc)
                 []
-            |> List.map (fun (s, v) -> (string s, v))
+            // NOTE: stringify using the current locale.
+            |> List.map (fun (s, v) -> (s.ToString(), v))
 
         let predicate (o: Entry) =
             match values o with
