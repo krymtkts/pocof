@@ -32,21 +32,10 @@ module Mock =
               y = MockRawUI.yy
               width = MockRawUI.xx
               height = MockRawUI.yy
-              screen = generateLine  MockRawUI.xx MockRawUI.yy
-              keys = [MockRawUI.consoleKey '\000' ConsoleKey.Enter]
-            }
-        new(x:int, y:int) =
-            // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
-            { caAsInput = true
-              x = x
-              y = y
-              width = x
-              height = y
-              screen = generateLine x y
-              keys = [MockRawUI.consoleKey '\000' ConsoleKey.Enter]
-            }
+              screen = generateLine MockRawUI.xx MockRawUI.yy
+              keys = [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ] }
 
-        new(x:int, y:int, keys: ConsoleKeyInfo option list) =
+        new(x: int, y: int) =
             // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
             { caAsInput = true
               x = x
@@ -54,40 +43,55 @@ module Mock =
               width = x
               height = y
               screen = generateLine x y
-              keys = keys
-                }
+              keys = [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ] }
+
+        new(x: int, y: int, keys: ConsoleKeyInfo option list) =
+            // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
+            { caAsInput = true
+              x = x
+              y = y
+              width = x
+              height = y
+              screen = generateLine x y
+              keys = keys }
 
         interface IRawUI with
-            member __.GetCursorPosition () = __.x, __.y
+            member __.GetCursorPosition() = __.x, __.y
+
             member __.SetCursorPosition (x: int) (y: int) =
                 __.x <- x
                 __.y <- y
 
-            member __.GetLengthInBufferCells (s: string) =
+            member __.GetLengthInBufferCells(s: string) =
                 let isFullWidth c = // NOTE: simple full-width character detection for test.
                     let code = int c
                     code >= 0xFF00 && code <= 0xFF60
 
-                s |> Seq.cast<char> |> Seq.map (fun c -> if isFullWidth c then 2 else 1) |> Seq.sum
+                s
+                |> Seq.cast<char>
+                |> Seq.map (fun c -> if isFullWidth c then 2 else 1)
+                |> Seq.sum
 
             member __.GetWindowWidth() = __.width
             member __.GetWindowHeight() = __.height
 
             member __.Write x y s =
-                __.screen <- __.screen |>List.mapi (fun i ss ->
-                    match i with
-                    | ii when ii = y ->
-                        ss.Substring(0, x) + s
-                    | _ ->
-                        let l = (__ :> IRawUI).GetLengthInBufferCells ss
-                        match l <= __.width with
-                        | true -> ss + String.replicate (__.width - l) " "
-                        | _ -> ss)
+                __.screen <-
+                    __.screen
+                    |> List.mapi (fun i ss ->
+                        match i with
+                        | ii when ii = y -> ss.Substring(0, x) + s
+                        | _ ->
+                            let l = (__ :> IRawUI).GetLengthInBufferCells ss
+
+                            match l <= __.width with
+                            | true -> ss + String.replicate (__.width - l) " "
+                            | _ -> ss)
 
             member __.ReadKey(_) =
                 match __.keys with
                 | [] -> failwith "key sequence is empty. check your test key sequence."
-                | k::ks ->
+                | k :: ks ->
                     match k with
                     | None -> failwith "key is none. check your test key sequence."
                     | Some k ->
@@ -97,7 +101,7 @@ module Mock =
             member __.KeyAvailable() =
                 match __.keys with
                 | [] -> false
-                | k::ks ->
+                | k :: ks ->
                     match k with
                     | None ->
                         __.keys <- ks
@@ -129,8 +133,13 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render top down.`` () =
         let rui = new MockRawUI()
+
         let state: InternalState =
-            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
+            { QueryState =
+                { Query = "foo"
+                  Cursor = 3
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0 }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -143,8 +152,8 @@ module ``Buff writeScreen`` =
               Prompt = "query"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Refresh.Required}
-              |> InternalState.updateWindowWidth
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
 
         let rui = getRenderedScreen rui state Layout.TopDown
 
@@ -152,8 +161,7 @@ module ``Buff writeScreen`` =
             "query>foo                           cmatch and [0]"
             :: (generateLine rui.width (rui.height - 1))
 
-        rui.screen
-        |> shouldEqual expected
+        rui.screen |> shouldEqual expected
 
     [<Fact>]
     let ``should render top down half.`` () =
@@ -166,7 +174,11 @@ module ``Buff writeScreen`` =
             <| y / 2 + 1)
 
         let state: InternalState =
-            { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
+            { QueryState =
+                { Query = "foo"
+                  Cursor = 3
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0 }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -179,27 +191,29 @@ module ``Buff writeScreen`` =
               Prompt = "query"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Refresh.Required}
-              |> InternalState.updateWindowWidth
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
 
         let rui = getRenderedScreen rui state Layout.TopDownHalf
 
         let expected =
-            [
-                generateLine rui.width (rui.height / 2)
-                ["query>foo                           cmatch and [0]"]
-                generateLine rui.width (rui.height / 2 - 1)
-            ] |> List.concat
+            [ generateLine rui.width (rui.height / 2)
+              [ "query>foo                           cmatch and [0]" ]
+              generateLine rui.width (rui.height / 2 - 1) ]
+            |> List.concat
 
-        rui.screen
-        |> shouldEqual expected
+        rui.screen |> shouldEqual expected
 
     [<Fact>]
     let ``should render bottom up.`` () =
         let rui = new MockRawUI()
 
         let state: InternalState =
-            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
+            { QueryState =
+                { Query = "hello*world*"
+                  Cursor = 12
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0 }
               QueryCondition =
                 { Matcher = Matcher.Like
                   Operator = Operator.Or
@@ -212,8 +226,8 @@ module ``Buff writeScreen`` =
               Prompt = "prompt"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Refresh.Required}
-              |> InternalState.updateWindowWidth
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
 
         let rui = getRenderedScreen rui state Layout.BottomUp
 
@@ -222,15 +236,18 @@ module ``Buff writeScreen`` =
             :: (generateLine rui.width (rui.height - 1))
             |> List.rev
 
-        rui.screen
-        |> shouldEqual expected
+        rui.screen |> shouldEqual expected
 
     [<Fact>]
     let ``should render bottom up half.`` () =
         let rui = new MockRawUI()
 
         let state: InternalState =
-            { QueryState = { Query = "hello*world*"; Cursor = 12; WindowBeginningCursor = 0; WindowWidth = 0 }
+            { QueryState =
+                { Query = "hello*world*"
+                  Cursor = 12
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0 }
               QueryCondition =
                 { Matcher = Matcher.Like
                   Operator = Operator.Or
@@ -243,25 +260,28 @@ module ``Buff writeScreen`` =
               Prompt = "prompt"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Refresh.Required}
-              |> InternalState.updateWindowWidth
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
 
-        let rui = getRenderedScreen rui state Layout. BottomUpHalf
+        let rui = getRenderedScreen rui state Layout.BottomUpHalf
 
         let expected =
             "prompt>hello*world*                 notlike or [0]"
             :: (generateLine rui.width (rui.height - 1))
             |> List.rev
 
-        rui.screen
-        |> shouldEqual expected
+        rui.screen |> shouldEqual expected
 
     [<Fact>]
     let ``should render notification.`` () =
-        let rui = new MockRawUI(80,30)
+        let rui = new MockRawUI(80, 30)
 
         let state: InternalState =
-            { QueryState = { Query = @"\"; Cursor = 1; WindowBeginningCursor = 0; WindowWidth = 0 }
+            { QueryState =
+                { Query = @"\"
+                  Cursor = 1
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0 }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -274,9 +294,9 @@ module ``Buff writeScreen`` =
               Prompt = "prompt"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Refresh.Required}
-              |> InternalState.updateWindowWidth
-              |> Pocof.Query.InternalState.prepareNotification
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
+            |> Pocof.Query.InternalState.prepareNotification
 
         let rui = getRenderedScreen rui state Layout.TopDown
 
@@ -285,16 +305,19 @@ module ``Buff writeScreen`` =
                             @"note>Invalid pattern '\' at offset 1. Illegal \ at end of pattern.              " ]
                           (generateLine rui.width (28)) ]
 
-        rui.screen
-        |> shouldEqual expected
+        rui.screen |> shouldEqual expected
 
     [<Fact>]
     let ``should render props notification.`` () =
-        let rui = new MockRawUI(80,30)
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), Layout.TopDown)
+        let rui = new MockRawUI(80, 30)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let state: InternalState =
-            { QueryState = { Query = @":unknown"; Cursor = 8; WindowBeginningCursor = 0; WindowWidth = 0 }
+            { QueryState =
+                { Query = @":unknown"
+                  Cursor = 8
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0 }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -307,29 +330,39 @@ module ``Buff writeScreen`` =
               Prompt = "prompt"
               FilteredCount = 0
               ConsoleWidth = rui.width
-              Refresh = Refresh.Required}
-              |> InternalState.updateWindowWidth
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
 
-        buff.writeScreen Layout.TopDown state [] <| Error "Property not found"
+        buff.writeScreen Layout.TopDown state []
+        <| Error "Property not found"
 
         let expected =
             List.concat [ [ @"prompt>:unknown                                                    match and [0]"
                             @"note>Property not found                                                         " ]
                           (generateLine rui.width (28)) ]
 
-        rui.screen
-        |> shouldEqual expected
+        rui.screen |> shouldEqual expected
 
     let formatTableOutString ol =
-        PowerShell.Create().AddCommand("Format-Table").AddParameter("InputObject",ol).AddCommand("Out-String").Invoke() |> Seq.map string
+        PowerShell
+            .Create()
+            .AddCommand("Format-Table")
+            .AddParameter("InputObject", ol)
+            .AddCommand("Out-String")
+            .Invoke()
+        |> Seq.map string
 
     [<Fact>]
     let ``should render entries under y.`` () =
-        let rui = new MockRawUI(60,30)
+        let rui = new MockRawUI(60, 30)
         use buff = new Buff(rui, formatTableOutString, Layout.TopDown)
 
         let state: InternalState =
-            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
+            { QueryState =
+                { Query = ""
+                  Cursor = 0
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0 }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -342,14 +375,15 @@ module ``Buff writeScreen`` =
               Prompt = "prompt"
               FilteredCount = 10
               ConsoleWidth = rui.width
-              Refresh = Refresh.Required}
-              |> InternalState.updateWindowWidth
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
 
-        let entries = [1..10] |> List.map (fun i ->
-            DictionaryEntry("Number", i) |> Entry.Dict
-        )
+        let entries =
+            [ 1..10 ]
+            |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
 
-        buff.writeScreen Layout.TopDown state entries <| Ok []
+        buff.writeScreen Layout.TopDown state entries
+        <| Ok []
 
         let expected =
             List.concat [ [ @"prompt>                                       match and [10]"
@@ -361,17 +395,20 @@ module ``Buff writeScreen`` =
                            |> List.map (sprintf "Number                         %-2d                           "))
                           (generateLine rui.width (15)) ]
 
-        rui.screen
-        |> shouldEqual expected
+        rui.screen |> shouldEqual expected
 
 
     [<Fact>]
     let ``should render entries over y.`` () =
-        let rui = new MockRawUI(60,30)
+        let rui = new MockRawUI(60, 30)
         use buff = new Buff(rui, formatTableOutString, Layout.TopDown)
 
         let state: InternalState =
-            { QueryState = { Query = ""; Cursor = 0; WindowBeginningCursor = 0; WindowWidth = 0 }
+            { QueryState =
+                { Query = ""
+                  Cursor = 0
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0 }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -384,13 +421,15 @@ module ``Buff writeScreen`` =
               Prompt = "prompt"
               FilteredCount = 100
               ConsoleWidth = rui.width
-              Refresh = Refresh.Required}
-              |> InternalState.updateWindowWidth
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
 
-        let entries = [1..100] |> List.map (fun i ->
-            DictionaryEntry("Number", i) |> Entry.Dict
-        )
-        buff.writeScreen Layout.TopDown state entries <| Ok []
+        let entries =
+            [ 1..100 ]
+            |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
+
+        buff.writeScreen Layout.TopDown state entries
+        <| Ok []
 
         let expected =
             List.concat [ [ @"prompt>                                      match and [100]"
@@ -401,24 +440,23 @@ module ``Buff writeScreen`` =
                           ([ 1..25 ]
                            |> List.map (sprintf "Number                         %-2d                           ")) ]
 
-        rui.screen
-        |> shouldEqual expected
+        rui.screen |> shouldEqual expected
 
     module ``query window`` =
         let getRenderedScreen query cursor beginning =
-            let rui = new MockRawUI(50,25)
+            let rui = new MockRawUI(50, 25)
             // NOTE: avoid cleanup of buff to check screen.
             let state: InternalState =
                 { QueryState =
-                      { Query = query
-                        Cursor = cursor
-                        WindowBeginningCursor = beginning
-                        WindowWidth = 30 }
+                    { Query = query
+                      Cursor = cursor
+                      WindowBeginningCursor = beginning
+                      WindowWidth = 30 }
                   QueryCondition =
-                      { Matcher = Matcher.Match
-                        Operator = Operator.And
-                        CaseSensitive = false
-                        Invert = false }
+                    { Matcher = Matcher.Match
+                      Operator = Operator.And
+                      CaseSensitive = false
+                      Invert = false }
                   PropertySearch = PropertySearch.NoSearch
                   Notification = ""
                   SuppressProperties = false
@@ -426,119 +464,144 @@ module ``Buff writeScreen`` =
                   Prompt = "query"
                   FilteredCount = 0
                   ConsoleWidth = rui.width
-                  Refresh = Refresh.Required}
+                  Refresh = Refresh.Required }
 
             getRenderedScreen rui state Layout.TopDown
 
         [<Fact>]
         let ``should render head 30 of query when cursor 0.`` () =
-            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let query =
+                [ 0..9 ]
+                |> List.map (sprintf "%d-------->")
+                |> String.concat ""
+
             let rui = getRenderedScreen query 0 0
 
             let expected =
                 "query>0-------->1-------->2--------> match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
-            rui.screen
-            |> shouldEqual expected
+            rui.screen |> shouldEqual expected
 
         [<Fact>]
         let ``should render head 30 of query when cursor 30.`` () =
-            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let query =
+                [ 0..9 ]
+                |> List.map (sprintf "%d-------->")
+                |> String.concat ""
+
             let rui = getRenderedScreen query 30 0
 
             let expected =
                 "query>0-------->1-------->2--------> match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
-            rui.screen
-            |> shouldEqual expected
+            rui.screen |> shouldEqual expected
 
         [<Fact>]
         let ``should render mid 30 of query when cursor 45.`` () =
-            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let query =
+                [ 0..9 ]
+                |> List.map (sprintf "%d-------->")
+                |> String.concat ""
+
             let rui = getRenderedScreen query 45 15
 
             let expected =
                 "query>---->2-------->3-------->4---- match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
-            rui.screen
-            |> shouldEqual expected
+            rui.screen |> shouldEqual expected
 
         [<Fact>]
         let ``should render tail 30 of query when cursor 100.`` () =
-            let query = [0..9] |> List.map (sprintf "%d-------->") |> String.concat ""
+            let query =
+                [ 0..9 ]
+                |> List.map (sprintf "%d-------->")
+                |> String.concat ""
+
             let rui = getRenderedScreen query 100 70
 
             let expected =
                 "query>7-------->8-------->9--------> match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
-            rui.screen
-            |> shouldEqual expected
+            rui.screen |> shouldEqual expected
 
-        let intToChar i = Char.ConvertFromUtf32(i + Char.ConvertToUtf32("０",0))
+        let intToChar i =
+            Char.ConvertFromUtf32(i + Char.ConvertToUtf32("０", 0))
 
         [<Fact>]
         let ``should render head 30 of query when cursor 0 with full-width characters.`` () =
-            let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
+            let query =
+                [ 0..9 ]
+                |> List.map (intToChar >> sprintf "%s------->")
+                |> String.concat ""
+
             let rui = getRenderedScreen query 0 0
 
             let expected =
                 "query>０------->１------->２-------> match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
-            rui.screen
-            |> shouldEqual expected
+            rui.screen |> shouldEqual expected
 
         [<Fact>]
         let ``should render head 30 of query when cursor 30 with full-width characters.`` () =
-            let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
+            let query =
+                [ 0..9 ]
+                |> List.map (intToChar >> sprintf "%s------->")
+                |> String.concat ""
+
             let rui = getRenderedScreen query 27 0
 
             let expected =
                 "query>０------->１------->２-------> match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
-            rui.screen
-            |> shouldEqual expected
+            rui.screen |> shouldEqual expected
 
         [<Fact>]
         let ``should render mid 30 of query when cursor 45 with full-width characters.`` () =
-            let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
+            let query =
+                [ 0..9 ]
+                |> List.map (intToChar >> sprintf "%s------->")
+                |> String.concat ""
+
             let rui = getRenderedScreen query 40 13
 
             let expected =
                 "query>---->２------->３------->４--- match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
-            rui.screen
-            |> shouldEqual expected
+            rui.screen |> shouldEqual expected
 
         [<Fact>]
         let ``should render tail 30 of query when cursor 100 with full-width characters.`` () =
-            let query = [0..9] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
+            let query =
+                [ 0..9 ]
+                |> List.map (intToChar >> sprintf "%s------->")
+                |> String.concat ""
+
             let rui = getRenderedScreen query 90 63
 
             let expected =
                 "query>７------->８------->９-------> match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
-            rui.screen
-            |> shouldEqual expected
+            rui.screen |> shouldEqual expected
 
 module ``Buff getConsoleWidth`` =
     [<Fact>]
     let ``should render top down.`` () =
-        let rui = new MockRawUI(60,30)
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), Layout.TopDown)
-        buff.getConsoleWidth() |> shouldEqual 60
+        let rui = new MockRawUI(60, 30)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        buff.getConsoleWidth () |> shouldEqual 60
 
 module ``Buff getKey`` =
     [<Fact>]
     let ``should render top down.`` () =
         let rui = new MockRawUI()
-        use buff = new Buff(rui,  (fun _ -> Seq.empty), Layout.TopDown)
-        let expected = [new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false)]
-        buff.getKey() |> shouldEqual expected
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        let expected = [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ]
+        buff.getKey () |> shouldEqual expected
