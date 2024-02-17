@@ -156,7 +156,7 @@ Select the layout: TopDown or BottomUp.
 Type: String
 Parameter Sets: (All)
 Aliases:
-Accepted values: TopDown, BottomUp
+Accepted values: TopDown, TopDownHalf, BottomUp, BottomUpHalf
 
 Required: False
 Position: Named
