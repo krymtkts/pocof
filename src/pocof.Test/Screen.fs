@@ -8,6 +8,7 @@ open FsUnitTyped
 open Pocof.Data
 open Pocof.Screen
 
+[<AutoOpen>]
 module Mock =
     let generateLine x y =
         List.replicate y <| String.replicate x " "
@@ -21,8 +22,8 @@ module Mock =
         val mutable y: int
         val mutable screen: string list
         val mutable keys: ConsoleKeyInfo option list
-        static xx = 50
-        static yy = 30
+        static member xx = 50
+        static member yy = 30
 
         new() =
             // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
@@ -115,8 +116,6 @@ module Mock =
             | [] -> ()
             | _ -> failwith "keys remains. probably test is broken."
 
-open Mock
-
 module ``Buff writeScreen`` =
     open System.Collections
     open System.Management.Automation
@@ -159,6 +158,12 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render top down half.`` () =
         let rui = new MockRawUI()
+
+        (rui :> IRawUI).GetCursorPosition()
+        |> (fun (x, y) ->
+            (rui :> IRawUI).SetCursorPosition
+            <| x / 2
+            <| y / 2 + 1)
 
         let state: InternalState =
             { QueryState = { Query = "foo"; Cursor = 3; WindowBeginningCursor = 0; WindowWidth = 0 }
