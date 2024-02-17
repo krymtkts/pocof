@@ -24,7 +24,7 @@ Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>]
 The `Select-Pocof` cmdlet selects objects from a collection based on interactive query.
 For example, you can use the `Select-Pocof` cmdlet to select files that located current directory with interactive window.
 
-You can use 3 matching mode `match`, `like` or `eq` and can use 3 operator mode `and`, `or` or `none`.
+You can use 3 matching mode `Match`, `Like` or `Eq` and can use 3 operator mode `And`, `Or` or `None`.
 
 By default, the query matches to the stringified object.
 A query starting with a colon, such as `:property-name`, indicates a property query.
@@ -229,20 +229,21 @@ Accept wildcard characters: False
 
 ### -Matcher
 
-Select the matching mode. You can use `match`, `like`, or `eq`.
+Select the matching mode. You can use `Match`, `Like` or `Eq`.
 
-- `match` provides regular expression matching
-- `like` provides wildcard matching
-- `eq` provides exact matching
+- `Match` provides regular expression matching
+- `Like` provides wildcard matching
+- `Eq` provides exact matching
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
+Accepted values: Match, Like, Eq
 
 Required: False
 Position: Named
-Default value: "match"
+Default value: Match
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -267,20 +268,21 @@ Accept wildcard characters: False
 ### -Operator
 
 Select the logical operator to use when specifying query strings.
-You can use `and`, `or`, or `none`.
+You can use `And`, `Or` or `None`.
 
-- `and` provides logical "and" to multi query generated from splitting query by whitespace
-- `or` provides logical "or" to multi query generated from splitting query by whitespace
-- `none` provides simple matching with a raw query
+- `And` provides logical "And" to multi query generated from splitting query by whitespace
+- `Or` provides logical "Or" to multi query generated from splitting query by whitespace
+- `None` provides simple matching with a raw query
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
+Accepted values: And, Or, None
 
 Required: False
 Position: Named
-Default value: "and"
+Default value: And
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
