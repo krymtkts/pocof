@@ -377,6 +377,7 @@ module run =
             |> shouldEqual filtered
 
     module ``with a locale`` =
+        open System.Globalization
         let entries =
             [ System.DateTime.Parse("2024-01-01")
               System.DateTime.Parse("2024-01-02")
@@ -387,7 +388,10 @@ module run =
         [<Fact>]
         let ``should returns filtered entries when composite query with or operator.`` () =
             let culture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture <- System.Globalization.CultureInfo("en-US")
+            let testCulture = CultureInfo.GetCultureInfo("en-US").Clone() :?> CultureInfo
+            testCulture.DateTimeFormat.ShortDatePattern <- "yyyy-MM-dd"
+            System.Threading.Thread.CurrentThread.CurrentCulture <- testCulture
+
             let state = state |> query "01-04"
             let _, context = Query.prepare state
 

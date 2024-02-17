@@ -164,7 +164,9 @@ Describe 'pocof' {
                 }
             ) {
                 $culture = [System.Threading.Thread]::CurrentThread.CurrentCulture
-                [System.Threading.Thread]::CurrentThread.CurrentCulture = 'en-US'
+                $testCulture = [System.Globalization.CultureInfo]::GetCultureInfo('en-US').Clone()
+                $testCulture.DateTimeFormat.ShortDatePattern = 'yyyy-MM-dd'
+                [System.Threading.Thread]::CurrentThread.CurrentCulture = $testCulture
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
                 [System.Threading.Thread]::CurrentThread.CurrentCulture = $culture
             }
