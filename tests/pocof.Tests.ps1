@@ -151,6 +151,26 @@ Describe 'pocof' {
                 Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
             }
         }
+
+        Context 'with culture' -ForEach @(
+            @{ Matcher = 'match'; Operator = 'or'; Query = '24-01' }
+        ) {
+            It "Given '<InputObject>', it keeps order as '<Expected>'." -TestCases @(
+                @{InputObject = 1..12 | ForEach-Object {
+                        Get-Date ('2024-{0:D2}-01' -f $_)
+                    }; Expected = @(
+                        Get-Date '2024-01-01'
+                    ) ; Params = $BaseParam + $_
+                }
+            ) {
+                $culture = [System.Threading.Thread]::CurrentThread.CurrentCulture
+                $testCulture = [System.Globalization.CultureInfo]::GetCultureInfo('en-US').Clone()
+                $testCulture.DateTimeFormat.ShortDatePattern = 'yyyy-MM-dd'
+                [System.Threading.Thread]::CurrentThread.CurrentCulture = $testCulture
+                $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
+                [System.Threading.Thread]::CurrentThread.CurrentCulture = $culture
+            }
+        }
     }
     Context 'Select-Pocof cmdlet with property' -ForEach @{
         InputObject = @(
