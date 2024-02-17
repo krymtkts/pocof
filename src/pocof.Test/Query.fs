@@ -375,3 +375,25 @@ module run =
 
             Query.run context entries props
             |> shouldEqual filtered
+
+    module ``with a locale`` =
+        let entries =
+            [ System.DateTime.Parse("2024-01-01")
+              System.DateTime.Parse("2024-01-02")
+              System.DateTime.Parse("2024-01-03")
+              System.DateTime.Parse("2024-01-04")]
+            |> List.map (PSObject.AsPSObject >> Data.Entry.Obj)
+
+        [<Fact>]
+        let ``should returns filtered entries when composite query with or operator.`` () =
+            let culture = System.Threading.Thread.CurrentThread.CurrentCulture
+            System.Threading.Thread.CurrentThread.CurrentCulture <- System.Globalization.CultureInfo("en-US")
+            let state = state |> query "01-04"
+            let _, context = Query.prepare state
+
+            let filtered = [ entries |> List.last ]
+
+            Query.run context entries (Map [])
+            |> shouldEqual filtered
+            System.Threading.Thread.CurrentThread.CurrentCulture <- culture
+
