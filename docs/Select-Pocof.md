@@ -150,7 +150,7 @@ Accept wildcard characters: False
 
 ### -Layout
 
-Select the layout: TopDown or BottomUp.
+Select the layout: TopDown, TopDownHalf, BottomUp or BottomUpHalf.
 
 ```yaml
 Type: String
@@ -160,7 +160,7 @@ Accepted values: TopDown, TopDownHalf, BottomUp, BottomUpHalf
 
 Required: False
 Position: Named
-Default value: None
+Default value: TopDown
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -176,7 +176,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: query
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -242,7 +242,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: "match"
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -280,7 +280,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: "and"
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
