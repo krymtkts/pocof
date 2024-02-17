@@ -23,11 +23,11 @@ type SelectPocofCommand() =
     member val Query = String.Empty with get, set
 
     [<Parameter>]
-    [<ValidateSet("match", "like", "eq")>]
+    [<ValidateSet("Match", "Like", "Eq")>]
     member val Matcher = string Pocof.Matcher.Match with get, set
 
     [<Parameter>]
-    [<ValidateSet("and", "or", "none")>]
+    [<ValidateSet("And", "Or", "None")>]
     member val Operator = string Pocof.Operator.And with get, set
 
     [<Parameter>]
