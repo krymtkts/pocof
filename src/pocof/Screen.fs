@@ -71,7 +71,7 @@ module Screen =
                     | _ -> 0
 
                 match (y + height) - rui.GetWindowHeight() with
-                | over when over > 0 -> y - over - 1
+                | over when over >= 0 -> y - over - 1
                 | _ -> y
 
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
