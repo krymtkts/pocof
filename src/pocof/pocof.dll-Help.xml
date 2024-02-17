@@ -11,7 +11,7 @@
     </command:details>
     <maml:description>
       <maml:para>The `Select-Pocof` cmdlet selects objects from a collection based on interactive query. For example, you can use the `Select-Pocof` cmdlet to select files that located current directory with interactive window.</maml:para>
-      <maml:para>You can use 3 matching mode `match`, `like` or `eq` and can use 3 operator mode `and`, `or` or `none`.</maml:para>
+      <maml:para>You can use 3 matching mode `Match`, `Like` or `Eq` and can use 3 operator mode `And`, `Or` or `None`.</maml:para>
       <maml:para>By default, the query matches to the stringified object. A query starting with a colon, such as `:property-name`, indicates a property query. In a property query, you can specify the property value using the format `:property-name property-value`. If you use a property query, the query will match to the specified object properties.</maml:para>
     </maml:description>
     <command:syntax>
@@ -83,18 +83,20 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Layout</maml:name>
           <maml:description>
-            <maml:para>Select the layout: TopDown or BottomUp.</maml:para>
+            <maml:para>Select the layout: TopDown, TopDownHalf, BottomUp or BottomUpHalf.</maml:para>
           </maml:description>
           <command:parameterValueGroup>
             <command:parameterValue required="false" command:variableLength="false">TopDown</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">TopDownHalf</command:parameterValue>
             <command:parameterValue required="false" command:variableLength="false">BottomUp</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">BottomUpHalf</command:parameterValue>
           </command:parameterValueGroup>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
             <maml:name>String</maml:name>
             <maml:uri />
           </dev:type>
-          <dev:defaultValue>None</dev:defaultValue>
+          <dev:defaultValue>TopDown</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Prompt</maml:name>
@@ -106,7 +108,7 @@
             <maml:name>String</maml:name>
             <maml:uri />
           </dev:type>
-          <dev:defaultValue>None</dev:defaultValue>
+          <dev:defaultValue>query</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Query</maml:name>
@@ -140,17 +142,22 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Matcher</maml:name>
           <maml:description>
-            <maml:para>Select the matching mode. You can use `match`, `like`, or `eq`.</maml:para>
-            <maml:para>- `match` provides regular expression matching</maml:para>
-            <maml:para>- `like` provides wildcard matching</maml:para>
-            <maml:para>- `eq` provides exact matching</maml:para>
+            <maml:para>Select the matching mode. You can use `Match`, `Like` or `Eq`.</maml:para>
+            <maml:para>- `Match` provides regular expression matching</maml:para>
+            <maml:para>- `Like` provides wildcard matching</maml:para>
+            <maml:para>- `Eq` provides exact matching</maml:para>
           </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">Match</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Like</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Eq</command:parameterValue>
+          </command:parameterValueGroup>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
             <maml:name>String</maml:name>
             <maml:uri />
           </dev:type>
-          <dev:defaultValue>None</dev:defaultValue>
+          <dev:defaultValue>Match</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>NonInteractive</maml:name>
@@ -166,17 +173,22 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>Operator</maml:name>
           <maml:description>
-            <maml:para>Select the logical operator to use when specifying query strings. You can use `and`, `or`, or `none`.</maml:para>
-            <maml:para>- `and` provides logical "and" to multi query generated from splitting query by whitespace</maml:para>
-            <maml:para>- `or` provides logical "or" to multi query generated from splitting query by whitespace</maml:para>
-            <maml:para>- `none` provides simple matching with a raw query</maml:para>
+            <maml:para>Select the logical operator to use when specifying query strings. You can use `And`, `Or` or `None`.</maml:para>
+            <maml:para>- `And` provides logical "And" to multi query generated from splitting query by whitespace</maml:para>
+            <maml:para>- `Or` provides logical "Or" to multi query generated from splitting query by whitespace</maml:para>
+            <maml:para>- `None` provides simple matching with a raw query</maml:para>
           </maml:description>
+          <command:parameterValueGroup>
+            <command:parameterValue required="false" command:variableLength="false">And</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">Or</command:parameterValue>
+            <command:parameterValue required="false" command:variableLength="false">None</command:parameterValue>
+          </command:parameterValueGroup>
           <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
           <dev:type>
             <maml:name>String</maml:name>
             <maml:uri />
           </dev:type>
-          <dev:defaultValue>None</dev:defaultValue>
+          <dev:defaultValue>And</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>SuppressProperties</maml:name>
@@ -259,14 +271,14 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Layout</maml:name>
         <maml:description>
-          <maml:para>Select the layout: TopDown or BottomUp.</maml:para>
+          <maml:para>Select the layout: TopDown, TopDownHalf, BottomUp or BottomUpHalf.</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
           <maml:name>String</maml:name>
           <maml:uri />
         </dev:type>
-        <dev:defaultValue>None</dev:defaultValue>
+        <dev:defaultValue>TopDown</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Prompt</maml:name>
@@ -278,7 +290,7 @@
           <maml:name>String</maml:name>
           <maml:uri />
         </dev:type>
-        <dev:defaultValue>None</dev:defaultValue>
+        <dev:defaultValue>query</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Query</maml:name>
@@ -313,17 +325,17 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Matcher</maml:name>
         <maml:description>
-          <maml:para>Select the matching mode. You can use `match`, `like`, or `eq`.</maml:para>
-          <maml:para>- `match` provides regular expression matching</maml:para>
-          <maml:para>- `like` provides wildcard matching</maml:para>
-          <maml:para>- `eq` provides exact matching</maml:para>
+          <maml:para>Select the matching mode. You can use `Match`, `Like` or `Eq`.</maml:para>
+          <maml:para>- `Match` provides regular expression matching</maml:para>
+          <maml:para>- `Like` provides wildcard matching</maml:para>
+          <maml:para>- `Eq` provides exact matching</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
           <maml:name>String</maml:name>
           <maml:uri />
         </dev:type>
-        <dev:defaultValue>None</dev:defaultValue>
+        <dev:defaultValue>Match</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>NonInteractive</maml:name>
@@ -340,17 +352,17 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>Operator</maml:name>
         <maml:description>
-          <maml:para>Select the logical operator to use when specifying query strings. You can use `and`, `or`, or `none`.</maml:para>
-          <maml:para>- `and` provides logical "and" to multi query generated from splitting query by whitespace</maml:para>
-          <maml:para>- `or` provides logical "or" to multi query generated from splitting query by whitespace</maml:para>
-          <maml:para>- `none` provides simple matching with a raw query</maml:para>
+          <maml:para>Select the logical operator to use when specifying query strings. You can use `And`, `Or` or `None`.</maml:para>
+          <maml:para>- `And` provides logical "And" to multi query generated from splitting query by whitespace</maml:para>
+          <maml:para>- `Or` provides logical "Or" to multi query generated from splitting query by whitespace</maml:para>
+          <maml:para>- `None` provides simple matching with a raw query</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
         <dev:type>
           <maml:name>String</maml:name>
           <maml:uri />
         </dev:type>
-        <dev:defaultValue>None</dev:defaultValue>
+        <dev:defaultValue>And</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>SuppressProperties</maml:name>
