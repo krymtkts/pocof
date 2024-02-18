@@ -131,7 +131,7 @@ module SelectPocofCommand =
     [<Fact>]
     let ``should return values with non-interactive mode.`` () =
         let runtime = new Mock.CommandRuntime()
-        let cmdlet = new SelectPocofCommandForTest()
+        let cmdlet = SelectPocofCommandForTest()
 
         cmdlet.CommandRuntime <- runtime
         cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
@@ -143,7 +143,7 @@ module SelectPocofCommand =
     [<Fact>]
     let ``should raise ArgumentException when invalid keymaps.`` () =
         let runtime = new Mock.CommandRuntime()
-        let cmdlet = new SelectPocofCommandForTest()
+        let cmdlet = SelectPocofCommandForTest()
 
         cmdlet.CommandRuntime <- runtime
         cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
