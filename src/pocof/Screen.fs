@@ -158,7 +158,7 @@ module Screen =
 
                 pos ||> rui.SetCursorPosition
 
-        member private __.writeScreenLine (height: int) (line: string) =
+        member private __.WriteScreenLine (height: int) (line: string) =
             match (rui.GetWindowWidth()
                    - __.GetLengthInBufferCells line)
                 with
@@ -166,7 +166,7 @@ module Screen =
             | _ -> line
             |> rui.Write 0 height
 
-        member private __.calculatePositions layout =
+        member private __.CalculatePositions layout =
             match layout with
             | Data.Layout.TopDown ->
                 let basePosition = 0
@@ -182,21 +182,21 @@ module Screen =
 
                 basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3
 
-        member __.writeScreen
+        member __.WriteScreen
             (layout: Data.Layout)
             (state: Data.InternalState)
             (entries: Data.Entry list)
             (props: Result<string list, string>)
             =
-            let basePosition, firstLine, toHeight, height = __.calculatePositions layout
+            let basePosition, firstLine, toHeight, height = __.CalculatePositions layout
             let topLine = info state
-            topLine |> __.writeScreenLine basePosition
+            topLine |> __.WriteScreenLine basePosition
 
 #if DEBUG
             Logger.LogFile [ $"basePosition {basePosition}, firstLine {firstLine}, toHeight {toHeight}, height {height}" ]
 #endif
 
-            __.writeScreenLine firstLine
+            __.WriteScreenLine firstLine
             <| match state.Notification with
                | "" ->
                    match props with
@@ -226,7 +226,7 @@ module Screen =
 
             seq { 0..height }
             |> Seq.iter (fun i ->
-                __.writeScreenLine
+                __.WriteScreenLine
                 <| toHeight i
                 <| match List.tryItem i out with
                    | Some s -> s
@@ -236,9 +236,9 @@ module Screen =
             <| rui.GetLengthInBufferCells topLine.[.. (Data.InternalState.getX state) - 1]
             <| basePosition
 
-        member __.getConsoleWidth = rui.GetWindowWidth
+        member __.GetConsoleWidth = rui.GetWindowWidth
 
-        member __.getKey() =
+        member __.GetKey() =
             Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
             |> Async.RunSynchronously
 

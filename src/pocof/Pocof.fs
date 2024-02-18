@@ -150,9 +150,9 @@ module Pocof =
                 { keymaps = conf.Keymaps
                   input = input
                   propMap = propMap
-                  writeScreen = buff.writeScreen conf.Layout
-                  getKey = buff.getKey
-                  getConsoleWidth = buff.getConsoleWidth
+                  writeScreen = buff.WriteScreen conf.Layout
+                  getKey = buff.GetKey
+                  getConsoleWidth = buff.GetConsoleWidth
                   getLengthInBufferCells = buff.GetLengthInBufferCells }
 
             loop args input state pos context

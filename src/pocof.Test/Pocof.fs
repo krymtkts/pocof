@@ -104,8 +104,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = buff.getKey
-              getConsoleWidth = buff.getConsoleWidth
+              getKey = buff.GetKey
+              getConsoleWidth = buff.GetConsoleWidth
               getLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
@@ -130,8 +130,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = buff.getKey
-              getConsoleWidth = buff.getConsoleWidth
+              getKey = buff.GetKey
+              getConsoleWidth = buff.GetConsoleWidth
               getLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
@@ -161,8 +161,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = buff.getKey
-              getConsoleWidth = buff.getConsoleWidth
+              getKey = buff.GetKey
+              getConsoleWidth = buff.GetConsoleWidth
               getLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
@@ -196,8 +196,8 @@ module loop =
               input = input
               propMap = propMap
               writeScreen = writeScreen
-              getKey = buff.getKey
-              getConsoleWidth = buff.getConsoleWidth
+              getKey = buff.GetKey
+              getConsoleWidth = buff.GetConsoleWidth
               getLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
@@ -227,8 +227,8 @@ module loop =
             { keymaps = Keys.defaultKeymap
               input = input
               propMap = propMap
-              writeScreen = buff.writeScreen Layout.TopDown
-              getKey = buff.getKey
+              writeScreen = buff.WriteScreen Layout.TopDown
+              getKey = buff.GetKey
               getConsoleWidth =
                 fun () ->
                     rui.width <- 80
