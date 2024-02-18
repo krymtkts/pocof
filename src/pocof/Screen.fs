@@ -96,7 +96,7 @@ module Screen =
                 let l = l + (x + Math.Sign(x)) / 2
                 let q = q.[..l]
 #if DEBUG
-                Logger.logFile [ $"l '{l}'" ]
+                Logger.LogFile [ $"l '{l}'" ]
 #endif
                 getQuery w q l
 
@@ -114,7 +114,7 @@ module Screen =
                 q + String.replicate l " "
 
 #if DEBUG
-            Logger.logFile [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+            Logger.LogFile [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
             let q =
                 getQuery state.QueryState.WindowWidth q
@@ -193,7 +193,7 @@ module Screen =
             topLine |> __.writeScreenLine basePosition
 
 #if DEBUG
-            Logger.logFile [ $"basePosition {basePosition}, firstLine {firstLine}, toHeight {toHeight}, height {height}" ]
+            Logger.LogFile [ $"basePosition {basePosition}, firstLine {firstLine}, toHeight {toHeight}, height {height}" ]
 #endif
 
             __.writeScreenLine firstLine
@@ -221,7 +221,7 @@ module Screen =
                     []
 
 #if DEBUG
-            Logger.logFile [ $"out length '{Seq.length out}'" ]
+            Logger.LogFile [ $"out length '{Seq.length out}'" ]
 #endif
 
             seq { 0..height }

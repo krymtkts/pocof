@@ -157,7 +157,7 @@ module Query =
 
     let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
 #if DEBUG
-        Logger.logFile context.Queries
+        Logger.LogFile context.Queries
 #endif
 
         let values (o: Entry) =

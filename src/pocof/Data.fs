@@ -15,7 +15,7 @@ module Debug =
 
     [<AbstractClass; Sealed>]
     type Logger =
-        static member logFile
+        static member LogFile
             (
                 res,
                 [<Optional; DefaultParameterValue(""); CallerMemberName>] caller: string,
@@ -255,7 +255,7 @@ module Data =
                 |> Seq.last
 
 #if DEBUG
-            Logger.logFile [ $"query '{state.Query}' x '{state.Cursor}' string '{s}'" ]
+            Logger.LogFile [ $"query '{state.Query}' x '{state.Cursor}' string '{s}'" ]
 #endif
 
             match s with
@@ -327,7 +327,7 @@ module Data =
             let right = queryInfo state
 
 #if DEBUG
-            Logger.logFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}' right '{String.length right}'" ]
+            Logger.LogFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}' right '{String.length right}'" ]
 #endif
 
             state.ConsoleWidth
