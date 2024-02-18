@@ -25,6 +25,14 @@ updates:
       time: "06:00"
       timezone: "Asia/Tokyo"
     groups:
+      # TODO: Currently, version higher than 0.21.2 don't work with .NET 8.
+      # dotnet-tools:
+      #   patterns:
+      #     - "dotnet-fsharplint"
+      #   update-types:
+      #     - "major"
+      #     - "minor"
+      #     - "patch"
       pwsh-std:
         patterns:
           - "PowerShellStandard.Library"
@@ -46,6 +54,11 @@ updates:
           - "minor"
           - "patch"
     ignore:
+      - dependency-name: "dotnet-fsharplint"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
       - dependency-name: "PowerShellStandard.Library"
         update-types:
           - "version-update:semver-major"
