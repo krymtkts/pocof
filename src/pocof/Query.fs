@@ -59,7 +59,7 @@ module Query =
         with
         | _ -> None
 
-    type TesterType<'a> = ('a -> bool) -> 'a list -> bool
+    type TesterType<'A> = ('A -> bool) -> 'A list -> bool
 
     [<NoComparison>]
     [<NoEquality>]
