@@ -120,7 +120,7 @@ module Query =
         match state.QueryCondition.Matcher with
         | Matcher.Match ->
             try
-                new Regex(state.QueryState.Query) |> ignore
+                Regex(state.QueryState.Query) |> ignore
                 ""
             with
             | e -> e.Message

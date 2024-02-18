@@ -31,16 +31,16 @@ type SelectPocofCommand() =
     member val Operator = string Pocof.Operator.And with get, set
 
     [<Parameter>]
-    member val CaseSensitive: SwitchParameter = new SwitchParameter false with get, set
+    member val CaseSensitive: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
-    member val InvertQuery: SwitchParameter = new SwitchParameter false with get, set
+    member val InvertQuery: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
-    member val NonInteractive: SwitchParameter = new SwitchParameter false with get, set
+    member val NonInteractive: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
-    member val SuppressProperties: SwitchParameter = new SwitchParameter false with get, set
+    member val SuppressProperties: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
     member val Prompt = "query" with get, set
@@ -70,7 +70,7 @@ type SelectPocofCommand() =
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
         | Ok k -> keymaps <- k
-        | Error e -> new ArgumentException(e) |> raise
+        | Error e -> ArgumentException(e) |> raise
 
     override __.ProcessRecord() =
         input <- __.InputObject |> Pocof.buildInput input
