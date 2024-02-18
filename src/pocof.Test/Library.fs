@@ -119,8 +119,8 @@ module SelectPocofCommand =
         inherit SelectPocofCommand()
 
         member val Host: PSHost = new Mock.Host()
-        override __.invoke(input: 'a list) = input |> Seq.map string
-        override __.host() = __.Host
+        override __.Invoke(input: 'a list) = input |> Seq.map string
+        override __.PSHost() = __.Host
 
         // NOTE: PSCmdlet cannot invoke directly. So, use this method for testing.
         member __.InvokeForTest() =

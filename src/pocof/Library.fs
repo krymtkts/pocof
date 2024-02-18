@@ -52,9 +52,9 @@ type SelectPocofCommand() =
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
 
-    abstract member invoke: 'a list -> string seq
+    abstract member Invoke: 'a list -> string seq
 
-    default __.invoke(input: 'a list) =
+    default __.Invoke(input: 'a list) =
         __.InvokeCommand.InvokeScript(
             @"$input | Format-Table | Out-String",
             true,
@@ -64,8 +64,8 @@ type SelectPocofCommand() =
         )
         |> Seq.map string
 
-    abstract member host: unit -> PSHost
-    default __.host() = __.Host
+    abstract member PSHost: unit -> PSHost
+    default __.PSHost() = __.Host
 
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
@@ -92,11 +92,11 @@ type SelectPocofCommand() =
                   Keymaps = keymaps
                   Properties = List.ofSeq properties
                   EntryCount = input |> List.length
-                  ConsoleWidth = __.host().UI.RawUI.WindowSize.Width
-                  ConsoleHeight = __.host().UI.RawUI.WindowSize.Height }
+                  ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
+                  ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         Pocof.interact conf state pos
-        <| fun _ -> new Pocof.RawUI(__.host().UI.RawUI)
-        <| __.invoke
+        <| fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)
+        <| __.Invoke
         <| List.rev input
         |> Seq.iter __.WriteObject
