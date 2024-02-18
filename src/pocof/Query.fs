@@ -22,17 +22,17 @@ module Query =
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let private equals (opt: StringComparison) (r: string) =
+    let private equals (opt: StringComparison) (r: string, l: string) =
         match r with
-        | "" -> alwaysTrue
-        | _ -> String.equals opt r
+        | "" -> alwaysTrue ()
+        | _ -> String.equals opt r l
 
-    let private likes (opt: WildcardOptions) (wcp: string) =
+    let private likes (opt: WildcardOptions) (wcp: string, value: string) =
         match wcp with
-        | "" -> alwaysTrue
-        | _ -> WildcardPattern.Get(wcp, opt).IsMatch
+        | "" -> alwaysTrue ()
+        | _ -> WildcardPattern.Get(wcp, opt).IsMatch value
 
-    let private matches (opt: RegexOptions) (pattern: string) (value: string) =
+    let private matches (opt: RegexOptions) (pattern: string, value: string) =
         try
             // NOTE: expect using cache.
             Regex.IsMatch(value, pattern, opt)
@@ -66,7 +66,7 @@ module Query =
     type QueryContext =
         { Queries: QueryPart list
           Test: TesterType<string * string>
-          Is: string -> string -> bool
+          Is: string * string -> bool
           Answer: bool -> bool }
 
     [<TailCall>]
@@ -192,7 +192,7 @@ module Query =
             | [] -> true
             | xs ->
                 xs
-                |> context.Test(fun x -> x |> swap ||> context.Is |> context.Answer)
+                |> context.Test(fun x -> x |> swap |> (context.Is >> context.Answer))
 
         entries |> List.filter predicate
 
