@@ -592,7 +592,7 @@ module invokeAction =
                 | Matcher.Eq, Matcher.Like -> 2
                 | Matcher.Like, Matcher.Match -> 1
                 | Matcher.Match, Matcher.Eq -> -3
-                | _ -> failwith "invalid case in this test."
+                | _ -> failwith "invalid case in RotateMatcher test."
 
             let stateBefore =
                 { state with InternalState.QueryCondition.Matcher = before }
@@ -624,7 +624,7 @@ module invokeAction =
                 | Operator.None, Operator.Or -> -2
                 | Operator.Or, Operator.And -> 1
                 | Operator.And, Operator.None -> 1
-                | _ -> failwith "invalid case in this test."
+                | _ -> failwith "invalid case in RotateOperator test."
 
             let stateBefore =
                 { state with InternalState.QueryCondition.Operator = before }

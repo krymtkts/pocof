@@ -96,17 +96,17 @@ module loop =
         let input = results |> List.map toObj
         let state, context = Query.prepare state
 
-        let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Enter ])
+        let rui = new MockRawUI(60, 30, [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ])
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = writeScreen
-              getKey = buff.getKey
-              getConsoleWidth = buff.getConsoleWidth
-              getLengthInBufferCells = String.length }
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = writeScreen
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -114,7 +114,7 @@ module loop =
         actual
         |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
 
-        rui.check ()
+        rui.Check()
 
     [<Fact>]
     let ``shouldn't return result when canceling.`` () =
@@ -122,21 +122,21 @@ module loop =
 
         let state, context = Query.prepare { state with SuppressProperties = true }
 
-        let rui = new MockRawUI(60, 30, [ MockRawUI.consoleKey '\000' ConsoleKey.Escape ])
+        let rui = new MockRawUI(60, 30, [ MockRawUI.ConsoleKey '\000' ConsoleKey.Escape ])
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = writeScreen
-              getKey = buff.getKey
-              getConsoleWidth = buff.getConsoleWidth
-              getLengthInBufferCells = String.length }
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = writeScreen
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 0
-        rui.check ()
+        rui.Check()
 
     [<Fact>]
     let ``should return result when finishing after noop.`` () =
@@ -151,19 +151,19 @@ module loop =
                 [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, true, true, false)
                   |> Some
                   None
-                  MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
+                  MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             )
 
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = writeScreen
-              getKey = buff.getKey
-              getConsoleWidth = buff.getConsoleWidth
-              getLengthInBufferCells = String.length }
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = writeScreen
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -171,7 +171,7 @@ module loop =
         actual
         |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
 
-        rui.check ()
+        rui.Check()
 
     [<Fact>]
     let ``should return result when finishing with filter.`` () =
@@ -182,29 +182,29 @@ module loop =
             new MockRawUI(
                 60,
                 30,
-                [ MockRawUI.consoleKey 'a' ConsoleKey.A
-                  MockRawUI.consoleKey ' ' ConsoleKey.Spacebar
-                  MockRawUI.consoleKey 'd' ConsoleKey.D
+                [ MockRawUI.ConsoleKey 'a' ConsoleKey.A
+                  MockRawUI.ConsoleKey ' ' ConsoleKey.Spacebar
+                  MockRawUI.ConsoleKey 'd' ConsoleKey.D
                   None
-                  MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
+                  MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             )
 
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = writeScreen
-              getKey = buff.getKey
-              getConsoleWidth = buff.getConsoleWidth
-              getLengthInBufferCells = String.length }
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = writeScreen
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 2
         actual.[0] = results.[0] |> shouldEqual true
         actual.[1] = results.[3] |> shouldEqual true
-        rui.check ()
+        rui.Check()
 
     [<Fact>]
     let ``should update QueryState.WindowWidth based on ConsoleWidth.`` () =
@@ -216,24 +216,24 @@ module loop =
             new MockRawUI(
                 60,
                 30,
-                [ MockRawUI.consoleKey 'a' ConsoleKey.A
+                [ MockRawUI.ConsoleKey 'a' ConsoleKey.A
                   None
-                  MockRawUI.consoleKey '\000' ConsoleKey.Enter ]
+                  MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             )
 
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = buff.writeScreen Layout.TopDown
-              getKey = buff.getKey
-              getConsoleWidth =
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = buff.WriteScreen Layout.TopDown
+              GetKey = buff.GetKey
+              GetConsoleWidth =
                 fun () ->
                     rui.width <- 80
                     80
-              getLengthInBufferCells = String.length }
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 1
@@ -244,7 +244,7 @@ module loop =
             :: (generateLine 80 (rui.height - 1))
 
         rui.screen |> shouldEqual expected
-        rui.check ()
+        rui.Check()
 
 module interact =
     [<Fact>]

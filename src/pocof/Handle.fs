@@ -199,7 +199,7 @@ module Handle =
                 let candidate = List.head candidates
                 let basePosition, head, tail = splitQuery keyword candidate
 #if DEBUG
-                Logger.logFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
+                Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
                 buildValues head candidate tail keyword 0 candidates basePosition
         | PropertySearch.Rotate (keyword, i, candidates) ->
@@ -208,7 +208,7 @@ module Handle =
             let next = candidates.[i]
             let basePosition, head, tail = splitQuery cur next
 #if DEBUG
-            Logger.logFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
+            Logger.LogFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif
             buildValues head next tail keyword i candidates basePosition
 

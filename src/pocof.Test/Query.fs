@@ -79,8 +79,7 @@ module run =
     let mapToObj = List.map (PSObject.AsPSObject >> Data.Entry.Obj)
 
     let genList s =
-        List.map duplicateCase s
-        |> List.concat
+        List.collect duplicateCase  s
         |> mapToObj
 
     let matcher m (s: Data.InternalState) = { s with QueryCondition.Matcher = m }

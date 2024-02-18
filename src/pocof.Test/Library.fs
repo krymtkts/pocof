@@ -119,8 +119,8 @@ module SelectPocofCommand =
         inherit SelectPocofCommand()
 
         member val Host: PSHost = new Mock.Host()
-        override __.invoke(input: 'a list) = input |> Seq.map string
-        override __.host() = __.Host
+        override __.Invoke(input: 'a list) = input |> Seq.map string
+        override __.PSHost() = __.Host
 
         // NOTE: PSCmdlet cannot invoke directly. So, use this method for testing.
         member __.InvokeForTest() =
@@ -131,7 +131,7 @@ module SelectPocofCommand =
     [<Fact>]
     let ``should return values with non-interactive mode.`` () =
         let runtime = new Mock.CommandRuntime()
-        let cmdlet = new SelectPocofCommandForTest()
+        let cmdlet = SelectPocofCommandForTest()
 
         cmdlet.CommandRuntime <- runtime
         cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
@@ -143,7 +143,7 @@ module SelectPocofCommand =
     [<Fact>]
     let ``should raise ArgumentException when invalid keymaps.`` () =
         let runtime = new Mock.CommandRuntime()
-        let cmdlet = new SelectPocofCommandForTest()
+        let cmdlet = SelectPocofCommandForTest()
 
         cmdlet.CommandRuntime <- runtime
         cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]

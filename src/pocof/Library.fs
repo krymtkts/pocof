@@ -31,16 +31,16 @@ type SelectPocofCommand() =
     member val Operator = string Pocof.Operator.And with get, set
 
     [<Parameter>]
-    member val CaseSensitive: SwitchParameter = new SwitchParameter false with get, set
+    member val CaseSensitive: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
-    member val InvertQuery: SwitchParameter = new SwitchParameter false with get, set
+    member val InvertQuery: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
-    member val NonInteractive: SwitchParameter = new SwitchParameter false with get, set
+    member val NonInteractive: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
-    member val SuppressProperties: SwitchParameter = new SwitchParameter false with get, set
+    member val SuppressProperties: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
     member val Prompt = "query" with get, set
@@ -52,9 +52,9 @@ type SelectPocofCommand() =
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
 
-    abstract member invoke: 'a list -> string seq
+    abstract member Invoke: 'a list -> string seq
 
-    default __.invoke(input: 'a list) =
+    default __.Invoke(input: 'a list) =
         __.InvokeCommand.InvokeScript(
             @"$input | Format-Table | Out-String",
             true,
@@ -64,13 +64,13 @@ type SelectPocofCommand() =
         )
         |> Seq.map string
 
-    abstract member host: unit -> PSHost
-    default __.host() = __.Host
+    abstract member PSHost: unit -> PSHost
+    default __.PSHost() = __.Host
 
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
         | Ok k -> keymaps <- k
-        | Error e -> new ArgumentException(e) |> raise
+        | Error e -> ArgumentException(e) |> raise
 
     override __.ProcessRecord() =
         input <- __.InputObject |> Pocof.buildInput input
@@ -92,11 +92,11 @@ type SelectPocofCommand() =
                   Keymaps = keymaps
                   Properties = List.ofSeq properties
                   EntryCount = input |> List.length
-                  ConsoleWidth = __.host().UI.RawUI.WindowSize.Width
-                  ConsoleHeight = __.host().UI.RawUI.WindowSize.Height }
+                  ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
+                  ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         Pocof.interact conf state pos
-        <| fun _ -> new Pocof.RawUI(__.host().UI.RawUI)
-        <| __.invoke
+        <| fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)
+        <| __.Invoke
         <| List.rev input
         |> Seq.iter __.WriteObject
