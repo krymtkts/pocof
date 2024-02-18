@@ -24,13 +24,13 @@ module Pocof =
     [<NoComparison>]
     [<NoEquality>]
     type LoopFixedArguments =
-        { keymaps: Map<KeyPattern, Action>
-          input: Entry list
-          propMap: Map<string, string>
-          writeScreen: Screen.WriteScreen
-          getKey: unit -> ConsoleKeyInfo list
-          getConsoleWidth: unit -> int
-          getLengthInBufferCells: string -> int }
+        { Keymaps: Map<KeyPattern, Action>
+          Input: Entry list
+          PropMap: Map<string, string>
+          WriteScreen: Screen.WriteScreen
+          GetKey: unit -> ConsoleKeyInfo list
+          GetConsoleWidth: unit -> int
+          GetLengthInBufferCells: string -> int }
 
     [<TailCall>]
     let rec private searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
@@ -71,7 +71,7 @@ module Pocof =
     let adjustQueryWindow (args: LoopFixedArguments) (state: InternalState) =
         { state with
             InternalState.QueryState.WindowBeginningCursor =
-                calculateWindowBeginningCursor args.getLengthInBufferCells state.QueryState }
+                calculateWindowBeginningCursor args.GetLengthInBufferCells state.QueryState }
 
     let queryAndRender
         (args: LoopFixedArguments)
@@ -84,14 +84,14 @@ module Pocof =
         match state.Refresh with
         | Refresh.NotRequired -> results, state
         | _ ->
-            let results = Query.run context args.input args.propMap
+            let results = Query.run context args.Input args.PropMap
 
             let state =
                 state
                 |> InternalState.updateFilteredCount (List.length results)
                 |> adjustQueryWindow args
 
-            args.writeScreen state results
+            args.WriteScreen state results
             <| match state.SuppressProperties with
                | true -> Ok []
                | _ -> Query.props state
@@ -109,8 +109,8 @@ module Pocof =
 
         let results, state = queryAndRender args results state pos context
 
-        args.getKey ()
-        |> Keys.get args.keymaps
+        args.GetKey ()
+        |> Keys.get args.Keymaps
         |> function
             | Action.Cancel -> []
             | Action.Finish -> unwrap results
@@ -118,7 +118,7 @@ module Pocof =
                 action
                 |> invokeAction
                     (state
-                     |> InternalState.updateConsoleWidth (args.getConsoleWidth ()))
+                     |> InternalState.updateConsoleWidth (args.GetConsoleWidth ()))
                     pos
                     context
                 |||> loop args results
@@ -147,13 +147,13 @@ module Pocof =
             use buff = Screen.init rui invoke conf.Layout
 
             let args =
-                { keymaps = conf.Keymaps
-                  input = input
-                  propMap = propMap
-                  writeScreen = buff.WriteScreen conf.Layout
-                  getKey = buff.GetKey
-                  getConsoleWidth = buff.GetConsoleWidth
-                  getLengthInBufferCells = buff.GetLengthInBufferCells }
+                { Keymaps = conf.Keymaps
+                  Input = input
+                  PropMap = propMap
+                  WriteScreen = buff.WriteScreen conf.Layout
+                  GetKey = buff.GetKey
+                  GetConsoleWidth = buff.GetConsoleWidth
+                  GetLengthInBufferCells = buff.GetLengthInBufferCells }
 
             loop args input state pos context
 

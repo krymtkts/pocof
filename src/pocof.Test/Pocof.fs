@@ -100,13 +100,13 @@ module loop =
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = writeScreen
-              getKey = buff.GetKey
-              getConsoleWidth = buff.GetConsoleWidth
-              getLengthInBufferCells = String.length }
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = writeScreen
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -126,13 +126,13 @@ module loop =
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = writeScreen
-              getKey = buff.GetKey
-              getConsoleWidth = buff.GetConsoleWidth
-              getLengthInBufferCells = String.length }
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = writeScreen
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 0
@@ -157,13 +157,13 @@ module loop =
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = writeScreen
-              getKey = buff.GetKey
-              getConsoleWidth = buff.GetConsoleWidth
-              getLengthInBufferCells = String.length }
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = writeScreen
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 5
@@ -192,13 +192,13 @@ module loop =
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = writeScreen
-              getKey = buff.GetKey
-              getConsoleWidth = buff.GetConsoleWidth
-              getLengthInBufferCells = String.length }
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = writeScreen
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 2
@@ -224,16 +224,16 @@ module loop =
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =
-            { keymaps = Keys.defaultKeymap
-              input = input
-              propMap = propMap
-              writeScreen = buff.WriteScreen Layout.TopDown
-              getKey = buff.GetKey
-              getConsoleWidth =
+            { Keymaps = Keys.defaultKeymap
+              Input = input
+              PropMap = propMap
+              WriteScreen = buff.WriteScreen Layout.TopDown
+              GetKey = buff.GetKey
+              GetConsoleWidth =
                 fun () ->
                     rui.width <- 80
                     80
-              getLengthInBufferCells = String.length }
+              GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 1
