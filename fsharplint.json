@@ -1,6 +1,6 @@
 {
     "ignoreFiles": [
-        "assemblyinfo.*"
+        "*.AssemblyInfo.*"
     ],
     "global": {
         "numIndentationSpaces": 4
