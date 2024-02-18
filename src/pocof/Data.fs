@@ -43,14 +43,14 @@ module Debug =
 module LanguageExtension =
     open System
 
-    type String with
-        static member lower(s: string) = s.ToLower()
-        static member upper(s: string) = s.ToUpper()
-        static member startsWith (value: string) (s: string) = s.StartsWith(value)
-        static member split (separator: string) (s: string) = s.Split(separator.ToCharArray())
-        static member equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
-        static member trim(s: string) = s.Trim()
-        static member replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
+    module String =
+        let lower (s: string) = s.ToLower()
+        let upper (s: string) = s.ToUpper()
+        let startsWith (value: string) (s: string) = s.StartsWith(value)
+        let split (separator: string) (s: string) = s.Split(separator.ToCharArray())
+        let equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
+        let trim (s: string) = s.Trim()
+        let replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
 
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
