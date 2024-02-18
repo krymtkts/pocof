@@ -14,10 +14,11 @@ Properties {
 
 Task default -depends TestAll
 
-Task TestAll -depends Init, Build, UnitTest, Test
+Task TestAll -depends Init, Lint, Build, UnitTest, Test
 
 Task Init {
     'Init is running!'
+    dotnet tool restore
 }
 
 Task Clean {
@@ -28,6 +29,13 @@ Task Clean {
         './release'
         "${ModulePublishPath}/*"
     ) | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitkeep
+}
+
+Task Lint {
+    dotnet fsharplint lint "${ModuleName}.sln"
+    if (-not $?) {
+        throw 'dotnet fsharplint failed.'
+    }
 }
 
 Task Build -depends Clean {
