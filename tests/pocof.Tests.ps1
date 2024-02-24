@@ -1,4 +1,4 @@
-﻿Describe 'pocof' {
+Describe 'pocof' {
     Context 'pocof module' {
         It 'Given the pocof module, it should have a nonzero version' {
             $m = Get-Module pocof
