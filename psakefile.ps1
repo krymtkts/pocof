@@ -36,6 +36,10 @@ Task Lint {
     if (-not $?) {
         throw 'dotnet fsharplint failed.'
     }
+    dotnet fantomas ./src --check
+    if (-not $?) {
+        throw 'dotnet fantomas failed.'
+    }
 }
 
 Task Build -depends Clean {
