@@ -40,17 +40,20 @@ module Pocof =
         match l with
         | bx when bx <= state.WindowWidth ->
 #if DEBUG
-            Logger.LogFile [ $"bx '{bx}' WindowWidth '{state.WindowWidth}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}'" ]
+            Logger.LogFile
+                [ $"bx '{bx}' WindowWidth '{state.WindowWidth}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}'" ]
 #endif
             state.WindowBeginningCursor
         | _ ->
             searchBeginningCursorRecursive
                 getLengthInBufferCells
-                { state with WindowBeginningCursor = state.WindowBeginningCursor + 1 }
+                { state with
+                    WindowBeginningCursor = state.WindowBeginningCursor + 1 }
 
     let calculateWindowBeginningCursor (getLengthInBufferCells: string -> int) (state: QueryState) =
 #if DEBUG
-        Logger.LogFile [ $"Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+        Logger.LogFile
+            [ $"Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
 #endif
         match state.WindowBeginningCursor > state.Cursor with
         | true -> state.Cursor
@@ -64,7 +67,8 @@ module Pocof =
                 | _ -> state.WindowBeginningCursor
 
 #if DEBUG
-            Logger.LogFile [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+            Logger.LogFile
+                [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
 #endif
             wx
 
@@ -109,18 +113,14 @@ module Pocof =
 
         let results, state = queryAndRender args results state pos context
 
-        args.GetKey ()
+        args.GetKey()
         |> Keys.get args.Keymaps
         |> function
             | Action.Cancel -> []
             | Action.Finish -> unwrap results
             | action ->
                 action
-                |> invokeAction
-                    (state
-                     |> InternalState.updateConsoleWidth (args.GetConsoleWidth ()))
-                    pos
-                    context
+                |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
                 |||> loop args results
 
     let interact
@@ -135,9 +135,7 @@ module Pocof =
         let state, context = Query.prepare state
 
         let propMap =
-            state.Properties
-            |> List.map (fun p -> String.lower p, p)
-            |> Map.ofList
+            state.Properties |> List.map (fun p -> String.lower p, p) |> Map.ofList
 
         match conf.NotInteractive with
         | true ->
@@ -162,25 +160,19 @@ module Pocof =
         |> Seq.fold
             (fun acc o ->
                 match o.BaseObject with
-                | :? IDictionary as dct ->
-                    Seq.cast<DictionaryEntry> dct
-                    |> Seq.fold (fun a d -> Entry.Dict d :: a) acc
+                | :? IDictionary as dct -> Seq.cast<DictionaryEntry> dct |> Seq.fold (fun a d -> Entry.Dict d :: a) acc
                 | _ -> Entry.Obj(PSObject o) :: acc)
             acc
 
     let buildProperties acc (input: PSObject array) =
         Set.union acc
         <| (input
-        |> Seq.collect (fun o ->
-            match o.BaseObject with
-            | :? IDictionary as dct ->
-                match Seq.cast<DictionaryEntry> dct with
-                | s when Seq.isEmpty s -> Seq.empty
-                | s ->
-                    s
-                    |> Seq.head
-                    |> PSObject.AsPSObject
-                    |> _.Properties
-            | _ -> o.Properties)
-        |> Seq.map _.Name
-        |> Set.ofSeq)
+            |> Seq.collect (fun o ->
+                match o.BaseObject with
+                | :? IDictionary as dct ->
+                    match Seq.cast<DictionaryEntry> dct with
+                    | s when Seq.isEmpty s -> Seq.empty
+                    | s -> s |> Seq.head |> PSObject.AsPSObject |> _.Properties
+                | _ -> o.Properties)
+            |> Seq.map _.Name
+            |> Set.ofSeq)

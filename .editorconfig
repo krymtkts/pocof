@@ -1,0 +1,3 @@
+[*.{fs,fsx,fsi}]
+indent_size = 4
+end_of_line = lf

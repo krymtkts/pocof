@@ -17,7 +17,7 @@ type SelectPocofCommand() =
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
-    member val InputObject: PSObject [] = [||] with get, set
+    member val InputObject: PSObject[] = [||] with get, set
 
     [<Parameter>]
     member val Query = String.Empty with get, set

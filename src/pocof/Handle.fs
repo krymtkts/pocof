@@ -31,9 +31,7 @@ module Handle =
     let private moveBackward = moveCursor -1 0
 
     let private moveForward (state: InternalState) =
-        moveCursor 1
-        <| String.length state.QueryState.Query
-        <| state
+        moveCursor 1 <| String.length state.QueryState.Query <| state
 
     let private setCursor (cursor: int) (state: InternalState) (pos: Position) (context: QueryContext) =
         let qs = QueryState.setCursor state.QueryState cursor
@@ -47,9 +45,7 @@ module Handle =
     let private moveHead = setCursor 0
 
     let private moveTail (state: InternalState) =
-        setCursor
-        <| String.length state.QueryState.Query
-        <| state
+        setCursor <| String.length state.QueryState.Query <| state
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -81,8 +77,7 @@ module Handle =
             let s =
                 state
                 |> InternalState.refreshIfTrue (
-                    state.QueryState.Query <> qs.Query
-                    || state.QueryState.Cursor <> qs.Cursor
+                    state.QueryState.Query <> qs.Query || state.QueryState.Cursor <> qs.Cursor
                 )
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
@@ -98,8 +93,7 @@ module Handle =
 
     let private removeQueryTail (state: InternalState) =
         removeChar Direction.Forward
-        <| String.length state.QueryState.Query
-           - state.QueryState.Cursor
+        <| String.length state.QueryState.Query - state.QueryState.Cursor
         <| state
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
@@ -119,11 +113,7 @@ module Handle =
             |> InternalState.refresh
             |> InternalState.updateWindowWidth
 
-        state,
-        pos,
-        context
-        |> QueryContext.prepareQuery state
-        |> QueryContext.prepareTest state
+        state, pos, context |> QueryContext.prepareQuery state |> QueryContext.prepareTest state
 
     let private toggleCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -144,10 +134,7 @@ module Handle =
         state, pos, context |> QueryContext.prepareAnswer state
 
     let private toggleSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.toggleSuppressProperties
-            |> InternalState.refresh
+        let state = state |> InternalState.toggleSuppressProperties |> InternalState.refresh
 
         state, pos, context
 
@@ -188,10 +175,7 @@ module Handle =
         | PropertySearch.Search keyword ->
             let candidates =
                 state.Properties
-                |> List.filter (
-                    String.lower
-                    >> String.startsWith (String.lower keyword)
-                )
+                |> List.filter (String.lower >> String.startsWith (String.lower keyword))
 
             match candidates with
             | [] -> InternalState.noRefresh state, pos, context
@@ -202,7 +186,7 @@ module Handle =
                 Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
                 buildValues head candidate tail keyword 0 candidates basePosition
-        | PropertySearch.Rotate (keyword, i, candidates) ->
+        | PropertySearch.Rotate(keyword, i, candidates) ->
             let cur = candidates.[i]
             let i = (i + 1) % List.length candidates
             let next = candidates.[i]
@@ -238,6 +222,4 @@ module Handle =
         | Action.ScrollPageUp
         | Action.ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.CompleteProperty -> completeProperty state pos context
-        | x ->
-            failwithf "unrecognized Action. value='%s'"
-            <| x.GetType().Name
+        | x -> failwithf "unrecognized Action. value='%s'" <| x.GetType().Name

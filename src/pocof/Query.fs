@@ -36,8 +36,8 @@ module Query =
         try
             // NOTE: expect using cache.
             Regex.IsMatch(value, pattern, opt)
-        with
-        | _ -> true
+        with _ ->
+            true
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -50,14 +50,14 @@ module Query =
             // TODO: not so good.
             let propInfo = x.GetType().GetProperty prop
             Some(propInfo.GetValue(x, null) :?> 'b)
-        with
-        | _ -> None
+        with _ ->
+            None
 
     let inline private (?->) (x: PSObject) (prop: string) =
         try
             Some (x.Properties.Item prop).Value
-        with
-        | _ -> None
+        with _ ->
+            None
 
     type TesterType<'A> = ('A -> bool) -> 'A list -> bool
 
@@ -83,10 +83,7 @@ module Query =
                 <| []
             | y :: zs ->
                 match x with
-                | Prefix ":" p ->
-                    parseQuery
-                    <| QueryPart.Property(String.lower p, y) :: acc
-                    <| zs
+                | Prefix ":" p -> parseQuery <| QueryPart.Property(String.lower p, y) :: acc <| zs
                 | _ -> parseQuery <| QueryPart.Normal x :: acc <| xs
 
     let private prepareQuery (state: InternalState) =
@@ -122,8 +119,8 @@ module Query =
             try
                 Regex(state.QueryState.Query) |> ignore
                 ""
-            with
-            | e -> e.Message
+            with e ->
+                e.Message
         | _ -> ""
 
     let prepare (state: InternalState) =
@@ -133,7 +130,8 @@ module Query =
         let answer = prepareAnswer state
         let notification = prepareNotification state
 
-        { state with Notification = notification },
+        { state with
+            Notification = notification },
         { Queries = queries
           Test = test
           Is = is
@@ -141,19 +139,23 @@ module Query =
 
     module InternalState =
         let prepareNotification state =
-            { state with Notification = prepareNotification state }
+            { state with
+                Notification = prepareNotification state }
 
     module QueryContext =
         let prepareQuery state context =
-            { context with Queries = prepareQuery state }
+            { context with
+                Queries = prepareQuery state }
 
         let prepareIs state context = { context with Is = prepareIs state }
 
         let prepareTest state context =
-            { context with Test = prepareTest state }
+            { context with
+                Test = prepareTest state }
 
         let prepareAnswer state context =
-            { context with Answer = prepareAnswer state }
+            { context with
+                Answer = prepareAnswer state }
 
     let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
 #if DEBUG
@@ -165,7 +167,7 @@ module Query =
             |> List.fold
                 (fun acc x ->
                     match x with
-                    | QueryPart.Property (k, v) ->
+                    | QueryPart.Property(k, v) ->
                         let pk =
                             match props.TryGetValue k with
                             | true, v -> v
@@ -173,16 +175,16 @@ module Query =
 
                         let p =
                             match o with
-                            | Entry.Dict (dct) -> dct ?=> pk
-                            | Entry.Obj (o) -> o ?-> pk
+                            | Entry.Dict(dct) -> dct ?=> pk
+                            | Entry.Obj(o) -> o ?-> pk
 
                         match p with
-                        | Some (pv) -> (pv, v) :: acc
+                        | Some(pv) -> (pv, v) :: acc
                         | None -> acc
-                    | QueryPart.Normal (v) ->
+                    | QueryPart.Normal(v) ->
                         match o with
-                        | Entry.Dict (dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
-                        | Entry.Obj (o) -> (o, v) :: acc)
+                        | Entry.Dict(dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
+                        | Entry.Obj(o) -> (o, v) :: acc)
                 []
             // NOTE: stringify using the current locale.
             |> List.map (fun (s, v) -> (s.ToString(), v))
@@ -190,9 +192,7 @@ module Query =
         let predicate (o: Entry) =
             match values o with
             | [] -> true
-            | xs ->
-                xs
-                |> context.Test(fun x -> x |> swap |> (context.Is >> context.Answer))
+            | xs -> xs |> context.Test(fun x -> x |> swap |> (context.Is >> context.Answer))
 
         entries |> List.filter predicate
 
@@ -203,8 +203,8 @@ module Query =
             | _ -> String.lower x
 
         match state.PropertySearch with
-        | PropertySearch.Search (prefix: string)
-        | PropertySearch.Rotate (prefix: string, _, _) ->
+        | PropertySearch.Search(prefix: string)
+        | PropertySearch.Rotate(prefix: string, _, _) ->
             let p = transform prefix
             let ret = List.filter (transform >> String.startsWith p) state.Properties
 

@@ -11,8 +11,7 @@ open Pocof
 module ``toKeyPattern should returns`` =
     [<Fact>]
     let ``A without modifiers.`` () =
-        Keys.toKeyPattern "A"
-        |> shouldEqual (Ok { Modifier = 0; Key = ConsoleKey.A })
+        Keys.toKeyPattern "A" |> shouldEqual (Ok { Modifier = 0; Key = ConsoleKey.A })
 
     [<Fact>]
     let ``A with Alt.`` () =
@@ -31,8 +30,7 @@ module ``toKeyPattern should returns`` =
 
     [<Fact>]
     let ``Error when empty.`` () =
-        Keys.toKeyPattern ""
-        |> shouldEqual (Error "Unsupported key ''.")
+        Keys.toKeyPattern "" |> shouldEqual (Error "Unsupported key ''.")
 
     [<Fact>]
     let ``Error when unsupported combination.`` () =
@@ -65,13 +63,13 @@ module ``get should returns`` =
 
         let actual = Keys.get Map.empty getKey
 
-        actual
-        |> shouldEqual (Data.Action.AddQuery "paste")
+        actual |> shouldEqual (Data.Action.AddQuery "paste")
 
     [<Fact>]
     let ``user-defined Action if matched.`` () =
         let keyMap: Map<Data.KeyPattern, Data.Action> =
-            Map [ ({ Modifier = 7; Key = ConsoleKey.E }, Data.Action.Finish)
+            Map
+                [ ({ Modifier = 7; Key = ConsoleKey.E }, Data.Action.Finish)
                   ({ Modifier = 0
                      Key = ConsoleKey.Escape },
                    Data.Action.Noop) ]
@@ -94,8 +92,7 @@ module ``get should returns`` =
         let actual =
             Keys.get keyMap [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false) ]
 
-        actual
-        |> shouldEqual Data.Action.KillBeginningOfLine
+        actual |> shouldEqual Data.Action.KillBeginningOfLine
 
         let actual =
             Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
