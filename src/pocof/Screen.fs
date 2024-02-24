@@ -75,8 +75,7 @@ module Screen =
                 | _ -> y
 
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
-            rui.GetCursorPosition() ||> rui.Write
-            <| String.replicate height "\n"
+            rui.GetCursorPosition() ||> rui.Write <| String.replicate height "\n"
 
             let y =
                 match layout with
@@ -114,15 +113,12 @@ module Screen =
                 q + String.replicate l " "
 
 #if DEBUG
-            Logger.LogFile [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+            Logger.LogFile
+                [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
-            let q =
-                getQuery state.QueryState.WindowWidth q
-                <| String.length q
+            let q = getQuery state.QueryState.WindowWidth q <| String.length q
 
-            [ Data.InternalState.prompt state
-              q
-              Data.InternalState.queryInfo state ]
+            [ Data.InternalState.prompt state; q; Data.InternalState.queryInfo state ]
             |> String.concat ""
 
         [<TailCall>]
@@ -159,9 +155,7 @@ module Screen =
                 pos ||> rui.SetCursorPosition
 
         member private __.WriteScreenLine (height: int) (line: string) =
-            match (rui.GetWindowWidth()
-                   - __.GetLengthInBufferCells line)
-                with
+            match (rui.GetWindowWidth() - __.GetLengthInBufferCells line) with
             | x when x > 0 -> line + String.replicate x " "
             | _ -> line
             |> rui.Write 0 height
@@ -193,15 +187,16 @@ module Screen =
             topLine |> __.WriteScreenLine basePosition
 
 #if DEBUG
-            Logger.LogFile [ $"basePosition {basePosition}, firstLine {firstLine}, toHeight {toHeight}, height {height}" ]
+            Logger.LogFile
+                [ $"basePosition {basePosition}, firstLine {firstLine}, toHeight {toHeight}, height {height}" ]
 #endif
 
             __.WriteScreenLine firstLine
             <| match state.Notification with
                | "" ->
                    match props with
-                   | Ok (p) -> (String.concat " " p).[.. (rui.GetWindowWidth()) - 1]
-                   | Error (e) -> note + e
+                   | Ok(p) -> (String.concat " " p).[.. (rui.GetWindowWidth()) - 1]
+                   | Error(e) -> note + e
                | _ -> note + state.Notification
 
             let out =

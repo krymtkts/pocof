@@ -35,7 +35,12 @@ module invokeAction =
         let state, context = Query.prepare state
 
         invokeAction state position context action
-        |> shouldEqual ({ state with Refresh = Refresh.NotRequired }, position, context)
+        |> shouldEqual (
+            { state with
+                Refresh = Refresh.NotRequired },
+            position,
+            context
+        )
 
     module ``with Noop`` =
         [<Fact>]
@@ -46,9 +51,7 @@ module invokeAction =
         let ``should fail when unimplemented action is entered.`` () =
             let state, context = Query.prepare state
 
-            shouldFail (fun () ->
-                invokeAction state position context Action.Cancel
-                |> ignore)
+            shouldFail (fun () -> invokeAction state position context Action.Cancel |> ignore)
 
     module ``with AddQuery`` =
         [<Fact>]
@@ -109,7 +112,11 @@ module invokeAction =
             let a1, a2, a3 = invokeAction state position context Action.BackwardChar
 
             (a1, a2)
-            |> shouldEqual ({ state with Refresh = Refresh.NotRequired }, position)
+            |> shouldEqual (
+                { state with
+                    Refresh = Refresh.NotRequired },
+                position
+            )
 
             a3.Queries |> shouldEqual []
 
@@ -362,8 +369,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal "" ] // TODO: Should be an empty list, though harmless.
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal "" ] // TODO: Should be an empty list, though harmless.
 
     module ``with DeleteForwardChar`` =
         [<Fact>]
@@ -388,8 +394,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal "name" ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal "name" ]
 
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
@@ -462,8 +467,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal("query") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("query") ]
 
         [<Fact>]
         let ``should remove all characters when the cursor is over the query length.`` () =
@@ -485,8 +489,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal("") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("") ]
 
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
@@ -510,8 +513,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal("query") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("query") ]
 
     module ``with KillEndOfLine`` =
         [<Fact>]
@@ -534,8 +536,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal("example") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("example") ]
 
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
@@ -558,8 +559,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal("example") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("example") ]
 
     module ``with SelectBackwardChar`` =
         [<Fact>]
@@ -595,7 +595,8 @@ module invokeAction =
                 | _ -> failwith "invalid case in RotateMatcher test."
 
             let stateBefore =
-                { state with InternalState.QueryCondition.Matcher = before }
+                { state with
+                    InternalState.QueryCondition.Matcher = before }
                 |> InternalState.updateWindowWidth
 
             let state, context = Query.prepare stateBefore
@@ -627,7 +628,8 @@ module invokeAction =
                 | _ -> failwith "invalid case in RotateOperator test."
 
             let stateBefore =
-                { state with InternalState.QueryCondition.Operator = before }
+                { state with
+                    InternalState.QueryCondition.Operator = before }
                 |> InternalState.updateWindowWidth
 
             let state, context = Query.prepare stateBefore
@@ -640,8 +642,7 @@ module invokeAction =
             let _, _, a3 =
                 testStateAndContext Action.RotateOperator stateBefore context stateAfter
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal("") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("") ]
 
         [<Fact>]
         let ``should switch NONE to OR.`` () = test Operator.None Operator.Or
@@ -660,7 +661,8 @@ module invokeAction =
                 | _ -> -1
 
             let stateBefore =
-                { state with InternalState.QueryCondition.CaseSensitive = before }
+                { state with
+                    InternalState.QueryCondition.CaseSensitive = before }
                 |> InternalState.updateWindowWidth
 
             let state, context = Query.prepare stateBefore
@@ -687,7 +689,8 @@ module invokeAction =
                 | _ -> -3
 
             let stateBefore =
-                { state with InternalState.QueryCondition.Invert = before }
+                { state with
+                    InternalState.QueryCondition.Invert = before }
                 |> InternalState.updateWindowWidth
 
             let state, context = Query.prepare stateBefore
@@ -708,9 +711,15 @@ module invokeAction =
 
     module ``with ToggleSuppressProperties`` =
         let test before after =
-            let stateBefore = { state with InternalState.SuppressProperties = before }
+            let stateBefore =
+                { state with
+                    InternalState.SuppressProperties = before }
+
             let state, context = Query.prepare stateBefore
-            let stateAfter = { state with InternalState.SuppressProperties = after }
+
+            let stateAfter =
+                { state with
+                    InternalState.SuppressProperties = after }
 
             testStateAndContext Action.ToggleSuppressProperties stateBefore context stateAfter
         // TODO: test a3
@@ -740,17 +749,22 @@ module invokeAction =
     module ``with CompleteProperty`` =
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with non search mode.`` () =
-            let state = { state with Properties = [ "name"; "path" ] }
+            let state =
+                { state with
+                    Properties = [ "name"; "path" ] }
 
             let state, context = Query.prepare state
 
             let a1, a2, a3 = invokeAction state position context Action.CompleteProperty
 
             (a1, a2)
-            |> shouldEqual ({ state with Refresh = Refresh.NotRequired }, position)
+            |> shouldEqual (
+                { state with
+                    Refresh = Refresh.NotRequired },
+                position
+            )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Normal("") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("") ]
 
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with empty properties list.`` () =
@@ -764,7 +778,11 @@ module invokeAction =
             let a1, a2, a3 = invokeAction state position context Action.CompleteProperty
 
             (a1, a2)
-            |> shouldEqual ({ state with Refresh = Refresh.NotRequired }, position)
+            |> shouldEqual (
+                { state with
+                    Refresh = Refresh.NotRequired },
+                position
+            )
 
             a3.Queries |> shouldEqual []
 
@@ -781,7 +799,11 @@ module invokeAction =
             let a1, a2, a3 = invokeAction state position context Action.CompleteProperty
 
             (a1, a2)
-            |> shouldEqual ({ state with Refresh = Refresh.NotRequired }, position)
+            |> shouldEqual (
+                { state with
+                    Refresh = Refresh.NotRequired },
+                position
+            )
 
             a3.Queries |> shouldEqual []
 
@@ -879,8 +901,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Property("name", "foo") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Property("name", "foo") ]
 
         [<Fact>]
         let ``shouldn't return any difference when a property is already completed.`` () =
@@ -896,7 +917,11 @@ module invokeAction =
             let a1, a2, a3 = invokeAction state position context Action.CompleteProperty
 
             (a1, a2)
-            |> shouldEqual ({ state with PropertySearch = PropertySearch.Rotate("name", 0, [ "name" ]) }, position)
+            |> shouldEqual (
+                { state with
+                    PropertySearch = PropertySearch.Rotate("name", 0, [ "name" ]) },
+                position
+            )
 
             a3.Queries |> shouldEqual []
 
@@ -914,10 +939,13 @@ module invokeAction =
             let a1, a2, a3 = invokeAction state position context Action.CompleteProperty
 
             (a1, a2)
-            |> shouldEqual ({ state with PropertySearch = PropertySearch.Rotate("name", 0, [ "name" ]) }, position)
+            |> shouldEqual (
+                { state with
+                    PropertySearch = PropertySearch.Rotate("name", 0, [ "name" ]) },
+                position
+            )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Property("name", "a") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Property("name", "a") ]
 
         [<Fact>]
         let ``should return current completion when a property is already completed and cursor in mid position of it.``
@@ -942,8 +970,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries
-            |> shouldEqual [ Query.QueryPart.Property("name", "a") ]
+            a3.Queries |> shouldEqual [ Query.QueryPart.Property("name", "a") ]
 
         [<Fact>]
         let ``should return next property when rotation.`` () =

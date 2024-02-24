@@ -26,22 +26,18 @@ module unwrap =
 module ``Action fromString should returns`` =
     [<Fact>]
     let ``Error Unknown.`` () =
-        Action.fromString "XXX"
-        |> shouldEqual (Error "Unknown Action 'XXX'.")
+        Action.fromString "XXX" |> shouldEqual (Error "Unknown Action 'XXX'.")
 
     [<Fact>]
     let ``Error when AddQuery.`` () =
-        Action.fromString "AddQuery"
-        |> shouldEqual (Error "Unknown Action 'AddQuery'.")
+        Action.fromString "AddQuery" |> shouldEqual (Error "Unknown Action 'AddQuery'.")
 
     [<Fact>]
     let ``known actions excluding AddQuery.`` () =
         FSharpType.GetUnionCases(typeof<Action>)
         |> Seq.filter (fun a -> a.Name <> "AddQuery")
         |> Seq.iter (fun a ->
-            [ a.Name
-              String.lower a.Name
-              String.upper a.Name ]
+            [ a.Name; String.lower a.Name; String.upper a.Name ]
             |> List.map Action.fromString
             |> List.iter (shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
 
@@ -51,9 +47,7 @@ let ``Error Unknown.``<'a> (fromString: string -> 'a) =
 let ``known matchers.``<'a> (fromString: string -> 'a) =
     FSharpType.GetUnionCases(typeof<'a>)
     |> Seq.iter (fun (a: UnionCaseInfo) ->
-        [ a.Name
-          String.lower a.Name
-          String.upper a.Name ]
+        [ a.Name; String.lower a.Name; String.upper a.Name ]
         |> List.map fromString
         |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
 
@@ -101,18 +95,13 @@ module ``QueryState toString should returns`` =
 
     [<Fact>]
     let ``cne or`` () =
-        let actual =
-            queryState Matcher.Eq Operator.Or
-            |> caseSensitive
-            |> invert
+        let actual = queryState Matcher.Eq Operator.Or |> caseSensitive |> invert
 
         string actual |> shouldEqual "cne or"
 
     [<Fact>]
     let ``ceq and`` () =
-        let actual =
-            queryState Matcher.Eq Operator.And
-            |> caseSensitive
+        let actual = queryState Matcher.Eq Operator.And |> caseSensitive
 
         string actual |> shouldEqual "ceq and"
 
@@ -128,9 +117,7 @@ module ``QueryState toString should returns`` =
 
     [<Fact>]
     let ``clike and`` () =
-        let actual =
-            queryState Matcher.Like Operator.And
-            |> caseSensitive
+        let actual = queryState Matcher.Like Operator.And |> caseSensitive
 
         string actual |> shouldEqual "clike and"
 
@@ -141,19 +128,13 @@ module ``QueryState toString should returns`` =
 
     [<Fact>]
     let ``notclike and`` () =
-        let actual =
-            queryState Matcher.Like Operator.And
-            |> caseSensitive
-            |> invert
+        let actual = queryState Matcher.Like Operator.And |> caseSensitive |> invert
 
         string actual |> shouldEqual "notclike and"
 
     [<Fact>]
     let ``notcmatch or`` () =
-        let actual =
-            queryState Matcher.Match Operator.Or
-            |> caseSensitive
-            |> invert
+        let actual = queryState Matcher.Match Operator.Or |> caseSensitive |> invert
 
         string actual |> shouldEqual "notcmatch or"
 
@@ -164,9 +145,7 @@ module ``QueryState toString should returns`` =
 
     [<Fact>]
     let ``cmatch or`` () =
-        let actual =
-            queryState Matcher.Match Operator.Or
-            |> caseSensitive
+        let actual = queryState Matcher.Match Operator.Or |> caseSensitive
 
         string actual |> shouldEqual "cmatch or"
 
@@ -201,10 +180,7 @@ module initConfig =
                 { Query = ":name"
                   Cursor = 5
                   WindowBeginningCursor = 0
-                  WindowWidth =
-                    60
-                    - (String.length "prompt>")
-                    - (String.length " notclike and [10]") }
+                  WindowWidth = 60 - (String.length "prompt>") - (String.length " notclike and [10]") }
               QueryCondition =
                 { Matcher = Matcher.Like
                   Operator = Operator.And
@@ -292,8 +268,7 @@ module QueryState =
 
         [<Fact>]
         let ``should returns NoSearch when no colon`` () =
-            QueryState.getCurrentProperty (qs "a" 1)
-            |> shouldEqual PropertySearch.NoSearch
+            QueryState.getCurrentProperty (qs "a" 1) |> shouldEqual PropertySearch.NoSearch
 
         [<Fact>]
         let ``should returns Search with "a" when start with colon`` () =

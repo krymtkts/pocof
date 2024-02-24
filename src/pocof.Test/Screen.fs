@@ -67,9 +67,7 @@ module Mock =
                     let code = int c
                     code >= 0xFF00 && code <= 0xFF60
 
-                s
-                |> Seq.cast<char>
-                |> Seq.sumBy (fun c -> if isFullWidth c then 2 else 1)
+                s |> Seq.cast<char> |> Seq.sumBy (fun c -> if isFullWidth c then 2 else 1)
 
             member __.GetWindowWidth() = __.width
             member __.GetWindowHeight() = __.height
@@ -111,8 +109,7 @@ module Mock =
             member __.Dispose() = ()
 
         static member ConsoleKey keyChar key =
-            new ConsoleKeyInfo(keyChar, key, false, false, false)
-            |> Some
+            new ConsoleKeyInfo(keyChar, key, false, false, false) |> Some
 
         member __.Check() =
             match __.keys with
@@ -167,10 +164,7 @@ module ``Buff writeScreen`` =
         let rui = new MockRawUI()
 
         (rui :> IRawUI).GetCursorPosition()
-        |> (fun (x, y) ->
-            (rui :> IRawUI).SetCursorPosition
-            <| x / 2
-            <| y / 2 + 1)
+        |> (fun (x, y) -> (rui :> IRawUI).SetCursorPosition <| x / 2 <| y / 2 + 1)
 
         let state: InternalState =
             { QueryState =
@@ -300,9 +294,10 @@ module ``Buff writeScreen`` =
         let rui = getRenderedScreen rui state Layout.TopDown
 
         let expected =
-            List.concat [ [ @"prompt>\                                                           match and [0]"
-                            @"note>Invalid pattern '\' at offset 1. Illegal \ at end of pattern.              " ]
-                          (generateLine rui.width (28)) ]
+            List.concat
+                [ [ @"prompt>\                                                           match and [0]"
+                    @"note>Invalid pattern '\' at offset 1. Illegal \ at end of pattern.              " ]
+                  (generateLine rui.width (28)) ]
 
         rui.screen |> shouldEqual expected
 
@@ -332,13 +327,13 @@ module ``Buff writeScreen`` =
               Refresh = Refresh.Required }
             |> InternalState.updateWindowWidth
 
-        buff.WriteScreen Layout.TopDown state []
-        <| Error "Property not found"
+        buff.WriteScreen Layout.TopDown state [] <| Error "Property not found"
 
         let expected =
-            List.concat [ [ @"prompt>:unknown                                                    match and [0]"
-                            @"note>Property not found                                                         " ]
-                          (generateLine rui.width (28)) ]
+            List.concat
+                [ [ @"prompt>:unknown                                                    match and [0]"
+                    @"note>Property not found                                                         " ]
+                  (generateLine rui.width (28)) ]
 
         rui.screen |> shouldEqual expected
 
@@ -378,21 +373,20 @@ module ``Buff writeScreen`` =
             |> InternalState.updateWindowWidth
 
         let entries =
-            [ 1..10 ]
-            |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
+            [ 1..10 ] |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
 
-        buff.WriteScreen Layout.TopDown state entries
-        <| Ok []
+        buff.WriteScreen Layout.TopDown state entries <| Ok []
 
         let expected =
-            List.concat [ [ @"prompt>                                       match and [10]"
-                            @"                                                            "
-                            @"                                                            "
-                            @"Name                           Value                        "
-                            @"----                           -----                        " ]
-                          ([ 1..10 ]
-                           |> List.map (sprintf "Number                         %-2d                           "))
-                          (generateLine rui.width (15)) ]
+            List.concat
+                [ [ @"prompt>                                       match and [10]"
+                    @"                                                            "
+                    @"                                                            "
+                    @"Name                           Value                        "
+                    @"----                           -----                        " ]
+                  ([ 1..10 ]
+                   |> List.map (sprintf "Number                         %-2d                           "))
+                  (generateLine rui.width (15)) ]
 
         rui.screen |> shouldEqual expected
 
@@ -424,20 +418,19 @@ module ``Buff writeScreen`` =
             |> InternalState.updateWindowWidth
 
         let entries =
-            [ 1..100 ]
-            |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
+            [ 1..100 ] |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
 
-        buff.WriteScreen Layout.TopDown state entries
-        <| Ok []
+        buff.WriteScreen Layout.TopDown state entries <| Ok []
 
         let expected =
-            List.concat [ [ @"prompt>                                      match and [100]"
-                            @"                                                            "
-                            @"                                                            "
-                            @"Name                           Value                        "
-                            @"----                           -----                        " ]
-                          ([ 1..25 ]
-                           |> List.map (sprintf "Number                         %-2d                           ")) ]
+            List.concat
+                [ [ @"prompt>                                      match and [100]"
+                    @"                                                            "
+                    @"                                                            "
+                    @"Name                           Value                        "
+                    @"----                           -----                        " ]
+                  ([ 1..25 ]
+                   |> List.map (sprintf "Number                         %-2d                           ")) ]
 
         rui.screen |> shouldEqual expected
 
@@ -469,10 +462,7 @@ module ``Buff writeScreen`` =
 
         [<Fact>]
         let ``should render head 30 of query when cursor 0.`` () =
-            let query =
-                [ 0..9 ]
-                |> List.map (sprintf "%d-------->")
-                |> String.concat ""
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
 
             let rui = getRenderedScreen query 0 0
 
@@ -484,10 +474,7 @@ module ``Buff writeScreen`` =
 
         [<Fact>]
         let ``should render head 30 of query when cursor 30.`` () =
-            let query =
-                [ 0..9 ]
-                |> List.map (sprintf "%d-------->")
-                |> String.concat ""
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
 
             let rui = getRenderedScreen query 30 0
 
@@ -499,10 +486,7 @@ module ``Buff writeScreen`` =
 
         [<Fact>]
         let ``should render mid 30 of query when cursor 45.`` () =
-            let query =
-                [ 0..9 ]
-                |> List.map (sprintf "%d-------->")
-                |> String.concat ""
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
 
             let rui = getRenderedScreen query 45 15
 
@@ -514,10 +498,7 @@ module ``Buff writeScreen`` =
 
         [<Fact>]
         let ``should render tail 30 of query when cursor 100.`` () =
-            let query =
-                [ 0..9 ]
-                |> List.map (sprintf "%d-------->")
-                |> String.concat ""
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
 
             let rui = getRenderedScreen query 100 70
 
@@ -533,9 +514,7 @@ module ``Buff writeScreen`` =
         [<Fact>]
         let ``should render head 30 of query when cursor 0 with full-width characters.`` () =
             let query =
-                [ 0..9 ]
-                |> List.map (intToChar >> sprintf "%s------->")
-                |> String.concat ""
+                [ 0..9 ] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
 
             let rui = getRenderedScreen query 0 0
 
@@ -548,9 +527,7 @@ module ``Buff writeScreen`` =
         [<Fact>]
         let ``should render head 30 of query when cursor 30 with full-width characters.`` () =
             let query =
-                [ 0..9 ]
-                |> List.map (intToChar >> sprintf "%s------->")
-                |> String.concat ""
+                [ 0..9 ] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
 
             let rui = getRenderedScreen query 27 0
 
@@ -563,9 +540,7 @@ module ``Buff writeScreen`` =
         [<Fact>]
         let ``should render mid 30 of query when cursor 45 with full-width characters.`` () =
             let query =
-                [ 0..9 ]
-                |> List.map (intToChar >> sprintf "%s------->")
-                |> String.concat ""
+                [ 0..9 ] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
 
             let rui = getRenderedScreen query 40 13
 
@@ -578,9 +553,7 @@ module ``Buff writeScreen`` =
         [<Fact>]
         let ``should render tail 30 of query when cursor 100 with full-width characters.`` () =
             let query =
-                [ 0..9 ]
-                |> List.map (intToChar >> sprintf "%s------->")
-                |> String.concat ""
+                [ 0..9 ] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
 
             let rui = getRenderedScreen query 90 63
 

@@ -22,16 +22,13 @@ module Keys =
     let private plain = modify Modifiers.Plain
     let private alt = modify <| Modifiers.Modifier ConsoleModifiers.Alt
 
-    let private ctrl =
-        modify
-        <| Modifiers.Modifier ConsoleModifiers.Control
+    let private ctrl = modify <| Modifiers.Modifier ConsoleModifiers.Control
 
-    let private shift =
-        modify
-        <| Modifiers.Modifier ConsoleModifiers.Shift
+    let private shift = modify <| Modifiers.Modifier ConsoleModifiers.Shift
 
     let defaultKeymap =
-        Map [ (plain ConsoleKey.Escape, Data.Action.Cancel)
+        Map
+            [ (plain ConsoleKey.Escape, Data.Action.Cancel)
               (ctrl ConsoleKey.C, Data.Action.Cancel)
               (plain ConsoleKey.Enter, Data.Action.Finish)
 
@@ -82,7 +79,8 @@ module Keys =
         | m :: keys ->
             match result, toEnum<ConsoleModifiers> m with
             | Ok r, Some x ->
-                { r with Modifier = r.Modifier ||| x.GetHashCode() }
+                { r with
+                    Modifier = r.Modifier ||| x.GetHashCode() }
                 |> Ok
             | Ok _, None -> Error $"Unsupported modifier '%s{m}'."
             | Error e, None -> Error $"%s{e} Unsupported modifier '%s{m}'."
@@ -115,7 +113,7 @@ module Keys =
                 |> List.fold
                     (fun (fst, snd) o ->
                         match o with
-                        | Ok (o) -> (o :: fst, snd)
+                        | Ok(o) -> (o :: fst, snd)
                         | Error e -> (fst, e :: snd))
                     ([], [])
 

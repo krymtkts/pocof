@@ -111,8 +111,7 @@ module loop =
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 5
 
-        actual
-        |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
+        actual |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
 
         rui.Check()
 
@@ -142,14 +141,16 @@ module loop =
     let ``should return result when finishing after noop.`` () =
         let input = results |> List.map toObj
 
-        let state, context = Query.prepare { state with Refresh = Refresh.NotRequired }
+        let state, context =
+            Query.prepare
+                { state with
+                    Refresh = Refresh.NotRequired }
 
         let rui =
             new MockRawUI(
                 60,
                 30,
-                [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, true, true, false)
-                  |> Some
+                [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, true, true, false) |> Some
                   None
                   MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             )
@@ -168,8 +169,7 @@ module loop =
         let actual = Pocof.loop args input state pos context
         actual |> List.length |> shouldEqual 5
 
-        actual
-        |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
+        actual |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
 
         rui.Check()
 
@@ -263,9 +263,7 @@ module interact =
 
         actual |> List.length |> shouldEqual 5
 
-        let expected =
-            [ "a"; "b"; "c"; "d"; "e" ]
-            |> List.map (PSObject.AsPSObject >> box)
+        let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> shouldEqual expected
 
@@ -285,9 +283,7 @@ module interact =
 
         actual |> List.length |> shouldEqual 5
 
-        let expected =
-            [ "a"; "b"; "c"; "d"; "e" ]
-            |> List.map (PSObject.AsPSObject >> box)
+        let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> shouldEqual expected
 
@@ -308,9 +304,7 @@ module interact =
 
         actual |> List.length |> shouldEqual 5
 
-        let expected =
-            [ "a"; "b"; "c"; "d"; "e" ]
-            |> List.map (PSObject.AsPSObject >> box)
+        let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> shouldEqual expected
 
@@ -330,9 +324,7 @@ module interact =
 
         actual |> List.length |> shouldEqual 5
 
-        let expected =
-            [ "a"; "b"; "c"; "d"; "e" ]
-            |> List.map (PSObject.AsPSObject >> box)
+        let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> shouldEqual expected
 
@@ -346,11 +338,7 @@ module buildInput =
     let ``should return the list with added Obj`` () =
         let expected = [ 3; 2; 1 ] |> mapToObj
 
-        Pocof.buildInput
-            []
-            ([ 1; 2; 3 ]
-             |> List.map PSObject.AsPSObject
-             |> Array.ofList)
+        Pocof.buildInput [] ([ 1; 2; 3 ] |> List.map PSObject.AsPSObject |> Array.ofList)
         |> shouldEqual expected
 
     [<Fact>]
@@ -359,19 +347,13 @@ module buildInput =
 
         let input = [ 0 ] |> mapToObj
 
-        Pocof.buildInput
-            input
-            ([ 1; 2; 3 ]
-             |> List.map PSObject.AsPSObject
-             |> Array.ofList)
+        Pocof.buildInput input ([ 1; 2; 3 ] |> List.map PSObject.AsPSObject |> Array.ofList)
         |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Dict`` () =
         let expected =
-            [ DictionaryEntry("c", 3)
-              DictionaryEntry("b", 2)
-              DictionaryEntry("a", 1) ]
+            [ DictionaryEntry("c", 3); DictionaryEntry("b", 2); DictionaryEntry("a", 1) ]
             |> List.map Entry.Dict
 
         let inputObject =
@@ -381,8 +363,7 @@ module buildInput =
             h.Add("c", 3)
             [| h |> PSObject.AsPSObject |]
 
-        Pocof.buildInput [] inputObject
-        |> shouldEqual expected
+        Pocof.buildInput [] inputObject |> shouldEqual expected
 
 module buildProperties =
     [<Fact>]
@@ -397,8 +378,7 @@ module buildProperties =
             o.Properties.Add(new PSNoteProperty("c", 3))
             [| o |]
 
-        Pocof.buildProperties input inputObject
-        |> shouldEqual expected
+        Pocof.buildProperties input inputObject |> shouldEqual expected
 
     [<Fact>]
     let ``should return the set with added input properties without duplication.`` () =
@@ -412,8 +392,7 @@ module buildProperties =
             o.Properties.Add(new PSNoteProperty("c", 3))
             [| o |]
 
-        Pocof.buildProperties input inputObject
-        |> shouldEqual expected
+        Pocof.buildProperties input inputObject |> shouldEqual expected
 
     [<Fact>]
     let ``should return the set with added the keys of hashtable.`` () =
@@ -426,5 +405,4 @@ module buildProperties =
             h.Add("a", 1)
             [| h |> PSObject.AsPSObject |]
 
-        Pocof.buildProperties input inputObject
-        |> shouldEqual expected
+        Pocof.buildProperties input inputObject |> shouldEqual expected

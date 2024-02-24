@@ -70,18 +70,19 @@ module Data =
     let unwrap (entries: Entry list) =
         entries
         |> List.map (function
-            | Entry.Dict (dct) -> dct :> obj
-            | Entry.Obj (o) -> o)
+            | Entry.Dict(dct) -> dct :> obj
+            | Entry.Obj(o) -> o)
 
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
         let aType = typeof<'a>
 
-        match FSharpType.GetUnionCases aType
-              |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
-              |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
-            with
+        match
+            FSharpType.GetUnionCases aType
+            |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
+            |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
+        with
         | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| $"Unknown %s{aType.Name} '%s{s}'."
 
@@ -89,9 +90,10 @@ module Data =
         let name = String.lower s
         let aType = typeof<'a>
 
-        match FSharpType.GetUnionCases aType
-              |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
-            with
+        match
+            FSharpType.GetUnionCases aType
+            |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
+        with
         | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
         | _ -> failwithf $"Unknown %s{aType.Name} '%s{s}'."
 
@@ -143,9 +145,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Action =
-        let fromString =
-            tryFromStringExcludes<Action>
-            <| set [ "AddQuery" ]
+        let fromString = tryFromStringExcludes<Action> <| set [ "AddQuery" ]
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -153,6 +153,7 @@ module Data =
         | Eq
         | Like
         | Match
+
         override __.ToString() = toString __ |> String.lower
 
     [<RequireQualifiedAccess>]
@@ -165,6 +166,7 @@ module Data =
         | And
         | Or
         | None
+
         override __.ToString() = toString __ |> String.lower
 
     [<RequireQualifiedAccess>]
@@ -246,13 +248,12 @@ module Data =
         let deleteQuery (state: QueryState) (size: int) =
             match String.length state.Query, state.Cursor with
             | len, cur when len - cur < 0 -> { state with Cursor = len }
-            | _ -> { state with Query = state.Query.Remove(state.Cursor, size) }
+            | _ ->
+                { state with
+                    Query = state.Query.Remove(state.Cursor, size) }
 
         let getCurrentProperty (state: QueryState) =
-            let s =
-                state.Query.[.. state.Cursor - 1]
-                |> String.split " "
-                |> Seq.last
+            let s = state.Query.[.. state.Cursor - 1] |> String.split " " |> Seq.last
 
 #if DEBUG
             Logger.LogFile [ $"query '{state.Query}' x '{state.Cursor}' string '{s}'" ]
@@ -267,6 +268,7 @@ module Data =
           Operator: Operator
           CaseSensitive: bool
           Invert: bool }
+
         override __.ToString() =
             List.append
             <| match __.Matcher, __.CaseSensitive, __.Invert with
@@ -297,10 +299,12 @@ module Data =
                     | Operator.None -> Operator.Or }
 
         let toggleCaseSensitive (condition: QueryCondition) =
-            { condition with CaseSensitive = not condition.CaseSensitive }
+            { condition with
+                CaseSensitive = not condition.CaseSensitive }
 
         let toggleInvertFilter (condition: QueryCondition) =
-            { condition with Invert = not condition.Invert }
+            { condition with
+                Invert = not condition.Invert }
 
     type InternalState =
         { QueryState: QueryState
@@ -327,16 +331,14 @@ module Data =
             let right = queryInfo state
 
 #if DEBUG
-            Logger.LogFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}' right '{String.length right}'" ]
+            Logger.LogFile
+                [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}' right '{String.length right}'" ]
 #endif
 
-            state.ConsoleWidth
-            - String.length left
-            - String.length right
+            state.ConsoleWidth - String.length left - String.length right
 
         let getX (state: InternalState) =
-            (prompt state |> String.length)
-            + state.QueryState.Cursor
+            (prompt state |> String.length) + state.QueryState.Cursor
             - state.QueryState.WindowBeginningCursor
 
         let updateQueryState (qs: QueryState) (state: InternalState) =
@@ -345,10 +347,12 @@ module Data =
                 PropertySearch = QueryState.getCurrentProperty qs }
 
         let refresh (state: InternalState) =
-            { state with Refresh = Refresh.Required }
+            { state with
+                Refresh = Refresh.Required }
 
         let noRefresh (state: InternalState) =
-            { state with Refresh = Refresh.NotRequired }
+            { state with
+                Refresh = Refresh.NotRequired }
 
         let refreshIfTrue (b: bool) (state: InternalState) =
             match b with
@@ -356,42 +360,36 @@ module Data =
             | _ -> noRefresh state
 
         let updateWindowWidth (state: InternalState) =
-            { state with InternalState.QueryState.WindowWidth = getWindowWidth state }
+            { state with
+                InternalState.QueryState.WindowWidth = getWindowWidth state }
 
         let rotateMatcher (state: InternalState) =
             { state with
-                QueryCondition =
-                    state.QueryCondition
-                    |> QueryCondition.rotateMatcher }
+                QueryCondition = state.QueryCondition |> QueryCondition.rotateMatcher }
 
         let rotateOperator (state: InternalState) =
             { state with
-                QueryCondition =
-                    state.QueryCondition
-                    |> QueryCondition.rotateOperator }
+                QueryCondition = state.QueryCondition |> QueryCondition.rotateOperator }
 
         let toggleCaseSensitive (state: InternalState) =
             { state with
-                QueryCondition =
-                    state.QueryCondition
-                    |> QueryCondition.toggleCaseSensitive }
+                QueryCondition = state.QueryCondition |> QueryCondition.toggleCaseSensitive }
 
         let toggleInvertFilter (state: InternalState) =
             { state with
-                QueryCondition =
-                    state.QueryCondition
-                    |> QueryCondition.toggleInvertFilter }
+                QueryCondition = state.QueryCondition |> QueryCondition.toggleInvertFilter }
 
         let toggleSuppressProperties (state: InternalState) =
-            { state with SuppressProperties = not state.SuppressProperties }
+            { state with
+                SuppressProperties = not state.SuppressProperties }
 
         let updateConsoleWidth (consoleWidth: int) (state: InternalState) =
-            { state with ConsoleWidth = consoleWidth }
+            { state with
+                ConsoleWidth = consoleWidth }
             |> updateWindowWidth
 
         let updateFilteredCount (count: int) (state: InternalState) =
-            { state with FilteredCount = count }
-            |> updateWindowWidth
+            { state with FilteredCount = count } |> updateWindowWidth
 
     type Position = { Y: int; Height: int }
 
