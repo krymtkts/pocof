@@ -31,6 +31,11 @@ A query starting with a colon, such as `:property-name`, indicates a property qu
 In a property query, you can specify the property value using the format `:property-name property-value`.
 If you use a property query, the query will match to the specified object properties.
 
+Recommend using `$PSDefaultParameterValues` if you want to use a specific option.
+For example `Layout`, `Prompt` and so on.
+
+`$PSDefaultParameterValues = @{'Select-Pocof:Layout' = 'TopDownHalf'; 'Select-Pocof:Prompt'= ''}`
+
 ## EXAMPLES
 
 ### Example 1: Get current directory items with interactive filtering
