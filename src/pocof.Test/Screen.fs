@@ -105,6 +105,10 @@ module Mock =
                         false
                     | Some _ -> true
 
+            member __.HideCursorWhileRendering() =
+                { new IDisposable with
+                    member _.Dispose() = () }
+
         interface IDisposable with
             member __.Dispose() = ()
 
