@@ -205,11 +205,18 @@ module Data =
           Keymaps: Map<KeyPattern, Action>
           NotInteractive: bool }
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    type InputMode =
+        | Input
+        | Select of int
+
     type QueryState =
         { Query: string
           Cursor: int
           WindowBeginningCursor: int
-          WindowWidth: int }
+          WindowWidth: int
+          InputMode: InputMode }
 
     module QueryState =
         let addQuery (state: QueryState) (query: string) =
@@ -416,7 +423,8 @@ module Data =
             { Query = p.Query
               Cursor = String.length p.Query
               WindowBeginningCursor = 0 // NOTE: adjust later.
-              WindowWidth = p.ConsoleWidth }
+              WindowWidth = p.ConsoleWidth
+              InputMode = InputMode.Input }
 
         let s =
             { QueryState = qs
