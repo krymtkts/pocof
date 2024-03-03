@@ -14,6 +14,7 @@ module Screen =
         abstract member Write: int -> int -> string -> unit
         abstract member ReadKey: bool -> ConsoleKeyInfo
         abstract member KeyAvailable: unit -> bool
+        abstract member HideCursorWhileRendering: unit -> IDisposable
 
     type RawUI(rui) =
         let rui: PSHostRawUserInterface = rui
@@ -40,6 +41,12 @@ module Screen =
             member __.ReadKey(intercept: bool) = Console.ReadKey intercept
             member __.KeyAvailable() = Console.KeyAvailable
 
+            member __.HideCursorWhileRendering() =
+                Console.CursorVisible <- false
+
+                { new IDisposable with
+                    member _.Dispose() = Console.CursorVisible <- true }
+
         interface IDisposable with
             member __.Dispose() =
                 Console.TreatControlCAsInput <- ctrlCAsInput
@@ -55,6 +62,8 @@ module Screen =
         let layout: Data.Layout = layout
 
         do
+            use _ = rui.HideCursorWhileRendering()
+
             let height =
                 match layout with
                 | Data.Layout.TopDownHalf
@@ -132,6 +141,7 @@ module Screen =
         interface IDisposable with
             member __.Dispose() =
                 (rui :> IDisposable).Dispose()
+                use _ = rui.HideCursorWhileRendering()
 
                 let pos =
                     let y = rui.GetCursorPosition() |> snd
@@ -182,6 +192,8 @@ module Screen =
             (entries: Data.Entry list)
             (props: Result<string list, string>)
             =
+            use _ = rui.HideCursorWhileRendering()
+
             let basePosition, firstLine, toHeight, height = __.CalculatePositions layout
             let topLine = info state
             topLine |> __.WriteScreenLine basePosition
