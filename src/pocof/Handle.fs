@@ -96,6 +96,28 @@ module Handle =
         <| String.length state.QueryState.Query - state.QueryState.Cursor
         <| state
 
+    let private selectQuery (cursor: int) (state: InternalState) =
+        let s =
+            match state.QueryState.InputMode with
+            | InputMode.Input -> 0
+            | InputMode.Select(s) -> s
+
+        { state with
+            InternalState.QueryState.InputMode = InputMode.Select(s + cursor) }
+
+    let private selectBackwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
+        selectQuery -1 state |> moveBackward <| pos <| context
+
+    let private selectForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
+        selectQuery 1 state |> moveBackward <| pos <| context
+
+    let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
+        selectQuery -state.QueryState.Cursor state |> moveBackward <| pos <| context
+
+    let private selectToEndOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
+        let s = String.length state.QueryState.Query - -state.QueryState.Cursor
+        selectQuery s state |> moveBackward <| pos <| context
+
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             state
@@ -208,10 +230,10 @@ module Handle =
         | Action.DeleteForwardChar -> removeForwardChar state pos context
         | Action.KillBeginningOfLine -> removeQueryHead state pos context
         | Action.KillEndOfLine -> removeQueryTail state pos context
-        | Action.SelectBackwardChar
-        | Action.SelectForwardChar
-        | Action.SelectToBeginningOfLine
-        | Action.SelectToEndOfLine -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | Action.SelectBackwardChar -> selectBackwardChar state pos context
+        | Action.SelectForwardChar -> selectForwardChar state pos context
+        | Action.SelectToBeginningOfLine -> selectToBeginningOfLine state pos context
+        | Action.SelectToEndOfLine -> selectToEndOfLine state pos context
         | Action.RotateMatcher -> switchMatcher state pos context
         | Action.RotateOperator -> switchOperator state pos context
         | Action.ToggleCaseSensitive -> toggleCaseSensitive state pos context
