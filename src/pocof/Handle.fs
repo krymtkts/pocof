@@ -97,26 +97,30 @@ module Handle =
         <| state
 
     let private selectQuery (cursor: int) (state: InternalState) =
-        let s =
-            match state.QueryState.InputMode with
-            | InputMode.Input -> 0
-            | InputMode.Select(s) -> s
+        match state.QueryState.Cursor, cursor with
+        | _, 0 -> state
+        | x, y when (x + y < 0) || (x + y > String.length state.QueryState.Query) -> state
+        | _ ->
+            let s =
+                match state.QueryState.InputMode with
+                | InputMode.Input -> 0
+                | InputMode.Select(s) -> s
 
-        { state with
-            InternalState.QueryState.InputMode = InputMode.Select(s + cursor) }
+            { state with
+                InternalState.QueryState.InputMode = InputMode.Select(s + cursor) }
 
     let private selectBackwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         selectQuery -1 state |> moveBackward <| pos <| context
 
     let private selectForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
-        selectQuery 1 state |> moveBackward <| pos <| context
+        selectQuery 1 state |> moveForward <| pos <| context
 
     let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
-        selectQuery -state.QueryState.Cursor state |> moveBackward <| pos <| context
+        selectQuery -state.QueryState.Cursor state |> moveHead <| pos <| context
 
     let private selectToEndOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
-        let s = String.length state.QueryState.Query - -state.QueryState.Cursor
-        selectQuery s state |> moveBackward <| pos <| context
+        let s = String.length state.QueryState.Query - state.QueryState.Cursor
+        selectQuery s state |> moveTail <| pos <| context
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
