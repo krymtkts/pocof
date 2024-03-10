@@ -108,6 +108,34 @@ module Screen =
 #endif
                 getQuery w q l
 
+        let escapeSequenceInvert = "\x1b[7m"
+        let escapeSequenceResetInvert = "\x1b[27m"
+
+        let calculateSelection (queryState: Data.QueryState) (queryLength: int) =
+            match queryState.InputMode with
+            | Data.InputMode.Input -> None
+            | Data.InputMode.Select(i) ->
+                match i with
+                | 0 -> None
+                | i ->
+                    let c = queryState.Cursor - queryState.WindowBeginningCursor
+                    let ci = c - i
+                    let s = min c ci
+                    let e = max c ci |> min queryLength
+                    Some(s, e)
+
+        let selectRange (queryState: Data.QueryState) (q: string) =
+            calculateSelection queryState <| String.length q
+            |> function
+                | None -> q
+                | Some(s, e) ->
+                    [ q.[0 .. s - 1]
+                      escapeSequenceInvert
+                      q.[s .. e - 1]
+                      escapeSequenceResetInvert
+                      q.[e..] ]
+                    |> String.concat ""
+
         let info (state: Data.InternalState) =
             let q =
                 let q =
@@ -119,13 +147,14 @@ module Screen =
                     | l when l > 0 -> l
                     | _ -> 0
 
-                q + String.replicate l " "
+                let q = q + String.replicate l " "
 
 #if DEBUG
-            Logger.LogFile
-                [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+                Logger.LogFile
+                    [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
-            let q = getQuery state.QueryState.WindowWidth q <| String.length q
+                getQuery state.QueryState.WindowWidth q <| String.length q
+                |> selectRange state.QueryState
 
             [ Data.InternalState.prompt state; q; Data.InternalState.queryInfo state ]
             |> String.concat ""
