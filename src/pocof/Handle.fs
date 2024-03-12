@@ -97,17 +97,9 @@ module Handle =
         <| state
 
     let private selectQuery (cursor: int) (state: InternalState) =
-        match state.QueryState.Cursor, cursor with
-        | _, 0 -> state
-        | x, y when (x + y < 0) || (x + y > String.length state.QueryState.Query) -> state
-        | _ ->
-            let s =
-                match state.QueryState.InputMode with
-                | InputMode.Input -> 0
-                | InputMode.Select(s) -> s
-
-            { state with
-                InternalState.QueryState.InputMode = InputMode.Select(s + cursor) }
+        InternalState.updateQueryState
+        <| QueryState.selectQuery cursor state.QueryState
+        <| state
 
     let private selectBackwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
         selectQuery -1 state |> moveBackward <| pos <| context
