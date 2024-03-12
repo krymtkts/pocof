@@ -481,6 +481,31 @@ module invokeAction =
 
             a3.Queries |> shouldEqual [ Query.QueryPart.Normal "" ] // TODO: Should be an empty list, though harmless.
 
+        [<Fact>]
+        let ``should remove the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name "
+                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.InputMode = InputMode.Select 3
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardChar
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":na"
+                    InternalState.QueryState.Cursor = 3
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "na" },
+                pos
+            )
+
+            a3.Queries |> shouldEqual []
+
     module ``with DeleteForwardChar`` =
         [<Fact>]
         let ``should remove the character to the right of cursor, making state.Query one character shorter.`` () =
@@ -552,6 +577,31 @@ module invokeAction =
                     PropertySearch = PropertySearch.Search "name"
                     Refresh = Refresh.Required },
                 { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> shouldEqual []
+
+        [<Fact>]
+        let ``should remove the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name "
+                    InternalState.QueryState.Cursor = 3
+                    InternalState.QueryState.InputMode = InputMode.Select -3
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardChar
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":na"
+                    InternalState.QueryState.Cursor = 3
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "na" },
+                pos
             )
 
             a3.Queries |> shouldEqual []
