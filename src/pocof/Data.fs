@@ -235,18 +235,19 @@ module Data =
 
         let setCursor (state: QueryState) (x: int) = { state with Cursor = x }
 
-        let selectQuery (cursor: int) (state: QueryState) =
+        let setInputMode (mode: InputMode) (state: QueryState) = { state with InputMode = mode }
+
+        let getQuerySelection (cursor: int) (state: QueryState) =
             match state.Cursor, cursor with
-            | _, 0 -> state
-            | x, y when (x + y < 0) || (x + y > String.length state.Query) -> state
+            | _, 0 -> state.InputMode
+            | x, y when (x + y < 0) || (x + y > String.length state.Query) -> state.InputMode
             | _ ->
                 let s =
                     match state.InputMode with
                     | InputMode.Input -> 0
                     | InputMode.Select(s) -> s
 
-                { state with
-                    QueryState.InputMode = InputMode.Select(s + cursor) }
+                InputMode.Select(s + cursor)
 
         let backspaceQuery (state: QueryState) (size: int) =
             let index, count =

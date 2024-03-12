@@ -99,7 +99,7 @@ module invokeAction =
 
     module ``with BackwardChar`` =
         [<Fact>]
-        let ``should return state with pos unmodified when moving forward on ':name' with position.X=0.`` () =
+        let ``should return state with pos unmodified when moving forward on ':name' with cursor=0.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -122,7 +122,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should return state with position.X=4 when moving forward on ':name' with position.X=5.`` () =
+        let ``should return state with cursor=4 when moving forward on ':name' with cursor=5.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -146,9 +146,38 @@ module invokeAction =
 
             a3.Queries |> shouldEqual []
 
+        [<Fact>]
+        let ``should return state with cursor=4 and InputMode=Input when moving forward on ':name' with cursor=5 and InputMode=Select.``
+            ()
+            =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    PropertySearch = PropertySearch.Search "name" }
+
+            let state, context = Query.prepare state
+
+            let a1, a2, a3 =
+                invokeAction state { Y = 0; Height = 20 } context Action.BackwardChar
+
+            (a1, a2)
+
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 4
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "nam" },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> shouldEqual []
+
     module ``with ForwardChar`` =
         [<Fact>]
-        let ``should return state with position.X=2 when moving forward on ':name' with position.X=1.`` () =
+        let ``should return state with cursor=2 when moving forward on ':name' with cursor=1.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -173,7 +202,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should return state with pos unmodified when moving forward on ':name' with position.X=5 and query.Length=3.``
+        let ``should return state with pos unmodified when moving forward on ':name' with cursor=5 and query.Length=3.``
             ()
             =
             let state =
@@ -199,9 +228,38 @@ module invokeAction =
 
             a3.Queries |> shouldEqual []
 
+        [<Fact>]
+        let ``should return state with cursor=2 and InputMode=Input when moving forward on ':name' with cursor=1 and InputMode=Select.``
+            ()
+            =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 1
+                    InternalState.QueryState.InputMode = InputMode.Select -2
+                    PropertySearch = PropertySearch.Search "" }
+
+            let state, context = Query.prepare state
+
+            let a1, a2, a3 =
+                invokeAction state { Y = 0; Height = 20 } context Action.ForwardChar
+
+            (a1, a2)
+
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 2
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "n" },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> shouldEqual []
+
     module ``with BeginningOfLine`` =
         [<Fact>]
-        let ``should return state with position.X = 0.`` () =
+        let ``should return state with cursor = 0.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -249,9 +307,35 @@ module invokeAction =
 
             a3.Queries |> shouldEqual []
 
+        [<Fact>]
+        let ``should return state with cursor = 0 and InputMode=Input.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    PropertySearch = PropertySearch.Search "name" }
+
+            let state, context = Query.prepare state
+
+            let a1, a2, a3 =
+                invokeAction state { Y = 0; Height = 20 } context Action.BeginningOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 0
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.NoSearch },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> shouldEqual []
+
     module ``with EndOfLine`` =
         [<Fact>]
-        let ``should return state with position.X = query length.`` () =
+        let ``should return state with cursor = query length.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -292,6 +376,31 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name"
                     Refresh = Refresh.NotRequired },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> shouldEqual []
+
+        [<Fact>]
+        let ``should return state with cursor = query length and InputMode=Input.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 0
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+
+            let a1, a2, a3 = invokeAction state { Y = 0; Height = 20 } context Action.EndOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "name" },
                 { Y = 0; Height = 20 }
             )
 

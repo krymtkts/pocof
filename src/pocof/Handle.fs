@@ -19,8 +19,16 @@ module Handle =
 
         state, pos, context |> QueryContext.prepareQuery state
 
-    let private moveCursor (cursor: int) (limit: int) (state: InternalState) (pos: Position) (context: QueryContext) =
-        let qs = QueryState.moveCursor state.QueryState cursor
+    let private moveCursor
+        (cursor: int)
+        (limit: int)
+        (mode: InputMode)
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        let qs =
+            QueryState.moveCursor state.QueryState cursor |> QueryState.setInputMode mode
 
         state
         |> InternalState.refreshIfTrue (state.QueryState.Cursor <> limit)
@@ -28,13 +36,23 @@ module Handle =
         pos,
         context
 
-    let private moveBackward = moveCursor -1 0
+    let private moveBackwardWith = moveCursor -1 0
+    let private moveBackward = moveBackwardWith InputMode.Input
 
-    let private moveForward (state: InternalState) =
-        moveCursor 1 <| String.length state.QueryState.Query <| state
+    let private moveForwardWith (mode: InputMode) (state: InternalState) =
+        moveCursor 1 <| String.length state.QueryState.Query <| mode <| state
 
-    let private setCursor (cursor: int) (state: InternalState) (pos: Position) (context: QueryContext) =
-        let qs = QueryState.setCursor state.QueryState cursor
+    let private moveForward = moveForwardWith InputMode.Input
+
+    let private setCursor
+        (cursor: int)
+        (mode: InputMode)
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        let qs =
+            QueryState.setCursor state.QueryState cursor |> QueryState.setInputMode mode
 
         state
         |> InternalState.refreshIfTrue (state.QueryState.Cursor <> cursor)
@@ -42,10 +60,13 @@ module Handle =
         pos,
         context
 
-    let private moveHead = setCursor 0
+    let private moveHeadWith = setCursor 0
+    let private moveHead = moveHeadWith InputMode.Input
 
-    let private moveTail (state: InternalState) =
-        setCursor <| String.length state.QueryState.Query <| state
+    let private moveTailWith (mode: InputMode) (state: InternalState) =
+        setCursor <| String.length state.QueryState.Query <| mode <| state
+
+    let private moveTail = moveTailWith InputMode.Input
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -96,23 +117,28 @@ module Handle =
         <| String.length state.QueryState.Query - state.QueryState.Cursor
         <| state
 
-    let private selectQuery (cursor: int) (state: InternalState) =
-        InternalState.updateQueryState
-        <| QueryState.selectQuery cursor state.QueryState
-        <| state
+    let private selectBackwardChar (state: InternalState) =
+        moveBackwardWith <| QueryState.getQuerySelection -1 state.QueryState <| state
 
-    let private selectBackwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
-        selectQuery -1 state |> moveBackward <| pos <| context
-
-    let private selectForwardChar (state: InternalState) (pos: Position) (context: QueryContext) =
-        selectQuery 1 state |> moveForward <| pos <| context
+    let private selectForwardChar (state: InternalState) =
+        moveForwardWith <| QueryState.getQuerySelection 1 state.QueryState <| state
 
     let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
-        selectQuery -state.QueryState.Cursor state |> moveHead <| pos <| context
+        setCursor 0
+        <| (QueryState.getQuerySelection -state.QueryState.Cursor state.QueryState)
+        <| state
+        <| pos
+        <| context
 
     let private selectToEndOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
         let s = String.length state.QueryState.Query - state.QueryState.Cursor
-        selectQuery s state |> moveTail <| pos <| context
+
+        setCursor
+        <| String.length state.QueryState.Query
+        <| (QueryState.getQuerySelection s state.QueryState)
+        <| state
+        <| pos
+        <| context
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
