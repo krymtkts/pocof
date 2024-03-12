@@ -983,6 +983,80 @@ module invokeAction =
 
             a3.Queries |> shouldEqual []
 
+    module ``with SelectAll`` =
+        [<Fact>]
+        let ``should return QueryState with Cursor=5 and InputMode=Select 5 with Cursor=0 and InputMode=Input.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 0
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos: Position = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.SelectAll
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    PropertySearch = PropertySearch.Search "name" },
+                pos
+            )
+
+            a3.Queries |> shouldEqual []
+
+        [<Fact>]
+        let ``should return QueryState with Cursor=5 and InputMode=Select 5 with Cursor=1 and InputMode=Input.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 1
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "" }
+
+            let state, context = Query.prepare state
+            let pos: Position = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.SelectAll
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    PropertySearch = PropertySearch.Search "name" },
+                pos
+            )
+
+            a3.Queries |> shouldEqual []
+
+        [<Fact>]
+        let ``should return QueryState with Cursor=5 and InputMode=Select 5 with Cursor=5.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    PropertySearch = PropertySearch.Search "name" }
+
+            let state, context = Query.prepare state
+
+            let a1, a2, a3 = invokeAction state { Y = 0; Height = 20 } context Action.SelectAll
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name"
+                    InternalState.QueryState.Cursor = 5
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    PropertySearch = PropertySearch.Search "name" },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> shouldEqual []
+
     let testStateAndContext action state context expectedState =
         let a1, a2, a3 = invokeAction state position context action
 
