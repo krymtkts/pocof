@@ -140,6 +140,16 @@ module Handle =
         <| pos
         <| context
 
+    let private selectAll (state: InternalState) (pos: Position) (context: QueryContext) =
+        let s = String.length state.QueryState.Query
+
+        let qs =
+            QueryState.setInputMode
+            <| InputMode.Select(s)
+            <| QueryState.setCursor state.QueryState s
+
+        state |> InternalState.refresh |> InternalState.updateQueryState qs, pos, context
+
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             state
@@ -256,6 +266,7 @@ module Handle =
         | Action.SelectForwardChar -> selectForwardChar state pos context
         | Action.SelectToBeginningOfLine -> selectToBeginningOfLine state pos context
         | Action.SelectToEndOfLine -> selectToEndOfLine state pos context
+        | Action.SelectAll -> selectAll state pos context
         | Action.RotateMatcher -> switchMatcher state pos context
         | Action.RotateOperator -> switchOperator state pos context
         | Action.ToggleCaseSensitive -> toggleCaseSensitive state pos context

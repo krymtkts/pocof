@@ -128,6 +128,7 @@ module Data =
         | SelectForwardChar
         | SelectToBeginningOfLine
         | SelectToEndOfLine
+        | SelectAll
         // toggle options.
         | RotateMatcher
         | RotateOperator

@@ -46,6 +46,7 @@ module Keys =
               (shift ConsoleKey.RightArrow, Data.Action.SelectForwardChar)
               (shift ConsoleKey.Home, Data.Action.SelectToBeginningOfLine)
               (shift ConsoleKey.End, Data.Action.SelectToEndOfLine)
+              (ctrl ConsoleKey.A, Data.Action.SelectAll)
 
               (alt ConsoleKey.R, Data.Action.RotateMatcher)
               (alt ConsoleKey.L, Data.Action.RotateOperator)
