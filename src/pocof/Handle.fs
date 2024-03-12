@@ -125,7 +125,7 @@ module Handle =
 
     let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
         setCursor 0
-        <| (QueryState.getQuerySelection -state.QueryState.Cursor state.QueryState)
+        <| QueryState.getQuerySelection -state.QueryState.Cursor state.QueryState
         <| state
         <| pos
         <| context
@@ -135,7 +135,7 @@ module Handle =
 
         setCursor
         <| String.length state.QueryState.Query
-        <| (QueryState.getQuerySelection s state.QueryState)
+        <| QueryState.getQuerySelection s state.QueryState
         <| state
         <| pos
         <| context
@@ -145,7 +145,7 @@ module Handle =
 
         let qs =
             QueryState.setInputMode
-            <| InputMode.Select(s)
+            <| InputMode.Select s
             <| QueryState.setCursor state.QueryState s
 
         state |> InternalState.refresh |> InternalState.updateQueryState qs, pos, context
