@@ -180,7 +180,8 @@ module initConfig =
                 { Query = ":name"
                   Cursor = 5
                   WindowBeginningCursor = 0
-                  WindowWidth = 60 - (String.length "prompt>") - (String.length " notclike and [10]") }
+                  WindowWidth = 60 - (String.length "prompt>") - (String.length " notclike and [10]")
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Like
                   Operator = Operator.And
@@ -264,7 +265,8 @@ module QueryState =
             { Query = q
               Cursor = x
               WindowBeginningCursor = 0
-              WindowWidth = 0 }
+              WindowWidth = 0
+              InputMode = InputMode.Input }
 
         [<Fact>]
         let ``should returns NoSearch when no colon`` () =

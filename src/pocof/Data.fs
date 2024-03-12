@@ -128,6 +128,7 @@ module Data =
         | SelectForwardChar
         | SelectToBeginningOfLine
         | SelectToEndOfLine
+        | SelectAll
         // toggle options.
         | RotateMatcher
         | RotateOperator
@@ -205,11 +206,18 @@ module Data =
           Keymaps: Map<KeyPattern, Action>
           NotInteractive: bool }
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    type InputMode =
+        | Input
+        | Select of int
+
     type QueryState =
         { Query: string
           Cursor: int
           WindowBeginningCursor: int
-          WindowWidth: int }
+          WindowWidth: int
+          InputMode: InputMode }
 
     module QueryState =
         let addQuery (state: QueryState) (query: string) =
@@ -227,6 +235,20 @@ module Data =
             { state with Cursor = x }
 
         let setCursor (state: QueryState) (x: int) = { state with Cursor = x }
+
+        let setInputMode (mode: InputMode) (state: QueryState) = { state with InputMode = mode }
+
+        let getQuerySelection (cursor: int) (state: QueryState) =
+            match state.Cursor, cursor with
+            | _, 0 -> state.InputMode
+            | x, y when (x + y < 0) || (x + y > String.length state.Query) -> state.InputMode
+            | _ ->
+                let s =
+                    match state.InputMode with
+                    | InputMode.Input -> 0
+                    | InputMode.Select(s) -> s
+
+                InputMode.Select(s + cursor)
 
         let backspaceQuery (state: QueryState) (size: int) =
             let index, count =
@@ -416,7 +438,8 @@ module Data =
             { Query = p.Query
               Cursor = String.length p.Query
               WindowBeginningCursor = 0 // NOTE: adjust later.
-              WindowWidth = p.ConsoleWidth }
+              WindowWidth = p.ConsoleWidth
+              InputMode = InputMode.Input }
 
         let s =
             { QueryState = qs

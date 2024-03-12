@@ -19,8 +19,16 @@ module Handle =
 
         state, pos, context |> QueryContext.prepareQuery state
 
-    let private moveCursor (cursor: int) (limit: int) (state: InternalState) (pos: Position) (context: QueryContext) =
-        let qs = QueryState.moveCursor state.QueryState cursor
+    let private moveCursor
+        (cursor: int)
+        (limit: int)
+        (mode: InputMode)
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        let qs =
+            QueryState.moveCursor state.QueryState cursor |> QueryState.setInputMode mode
 
         state
         |> InternalState.refreshIfTrue (state.QueryState.Cursor <> limit)
@@ -28,13 +36,23 @@ module Handle =
         pos,
         context
 
-    let private moveBackward = moveCursor -1 0
+    let private moveBackwardWith = moveCursor -1 0
+    let private moveBackward = moveBackwardWith InputMode.Input
 
-    let private moveForward (state: InternalState) =
-        moveCursor 1 <| String.length state.QueryState.Query <| state
+    let private moveForwardWith (mode: InputMode) (state: InternalState) =
+        moveCursor 1 <| String.length state.QueryState.Query <| mode <| state
 
-    let private setCursor (cursor: int) (state: InternalState) (pos: Position) (context: QueryContext) =
-        let qs = QueryState.setCursor state.QueryState cursor
+    let private moveForward = moveForwardWith InputMode.Input
+
+    let private setCursor
+        (cursor: int)
+        (mode: InputMode)
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        let qs =
+            QueryState.setCursor state.QueryState cursor |> QueryState.setInputMode mode
 
         state
         |> InternalState.refreshIfTrue (state.QueryState.Cursor <> cursor)
@@ -42,10 +60,13 @@ module Handle =
         pos,
         context
 
-    let private moveHead = setCursor 0
+    let private moveHeadWith = setCursor 0
+    let private moveHead = moveHeadWith InputMode.Input
 
-    let private moveTail (state: InternalState) =
-        setCursor <| String.length state.QueryState.Query <| state
+    let private moveTailWith (mode: InputMode) (state: InternalState) =
+        setCursor <| String.length state.QueryState.Query <| mode <| state
+
+    let private moveTail = moveTailWith InputMode.Input
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -95,6 +116,39 @@ module Handle =
         removeChar Direction.Forward
         <| String.length state.QueryState.Query - state.QueryState.Cursor
         <| state
+
+    let private selectBackwardChar (state: InternalState) =
+        moveBackwardWith <| QueryState.getQuerySelection -1 state.QueryState <| state
+
+    let private selectForwardChar (state: InternalState) =
+        moveForwardWith <| QueryState.getQuerySelection 1 state.QueryState <| state
+
+    let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
+        setCursor 0
+        <| QueryState.getQuerySelection -state.QueryState.Cursor state.QueryState
+        <| state
+        <| pos
+        <| context
+
+    let private selectToEndOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
+        let s = String.length state.QueryState.Query - state.QueryState.Cursor
+
+        setCursor
+        <| String.length state.QueryState.Query
+        <| QueryState.getQuerySelection s state.QueryState
+        <| state
+        <| pos
+        <| context
+
+    let private selectAll (state: InternalState) (pos: Position) (context: QueryContext) =
+        let s = String.length state.QueryState.Query
+
+        let qs =
+            QueryState.setInputMode
+            <| InputMode.Select s
+            <| QueryState.setCursor state.QueryState s
+
+        state |> InternalState.refresh |> InternalState.updateQueryState qs, pos, context
 
     let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -208,10 +262,11 @@ module Handle =
         | Action.DeleteForwardChar -> removeForwardChar state pos context
         | Action.KillBeginningOfLine -> removeQueryHead state pos context
         | Action.KillEndOfLine -> removeQueryTail state pos context
-        | Action.SelectBackwardChar
-        | Action.SelectForwardChar
-        | Action.SelectToBeginningOfLine
-        | Action.SelectToEndOfLine -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | Action.SelectBackwardChar -> selectBackwardChar state pos context
+        | Action.SelectForwardChar -> selectForwardChar state pos context
+        | Action.SelectToBeginningOfLine -> selectToBeginningOfLine state pos context
+        | Action.SelectToEndOfLine -> selectToEndOfLine state pos context
+        | Action.SelectAll -> selectAll state pos context
         | Action.RotateMatcher -> switchMatcher state pos context
         | Action.RotateOperator -> switchOperator state pos context
         | Action.ToggleCaseSensitive -> toggleCaseSensitive state pos context

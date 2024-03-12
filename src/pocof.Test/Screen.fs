@@ -139,7 +139,8 @@ module ``Buff writeScreen`` =
                 { Query = "foo"
                   Cursor = 3
                   WindowBeginningCursor = 0
-                  WindowWidth = 0 }
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -175,7 +176,8 @@ module ``Buff writeScreen`` =
                 { Query = "foo"
                   Cursor = 3
                   WindowBeginningCursor = 0
-                  WindowWidth = 0 }
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -210,7 +212,8 @@ module ``Buff writeScreen`` =
                 { Query = "hello*world*"
                   Cursor = 12
                   WindowBeginningCursor = 0
-                  WindowWidth = 0 }
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Like
                   Operator = Operator.Or
@@ -244,7 +247,8 @@ module ``Buff writeScreen`` =
                 { Query = "hello*world*"
                   Cursor = 12
                   WindowBeginningCursor = 0
-                  WindowWidth = 0 }
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Like
                   Operator = Operator.Or
@@ -278,7 +282,8 @@ module ``Buff writeScreen`` =
                 { Query = @"\"
                   Cursor = 1
                   WindowBeginningCursor = 0
-                  WindowWidth = 0 }
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -315,7 +320,8 @@ module ``Buff writeScreen`` =
                 { Query = @":unknown"
                   Cursor = 8
                   WindowBeginningCursor = 0
-                  WindowWidth = 0 }
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -360,7 +366,8 @@ module ``Buff writeScreen`` =
                 { Query = ""
                   Cursor = 0
                   WindowBeginningCursor = 0
-                  WindowWidth = 0 }
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -405,7 +412,8 @@ module ``Buff writeScreen`` =
                 { Query = ""
                   Cursor = 0
                   WindowBeginningCursor = 0
-                  WindowWidth = 0 }
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Match
                   Operator = Operator.And
@@ -447,7 +455,8 @@ module ``Buff writeScreen`` =
                     { Query = query
                       Cursor = cursor
                       WindowBeginningCursor = beginning
-                      WindowWidth = 30 }
+                      WindowWidth = 30
+                      InputMode = InputMode.Input }
                   QueryCondition =
                     { Matcher = Matcher.Match
                       Operator = Operator.And
@@ -563,6 +572,153 @@ module ``Buff writeScreen`` =
 
             let expected =
                 "query>７------->８------->９-------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+    module ``query selection`` =
+        let getRenderedScreen query cursor beginning inputMode =
+            let rui = new MockRawUI(50, 25)
+            // NOTE: avoid cleanup of buff to check screen.
+            let state: InternalState =
+                { QueryState =
+                    { Query = query
+                      Cursor = cursor
+                      WindowBeginningCursor = beginning
+                      WindowWidth = 30
+                      InputMode = inputMode }
+                  QueryCondition =
+                    { Matcher = Matcher.Match
+                      Operator = Operator.And
+                      CaseSensitive = false
+                      Invert = false }
+                  PropertySearch = PropertySearch.NoSearch
+                  Notification = ""
+                  SuppressProperties = false
+                  Properties = []
+                  Prompt = "query"
+                  FilteredCount = 0
+                  ConsoleWidth = rui.width
+                  Refresh = Refresh.Required }
+
+            getRenderedScreen rui state Layout.TopDown
+
+        [<Fact>]
+        let ``should render query without selection.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 0 0 InputMode.Input
+
+            let expected =
+                "query>0-------->1-------->2--------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 0 and selection from 0 to 10.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 0 0 <| InputMode.Select(-10)
+
+            let expected =
+                $"query>{escapeSequenceInvert}0-------->{escapeSequenceResetInvert}1-------->2--------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 10 and selection from 0 to 10.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 10 0 <| InputMode.Select(10)
+
+            let expected =
+                $"query>{escapeSequenceInvert}0-------->{escapeSequenceResetInvert}1-------->2--------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 0 and selection from 0 to 40.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 0 0 <| InputMode.Select(-40)
+
+            let expected =
+                $"query>{escapeSequenceInvert}0-------->1-------->2-------->{escapeSequenceResetInvert} match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 30 and selection from 30 to 40.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 30 30 <| InputMode.Select(-10)
+
+            let expected =
+                $"query>{escapeSequenceInvert}3-------->{escapeSequenceResetInvert}4-------->5--------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 40 and selection from 30 to 40.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 40 30 <| InputMode.Select(10)
+
+            let expected =
+                $"query>{escapeSequenceInvert}3-------->{escapeSequenceResetInvert}4-------->5--------> match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 60 and selection from 20 to 60.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 60 30 <| InputMode.Select(40)
+
+            let expected =
+                $"query>{escapeSequenceInvert}3-------->4-------->5-------->{escapeSequenceResetInvert} match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 90 and selection from 90 to 100.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 90 70 <| InputMode.Select(-10)
+
+            let expected =
+                $"query>7-------->8-------->{escapeSequenceInvert}9-------->{escapeSequenceResetInvert} match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 100 and selection from 90 to 100.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 100 70 <| InputMode.Select(10)
+
+            let expected =
+                $"query>7-------->8-------->{escapeSequenceInvert}9-------->{escapeSequenceResetInvert} match and [0]"
+                :: (generateLine rui.width (rui.height - 1))
+
+            rui.screen |> shouldEqual expected
+
+        [<Fact>]
+        let ``should render query with cursor at 100 and selection from 60 to 100.`` () =
+            let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
+
+            let rui = getRenderedScreen query 100 70 <| InputMode.Select(40)
+
+            let expected =
+                $"query>{escapeSequenceInvert}7-------->8-------->9-------->{escapeSequenceResetInvert} match and [0]"
                 :: (generateLine rui.width (rui.height - 1))
 
             rui.screen |> shouldEqual expected
