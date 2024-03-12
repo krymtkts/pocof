@@ -55,6 +55,9 @@ module Screen =
 
     type WriteScreen = Data.InternalState -> Data.Entry list -> Result<string list, string> -> unit
 
+    let escapeSequenceInvert = "\x1b[7m"
+    let escapeSequenceResetInvert = "\x1b[27m"
+
     type Buff(r, i, layout) =
         let rui: IRawUI = r
         let invoke: obj list -> string seq = i
@@ -108,33 +111,24 @@ module Screen =
 #endif
                 getQuery w q l
 
-        let escapeSequenceInvert = "\x1b[7m"
-        let escapeSequenceResetInvert = "\x1b[27m"
-
-        let calculateSelection (queryState: Data.QueryState) (queryLength: int) =
+        let selectRange (queryState: Data.QueryState) (q: string) =
             match queryState.InputMode with
-            | Data.InputMode.Input -> None
-            | Data.InputMode.Select(i) ->
-                match i with
+            | Data.InputMode.Input -> 0
+            | Data.InputMode.Select(i) -> i
+            |> function
                 | 0 -> None
                 | i ->
-                    let c = queryState.Cursor - queryState.WindowBeginningCursor
-                    let ci = c - i
-                    let s = min c ci
-                    let e = max c ci |> min queryLength
-                    Some(s, e)
+                    let s, e =
+                        let c = queryState.Cursor - queryState.WindowBeginningCursor
+                        let ci = c - i
+                        if c < ci then (c, ci) else (ci, c)
 
-        let selectRange (queryState: Data.QueryState) (q: string) =
-            calculateSelection queryState <| String.length q
+                    let s = max s 0
+                    let e = min e <| String.length q
+                    Some(s, e)
             |> function
                 | None -> q
-                | Some(s, e) ->
-                    [ q.[0 .. s - 1]
-                      escapeSequenceInvert
-                      q.[s .. e - 1]
-                      escapeSequenceResetInvert
-                      q.[e..] ]
-                    |> String.concat ""
+                | Some(s, e) -> q.Insert(e, escapeSequenceResetInvert).Insert(s, escapeSequenceInvert)
 
         let info (state: Data.InternalState) =
             let q =
