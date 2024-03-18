@@ -675,6 +675,52 @@ module invokeAction =
 
             a3.Queries |> shouldEqual [ Query.QueryPart.Normal("query") ]
 
+        [<Fact>]
+        let ``should remove all characters before the cursor including the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    InternalState.QueryState.Cursor = 10 }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.KillBeginningOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = "ry"
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    InternalState.QueryState.Cursor = 0 },
+                pos
+            )
+
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ry") ]
+
+        [<Fact>]
+        let ``should remove all characters before the cursor and the the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.InputMode = InputMode.Select -5
+                    InternalState.QueryState.Cursor = 5 }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.KillBeginningOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = "ry"
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    InternalState.QueryState.Cursor = 0 },
+                pos
+            )
+
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ry") ]
+
     module ``with KillEndOfLine`` =
         [<Fact>]
         let ``should remove characters after the current cursor position.`` () =
