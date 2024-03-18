@@ -137,10 +137,24 @@ module Handle =
 
         removeChar Direction.Backward state.QueryState.Cursor state pos context
 
-    let private removeQueryTail (state: InternalState) =
-        removeChar Direction.Forward
-        <| String.length state.QueryState.Query - state.QueryState.Cursor
-        <| state
+    let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
+        let queryLength = String.length state.QueryState.Query
+
+        let state, pos, context, beginning =
+            match state.QueryState.InputMode with
+            | InputMode.Input -> (state, pos, context, state.QueryState.Cursor)
+            | InputMode.Select c ->
+                let beginning =
+                    match state.QueryState.Cursor - c with
+                    | x when x > state.QueryState.Cursor -> state.QueryState.Cursor
+                    | x -> x
+
+                let state, pos, context = setCursor queryLength InputMode.Input state pos context
+                let mode = QueryState.getQuerySelection -(queryLength - beginning) state.QueryState
+                let state, pos, context = setCursor beginning mode state pos context
+                state, pos, context, beginning
+
+        removeChar Direction.Forward (queryLength - beginning) state pos context
 
     let private selectBackwardChar (state: InternalState) =
         moveBackwardWith <| QueryState.getQuerySelection -1 state.QueryState <| state
