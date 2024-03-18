@@ -91,7 +91,7 @@ module Handle =
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
 
-            state, pos, context
+            state, pos, context |> QueryContext.prepareQuery state
         | _ ->
             let limit =
                 match direction with
@@ -121,8 +121,21 @@ module Handle =
 
     let private removeForwardChar = removeChar Direction.Forward 1
 
-    let private removeQueryHead (state: InternalState) =
-        removeChar Direction.Backward state.QueryState.Cursor state
+    let private removeQueryHead (state: InternalState) (pos: Position) (context: QueryContext) =
+        let state, pos, context =
+            match state.QueryState.InputMode with
+            | InputMode.Input -> (state, pos, context)
+            | InputMode.Select c ->
+                let selection =
+                    match state.QueryState.Cursor - c with
+                    | x when x < state.QueryState.Cursor -> state.QueryState.Cursor
+                    | x -> x
+
+                let state, pos, context = setCursor selection InputMode.Input state pos context
+                let mode = QueryState.getQuerySelection -selection state.QueryState
+                setCursor 0 mode state pos context
+
+        removeChar Direction.Backward state.QueryState.Cursor state pos context
 
     let private removeQueryTail (state: InternalState) =
         removeChar Direction.Forward
