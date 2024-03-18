@@ -274,6 +274,20 @@ module Data =
                 { state with
                     Query = state.Query.Remove(state.Cursor, size) }
 
+        let deleteSelection (state: QueryState) =
+            match state.InputMode with
+            | InputMode.Input -> state
+            | InputMode.Select c ->
+                let si, c =
+                    match state.Cursor, state.Cursor - c with
+                    | s, e when s < e -> s, e
+                    | e, s -> s, e
+
+                { state with
+                    Query = state.Query.Remove(si, c - si)
+                    Cursor = si
+                    InputMode = InputMode.Input }
+
         let getCurrentProperty (state: QueryState) =
             let s = state.Query.[.. state.Cursor - 1] |> String.split " " |> Seq.last
 

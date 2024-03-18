@@ -481,6 +481,31 @@ module invokeAction =
 
             a3.Queries |> shouldEqual [ Query.QueryPart.Normal "" ] // TODO: Should be an empty list, though harmless.
 
+        [<Fact>]
+        let ``should remove the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name "
+                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.InputMode = InputMode.Select 3
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardChar
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":na"
+                    InternalState.QueryState.Cursor = 3
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "na" },
+                pos
+            )
+
+            a3.Queries |> shouldEqual []
+
     module ``with DeleteForwardChar`` =
         [<Fact>]
         let ``should remove the character to the right of cursor, making state.Query one character shorter.`` () =
@@ -556,6 +581,31 @@ module invokeAction =
 
             a3.Queries |> shouldEqual []
 
+        [<Fact>]
+        let ``should remove the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name "
+                    InternalState.QueryState.Cursor = 3
+                    InternalState.QueryState.InputMode = InputMode.Select -3
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardChar
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":na"
+                    InternalState.QueryState.Cursor = 3
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "na" },
+                pos
+            )
+
+            a3.Queries |> shouldEqual []
+
     module ``with KillBeginningOfLine`` =
         [<Fact>]
         let ``should remove all characters before the specified position.`` () =
@@ -625,6 +675,52 @@ module invokeAction =
 
             a3.Queries |> shouldEqual [ Query.QueryPart.Normal("query") ]
 
+        [<Fact>]
+        let ``should remove all characters before the cursor including the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    InternalState.QueryState.Cursor = 10 }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.KillBeginningOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = "ry"
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    InternalState.QueryState.Cursor = 0 },
+                pos
+            )
+
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ry") ]
+
+        [<Fact>]
+        let ``should remove all characters before the cursor and the the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.InputMode = InputMode.Select -5
+                    InternalState.QueryState.Cursor = 5 }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.KillBeginningOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = "ry"
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    InternalState.QueryState.Cursor = 0 },
+                pos
+            )
+
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ry") ]
+
     module ``with KillEndOfLine`` =
         [<Fact>]
         let ``should remove characters after the current cursor position.`` () =
@@ -670,6 +766,52 @@ module invokeAction =
             )
 
             a3.Queries |> shouldEqual [ Query.QueryPart.Normal("example") ]
+
+        [<Fact>]
+        let ``should remove all characters after the cursor including the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    InternalState.QueryState.Cursor = 7 }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.KillEndOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = "ex"
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    InternalState.QueryState.Cursor = 2 },
+                pos
+            )
+
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ex") ]
+
+        [<Fact>]
+        let ``should remove all characters before the cursor and the the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.InputMode = InputMode.Select -5
+                    InternalState.QueryState.Cursor = 2 }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.KillEndOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = "ex"
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    InternalState.QueryState.Cursor = 2 },
+                pos
+            )
+
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ex") ]
 
     module ``with SelectBackwardChar`` =
         [<Fact>]

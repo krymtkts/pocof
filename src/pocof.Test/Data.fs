@@ -296,3 +296,15 @@ module QueryState =
         let ``should returns Search with "a" when start with colon and trailing keyword `` () =
             QueryState.getCurrentProperty (qs ":a a" 2)
             |> shouldEqual (PropertySearch.Search "a")
+
+    module deleteSelection =
+        [<Fact>]
+        let ``should returns no change when InputMode.Input `` () =
+            let state =
+                { Query = ""
+                  Cursor = 0
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
+
+            QueryState.deleteSelection state |> shouldEqual state
