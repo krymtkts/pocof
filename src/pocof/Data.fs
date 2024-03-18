@@ -220,7 +220,7 @@ module Data =
           InputMode: InputMode }
 
     module QueryState =
-        let addQuery (state: QueryState) (query: string) =
+        let addQuery (query: string) (state: QueryState) =
             { state with
                 Query = state.Query.Insert(state.Cursor, query)
                 Cursor = state.Cursor + String.length query }

@@ -9,7 +9,7 @@ module Handle =
     type QueryContext = Query.QueryContext
 
     let private addQuery (state: InternalState) (pos: Position) (context: QueryContext) (s: string) =
-        let qs = QueryState.addQuery state.QueryState s
+        let qs = QueryState.deleteSelection state.QueryState |> QueryState.addQuery s
 
         let state =
             state
