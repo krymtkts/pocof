@@ -767,6 +767,52 @@ module invokeAction =
 
             a3.Queries |> shouldEqual [ Query.QueryPart.Normal("example") ]
 
+        [<Fact>]
+        let ``should remove all characters after the cursor including the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.InputMode = InputMode.Select 5
+                    InternalState.QueryState.Cursor = 7 }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.KillEndOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = "ex"
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    InternalState.QueryState.Cursor = 2 },
+                pos
+            )
+
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ex") ]
+
+        [<Fact>]
+        let ``should remove all characters before the cursor and the the selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = "examplequery"
+                    InternalState.QueryState.InputMode = InputMode.Select -5
+                    InternalState.QueryState.Cursor = 2 }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.KillEndOfLine
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = "ex"
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    InternalState.QueryState.Cursor = 2 },
+                pos
+            )
+
+            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ex") ]
+
     module ``with SelectBackwardChar`` =
         [<Fact>]
         let ``should return QueryState with no change when moving backward on ':name' with Cursor=0.`` () =
