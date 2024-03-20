@@ -305,15 +305,16 @@ module Data =
           Invert: bool }
 
         override __.ToString() =
-            List.append
-            <| match __.Matcher, __.CaseSensitive, __.Invert with
-               | m, false, false -> [ string m ]
-               | m, true, false -> [ "c"; string m ]
-               | Matcher.Eq, false, true -> [ "ne" ]
-               | Matcher.Eq, true, true -> [ "cne" ]
-               | m, false, true -> [ "not"; string m ]
-               | m, true, true -> [ "cnot"; string m ]
-            <| [ " "; string __.Operator ]
+            [ match __.CaseSensitive with
+              | true -> "c"
+              | _ -> ""
+              // NOTE: use ToString to avoid extra branches when calculating coverages.
+              match __.Matcher, __.Invert with
+              | Matcher.Eq, true -> "ne"
+              | m, true -> "not" + m.ToString()
+              | m, _ -> m.ToString()
+              " "
+              __.Operator.ToString() ]
             |> String.concat ""
 
     module QueryCondition =
