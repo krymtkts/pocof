@@ -103,7 +103,7 @@ module Data =
 
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
-        | true -> Some s.[String.length p ..]
+        | true -> Some <| s.Substring(p.Length)
         | _ -> None
 
     [<RequireQualifiedAccess>]
@@ -289,7 +289,7 @@ module Data =
                     InputMode = InputMode.Input }
 
         let getCurrentProperty (state: QueryState) =
-            let s = state.Query.[.. state.Cursor - 1] |> String.split " " |> Seq.last
+            let s = state.Query.Substring(0, state.Cursor) |> String.split " " |> Seq.last
 
 #if DEBUG
             Logger.LogFile [ $"query '{state.Query}' x '{state.Cursor}' string '{s}'" ]
