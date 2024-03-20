@@ -312,7 +312,7 @@ module Data =
                | Matcher.Eq, false, true -> [ "ne" ]
                | Matcher.Eq, true, true -> [ "cne" ]
                | m, false, true -> [ "not"; string m ]
-               | m, true, true -> [ "notc"; string m ]
+               | m, true, true -> [ "cnot"; string m ]
             <| [ " "; string __.Operator ]
             |> String.concat ""
 
