@@ -105,7 +105,7 @@ module Screen =
             | x when x = 0 || x = 1 -> q
             | x ->
                 let l = l + (x + Math.Sign(x)) / 2
-                let q = q.[..l]
+                let q = q.Substring(0, l)
 #if DEBUG
                 Logger.LogFile [ $"l '{l}'" ]
 #endif
@@ -133,8 +133,11 @@ module Screen =
         let info (state: Data.InternalState) =
             let q =
                 let q =
-                    state.QueryState.Query.[state.QueryState.WindowBeginningCursor .. state.QueryState.WindowWidth
-                                                                                      + state.QueryState.WindowBeginningCursor]
+                    state.QueryState.Query.Substring(state.QueryState.WindowBeginningCursor)
+                    |> function
+                        | x when String.length x > state.QueryState.WindowWidth ->
+                            x.Substring(0, state.QueryState.WindowWidth)
+                        | x -> x
 
                 let l =
                     match state.QueryState.WindowWidth - String.length q with
@@ -230,7 +233,15 @@ module Screen =
             <| match state.Notification with
                | "" ->
                    match props with
-                   | Ok(p) -> (String.concat " " p).[.. (rui.GetWindowWidth()) - 1]
+                   | Ok(p) ->
+                       let suggestion = String.concat " " p
+
+                       let length =
+                           match String.length suggestion, rui.GetWindowWidth() with
+                           | l, w when l > w -> w
+                           | l, _ -> l
+
+                       suggestion.Substring(0, length)
                    | Error(e) -> note + e
                | _ -> note + state.Notification
 
@@ -263,7 +274,7 @@ module Screen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetLengthInBufferCells topLine.[.. (Data.InternalState.getX state) - 1]
+            <| rui.GetLengthInBufferCells(topLine.Substring(0, Data.InternalState.getX state))
             <| basePosition
 
         member __.GetConsoleWidth = rui.GetWindowWidth
