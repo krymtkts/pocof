@@ -240,14 +240,14 @@ module Handle =
         let tailHead = String.split " " tail |> Seq.head
 
         match rest = tailHead with
-        | true -> Some(tail.[String.length tailHead ..])
+        | true -> Some(tail.Substring(String.length tailHead))
         | _ -> None
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = state.QueryState.Cursor - String.length keyword
-            let head = state.QueryState.Query.[.. basePosition - 1]
-            let tail = state.QueryState.Query.[state.QueryState.Cursor ..]
+            let head = state.QueryState.Query.Substring(0, basePosition)
+            let tail = state.QueryState.Query.Substring(state.QueryState.Cursor)
 
             match candidate with
             | AlreadyCompleted keyword tail rest -> basePosition, head, rest
