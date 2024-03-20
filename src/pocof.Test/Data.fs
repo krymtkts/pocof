@@ -127,16 +127,16 @@ module ``QueryState toString should returns`` =
         string actual |> shouldEqual "notlike and"
 
     [<Fact>]
-    let ``notclike and`` () =
+    let ``cnotlike and`` () =
         let actual = queryState Matcher.Like Operator.And |> caseSensitive |> invert
 
-        string actual |> shouldEqual "notclike and"
+        string actual |> shouldEqual "cnotlike and"
 
     [<Fact>]
-    let ``notcmatch or`` () =
+    let ``cnotmatch or`` () =
         let actual = queryState Matcher.Match Operator.Or |> caseSensitive |> invert
 
-        string actual |> shouldEqual "notcmatch or"
+        string actual |> shouldEqual "cnotmatch or"
 
     [<Fact>]
     let ``notmatch or`` () =
@@ -180,7 +180,7 @@ module initConfig =
                 { Query = ":name"
                   Cursor = 5
                   WindowBeginningCursor = 0
-                  WindowWidth = 60 - (String.length "prompt>") - (String.length " notclike and [10]")
+                  WindowWidth = 60 - (String.length "prompt>") - (String.length " cnotlike and [10]")
                   InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Like
