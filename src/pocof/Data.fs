@@ -250,7 +250,7 @@ module Data =
 
                 InputMode.Select(s + cursor)
 
-        let backspaceQuery (state: QueryState) (size: int) =
+        let backspaceQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             let index, count =
                 match String.length state.Query, state.Cursor with
                 | len, cur when len - cur < 0 ->
@@ -260,14 +260,13 @@ module Data =
                     | s -> s
                 | _, cur -> cur, size
                 |> function
-                    | cursor, size when cursor - size < 0 -> 0, state.Cursor
                     | cursor, size -> cursor - size, size
 
             { state with
                 Query = state.Query.Remove(index, count)
                 Cursor = index }
 
-        let deleteQuery (state: QueryState) (size: int) =
+        let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             match String.length state.Query, state.Cursor with
             | len, cur when len - cur < 0 -> { state with Cursor = len }
             | _ ->
