@@ -35,7 +35,8 @@ module Pocof =
     [<TailCall>]
     let rec private searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
         let l =
-            getLengthInBufferCells state.Query.[state.WindowBeginningCursor .. state.Cursor - 1]
+            getLengthInBufferCells
+            <| state.Query.Substring(state.WindowBeginningCursor, state.Cursor - state.WindowBeginningCursor)
 
         match l with
         | bx when bx <= state.WindowWidth ->
@@ -60,7 +61,8 @@ module Pocof =
         | _ ->
             let wx =
                 let l =
-                    getLengthInBufferCells state.Query.[state.WindowBeginningCursor .. state.Cursor]
+                    getLengthInBufferCells
+                    <| state.Query.Substring(state.WindowBeginningCursor, state.Cursor - state.WindowBeginningCursor)
 
                 match l > state.WindowWidth with
                 | true -> searchBeginningCursorRecursive getLengthInBufferCells state

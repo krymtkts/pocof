@@ -103,7 +103,7 @@ module Data =
 
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
-        | true -> Some s.[String.length p ..]
+        | true -> Some <| s.Substring(p.Length)
         | _ -> None
 
     [<RequireQualifiedAccess>]
@@ -250,7 +250,7 @@ module Data =
 
                 InputMode.Select(s + cursor)
 
-        let backspaceQuery (state: QueryState) (size: int) =
+        let backspaceQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             let index, count =
                 match String.length state.Query, state.Cursor with
                 | len, cur when len - cur < 0 ->
@@ -260,14 +260,13 @@ module Data =
                     | s -> s
                 | _, cur -> cur, size
                 |> function
-                    | cursor, size when cursor - size < 0 -> 0, state.Cursor
                     | cursor, size -> cursor - size, size
 
             { state with
                 Query = state.Query.Remove(index, count)
                 Cursor = index }
 
-        let deleteQuery (state: QueryState) (size: int) =
+        let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             match String.length state.Query, state.Cursor with
             | len, cur when len - cur < 0 -> { state with Cursor = len }
             | _ ->
@@ -289,7 +288,7 @@ module Data =
                     InputMode = InputMode.Input }
 
         let getCurrentProperty (state: QueryState) =
-            let s = state.Query.[.. state.Cursor - 1] |> String.split " " |> Seq.last
+            let s = state.Query.Substring(0, state.Cursor) |> String.split " " |> Seq.last
 
 #if DEBUG
             Logger.LogFile [ $"query '{state.Query}' x '{state.Cursor}' string '{s}'" ]
