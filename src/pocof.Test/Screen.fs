@@ -311,6 +311,44 @@ module ``Buff writeScreen`` =
         rui.screen |> shouldEqual expected
 
     [<Fact>]
+    let ``should render property suggestions.`` () =
+        let rui = new MockRawUI(80, 30)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+
+        let state: InternalState =
+            { QueryState =
+                { Query = @":"
+                  Cursor = 1
+                  WindowBeginningCursor = 0
+                  WindowWidth = 0
+                  InputMode = InputMode.Input }
+              QueryCondition =
+                { Matcher = Matcher.Match
+                  Operator = Operator.And
+                  CaseSensitive = false
+                  Invert = false }
+              PropertySearch = PropertySearch.Search("")
+              Notification = ""
+              SuppressProperties = false
+              Properties = [ 1..20 ] |> List.map (fun i -> $"Name%02d{i}")
+              Prompt = "prompt"
+              FilteredCount = 0
+              ConsoleWidth = rui.width
+              Refresh = Refresh.Required }
+            |> InternalState.updateWindowWidth
+            |> Pocof.Query.InternalState.prepareNotification
+
+        buff.WriteScreen Layout.TopDown state [] <| Ok state.Properties
+
+        let expected =
+            List.concat
+                [ [ @"prompt>:                                                           match and [0]"
+                    @"Name01 Name02 Name03 Name04 Name05 Name06 Name07 Name08 Name09 Name10 Name11 Nam" ]
+                  (generateLine rui.width (28)) ]
+
+        rui.screen |> shouldEqual expected
+
+    [<Fact>]
     let ``should render props notification.`` () =
         let rui = new MockRawUI(80, 30)
         use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
