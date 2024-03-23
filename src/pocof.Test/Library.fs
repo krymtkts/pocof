@@ -27,12 +27,8 @@ module Mock =
             Array2D.init 1 1 (fun _ _ -> BufferCell())
 
         override __.ScrollBufferContents
-            (
-                source: Rectangle,
-                destination: Coordinates,
-                clip: Rectangle,
-                fill: BufferCell
-            ) =
+            (source: Rectangle, destination: Coordinates, clip: Rectangle, fill: BufferCell)
+            =
             ()
 
     type UI() =
