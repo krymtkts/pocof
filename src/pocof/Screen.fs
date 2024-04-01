@@ -158,11 +158,12 @@ module Screen =
 
         [<TailCall>]
         let rec read (acc: ConsoleKeyInfo list) =
-            let acc = rui.ReadKey true :: acc
-
-            match rui.KeyAvailable() with
-            | true -> read acc
-            | _ -> List.rev acc
+            rui.KeyAvailable()
+            |> function
+                | true ->
+                    let acc = rui.ReadKey true :: acc
+                    read acc
+                | _ -> List.rev acc
 
         interface IDisposable with
             member __.Dispose() =
