@@ -1,5 +1,6 @@
 # Pocof
 
+[![PowerShell Gallrery](https://img.shields.io/powershellgallery/v/pocof)](https://www.powershellgallery.com/packages/pocof)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/pocof)](https://www.powershellgallery.com/packages/pocof)
 ![Test main status](https://github.com/krymtkts/pocof/actions/workflows/main.yml/badge.svg)
 [![codecov](https://codecov.io/gh/krymtkts/pocof/graph/badge.svg?token=7HA9NC8PHT)](https://codecov.io/gh/krymtkts/pocof)
@@ -38,6 +39,7 @@ See [`Select-Pocof.md`](https://github.com/krymtkts/pocof/blob/main/docs/Select-
 - Some objects cannot filter like PowerShell.
 - I mainly use Windows. I tested pocof in Linux on Ubuntu on WSL. I have not tested Mac as I do not have a Mac machine. If you encounter any bugs depends on Linux or Mac, please create an issue with details.
 - The help for some parameters output raw Markdown because PlatyPS cannot render table and bullet list to MAML.
+- PowerShell ISE is not supported.
 
 ## Publishing module
 
