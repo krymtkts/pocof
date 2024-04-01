@@ -45,7 +45,14 @@ module Query =
         | Normal of string
         | Property of string * string
 
-    let inline private (?=>) (x: 'a) (prop: string) =
+    let
+#if !DEBUG
+        inline
+#endif
+        private (?=>)
+            (x: 'a)
+            (prop: string)
+            =
         try
             // TODO: not so good.
             let propInfo = x.GetType().GetProperty prop
@@ -53,7 +60,14 @@ module Query =
         with _ ->
             None
 
-    let inline private (?->) (x: PSObject) (prop: string) =
+    let
+#if !DEBUG
+        inline
+#endif
+        private (?->)
+            (x: PSObject)
+            (prop: string)
+            =
         try
             Some (x.Properties.Item prop).Value
         with _ ->
