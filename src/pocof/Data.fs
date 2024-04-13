@@ -54,6 +54,7 @@ module LanguageExtension =
 
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
+    let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
 
 module Data =
     open System
@@ -292,8 +293,7 @@ module Data =
             | InputMode.Select c ->
                 let si, c =
                     match state.Cursor, state.Cursor - c with
-                    | s, e when s < e -> s, e
-                    | e, s -> s, e
+                    | Ascending x -> x
 
                 { state with
                     Query = state.Query.Remove(si, c - si)
