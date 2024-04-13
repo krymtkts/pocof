@@ -222,13 +222,14 @@ module Data =
                 Query = state.Query.Insert(state.Cursor, query)
                 Cursor = state.Cursor + String.length query }
 
-        let (|NegativeCursor|_|) (cursor:int) =
+        let (|NegativeCursor|_|) (cursor: int) =
             match cursor with
             | x when x < 0 -> Some 0
             | _ -> None
 
-        let (|OverQuery|_|) (query:string) (cursor:int) =
+        let (|OverQuery|_|) (query: string) (cursor: int) =
             let ql = String.length query
+
             match cursor with
             | x when x > ql -> Some ql
             | _ -> None
@@ -261,6 +262,7 @@ module Data =
         let backspaceQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             let index, count =
                 let ql = String.length state.Query
+
                 match ql - state.Cursor with
                 | NegativeCursor _ ->
                     ql,
@@ -277,6 +279,7 @@ module Data =
 
         let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             let ql = String.length state.Query
+
             match ql - state.Cursor with
             | NegativeCursor _ -> { state with Cursor = ql }
             | _ ->
