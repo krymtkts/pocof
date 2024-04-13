@@ -264,7 +264,7 @@ module Data =
                 | len, cur when len - cur < 0 ->
                     len,
                     match size + len - cur with
-                    | s when s < 0 -> 0
+                    | NegativeCursor s -> s
                     | s -> s
                 | _, cur -> cur, size
                 |> function
@@ -275,8 +275,9 @@ module Data =
                 Cursor = index }
 
         let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
-            match String.length state.Query, state.Cursor with
-            | len, cur when len - cur < 0 -> { state with Cursor = len }
+            let ql = String.length state.Query
+            match ql - state.Cursor with
+            | NegativeCursor _ -> { state with Cursor = ql }
             | _ ->
                 { state with
                     Query = state.Query.Remove(state.Cursor, size) }
