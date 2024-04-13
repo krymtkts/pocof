@@ -120,8 +120,9 @@ module Screen =
                 | i ->
                     let s, e =
                         let c = queryState.Cursor - queryState.WindowBeginningCursor
-                        let ci = c - i
-                        if c < ci then (c, ci) else (ci, c)
+
+                        match c, c - i with
+                        | Ascending x -> x
 
                     let s = max s 0
                     let e = min e <| String.length q
@@ -239,8 +240,7 @@ module Screen =
 
                        let length =
                            match String.length suggestion, rui.GetWindowWidth() with
-                           | l, w when l > w -> w
-                           | l, _ -> l
+                           | Ascending(x, _) -> x
 
                        suggestion.Substring(0, length)
                    | Error(e) -> note + e
