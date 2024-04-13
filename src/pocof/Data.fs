@@ -73,28 +73,25 @@ module Data =
             | Entry.Dict(dct) -> dct :> obj
             | Entry.Obj(o) -> o)
 
+    let (|Found|_|) aType excludes name =
+        FSharpType.GetUnionCases aType
+        |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
+        |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
         let aType = typeof<'a>
 
-        match
-            FSharpType.GetUnionCases aType
-            |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
-            |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
-        with
-        | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
+        match name with
+        | Found aType excludes u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| $"Unknown %s{aType.Name} '%s{s}'."
 
     let private fromString<'a> s =
         let name = String.lower s
         let aType = typeof<'a>
 
-        match
-            FSharpType.GetUnionCases aType
-            |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
-        with
-        | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
+        match name with
+        | Found aType (set []) u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
         | _ -> failwithf $"Unknown %s{aType.Name} '%s{s}'."
 
     let private toString (x: 'a) =
