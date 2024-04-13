@@ -143,7 +143,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Action =
-        let fromString = tryFromStringExcludes<Action> <| set [ "AddQuery" ]
+        let fromString = tryFromStringExcludes<Action> <| set [ nameof Action.AddQuery ]
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
