@@ -410,8 +410,9 @@ module Data =
 
         let refreshIfTrue (b: bool) (state: InternalState) =
             match b with
-            | true -> refresh state
-            | _ -> noRefresh state
+            | true -> refresh
+            | _ -> noRefresh
+            <| state
 
         let updateWindowWidth (state: InternalState) =
             { state with
