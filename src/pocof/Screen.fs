@@ -83,8 +83,8 @@ module Screen =
                     | _ -> 0
 
                 match (y + height) - rui.GetWindowHeight() with
-                | over when over >= 0 -> y - over - 1
-                | _ -> y
+                | Negative -> y
+                | over -> y - over - 1
 
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
             rui.GetCursorPosition() ||> rui.Write <| String.replicate height "\n"
@@ -102,7 +102,8 @@ module Screen =
             let cl = rui.GetLengthInBufferCells q
 
             match w - cl with
-            | x when x = 0 || x = 1 -> q
+            | 0
+            | 1 -> q
             | x ->
                 let l = l + (x + Math.Sign(x)) / 2
                 let q = q.Substring(0, l)
@@ -120,8 +121,9 @@ module Screen =
                 | i ->
                     let s, e =
                         let c = queryState.Cursor - queryState.WindowBeginningCursor
-                        let ci = c - i
-                        if c < ci then (c, ci) else (ci, c)
+
+                        match c, c - i with
+                        | Ascending x -> x
 
                     let s = max s 0
                     let e = min e <| String.length q
@@ -141,7 +143,7 @@ module Screen =
 
                 let l =
                     match state.QueryState.WindowWidth - String.length q with
-                    | l when l > 0 -> l
+                    | Natural l -> l
                     | _ -> 0
 
                 let q = q + String.replicate l " "
@@ -193,7 +195,7 @@ module Screen =
 
         member private __.WriteScreenLine (height: int) (line: string) =
             match (rui.GetWindowWidth() - __.GetLengthInBufferCells line) with
-            | x when x > 0 -> line + String.replicate x " "
+            | Natural x -> line + String.replicate x " "
             | _ -> line
             |> rui.Write 0 height
 
@@ -239,8 +241,7 @@ module Screen =
 
                        let length =
                            match String.length suggestion, rui.GetWindowWidth() with
-                           | l, w when l > w -> w
-                           | l, _ -> l
+                           | Ascending(x, _) -> x
 
                        suggestion.Substring(0, length)
                    | Error(e) -> note + e

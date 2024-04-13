@@ -54,6 +54,17 @@ module LanguageExtension =
 
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
+    let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
+
+    let (|Negative|_|) (value: int) =
+        match value with
+        | x when x < 0 -> Some()
+        | _ -> None
+
+    let (|Natural|_|) (value: int) =
+        match value with
+        | x when x > 0 -> Some x
+        | _ -> None
 
 module Data =
     open System
@@ -73,28 +84,25 @@ module Data =
             | Entry.Dict(dct) -> dct :> obj
             | Entry.Obj(o) -> o)
 
+    let (|Found|_|) aType excludes name =
+        FSharpType.GetUnionCases aType
+        |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
+        |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
         let aType = typeof<'a>
 
-        match
-            FSharpType.GetUnionCases aType
-            |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
-            |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
-        with
-        | Some u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
+        match name with
+        | Found aType excludes u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| $"Unknown %s{aType.Name} '%s{s}'."
 
     let private fromString<'a> s =
         let name = String.lower s
         let aType = typeof<'a>
 
-        match
-            FSharpType.GetUnionCases aType
-            |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
-        with
-        | Some u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
+        match name with
+        | Found aType (set []) u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
         | _ -> failwithf $"Unknown %s{aType.Name} '%s{s}'."
 
     let private toString (x: 'a) =
@@ -146,7 +154,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Action =
-        let fromString = tryFromStringExcludes<Action> <| set [ "AddQuery" ]
+        let fromString = tryFromStringExcludes<Action> <| set [ nameof Action.AddQuery ]
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -225,12 +233,19 @@ module Data =
                 Query = state.Query.Insert(state.Cursor, query)
                 Cursor = state.Cursor + String.length query }
 
+        let (|OverQuery|_|) (query: string) (cursor: int) =
+            let ql = String.length query
+
+            match cursor with
+            | x when x > ql -> Some ql
+            | _ -> None
+
         let moveCursor (state: QueryState) (step: int) =
             let x =
                 match state.Cursor + step with
-                | x when x < 0 -> 0
-                | x when x > String.length state.Query -> String.length state.Query
-                | _ -> state.Cursor + step
+                | Negative -> 0
+                | OverQuery state.Query c -> c
+                | c -> c
 
             { state with Cursor = x }
 
@@ -252,13 +267,15 @@ module Data =
 
         let backspaceQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             let index, count =
-                match String.length state.Query, state.Cursor with
-                | len, cur when len - cur < 0 ->
-                    len,
-                    match size + len - cur with
-                    | s when s < 0 -> 0
+                let ql = String.length state.Query
+
+                match ql - state.Cursor with
+                | Negative ->
+                    ql,
+                    match size + ql - state.Cursor with
+                    | Negative -> 0
                     | s -> s
-                | _, cur -> cur, size
+                | _ -> state.Cursor, size
                 |> function
                     | cursor, size -> cursor - size, size
 
@@ -267,8 +284,10 @@ module Data =
                 Cursor = index }
 
         let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
-            match String.length state.Query, state.Cursor with
-            | len, cur when len - cur < 0 -> { state with Cursor = len }
+            let ql = String.length state.Query
+
+            match ql - state.Cursor with
+            | Negative -> { state with Cursor = ql }
             | _ ->
                 { state with
                     Query = state.Query.Remove(state.Cursor, size) }
@@ -279,8 +298,7 @@ module Data =
             | InputMode.Select c ->
                 let si, c =
                     match state.Cursor, state.Cursor - c with
-                    | s, e when s < e -> s, e
-                    | e, s -> s, e
+                    | Ascending x -> x
 
                 { state with
                     Query = state.Query.Remove(si, c - si)
@@ -392,8 +410,9 @@ module Data =
 
         let refreshIfTrue (b: bool) (state: InternalState) =
             match b with
-            | true -> refresh state
-            | _ -> noRefresh state
+            | true -> refresh
+            | _ -> noRefresh
+            <| state
 
         let updateWindowWidth (state: InternalState) =
             { state with

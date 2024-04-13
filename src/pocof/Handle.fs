@@ -126,11 +126,7 @@ module Handle =
             match state.QueryState.InputMode with
             | InputMode.Input -> (state, pos, context)
             | InputMode.Select c ->
-                let selection =
-                    match state.QueryState.Cursor - c with
-                    | x when x < state.QueryState.Cursor -> state.QueryState.Cursor
-                    | x -> x
-
+                let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
                 let state, pos, context = setCursor selection InputMode.Input state pos context
                 let mode = QueryState.getQuerySelection -selection state.QueryState
                 setCursor 0 mode state pos context
@@ -144,11 +140,7 @@ module Handle =
             match state.QueryState.InputMode with
             | InputMode.Input -> (state, pos, context, state.QueryState.Cursor)
             | InputMode.Select c ->
-                let beginning =
-                    match state.QueryState.Cursor - c with
-                    | x when x > state.QueryState.Cursor -> state.QueryState.Cursor
-                    | x -> x
-
+                let beginning = min state.QueryState.Cursor <| state.QueryState.Cursor - c
                 let state, pos, context = setCursor queryLength InputMode.Input state pos context
                 let mode = QueryState.getQuerySelection -(queryLength - beginning) state.QueryState
                 let state, pos, context = setCursor beginning mode state pos context
