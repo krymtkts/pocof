@@ -222,12 +222,23 @@ module Data =
                 Query = state.Query.Insert(state.Cursor, query)
                 Cursor = state.Cursor + String.length query }
 
+        let (|NegativeCursor|_|) (cursor:int) =
+            match cursor with
+            | x when x < 0 -> Some 0
+            | _ -> None
+
+        let (|OverQuery|_|) (query:string) (cursor:int) =
+            let ql = String.length query
+            match cursor with
+            | x when x > ql -> Some ql
+            | _ -> None
+
         let moveCursor (state: QueryState) (step: int) =
             let x =
                 match state.Cursor + step with
-                | x when x < 0 -> 0
-                | x when x > String.length state.Query -> String.length state.Query
-                | _ -> state.Cursor + step
+                | NegativeCursor c -> c
+                | OverQuery state.Query c -> c
+                | c -> c
 
             { state with Cursor = x }
 
