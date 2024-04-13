@@ -102,7 +102,8 @@ module Screen =
             let cl = rui.GetLengthInBufferCells q
 
             match w - cl with
-            | x when x = 0 || x = 1 -> q
+            | 0
+            | 1 -> q
             | x ->
                 let l = l + (x + Math.Sign(x)) / 2
                 let q = q.Substring(0, l)
