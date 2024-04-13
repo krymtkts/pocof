@@ -260,13 +260,14 @@ module Data =
 
         let backspaceQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             let index, count =
-                match String.length state.Query, state.Cursor with
-                | len, cur when len - cur < 0 ->
-                    len,
-                    match size + len - cur with
+                let ql = String.length state.Query
+                match ql - state.Cursor with
+                | NegativeCursor _ ->
+                    ql,
+                    match size + ql - state.Cursor with
                     | NegativeCursor s -> s
                     | s -> s
-                | _, cur -> cur, size
+                | _ -> state.Cursor, size
                 |> function
                     | cursor, size -> cursor - size, size
 
