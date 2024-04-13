@@ -56,6 +56,11 @@ module LanguageExtension =
     let alwaysTrue _ = true
     let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
 
+    let (|Negative|_|) (value: int) =
+        match value with
+        | x when x < 0 -> Some()
+        | _ -> None
+
 module Data =
     open System
     open System.Collections
@@ -223,11 +228,6 @@ module Data =
                 Query = state.Query.Insert(state.Cursor, query)
                 Cursor = state.Cursor + String.length query }
 
-        let (|NegativeCursor|_|) (cursor: int) =
-            match cursor with
-            | x when x < 0 -> Some 0
-            | _ -> None
-
         let (|OverQuery|_|) (query: string) (cursor: int) =
             let ql = String.length query
 
@@ -238,7 +238,7 @@ module Data =
         let moveCursor (state: QueryState) (step: int) =
             let x =
                 match state.Cursor + step with
-                | NegativeCursor c -> c
+                | Negative -> 0
                 | OverQuery state.Query c -> c
                 | c -> c
 
@@ -265,10 +265,10 @@ module Data =
                 let ql = String.length state.Query
 
                 match ql - state.Cursor with
-                | NegativeCursor _ ->
+                | Negative ->
                     ql,
                     match size + ql - state.Cursor with
-                    | NegativeCursor s -> s
+                    | Negative -> 0
                     | s -> s
                 | _ -> state.Cursor, size
                 |> function
@@ -282,7 +282,7 @@ module Data =
             let ql = String.length state.Query
 
             match ql - state.Cursor with
-            | NegativeCursor _ -> { state with Cursor = ql }
+            | Negative -> { state with Cursor = ql }
             | _ ->
                 { state with
                     Query = state.Query.Remove(state.Cursor, size) }
