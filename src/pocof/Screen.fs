@@ -83,8 +83,8 @@ module Screen =
                     | _ -> 0
 
                 match (y + height) - rui.GetWindowHeight() with
-                | over when over >= 0 -> y - over - 1
-                | _ -> y
+                | Negative -> y
+                | over -> y - over - 1
 
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
             rui.GetCursorPosition() ||> rui.Write <| String.replicate height "\n"
@@ -142,7 +142,7 @@ module Screen =
 
                 let l =
                     match state.QueryState.WindowWidth - String.length q with
-                    | l when l > 0 -> l
+                    | Natural l -> l
                     | _ -> 0
 
                 let q = q + String.replicate l " "
@@ -194,7 +194,7 @@ module Screen =
 
         member private __.WriteScreenLine (height: int) (line: string) =
             match (rui.GetWindowWidth() - __.GetLengthInBufferCells line) with
-            | x when x > 0 -> line + String.replicate x " "
+            | Natural x -> line + String.replicate x " "
             | _ -> line
             |> rui.Write 0 height
 

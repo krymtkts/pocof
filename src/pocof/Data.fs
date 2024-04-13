@@ -61,6 +61,11 @@ module LanguageExtension =
         | x when x < 0 -> Some()
         | _ -> None
 
+    let (|Natural|_|) (value: int) =
+        match value with
+        | x when x > 0 -> Some x
+        | _ -> None
+
 module Data =
     open System
     open System.Collections
