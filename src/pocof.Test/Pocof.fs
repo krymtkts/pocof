@@ -125,7 +125,7 @@ module loop =
 
         let state, context = Query.prepare { state with SuppressProperties = true }
 
-        let rui = new MockRawUI(60, 30, [ MockRawUI.ConsoleKey '\000' ConsoleKey.Escape ])
+        let rui = new MockRawUI(60, 30, [], true)
         use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let args: Pocof.LoopFixedArguments =

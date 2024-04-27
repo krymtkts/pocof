@@ -22,6 +22,7 @@ module Mock =
         val mutable y: int
         val mutable screen: string list
         val mutable keys: ConsoleKeyInfo option list
+        val mutable forceCancel: bool
         static member xx = 50
         static member yy = 30
 
@@ -33,7 +34,8 @@ module Mock =
               width = MockRawUI.xx
               height = MockRawUI.yy
               screen = generateLine MockRawUI.xx MockRawUI.yy
-              keys = [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ] }
+              keys = [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
+              forceCancel = false }
 
         new(x: int, y: int) =
             // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
@@ -43,7 +45,8 @@ module Mock =
               width = x
               height = y
               screen = generateLine x y
-              keys = [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ] }
+              keys = [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
+              forceCancel = false }
 
         new(x: int, y: int, keys: ConsoleKeyInfo option list) =
             // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
@@ -53,7 +56,19 @@ module Mock =
               width = x
               height = y
               screen = generateLine x y
-              keys = keys }
+              keys = keys
+              forceCancel = false }
+
+        new(x: int, y: int, keys: ConsoleKeyInfo option list, forceCancel: bool) =
+            // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
+            { caAsInput = true
+              x = x
+              y = y
+              width = x
+              height = y
+              screen = generateLine x y
+              keys = keys
+              forceCancel = forceCancel }
 
         interface IRawUI with
             member __.GetCursorPosition() = __.x, __.y
@@ -97,7 +112,12 @@ module Mock =
 
             member __.KeyAvailable() =
                 match __.keys with
-                | [] -> false
+                | [] ->
+                    if __.forceCancel then
+                        __.keys <- [ MockRawUI.ConsoleKey '\000' ConsoleKey.Escape ]
+                        __.forceCancel <- false
+
+                    false
                 | k :: ks ->
                     match k with
                     | None ->
