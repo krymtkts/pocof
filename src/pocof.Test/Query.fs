@@ -39,35 +39,35 @@ module prepare =
 
 module props =
     [<Fact>]
-    let ``should returns OK with empty list.`` () =
+    let ``should return OK with empty list.`` () =
         Query.props
             { state with
                 PropertySearch = Data.PropertySearch.NoSearch }
         |> shouldEqual (Ok [])
 
     [<Fact>]
-    let ``should returns Error with 'Property not found'.`` () =
+    let ``should return Error with 'Property not found'.`` () =
         Query.props
             { state with
                 PropertySearch = Data.PropertySearch.Search "No" }
         |> shouldEqual (Error "Property not found")
 
     [<Fact>]
-    let ``should returns Ok with non filtered properties.`` () =
+    let ``should return Ok with non filtered properties.`` () =
         Query.props
             { state with
                 PropertySearch = Data.PropertySearch.Search "" }
         |> shouldEqual (Ok [ "Name"; "Attribute"; "Length" ])
 
     [<Fact>]
-    let ``should returns Ok with filtered properties.`` () =
+    let ``should return Ok with filtered properties.`` () =
         Query.props
             { state with
                 PropertySearch = Data.PropertySearch.Search "Na" }
         |> shouldEqual (Ok [ "Name" ])
 
     [<Fact>]
-    let ``should returns Ok with filtered properties when case sensitive.`` () =
+    let ``should return Ok with filtered properties when case sensitive.`` () =
         let state =
             caseSensitive
                 { state with
@@ -76,14 +76,14 @@ module props =
         Query.props state |> shouldEqual (Ok [ "Name" ])
 
     [<Fact>]
-    let ``should returns Ok with non filtered properties when rotate.`` () =
+    let ``should return Ok with non filtered properties when rotate.`` () =
         Query.props
             { state with
                 PropertySearch = Data.PropertySearch.Rotate("", 0, [ "Name" ]) }
         |> shouldEqual (Ok [ "Name"; "Attribute"; "Length" ])
 
     [<Fact>]
-    let ``should returns Ok with filtered properties when rotate.`` () =
+    let ``should return Ok with filtered properties when rotate.`` () =
         Query.props
             { state with
                 PropertySearch = Data.PropertySearch.Rotate("Na", 0, [ "Name" ]) }
@@ -112,7 +112,7 @@ module run =
         let props = Map [ ("length", "Length") ]
 
         [<Fact>]
-        let ``should returns empty if entry list is empty.`` () =
+        let ``should return empty if entry list is empty.`` () =
             let _, context = Query.prepare state
             Query.run context [] props |> shouldEqual []
 
@@ -120,25 +120,25 @@ module run =
             let state = state |> matcher Data.Matcher.Match |> query "a"
 
             [<Fact>]
-            let ``should returns all entries if query is empty.`` () =
+            let ``should return all entries if query is empty.`` () =
                 let state = initState () |> matcher Data.Matcher.Match
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual entries
 
             [<Fact>]
-            let ``should returns all entries if query is invalid pattern.`` () =
+            let ``should return all entries if query is invalid pattern.`` () =
                 let state = state |> query "+"
                 let _, context = Query.prepare state
                 Query.run context entries props |> shouldEqual entries
 
             [<Fact>]
-            let ``should returns filtered entries.`` () =
+            let ``should return filtered entries.`` () =
                 let _, context = Query.prepare state
                 Query.run context entries props |> shouldEqual (genList [ "Name"; "Attribute" ])
 
             [<Fact>]
-            let ``should returns filtered entries when matcher is match and case sensitive.`` () =
+            let ``should return filtered entries when matcher is match and case sensitive.`` () =
                 let state = caseSensitive state
                 let _, context = Query.prepare state
 
@@ -146,21 +146,21 @@ module run =
                 |> shouldEqual (mapToObj [ "Name"; "name"; "attribute" ])
 
             [<Fact>]
-            let ``should returns filtered entries when matcher is match and invert result.`` () =
+            let ``should return filtered entries when matcher is match and invert result.`` () =
                 let state = invert state
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual (genList [ "Length" ])
 
             [<Fact>]
-            let ``should returns filtered entries when composite query with or operator.`` () =
+            let ``should return filtered entries when composite query with or operator.`` () =
                 let state = state |> query "a N"
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual entries
 
             [<Fact>]
-            let ``should returns filtered entries when composite query with and operator.`` () =
+            let ``should return filtered entries when composite query with and operator.`` () =
                 let state = state |> query "a N" |> opAnd
                 let _, context = Query.prepare state
 
@@ -170,20 +170,20 @@ module run =
             let state = state |> matcher Data.Matcher.Like |> query "a*"
 
             [<Fact>]
-            let ``should returns all entries if query is empty.`` () =
+            let ``should return all entries if query is empty.`` () =
                 let state = initState () |> matcher Data.Matcher.Like
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual entries
 
             [<Fact>]
-            let ``should returns matched entries when matcher is like .`` () =
+            let ``should return matched entries when matcher is like .`` () =
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual (genList [ "Attribute" ])
 
             [<Fact>]
-            let ``should returns matched entries when matcher is like and case sensitive.`` () =
+            let ``should return matched entries when matcher is like and case sensitive.`` () =
                 let state = caseSensitive state
                 let _, context = Query.prepare state
 
@@ -191,7 +191,7 @@ module run =
                 Query.run context entries props |> shouldEqual (mapToObj [ "attribute" ])
 
             [<Fact>]
-            let ``should returns filtered entries when matcher is like and invert result.`` () =
+            let ``should return filtered entries when matcher is like and invert result.`` () =
                 let state = invert state
                 let _, context = Query.prepare state
 
@@ -199,14 +199,14 @@ module run =
                 Query.run context entries props |> shouldEqual (genList [ "Name"; "Length" ])
 
             [<Fact>]
-            let ``should returns filtered entries when composite query with or operator.`` () =
+            let ``should return filtered entries when composite query with or operator.`` () =
                 let state = state |> query "*e* N*"
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual entries
 
             [<Fact>]
-            let ``should returns filtered entries when composite query with and operator.`` () =
+            let ``should return filtered entries when composite query with and operator.`` () =
                 let state = state |> query "*e* N*" |> opAnd
                 let _, context = Query.prepare state
 
@@ -216,27 +216,27 @@ module run =
             let state = state |> matcher Data.Matcher.Eq |> query "Name"
 
             [<Fact>]
-            let ``should returns all entries if query is empty.`` () =
+            let ``should return all entries if query is empty.`` () =
                 let state = initState () |> matcher Data.Matcher.Eq
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual entries
 
             [<Fact>]
-            let ``should returns matched entries when matcher is eq .`` () =
+            let ``should return matched entries when matcher is eq .`` () =
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual (genList [ "Name" ])
 
             [<Fact>]
-            let ``should returns matched entries when matcher is eq and case sensitive.`` () =
+            let ``should return matched entries when matcher is eq and case sensitive.`` () =
                 let state = caseSensitive state
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual (mapToObj [ "Name" ])
 
             [<Fact>]
-            let ``should returns filtered entries when matcher is eq and invert result.`` () =
+            let ``should return filtered entries when matcher is eq and invert result.`` () =
                 let state = invert state
                 let _, context = Query.prepare state
 
@@ -244,14 +244,14 @@ module run =
                 |> shouldEqual (genList [ "Attribute"; "Length" ])
 
             [<Fact>]
-            let ``should returns filtered entries when composite query with or operator.`` () =
+            let ``should return filtered entries when composite query with or operator.`` () =
                 let state = state |> query "Name Length"
                 let _, context = Query.prepare state
 
                 Query.run context entries props |> shouldEqual (genList [ "Name"; "Length" ])
 
             [<Fact>]
-            let ``should returns filtered entries when composite query with and operator.`` () =
+            let ``should return filtered entries when composite query with and operator.`` () =
                 let state = state |> query "Name Length" |> opAnd
                 let _, context = Query.prepare state
 
@@ -271,7 +271,7 @@ module run =
                   DictionaryEntry("Taro", "Nanashi") ]
 
         [<Fact>]
-        let ``should returns filtered entries when composite query with or operator.`` () =
+        let ``should return filtered entries when composite query with or operator.`` () =
             let state = state |> query "e"
             let _, context = Query.prepare state
 
@@ -279,7 +279,7 @@ module run =
             |> shouldEqual (mapToDict [ DictionaryEntry("John", "Doe"); DictionaryEntry("Jane", "Doe") ])
 
         [<Fact>]
-        let ``should returns filtered entries when composite query with and operator.`` () =
+        let ``should return filtered entries when composite query with and operator.`` () =
             let state = state |> query "e" |> opAnd
             let _, context = Query.prepare state
 
@@ -287,7 +287,7 @@ module run =
             |> shouldEqual (mapToDict [ DictionaryEntry("Jane", "Doe") ])
 
         [<Fact>]
-        let ``should returns filtered entries when property query.`` () =
+        let ``should return filtered entries when property query.`` () =
             let props =
                 DictionaryEntry("Jane", "Doe")
                 |> PSObject.AsPSObject
@@ -318,7 +318,7 @@ module run =
         let props = Map [ "fn", "Fn"; "ln", "Ln" ]
 
         [<Fact>]
-        let ``should returns filtered entries when composite query with or operator.`` () =
+        let ``should return filtered entries when composite query with or operator.`` () =
             let state = state |> query ":fn a :ln d"
             let _, context = Query.prepare state
 
@@ -327,7 +327,7 @@ module run =
             Query.run context entries props |> shouldEqual filtered
 
         [<Fact>]
-        let ``should returns filtered entries when composite query with and operator.`` () =
+        let ``should return filtered entries when composite query with and operator.`` () =
             let state = state |> query ":fn a :ln d" |> opAnd
             let _, context = Query.prepare state
             let filtered = [ entries.[1] ]
@@ -335,21 +335,21 @@ module run =
             Query.run context entries props |> shouldEqual filtered
 
         [<Fact>]
-        let ``should returns all entries when property not exists.`` () =
+        let ``should return all entries when property not exists.`` () =
             let state = state |> query ":f a"
             let _, context = Query.prepare state
 
             Query.run context entries props |> shouldEqual entries
 
         [<Fact>]
-        let ``should returns all entries when incomplete composite query.`` () =
+        let ``should return all entries when incomplete composite query.`` () =
             let state = state |> query ":fn "
             let _, context = Query.prepare state
 
             Query.run context entries props |> shouldEqual entries
 
         [<Fact>]
-        let ``should returns filtered entries when incomplete composite query.`` () =
+        let ``should return filtered entries when incomplete composite query.`` () =
             let state = state |> query "a :fn"
             let _, context = Query.prepare state
             let filtered = [ entries.[1]; entries.[3] ]
@@ -367,7 +367,7 @@ module run =
             |> List.map (PSObject.AsPSObject >> Data.Entry.Obj)
 
         [<Fact>]
-        let ``should returns filtered entries when composite query with or operator.`` () =
+        let ``should return filtered entries when composite query with or operator.`` () =
             let culture = System.Threading.Thread.CurrentThread.CurrentCulture
             let testCulture = CultureInfo.GetCultureInfo("en-US").Clone() :?> CultureInfo
             testCulture.DateTimeFormat.ShortDatePattern <- "yyyy-MM-dd"

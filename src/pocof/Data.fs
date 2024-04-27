@@ -126,11 +126,11 @@ module Data =
         | BeginningOfLine
         | EndOfLine
         // edit query.
-        | AddQuery of string
+        | AddQuery of query: string
         | DeleteBackwardChar
         | DeleteForwardChar
-        | KillBeginningOfLine
-        | KillEndOfLine
+        | DeleteBackwardInput
+        | DeleteForwardInput
         // select query.
         | SelectBackwardChar
         | SelectForwardChar
@@ -198,8 +198,8 @@ module Data =
     [<NoComparison>]
     type PropertySearch =
         | NoSearch
-        | Search of string
-        | Rotate of string * int * string list
+        | Search of keyword: string
+        | Rotate of keyword: string * index: int * candidates: string list
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -218,7 +218,7 @@ module Data =
     [<NoComparison>]
     type InputMode =
         | Input
-        | Select of int
+        | Select of count: int
 
     type QueryState =
         { Query: string

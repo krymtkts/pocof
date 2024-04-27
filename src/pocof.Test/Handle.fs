@@ -45,7 +45,7 @@ module invokeAction =
 
     module ``with Noop`` =
         [<Fact>]
-        let ``shouldn't return any difference when a shift + left-arrow is entered.`` () = noop Action.Noop
+        let ``shouldn't return any difference.`` () = noop Action.Noop
 
     module ``with Cancel`` =
         [<Fact>]
@@ -56,7 +56,7 @@ module invokeAction =
 
     module ``with AddQuery`` =
         [<Fact>]
-        let ``should return a property search state and position.x = 1 when the char is colon.`` () =
+        let ``should return a property search state and cursor=1 when the query is colon.`` () =
             let state = { state with Properties = [ "name" ] }
             let state, context = Query.prepare state
 
@@ -74,7 +74,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should return a non-search state and position.X = 6 when the char is space.`` () =
+        let ``should return a non-search state and cursor=6 when the query is space.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -98,7 +98,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should remove the selection and add character.`` () =
+        let ``should remove the selection and add query.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -124,7 +124,7 @@ module invokeAction =
 
     module ``with BackwardChar`` =
         [<Fact>]
-        let ``should return state with pos unmodified when moving forward on ':name' with cursor=0.`` () =
+        let ``should return state with Refresh.NotRequired when moving forward on ':name' with cursor=0.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -227,7 +227,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should return state with pos unmodified when moving forward on ':name' with cursor=5 and query.Length=3.``
+        let ``should return state with Refresh.NotRequired when moving forward on ':name' with cursor=5 and query.Length=3.``
             ()
             =
             let state =
@@ -284,7 +284,7 @@ module invokeAction =
 
     module ``with BeginningOfLine`` =
         [<Fact>]
-        let ``should return state with cursor = 0.`` () =
+        let ``should return state with cursor=0.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -308,7 +308,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should return state with pos unmodified`` () =
+        let ``should return state with Refresh.NotRequired.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -333,7 +333,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should return state with cursor = 0 and InputMode=Input.`` () =
+        let ``should return state with cursor=0 and InputMode=Input.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -360,7 +360,7 @@ module invokeAction =
 
     module ``with EndOfLine`` =
         [<Fact>]
-        let ``should return state with cursor = query length.`` () =
+        let ``should return state with cursor=query length.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -383,7 +383,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should return state with pos unmodified`` () =
+        let ``should return state with Refresh.NotRequired.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -407,7 +407,7 @@ module invokeAction =
             a3.Queries |> shouldEqual []
 
         [<Fact>]
-        let ``should return state with cursor = query length and InputMode=Input.`` () =
+        let ``should return state with cursor=query length and InputMode=Input.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name"
@@ -642,7 +642,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillBeginningOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -664,7 +664,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillBeginningOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -686,7 +686,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillBeginningOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -710,7 +710,7 @@ module invokeAction =
 
             let state, context = Query.prepare state
             let pos = { Y = 0; Height = 20 }
-            let a1, a2, a3 = invokeAction state pos context Action.KillBeginningOfLine
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -733,7 +733,7 @@ module invokeAction =
 
             let state, context = Query.prepare state
             let pos = { Y = 0; Height = 20 }
-            let a1, a2, a3 = invokeAction state pos context Action.KillBeginningOfLine
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -757,7 +757,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillEndOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteForwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -779,7 +779,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillEndOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteForwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -802,7 +802,7 @@ module invokeAction =
 
             let state, context = Query.prepare state
             let pos = { Y = 0; Height = 20 }
-            let a1, a2, a3 = invokeAction state pos context Action.KillEndOfLine
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteForwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -825,7 +825,7 @@ module invokeAction =
 
             let state, context = Query.prepare state
             let pos = { Y = 0; Height = 20 }
-            let a1, a2, a3 = invokeAction state pos context Action.KillEndOfLine
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteForwardInput
 
             (a1, a2)
             |> shouldEqual (

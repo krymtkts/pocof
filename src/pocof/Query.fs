@@ -42,8 +42,8 @@ module Query =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     type QueryPart =
-        | Normal of string
-        | Property of string * string
+        | Normal of value: string
+        | Property of lowerCaseName: string * value: string
 
     let
 #if !DEBUG
@@ -181,18 +181,18 @@ module Query =
             |> List.fold
                 (fun acc x ->
                     match x with
-                    | QueryPart.Property(k, v) ->
-                        let pk =
-                            match props.TryGetValue k with
+                    | QueryPart.Property(p, v) ->
+                        let propName =
+                            match props.TryGetValue p with
                             | true, v -> v
                             | _ -> ""
 
-                        let p =
+                        let prop =
                             match o with
-                            | Entry.Dict(dct) -> dct ?=> pk
-                            | Entry.Obj(o) -> o ?-> pk
+                            | Entry.Dict(dct) -> dct ?=> propName
+                            | Entry.Obj(o) -> o ?-> propName
 
-                        match p with
+                        match prop with
                         | Some(pv) -> (pv, v) :: acc
                         | None -> acc
                     | QueryPart.Normal(v) ->
