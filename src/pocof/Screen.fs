@@ -3,6 +3,7 @@ namespace Pocof
 module Screen =
     open System
     open System.Management.Automation.Host
+    open System.Threading
 
     type IRawUI =
         inherit IDisposable
@@ -165,7 +166,12 @@ module Screen =
                 | true ->
                     let acc = rui.ReadKey true :: acc
                     read acc
-                | _ -> List.rev acc
+                | _ ->
+                    match acc with
+                    | [] ->
+                        Thread.Sleep 10
+                        read acc
+                    | _ -> List.rev acc
 
         interface IDisposable with
             member __.Dispose() =
