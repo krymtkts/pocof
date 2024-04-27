@@ -62,9 +62,6 @@ module Handle =
 
     let private beginningOfLine = setCursor 0 InputMode.Input
 
-    let private moveTailWith (mode: InputMode) (state: InternalState) =
-        setCursor <| String.length state.QueryState.Query <| mode <| state
-
     let private endOfLine (state: InternalState) =
         setCursor <| String.length state.QueryState.Query <| InputMode.Input <| state
 
