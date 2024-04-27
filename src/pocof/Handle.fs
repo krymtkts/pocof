@@ -60,13 +60,13 @@ module Handle =
         pos,
         context
 
-    let private moveHeadWith = setCursor 0
-    let private beginningOfLine = moveHeadWith InputMode.Input
+    let private beginningOfLine = setCursor 0 InputMode.Input
 
     let private moveTailWith (mode: InputMode) (state: InternalState) =
         setCursor <| String.length state.QueryState.Query <| mode <| state
 
-    let private endOfLine = moveTailWith InputMode.Input
+    let private endOfLine (state: InternalState) =
+        setCursor <| String.length state.QueryState.Query <| InputMode.Input <| state
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -149,10 +149,14 @@ module Handle =
         removeChar Direction.Forward (queryLength - beginning) state pos context
 
     let private selectBackwardChar (state: InternalState) =
-        moveCursorBackwardWith <| QueryState.getQuerySelection -1 state.QueryState <| state
+        moveCursorBackwardWith
+        <| QueryState.getQuerySelection -1 state.QueryState
+        <| state
 
     let private selectForwardChar (state: InternalState) =
-        moveCursorForwardWith <| QueryState.getQuerySelection 1 state.QueryState <| state
+        moveCursorForwardWith
+        <| QueryState.getQuerySelection 1 state.QueryState
+        <| state
 
     let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
         setCursor 0
