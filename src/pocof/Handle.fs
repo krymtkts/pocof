@@ -8,8 +8,8 @@ open Query
 module Handle =
     type QueryContext = Query.QueryContext
 
-    let private addQuery (state: InternalState) (pos: Position) (context: QueryContext) (s: string) =
-        let qs = QueryState.deleteSelection state.QueryState |> QueryState.addQuery s
+    let private addQuery (state: InternalState) (pos: Position) (context: QueryContext) (query: string) =
+        let qs = QueryState.deleteSelection state.QueryState |> QueryState.addQuery query
 
         let state =
             state
@@ -288,7 +288,7 @@ module Handle =
     let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (acton: Action) =
         match acton with
         | Action.Noop -> InternalState.noRefresh state, pos, context
-        | Action.AddQuery s -> addQuery state pos context s
+        | Action.AddQuery query -> addQuery state pos context query
         | Action.BackwardChar -> backwardChar state pos context
         | Action.ForwardChar -> forwardChar state pos context
         | Action.BeginningOfLine -> beginningOfLine state pos context
