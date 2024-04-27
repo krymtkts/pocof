@@ -642,7 +642,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillBeginningOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -664,7 +664,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillBeginningOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -686,7 +686,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillBeginningOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -710,7 +710,7 @@ module invokeAction =
 
             let state, context = Query.prepare state
             let pos = { Y = 0; Height = 20 }
-            let a1, a2, a3 = invokeAction state pos context Action.KillBeginningOfLine
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -733,7 +733,7 @@ module invokeAction =
 
             let state, context = Query.prepare state
             let pos = { Y = 0; Height = 20 }
-            let a1, a2, a3 = invokeAction state pos context Action.KillBeginningOfLine
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -757,7 +757,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillEndOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteForwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -779,7 +779,7 @@ module invokeAction =
             let state, context = Query.prepare state
 
             let a1, a2, a3 =
-                invokeAction state { Y = 0; Height = 20 } context Action.KillEndOfLine
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteForwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -802,7 +802,7 @@ module invokeAction =
 
             let state, context = Query.prepare state
             let pos = { Y = 0; Height = 20 }
-            let a1, a2, a3 = invokeAction state pos context Action.KillEndOfLine
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteForwardInput
 
             (a1, a2)
             |> shouldEqual (
@@ -825,7 +825,7 @@ module invokeAction =
 
             let state, context = Query.prepare state
             let pos = { Y = 0; Height = 20 }
-            let a1, a2, a3 = invokeAction state pos context Action.KillEndOfLine
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteForwardInput
 
             (a1, a2)
             |> shouldEqual (

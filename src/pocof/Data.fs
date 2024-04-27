@@ -129,8 +129,8 @@ module Data =
         | AddQuery of string
         | DeleteBackwardChar
         | DeleteForwardChar
-        | KillBeginningOfLine
-        | KillEndOfLine
+        | DeleteBackwardInput
+        | DeleteForwardInput
         // select query.
         | SelectBackwardChar
         | SelectForwardChar

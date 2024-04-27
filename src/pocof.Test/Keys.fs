@@ -92,7 +92,7 @@ module ``get should returns`` =
         let actual =
             Keys.get keyMap [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false) ]
 
-        actual |> shouldEqual Data.Action.KillBeginningOfLine
+        actual |> shouldEqual Data.Action.DeleteBackwardInput
 
         let actual =
             Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
@@ -114,7 +114,7 @@ module ``get should returns`` =
     [<Fact>]
     let ``PocofData.AddQuery if not match the keymap.`` () =
         let keyMap: Map<Data.KeyPattern, Data.Action> =
-            Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.Action.KillBeginningOfLine) ]
+            Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.Action.DeleteBackwardInput) ]
 
         let key = [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) ]
         let actual = Keys.get keyMap key

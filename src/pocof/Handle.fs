@@ -291,8 +291,8 @@ module Handle =
         | Action.EndOfLine -> moveTail state pos context
         | Action.DeleteBackwardChar -> removeBackwardChar state pos context
         | Action.DeleteForwardChar -> removeForwardChar state pos context
-        | Action.KillBeginningOfLine -> removeQueryHead state pos context
-        | Action.KillEndOfLine -> removeQueryTail state pos context
+        | Action.DeleteBackwardInput -> removeQueryHead state pos context
+        | Action.DeleteForwardInput -> removeQueryTail state pos context
         | Action.SelectBackwardChar -> selectBackwardChar state pos context
         | Action.SelectForwardChar -> selectForwardChar state pos context
         | Action.SelectToBeginningOfLine -> selectToBeginningOfLine state pos context
