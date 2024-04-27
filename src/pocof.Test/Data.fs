@@ -23,17 +23,17 @@ module unwrap =
         unwrap [ Entry.Dict(DictionaryEntry("Jane", "Doe")) ]
         |> shouldEqual [ DictionaryEntry("Jane", "Doe") ]
 
-module ``Action fromString should returns`` =
+module ``Action fromString`` =
     [<Fact>]
-    let ``Error Unknown.`` () =
+    let ``should returns Error Unknown.`` () =
         Action.fromString "XXX" |> shouldEqual (Error "Unknown Action 'XXX'.")
 
     [<Fact>]
-    let ``Error when AddQuery.`` () =
+    let ``should returns Error when AddQuery.`` () =
         Action.fromString "AddQuery" |> shouldEqual (Error "Unknown Action 'AddQuery'.")
 
     [<Fact>]
-    let ``known actions excluding AddQuery.`` () =
+    let ``should returns known actions excluding AddQuery.`` () =
         FSharpType.GetUnionCases(typeof<Action>)
         |> Seq.filter (fun a -> a.Name <> "AddQuery")
         |> Seq.iter (fun a ->
@@ -41,44 +41,45 @@ module ``Action fromString should returns`` =
             |> List.map Action.fromString
             |> List.iter (shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
 
-let ``Error Unknown.``<'a> (fromString: string -> 'a) =
-    shouldFail (fun () -> fromString "Unknown" |> ignore)
+module fromString =
+    let ``Error Unknown.``<'a> (fromString: string -> 'a) =
+        shouldFail (fun () -> fromString "Unknown" |> ignore)
 
-let ``known matchers.``<'a> (fromString: string -> 'a) =
-    FSharpType.GetUnionCases(typeof<'a>)
-    |> Seq.iter (fun (a: UnionCaseInfo) ->
-        [ a.Name; String.lower a.Name; String.upper a.Name ]
-        |> List.map fromString
-        |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
+    let ``known matchers.``<'a> (fromString: string -> 'a) =
+        FSharpType.GetUnionCases(typeof<'a>)
+        |> Seq.iter (fun (a: UnionCaseInfo) ->
+            [ a.Name; String.lower a.Name; String.upper a.Name ]
+            |> List.map fromString
+            |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
 
-module ``Matcher fromString should returns`` =
-    [<Fact>]
-    let ``Error Unknown.`` () =
-        ``Error Unknown.``<Matcher> Matcher.fromString
+    module ``of Matcher`` =
+        [<Fact>]
+        let ``should returns Error Unknown.`` () =
+            ``Error Unknown.``<Matcher> Matcher.fromString
 
-    [<Fact>]
-    let ``known matchers.`` () =
-        ``known matchers.``<Matcher> Matcher.fromString
+        [<Fact>]
+        let ``should returns known matchers.`` () =
+            ``known matchers.``<Matcher> Matcher.fromString
 
-module ``Operator fromString should returns`` =
-    [<Fact>]
-    let ``Error Unknown.`` () =
-        ``Error Unknown.``<Operator> Operator.fromString
+    module ``of Operator`` =
+        [<Fact>]
+        let ``should returns Error Unknown.`` () =
+            ``Error Unknown.``<Operator> Operator.fromString
 
-    [<Fact>]
-    let ``known matchers.`` () =
-        ``known matchers.``<Operator> Operator.fromString
+        [<Fact>]
+        let ``should returns known matchers.`` () =
+            ``known matchers.``<Operator> Operator.fromString
 
-module ``Layout fromString should returns`` =
-    [<Fact>]
-    let ``Error Unknown.`` () =
-        ``Error Unknown.``<Layout> Layout.fromString
+    module ``of Layout`` =
+        [<Fact>]
+        let ``should returns Error Unknown.`` () =
+            ``Error Unknown.``<Layout> Layout.fromString
 
-    [<Fact>]
-    let ``known matchers.`` () =
-        ``known matchers.``<Layout> Layout.fromString
+        [<Fact>]
+        let ``should returns known matchers.`` () =
+            ``known matchers.``<Layout> Layout.fromString
 
-module ``QueryState toString should returns`` =
+module ``QueryState toString`` =
     let queryState (m: Matcher) (o: Operator) : QueryCondition =
         { Matcher = m
           Operator = o
@@ -89,68 +90,68 @@ module ``QueryState toString should returns`` =
     let invert (s: QueryCondition) = { s with Invert = true }
 
     [<Fact>]
-    let ``eq and`` () =
+    let ``should returns eq and`` () =
         let actual = queryState Matcher.Eq Operator.And
         string actual |> shouldEqual "eq and"
 
     [<Fact>]
-    let ``cne or`` () =
+    let ``should returns cne or`` () =
         let actual = queryState Matcher.Eq Operator.Or |> caseSensitive |> invert
 
         string actual |> shouldEqual "cne or"
 
     [<Fact>]
-    let ``ceq and`` () =
+    let ``should returns ceq and`` () =
         let actual = queryState Matcher.Eq Operator.And |> caseSensitive
 
         string actual |> shouldEqual "ceq and"
 
     [<Fact>]
-    let ``ne or`` () =
+    let ``should returns ne or`` () =
         let actual = queryState Matcher.Eq Operator.Or |> invert
         string actual |> shouldEqual "ne or"
 
     [<Fact>]
-    let ``like and`` () =
+    let ``should returns like and`` () =
         let actual = queryState Matcher.Like Operator.And
         string actual |> shouldEqual "like and"
 
     [<Fact>]
-    let ``clike and`` () =
+    let ``should returns clike and`` () =
         let actual = queryState Matcher.Like Operator.And |> caseSensitive
 
         string actual |> shouldEqual "clike and"
 
     [<Fact>]
-    let ``notlike and`` () =
+    let ``should returns notlike and`` () =
         let actual = queryState Matcher.Like Operator.And |> invert
         string actual |> shouldEqual "notlike and"
 
     [<Fact>]
-    let ``cnotlike and`` () =
+    let ``should returns cnotlike and`` () =
         let actual = queryState Matcher.Like Operator.And |> caseSensitive |> invert
 
         string actual |> shouldEqual "cnotlike and"
 
     [<Fact>]
-    let ``cnotmatch or`` () =
+    let ``should returns cnotmatch or`` () =
         let actual = queryState Matcher.Match Operator.Or |> caseSensitive |> invert
 
         string actual |> shouldEqual "cnotmatch or"
 
     [<Fact>]
-    let ``notmatch or`` () =
+    let ``should returns notmatch or`` () =
         let actual = queryState Matcher.Match Operator.Or |> invert
         string actual |> shouldEqual "notmatch or"
 
     [<Fact>]
-    let ``cmatch or`` () =
+    let ``should returns cmatch or`` () =
         let actual = queryState Matcher.Match Operator.Or |> caseSensitive
 
         string actual |> shouldEqual "cmatch or"
 
     [<Fact>]
-    let ``match or`` () =
+    let ``should returns match or`` () =
         let actual = queryState Matcher.Match Operator.Or
         string actual |> shouldEqual "match or"
 
