@@ -36,13 +36,13 @@ module Handle =
         pos,
         context
 
-    let private moveBackwardWith = moveCursor -1 0
-    let private moveBackward = moveBackwardWith InputMode.Input
+    let private moveCursorBackwardWith = moveCursor -1 0
+    let private backwardChar = moveCursorBackwardWith InputMode.Input
 
-    let private moveForwardWith (mode: InputMode) (state: InternalState) =
+    let private moveCursorForwardWith (mode: InputMode) (state: InternalState) =
         moveCursor 1 <| String.length state.QueryState.Query <| mode <| state
 
-    let private moveForward = moveForwardWith InputMode.Input
+    let private forwardChar = moveCursorForwardWith InputMode.Input
 
     let private setCursor
         (cursor: int)
@@ -61,12 +61,12 @@ module Handle =
         context
 
     let private moveHeadWith = setCursor 0
-    let private moveHead = moveHeadWith InputMode.Input
+    let private beginningOfLine = moveHeadWith InputMode.Input
 
     let private moveTailWith (mode: InputMode) (state: InternalState) =
         setCursor <| String.length state.QueryState.Query <| mode <| state
 
-    let private moveTail = moveTailWith InputMode.Input
+    let private endOfLine = moveTailWith InputMode.Input
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -117,11 +117,11 @@ module Handle =
 
                 s, pos, context |> QueryContext.prepareQuery s
 
-    let private removeBackwardChar = removeChar Direction.Backward 1
+    let private deleteBackwardChar = removeChar Direction.Backward 1
 
-    let private removeForwardChar = removeChar Direction.Forward 1
+    let private deleteForwardChar = removeChar Direction.Forward 1
 
-    let private removeQueryHead (state: InternalState) (pos: Position) (context: QueryContext) =
+    let private deleteBackwardInput (state: InternalState) (pos: Position) (context: QueryContext) =
         let state, pos, context =
             match state.QueryState.InputMode with
             | InputMode.Input -> (state, pos, context)
@@ -133,7 +133,7 @@ module Handle =
 
         removeChar Direction.Backward state.QueryState.Cursor state pos context
 
-    let private removeQueryTail (state: InternalState) (pos: Position) (context: QueryContext) =
+    let private deleteForwardInput (state: InternalState) (pos: Position) (context: QueryContext) =
         let queryLength = String.length state.QueryState.Query
 
         let state, pos, context, beginning =
@@ -149,10 +149,10 @@ module Handle =
         removeChar Direction.Forward (queryLength - beginning) state pos context
 
     let private selectBackwardChar (state: InternalState) =
-        moveBackwardWith <| QueryState.getQuerySelection -1 state.QueryState <| state
+        moveCursorBackwardWith <| QueryState.getQuerySelection -1 state.QueryState <| state
 
     let private selectForwardChar (state: InternalState) =
-        moveForwardWith <| QueryState.getQuerySelection 1 state.QueryState <| state
+        moveCursorForwardWith <| QueryState.getQuerySelection 1 state.QueryState <| state
 
     let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
         setCursor 0
@@ -181,7 +181,7 @@ module Handle =
 
         state |> InternalState.refresh |> InternalState.updateQueryState qs, pos, context
 
-    let private switchMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
+    let private rotateMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             state
             |> InternalState.rotateMatcher
@@ -191,7 +191,7 @@ module Handle =
 
         state, pos, context |> QueryContext.prepareIs state
 
-    let private switchOperator (state: InternalState) (pos: Position) (context: QueryContext) =
+    let private rotateOperator (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
             state
             |> InternalState.rotateOperator
@@ -285,21 +285,21 @@ module Handle =
         match acton with
         | Action.Noop -> InternalState.noRefresh state, pos, context
         | Action.AddQuery s -> addQuery state pos context s
-        | Action.BackwardChar -> moveBackward state pos context
-        | Action.ForwardChar -> moveForward state pos context
-        | Action.BeginningOfLine -> moveHead state pos context
-        | Action.EndOfLine -> moveTail state pos context
-        | Action.DeleteBackwardChar -> removeBackwardChar state pos context
-        | Action.DeleteForwardChar -> removeForwardChar state pos context
-        | Action.DeleteBackwardInput -> removeQueryHead state pos context
-        | Action.DeleteForwardInput -> removeQueryTail state pos context
+        | Action.BackwardChar -> backwardChar state pos context
+        | Action.ForwardChar -> forwardChar state pos context
+        | Action.BeginningOfLine -> beginningOfLine state pos context
+        | Action.EndOfLine -> endOfLine state pos context
+        | Action.DeleteBackwardChar -> deleteBackwardChar state pos context
+        | Action.DeleteForwardChar -> deleteForwardChar state pos context
+        | Action.DeleteBackwardInput -> deleteBackwardInput state pos context
+        | Action.DeleteForwardInput -> deleteForwardInput state pos context
         | Action.SelectBackwardChar -> selectBackwardChar state pos context
         | Action.SelectForwardChar -> selectForwardChar state pos context
         | Action.SelectToBeginningOfLine -> selectToBeginningOfLine state pos context
         | Action.SelectToEndOfLine -> selectToEndOfLine state pos context
         | Action.SelectAll -> selectAll state pos context
-        | Action.RotateMatcher -> switchMatcher state pos context
-        | Action.RotateOperator -> switchOperator state pos context
+        | Action.RotateMatcher -> rotateMatcher state pos context
+        | Action.RotateOperator -> rotateOperator state pos context
         | Action.ToggleCaseSensitive -> toggleCaseSensitive state pos context
         | Action.ToggleInvertFilter -> toggleInvertFilter state pos context
         | Action.ToggleSuppressProperties -> toggleSuppressProperties state pos context
