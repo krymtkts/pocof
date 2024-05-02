@@ -123,12 +123,12 @@ Default keymaps are following.
 | EndOfLine                | `End`                  |                      |
 | DeleteBackwardChar       | `Backspace`            |                      |
 | DeleteForwardChar        | `Delete`               |                      |
-| KillBeginningOfLine      | `Alt` + `U`            |                      |
-| KillEndOfLine            | `Alt` + `K`            |                      |
-| SelectBackwardChar       | `Shift` + `LeftArrow`  | Not implemented yet. |
-| SelectForwardChar        | `Shift` + `RightArrow` | Not implemented yet. |
-| SelectToBeginningOfLine  | `Shift` + `Home`       | Not implemented yet. |
-| SelectToEndOfLine        | `Shift` + `End`        | Not implemented yet. |
+| DeleteBackwardInput      | `Ctrl` + `Home`        |                      |
+| DeleteForwardInput       | `Ctrl` + `End`         |                      |
+| SelectBackwardChar       | `Shift` + `LeftArrow`  |                      |
+| SelectForwardChar        | `Shift` + `RightArrow` |                      |
+| SelectToBeginningOfLine  | `Shift` + `Home`       |                      |
+| SelectToEndOfLine        | `Shift` + `End`        |                      |
 | RotateMatcher            | `Alt` + `R`            |                      |
 | RotateOperator           | `Alt` + `L`            |                      |
 | ToggleCaseSensitive      | `Alt` + `C`            |                      |

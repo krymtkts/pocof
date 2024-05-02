@@ -58,12 +58,12 @@
             <maml:para>| EndOfLine                | `End`                  |                      |</maml:para>
             <maml:para>| DeleteBackwardChar       | `Backspace`            |                      |</maml:para>
             <maml:para>| DeleteForwardChar        | `Delete`               |                      |</maml:para>
-            <maml:para>| KillBeginningOfLine      | `Alt` + `U`            |                      |</maml:para>
-            <maml:para>| KillEndOfLine            | `Alt` + `K`            |                      |</maml:para>
-            <maml:para>| SelectBackwardChar       | `Shift` + `LeftArrow`  | Not implemented yet. |</maml:para>
-            <maml:para>| SelectForwardChar        | `Shift` + `RightArrow` | Not implemented yet. |</maml:para>
-            <maml:para>| SelectToBeginningOfLine  | `Shift` + `Home`       | Not implemented yet. |</maml:para>
-            <maml:para>| SelectToEndOfLine        | `Shift` + `End`        | Not implemented yet. |</maml:para>
+            <maml:para>| DeleteBackwardInput      | `Ctrl` + `Home`        |                      |</maml:para>
+            <maml:para>| DeleteForwardInput       | `Ctrl` + `End`         |                      |</maml:para>
+            <maml:para>| SelectBackwardChar       | `Shift` + `LeftArrow`  |                      |</maml:para>
+            <maml:para>| SelectForwardChar        | `Shift` + `RightArrow` |                      |</maml:para>
+            <maml:para>| SelectToBeginningOfLine  | `Shift` + `Home`       |                      |</maml:para>
+            <maml:para>| SelectToEndOfLine        | `Shift` + `End`        |                      |</maml:para>
             <maml:para>| RotateMatcher            | `Alt` + `R`            |                      |</maml:para>
             <maml:para>| RotateOperator           | `Alt` + `L`            |                      |</maml:para>
             <maml:para>| ToggleCaseSensitive      | `Alt` + `C`            |                      |</maml:para>
@@ -246,12 +246,12 @@
           <maml:para>| EndOfLine                | `End`                  |                      |</maml:para>
           <maml:para>| DeleteBackwardChar       | `Backspace`            |                      |</maml:para>
           <maml:para>| DeleteForwardChar        | `Delete`               |                      |</maml:para>
-          <maml:para>| KillBeginningOfLine      | `Alt` + `U`            |                      |</maml:para>
-          <maml:para>| KillEndOfLine            | `Alt` + `K`            |                      |</maml:para>
-          <maml:para>| SelectBackwardChar       | `Shift` + `LeftArrow`  | Not implemented yet. |</maml:para>
-          <maml:para>| SelectForwardChar        | `Shift` + `RightArrow` | Not implemented yet. |</maml:para>
-          <maml:para>| SelectToBeginningOfLine  | `Shift` + `Home`       | Not implemented yet. |</maml:para>
-          <maml:para>| SelectToEndOfLine        | `Shift` + `End`        | Not implemented yet. |</maml:para>
+          <maml:para>| DeleteBackwardInput      | `Ctrl` + `Home`        |                      |</maml:para>
+          <maml:para>| DeleteForwardInput       | `Ctrl` + `End`         |                      |</maml:para>
+          <maml:para>| SelectBackwardChar       | `Shift` + `LeftArrow`  |                      |</maml:para>
+          <maml:para>| SelectForwardChar        | `Shift` + `RightArrow` |                      |</maml:para>
+          <maml:para>| SelectToBeginningOfLine  | `Shift` + `Home`       |                      |</maml:para>
+          <maml:para>| SelectToEndOfLine        | `Shift` + `End`        |                      |</maml:para>
           <maml:para>| RotateMatcher            | `Alt` + `R`            |                      |</maml:para>
           <maml:para>| RotateOperator           | `Alt` + `L`            |                      |</maml:para>
           <maml:para>| ToggleCaseSensitive      | `Alt` + `C`            |                      |</maml:para>
