@@ -39,8 +39,8 @@ module Keys =
 
               (plain ConsoleKey.Backspace, Data.Action.DeleteBackwardChar)
               (plain ConsoleKey.Delete, Data.Action.DeleteForwardChar)
-              (alt ConsoleKey.U, Data.Action.DeleteBackwardInput)
-              (alt ConsoleKey.K, Data.Action.DeleteForwardInput)
+              (ctrl ConsoleKey.Home, Data.Action.DeleteBackwardInput)
+              (ctrl ConsoleKey.End, Data.Action.DeleteForwardInput)
 
               (shift ConsoleKey.LeftArrow, Data.Action.SelectBackwardChar)
               (shift ConsoleKey.RightArrow, Data.Action.SelectForwardChar)

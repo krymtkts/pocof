@@ -90,7 +90,7 @@ module ``get should returns`` =
             |||> List.foldBack2 Map.add
 
         let actual =
-            Keys.get keyMap [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, false) ]
+            Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Home, false, false, true) ]
 
         actual |> shouldEqual Data.Action.DeleteBackwardInput
 
