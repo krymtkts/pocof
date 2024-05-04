@@ -113,9 +113,9 @@ module loop =
               GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
-        actual |> List.length |> shouldEqual 5
+        actual |> Seq.length |> shouldEqual 5
 
-        actual |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
+        actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
 
         rui.Check()
 
@@ -138,7 +138,7 @@ module loop =
               GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
-        actual |> List.length |> shouldEqual 0
+        actual |> Seq.length |> shouldEqual 0
         rui.Check()
 
     [<Fact>]
@@ -171,9 +171,9 @@ module loop =
               GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
-        actual |> List.length |> shouldEqual 5
+        actual |> Seq.length |> shouldEqual 5
 
-        actual |> List.iteri (fun i x -> x = results.[i] |> shouldEqual true)
+        actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
 
         rui.Check()
 
@@ -205,9 +205,9 @@ module loop =
               GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
-        actual |> List.length |> shouldEqual 2
-        actual.[0] = results.[0] |> shouldEqual true
-        actual.[1] = results.[3] |> shouldEqual true
+        actual |> Seq.length |> shouldEqual 2
+        Seq.item 0 actual = results.[0] |> shouldEqual true
+        Seq.item 1 actual = results.[3] |> shouldEqual true
         rui.Check()
 
     [<Fact>]
@@ -240,8 +240,8 @@ module loop =
               GetLengthInBufferCells = String.length }
 
         let actual = Pocof.loop args input state pos context
-        actual |> List.length |> shouldEqual 1
-        actual.[0] = results.[0] |> shouldEqual true
+        actual |> Seq.length |> shouldEqual 1
+        Seq.item 0 actual = results.[0] |> shouldEqual true
 
         let expected: string list =
             $"""query>a{String.replicate 60 " "} match or [1]"""
@@ -265,11 +265,11 @@ module interact =
         let actual =
             Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
 
-        actual |> List.length |> shouldEqual 5
+        actual |> Seq.length |> shouldEqual 5
 
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
-        actual |> shouldEqual expected
+        actual |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return result when interaction finished in Interactive mode and TopDown Layout.`` () =
@@ -285,11 +285,11 @@ module interact =
         let actual =
             Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
 
-        actual |> List.length |> shouldEqual 5
+        actual |> Seq.length |> shouldEqual 5
 
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
-        actual |> shouldEqual expected
+        actual |> List.ofSeq |> shouldEqual expected
 
 
     [<Fact>]
@@ -306,11 +306,11 @@ module interact =
         let actual =
             Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
 
-        actual |> List.length |> shouldEqual 5
+        actual |> Seq.length |> shouldEqual 5
 
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
-        actual |> shouldEqual expected
+        actual |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
@@ -326,11 +326,11 @@ module interact =
         let actual =
             Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
 
-        actual |> List.length |> shouldEqual 5
+        actual |> Seq.length |> shouldEqual 5
 
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
-        actual |> shouldEqual expected
+        actual |> List.ofSeq |> shouldEqual expected
 
 module buildInput =
     open System.Collections

@@ -52,14 +52,14 @@ type SelectPocofCommand() =
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
 
-    abstract member Invoke: 'a list -> string seq
+    abstract member Invoke: 'a seq -> string seq
 
-    default __.Invoke(input: 'a list) =
+    default __.Invoke(input: 'a seq) =
         __.InvokeCommand.InvokeScript(
             @"$input | Format-Table | Out-String",
             true,
             PipelineResultTypes.None,
-            Array.ofList (input),
+            Array.ofSeq (input),
             null
         )
         |> Seq.map string
@@ -98,5 +98,5 @@ type SelectPocofCommand() =
         Pocof.interact conf state pos
         <| fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)
         <| __.Invoke
-        <| List.rev input
+        <| (List.rev input |> Seq.cast<Pocof.Entry>)
         |> Seq.iter __.WriteObject
