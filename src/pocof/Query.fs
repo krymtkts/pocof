@@ -171,7 +171,7 @@ module Query =
             { context with
                 Answer = prepareAnswer state }
 
-    let run (context: QueryContext) (entries: Entry list) (props: Map<string, string>) =
+    let run (context: QueryContext) (entries: Entry seq) (props: Map<string, string>) =
 #if DEBUG
         Logger.LogFile context.Queries
 #endif
@@ -208,7 +208,7 @@ module Query =
             | [] -> true
             | xs -> xs |> context.Test(fun x -> x |> swap |> (context.Is >> context.Answer))
 
-        entries |> List.filter predicate
+        entries |> Seq.filter predicate
 
     let props (state: InternalState) =
         let transform (x: string) =

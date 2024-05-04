@@ -16,11 +16,13 @@ module unwrap =
     [<Fact>]
     let ``should return "a".`` () =
         unwrap [ Entry.Obj(PSObject.AsPSObject "a") ]
+        |> List.ofSeq
         |> shouldEqual [ PSObject.AsPSObject "a" ]
 
     [<Fact>]
     let ``should return dictionary.`` () =
         unwrap [ Entry.Dict(DictionaryEntry("Jane", "Doe")) ]
+        |> List.ofSeq
         |> shouldEqual [ DictionaryEntry("Jane", "Doe") ]
 
 module ``Action fromString`` =

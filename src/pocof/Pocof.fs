@@ -25,7 +25,7 @@ module Pocof =
     [<NoEquality>]
     type LoopFixedArguments =
         { Keymaps: Map<KeyPattern, Action>
-          Input: Entry list
+          Input: Entry seq
           PropMap: Map<string, string>
           WriteScreen: Screen.WriteScreen
           GetKey: unit -> ConsoleKeyInfo list
@@ -81,7 +81,7 @@ module Pocof =
 
     let queryAndRender
         (args: LoopFixedArguments)
-        (results: Entry list)
+        (results: Entry seq)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
@@ -94,7 +94,7 @@ module Pocof =
 
             let state =
                 state
-                |> InternalState.updateFilteredCount (List.length results)
+                |> InternalState.updateFilteredCount (Seq.length results)
                 |> adjustQueryWindow args
 
             args.WriteScreen state results
@@ -107,7 +107,7 @@ module Pocof =
     [<TailCall>]
     let rec loop
         (args: LoopFixedArguments)
-        (results: Entry list)
+        (results: Entry seq)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
@@ -118,7 +118,7 @@ module Pocof =
         args.GetKey()
         |> Keys.get args.Keymaps
         |> function
-            | Action.Cancel -> []
+            | Action.Cancel -> seq []
             | Action.Finish -> unwrap results
             | action ->
                 action
@@ -130,8 +130,8 @@ module Pocof =
         (state: InternalState)
         (pos: Position)
         (rui: unit -> Screen.IRawUI)
-        (invoke: obj list -> string seq)
-        (input: Entry list)
+        (invoke: obj seq -> string seq)
+        (input: Entry seq)
         =
 
         let state, context = Query.prepare state

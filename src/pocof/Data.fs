@@ -78,9 +78,9 @@ module Data =
         | Obj of PSObject
         | Dict of DictionaryEntry
 
-    let unwrap (entries: Entry list) =
+    let unwrap (entries: Entry seq) =
         entries
-        |> List.map (function
+        |> Seq.map (function
             | Entry.Dict(dct) -> dct :> obj
             | Entry.Obj(o) -> o)
 

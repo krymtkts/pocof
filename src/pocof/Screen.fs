@@ -54,14 +54,14 @@ module Screen =
 
     let private note = "note>"
 
-    type WriteScreen = Data.InternalState -> Data.Entry list -> Result<string list, string> -> unit
+    type WriteScreen = Data.InternalState -> Data.Entry seq -> Result<string list, string> -> unit
 
     let escapeSequenceInvert = "\x1b[7m"
     let escapeSequenceResetInvert = "\x1b[27m"
 
     type Buff(r, i, layout) =
         let rui: IRawUI = r
-        let invoke: obj list -> string seq = i
+        let invoke: obj seq -> string seq = i
 
         let layout: Data.Layout = layout
 
@@ -224,7 +224,7 @@ module Screen =
         member __.WriteScreen
             (layout: Data.Layout)
             (state: Data.InternalState)
-            (entries: Data.Entry list)
+            (entries: Data.Entry seq)
             (props: Result<string list, string>)
             =
             use _ = rui.HideCursorWhileRendering()
@@ -254,9 +254,9 @@ module Screen =
                | _ -> note + state.Notification
 
             let out =
-                match List.length entries < height with
+                match Seq.length entries < height with
                 | true -> entries
-                | _ -> List.take height entries
+                | _ -> Seq.take height entries
                 |> Data.unwrap
                 |> invoke
                 |> Seq.fold
@@ -293,5 +293,5 @@ module Screen =
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
-    let init (rui: unit -> IRawUI) (invoke: obj list -> string seq) (layout: Data.Layout) =
+    let init (rui: unit -> IRawUI) (invoke: obj seq -> string seq) (layout: Data.Layout) =
         new Buff(rui (), invoke, layout)
