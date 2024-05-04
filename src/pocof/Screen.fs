@@ -254,9 +254,7 @@ module Screen =
                | _ -> note + state.Notification
 
             let out =
-                match Seq.length entries < height with
-                | true -> entries
-                | _ -> Seq.take height entries
+                Seq.truncate height entries
                 |> Data.unwrap
                 |> invoke
                 |> Seq.fold
