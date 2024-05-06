@@ -12,7 +12,7 @@ open System.Management.Automation.Runspaces
 type SelectPocofCommand() =
     inherit PSCmdlet()
 
-    let mutable input: Pocof.Entry list = []
+    let input: Pocof.Entry Generic.List = Generic.List()
     let mutable properties: Set<string> = set []
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
 
@@ -73,7 +73,7 @@ type SelectPocofCommand() =
         | Error e -> ArgumentException(e) |> raise
 
     override __.ProcessRecord() =
-        input <- __.InputObject |> Pocof.buildInput input
+        __.InputObject |> Pocof.addInput input.Add
 
         properties <- __.InputObject |> Pocof.buildProperties properties
 
@@ -91,12 +91,12 @@ type SelectPocofCommand() =
                   Layout = __.Layout
                   Keymaps = keymaps
                   Properties = List.ofSeq properties
-                  EntryCount = input |> List.length
+                  EntryCount = input |> Seq.length
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         Pocof.interact conf state pos
         <| fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)
         <| __.Invoke
-        <| (List.rev input |> Seq.cast<Pocof.Entry>)
+        <| input
         |> Seq.iter __.WriteObject

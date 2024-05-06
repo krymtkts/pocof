@@ -340,25 +340,27 @@ module buildInput =
 
     [<Fact>]
     let ``should return the list with added Obj`` () =
-        let expected = [ 3; 2; 1 ] |> mapToObj
+        let expected = [ 1; 2; 3 ] |> mapToObj
+        let input: Pocof.Entry Generic.List = Generic.List()
 
-        Pocof.buildInput [] ([ 1; 2; 3 ] |> List.map PSObject.AsPSObject |> Array.ofList)
-        |> shouldEqual expected
+        Pocof.addInput input.Add ([| 1; 2; 3 |] |> Array.map PSObject.AsPSObject)
 
-    [<Fact>]
-    let ``should return the list with added Obj to head.`` () =
-        let expected = [ 3; 2; 1; 0 ] |> mapToObj
+        input |> List.ofSeq |> shouldEqual expected
 
-        let input = [ 0 ] |> mapToObj
+    // [<Fact>]
+    // let ``should return the list with added Obj to head.`` () =
+    //     let expected = [ 3; 2; 1; 0 ] |> mapToObj
 
-        Pocof.buildInput input ([ 1; 2; 3 ] |> List.map PSObject.AsPSObject |> Array.ofList)
-        |> shouldEqual expected
+    //     Pocof.buildInput  ([ 1; 2; 3 ] |> List.map PSObject.AsPSObject |> Array.ofList)
+    //     |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Dict`` () =
         let expected =
-            [ DictionaryEntry("c", 3); DictionaryEntry("b", 2); DictionaryEntry("a", 1) ]
+            [ DictionaryEntry("a", 1); DictionaryEntry("b", 2); DictionaryEntry("c", 3) ]
             |> List.map Entry.Dict
+
+        let input: Pocof.Entry Generic.List = Generic.List()
 
         let inputObject =
             let h = new OrderedHashtable()
@@ -367,7 +369,8 @@ module buildInput =
             h.Add("c", 3)
             [| h |> PSObject.AsPSObject |]
 
-        Pocof.buildInput [] inputObject |> shouldEqual expected
+        Pocof.addInput input.Add inputObject
+        input |> List.ofSeq |> shouldEqual expected
 
 module buildProperties =
     [<Fact>]
