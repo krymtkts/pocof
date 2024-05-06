@@ -373,10 +373,12 @@ module buildInput =
         input |> List.ofSeq |> shouldEqual expected
 
 module buildProperties =
+    open System.Collections
+
     [<Fact>]
-    let ``should return the set with added input properties.`` () =
-        let expected = set [ "a"; "b"; "c" ]
-        let input = set []
+    let ``should return the list with added input properties.`` () =
+        let expected = [ "a"; "b"; "c" ]
+        let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
 
         let inputObject =
             let o = new PSObject()
@@ -385,12 +387,14 @@ module buildProperties =
             o.Properties.Add(new PSNoteProperty("c", 3))
             [| o |]
 
-        Pocof.buildProperties input inputObject |> shouldEqual expected
+        Pocof.buildProperties props.ContainsKey props.Add inputObject
+        props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
-    let ``should return the set with added input properties without duplication.`` () =
-        let expected = set [ "a"; "b"; "c" ]
-        let input = set [ "a"; "c" ]
+    let ``should return the list with added input properties with duplication.`` () =
+        let expected = [ "a"; "a"; "b"; "c" ]
+        let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+        props.Add("SomeObject", [ "a" ])
 
         let inputObject =
             let o = new PSObject()
@@ -399,17 +403,20 @@ module buildProperties =
             o.Properties.Add(new PSNoteProperty("c", 3))
             [| o |]
 
-        Pocof.buildProperties input inputObject |> shouldEqual expected
+        Pocof.buildProperties props.ContainsKey props.Add inputObject
+        props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
-    let ``should return the set with added the keys of hashtable.`` () =
-        let expected = [ "Key"; "Value" ] |> Set.ofList
-
-        let input = set []
+    let ``should return the list with added the keys of hashtable.`` () =
+        let expected = [ "Key"; "Value" ]
+        let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
 
         let inputObject =
             let h = new OrderedHashtable()
             h.Add("a", 1)
+            h.Add("b", 2)
+            h.Add("c", 3)
             [| h |> PSObject.AsPSObject |]
 
-        Pocof.buildProperties input inputObject |> shouldEqual expected
+        Pocof.buildProperties props.ContainsKey props.Add inputObject
+        props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected

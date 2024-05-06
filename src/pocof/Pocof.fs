@@ -165,15 +165,18 @@ module Pocof =
                     Entry.Dict d |> add
             | _ -> Entry.Obj o |> add
 
-    let buildProperties acc (input: PSObject array) =
-        Set.union acc
-        <| (input
-            |> Seq.collect (fun o ->
-                match o.BaseObject with
-                | :? IDictionary as dct ->
-                    match Seq.cast<DictionaryEntry> dct with
-                    | s when Seq.isEmpty s -> Seq.empty
-                    | s -> s |> Seq.head |> PSObject.AsPSObject |> _.Properties
-                | _ -> o.Properties)
-            |> Seq.map _.Name
-            |> Set.ofSeq)
+    let buildProperties (exists: string -> bool) (add: string * string seq -> Unit) (input: PSObject array) =
+        for o in input do
+            let name = o.BaseObject.GetType().FullName
+
+            if name |> exists |> not then
+                let props =
+                    match o.BaseObject with
+                    | :? IDictionary as dct ->
+                        match Seq.cast<DictionaryEntry> dct with
+                        | s when Seq.isEmpty s -> Seq.empty
+                        | s -> s |> Seq.head |> PSObject.AsPSObject |> _.Properties
+                    | _ -> o.Properties
+                    |> Seq.map _.Name
+
+                (name, props) |> add

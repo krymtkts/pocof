@@ -13,7 +13,7 @@ type SelectPocofCommand() =
     inherit PSCmdlet()
 
     let input: Pocof.Entry Generic.List = Generic.List()
-    let mutable properties: Set<string> = set []
+    let properties: Generic.Dictionary<string, string seq> = Generic.Dictionary()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
@@ -74,8 +74,7 @@ type SelectPocofCommand() =
 
     override __.ProcessRecord() =
         __.InputObject |> Pocof.addInput input.Add
-
-        properties <- __.InputObject |> Pocof.buildProperties properties
+        __.InputObject |> Pocof.buildProperties properties.ContainsKey properties.Add
 
     override __.EndProcessing() =
         let conf, state, pos =
@@ -90,7 +89,7 @@ type SelectPocofCommand() =
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = keymaps
-                  Properties = List.ofSeq properties
+                  Properties = properties.Values |> Seq.concat |> Set.ofSeq |> Seq.toList
                   EntryCount = input |> Seq.length
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
