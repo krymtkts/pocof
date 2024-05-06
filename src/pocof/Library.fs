@@ -73,8 +73,9 @@ type SelectPocofCommand() =
         | Error e -> ArgumentException(e) |> raise
 
     override __.ProcessRecord() =
-        __.InputObject |> Pocof.addInput input.Add
-        __.InputObject |> Pocof.buildProperties properties.ContainsKey properties.Add
+        for o in __.InputObject do
+            o |> Pocof.addInput input.Add
+            o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
     override __.EndProcessing() =
         let conf, state, pos =

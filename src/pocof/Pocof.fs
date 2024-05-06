@@ -157,26 +157,24 @@ module Pocof =
 
             loop args input state pos context
 
-    let addInput (add: Entry -> Unit) (input: PSObject array) =
-        for o in input do
-            match o.BaseObject with
-            | :? IDictionary as dct ->
-                for d in Seq.cast<DictionaryEntry> dct do
-                    Entry.Dict d |> add
-            | _ -> Entry.Obj o |> add
+    let addInput (add: Entry -> Unit) (input: PSObject) =
+        match input.BaseObject with
+        | :? IDictionary as dct ->
+            for d in Seq.cast<DictionaryEntry> dct do
+                Entry.Dict d |> add
+        | _ -> Entry.Obj input |> add
 
-    let buildProperties (exists: string -> bool) (add: string * string seq -> Unit) (input: PSObject array) =
-        for o in input do
-            let name = o.BaseObject.GetType().FullName
+    let buildProperties (exists: string -> bool) (add: string * string seq -> Unit) (input: PSObject) =
+        let name = input.BaseObject.GetType().FullName
 
-            if name |> exists |> not then
-                let props =
-                    match o.BaseObject with
-                    | :? IDictionary as dct ->
-                        match Seq.cast<DictionaryEntry> dct with
-                        | s when Seq.isEmpty s -> Seq.empty
-                        | s -> s |> Seq.head |> PSObject.AsPSObject |> _.Properties
-                    | _ -> o.Properties
-                    |> Seq.map _.Name
+        if name |> exists |> not then
+            let props =
+                match input.BaseObject with
+                | :? IDictionary as dct ->
+                    match Seq.cast<DictionaryEntry> dct with
+                    | s when Seq.isEmpty s -> Seq.empty
+                    | s -> s |> Seq.head |> PSObject.AsPSObject |> _.Properties
+                | _ -> input.Properties
+                |> Seq.map _.Name
 
-                (name, props) |> add
+            (name, props) |> add

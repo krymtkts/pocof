@@ -340,19 +340,20 @@ module buildInput =
 
     [<Fact>]
     let ``should return the list with added Obj`` () =
-        let expected = [ 1; 2; 3 ] |> mapToObj
+        let expected = [ 1 ] |> mapToObj
         let input: Pocof.Entry Generic.List = Generic.List()
 
-        Pocof.addInput input.Add ([| 1; 2; 3 |] |> Array.map PSObject.AsPSObject)
-
+        Pocof.addInput input.Add (1 |> PSObject.AsPSObject)
         input |> List.ofSeq |> shouldEqual expected
 
-    // [<Fact>]
-    // let ``should return the list with added Obj to head.`` () =
-    //     let expected = [ 3; 2; 1; 0 ] |> mapToObj
+    [<Fact>]
+    let ``should return the list with added Obj to tail.`` () =
+        let expected = [ 0; 1 ] |> mapToObj
+        let input: Pocof.Entry Generic.List = Generic.List()
+        input.Add(0 |> PSObject.AsPSObject |> Entry.Obj)
 
-    //     Pocof.buildInput  ([ 1; 2; 3 ] |> List.map PSObject.AsPSObject |> Array.ofList)
-    //     |> shouldEqual expected
+        Pocof.addInput input.Add (1 |> PSObject.AsPSObject)
+        input |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Dict`` () =
@@ -367,7 +368,7 @@ module buildInput =
             h.Add("a", 1)
             h.Add("b", 2)
             h.Add("c", 3)
-            [| h |> PSObject.AsPSObject |]
+            h |> PSObject.AsPSObject
 
         Pocof.addInput input.Add inputObject
         input |> List.ofSeq |> shouldEqual expected
@@ -385,7 +386,7 @@ module buildProperties =
             o.Properties.Add(new PSNoteProperty("a", 1))
             o.Properties.Add(new PSNoteProperty("b", 2))
             o.Properties.Add(new PSNoteProperty("c", 3))
-            [| o |]
+            o
 
         Pocof.buildProperties props.ContainsKey props.Add inputObject
         props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
@@ -401,7 +402,7 @@ module buildProperties =
             o.Properties.Add(new PSNoteProperty("a", 1))
             o.Properties.Add(new PSNoteProperty("b", 2))
             o.Properties.Add(new PSNoteProperty("c", 3))
-            [| o |]
+            o
 
         Pocof.buildProperties props.ContainsKey props.Add inputObject
         props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
@@ -416,7 +417,7 @@ module buildProperties =
             h.Add("a", 1)
             h.Add("b", 2)
             h.Add("c", 3)
-            [| h |> PSObject.AsPSObject |]
+            h |> PSObject.AsPSObject
 
         Pocof.buildProperties props.ContainsKey props.Add inputObject
         props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
