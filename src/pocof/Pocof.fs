@@ -157,24 +157,24 @@ module Pocof =
 
             loop args input state pos context
 
-    let buildInput acc (input: PSObject array) =
-        input
-        |> Seq.fold
-            (fun acc o ->
-                match o.BaseObject with
-                | :? IDictionary as dct -> Seq.cast<DictionaryEntry> dct |> Seq.fold (fun a d -> Entry.Dict d :: a) acc
-                | _ -> Entry.Obj(PSObject o) :: acc)
-            acc
+    let addInput (add: Entry -> Unit) (input: PSObject) =
+        match input.BaseObject with
+        | :? IDictionary as dct ->
+            for d in Seq.cast<DictionaryEntry> dct do
+                Entry.Dict d |> add
+        | _ -> Entry.Obj input |> add
 
-    let buildProperties acc (input: PSObject array) =
-        Set.union acc
-        <| (input
-            |> Seq.collect (fun o ->
-                match o.BaseObject with
+    let buildProperties (exists: string -> bool) (add: string * string seq -> Unit) (input: PSObject) =
+        let name = input.BaseObject.GetType().FullName
+
+        if name |> exists |> not then
+            let props =
+                match input.BaseObject with
                 | :? IDictionary as dct ->
                     match Seq.cast<DictionaryEntry> dct with
                     | s when Seq.isEmpty s -> Seq.empty
                     | s -> s |> Seq.head |> PSObject.AsPSObject |> _.Properties
-                | _ -> o.Properties)
-            |> Seq.map _.Name
-            |> Set.ofSeq)
+                | _ -> input.Properties
+                |> Seq.map _.Name
+
+            (name, props) |> add
