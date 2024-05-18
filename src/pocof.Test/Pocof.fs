@@ -422,7 +422,32 @@ module UniqueInputStore =
         input.Add(2 |> PSObject.AsPSObject)
         input.Add(1 |> PSObject.AsPSObject)
         input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.Count() |> shouldEqual (Seq.length expected)
 
+    [<Fact>]
+    let ``should return the unique list with Dict.`` () =
+        let expected =
+            [ DictionaryEntry("a", 1)
+              DictionaryEntry("b", 2)
+              DictionaryEntry("c", 3)
+              DictionaryEntry("b", 4) ]
+            |> List.map Entry.Dict
+
+        let input: Pocof.IInputStore = Pocof.getInputStore true
+
+        let h = new OrderedHashtable()
+        h.Add("a", 1)
+        h.Add("b", 2)
+        h.Add("c", 3)
+        h |> PSObject.AsPSObject |> input.Add
+
+        let h = new OrderedHashtable()
+        h.Add("a", 1)
+        h.Add("b", 4)
+        h.Add("c", 3)
+        h |> PSObject.AsPSObject |> input.Add
+
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
         input.Count() |> shouldEqual (Seq.length expected)
 
 module buildProperties =
