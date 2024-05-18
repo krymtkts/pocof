@@ -12,7 +12,7 @@ open System.Management.Automation.Runspaces
 type SelectPocofCommand() =
     inherit PSCmdlet()
 
-    let input: Pocof.Entry Generic.List = Generic.List()
+    let mutable input: Pocof.IInputStore = Pocof.NormalInputStore()
     let properties: Generic.Dictionary<string, string seq> = Generic.Dictionary()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
 
@@ -41,6 +41,9 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     member val SuppressProperties: SwitchParameter = SwitchParameter false with get, set
+
+    [<Parameter>]
+    member val Unique: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
     member val Prompt = "query" with get, set
@@ -72,9 +75,11 @@ type SelectPocofCommand() =
         | Ok k -> keymaps <- k
         | Error e -> ArgumentException(e) |> raise
 
+        input <- __.Unique.IsPresent |> Pocof.getInputStore
+
     override __.ProcessRecord() =
         for o in __.InputObject do
-            o |> Pocof.addInput input.Add
+            o |> input.Add
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
     override __.EndProcessing() =
@@ -91,12 +96,12 @@ type SelectPocofCommand() =
                   Layout = __.Layout
                   Keymaps = keymaps
                   Properties = properties.Values |> Seq.concat |> Set.ofSeq |> Seq.toList
-                  EntryCount = input |> Seq.length
+                  EntryCount = input.Count()
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         Pocof.interact conf state pos
         <| fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)
         <| __.Invoke
-        <| input
+        <| input.GetAll()
         |> Seq.iter __.WriteObject

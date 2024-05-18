@@ -338,41 +338,6 @@ module buildInput =
     let mapToObj x =
         x |> List.map (PSObject.AsPSObject >> Entry.Obj)
 
-    [<Fact>]
-    let ``should return the list with added Obj`` () =
-        let expected = [ 1 ] |> mapToObj
-        let input: Pocof.Entry Generic.List = Generic.List()
-
-        Pocof.addInput input.Add (1 |> PSObject.AsPSObject)
-        input |> List.ofSeq |> shouldEqual expected
-
-    [<Fact>]
-    let ``should return the list with added Obj to tail.`` () =
-        let expected = [ 0; 1 ] |> mapToObj
-        let input: Pocof.Entry Generic.List = Generic.List()
-        input.Add(0 |> PSObject.AsPSObject |> Entry.Obj)
-
-        Pocof.addInput input.Add (1 |> PSObject.AsPSObject)
-        input |> List.ofSeq |> shouldEqual expected
-
-    [<Fact>]
-    let ``should return the list with added Dict`` () =
-        let expected =
-            [ DictionaryEntry("a", 1); DictionaryEntry("b", 2); DictionaryEntry("c", 3) ]
-            |> List.map Entry.Dict
-
-        let input: Pocof.Entry Generic.List = Generic.List()
-
-        let inputObject =
-            let h = new OrderedHashtable()
-            h.Add("a", 1)
-            h.Add("b", 2)
-            h.Add("c", 3)
-            h |> PSObject.AsPSObject
-
-        Pocof.addInput input.Add inputObject
-        input |> List.ofSeq |> shouldEqual expected
-
 module buildProperties =
     open System.Collections
 

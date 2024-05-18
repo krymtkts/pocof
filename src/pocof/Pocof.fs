@@ -157,12 +157,47 @@ module Pocof =
 
             loop args input state pos context
 
-    let addInput (add: Entry -> Unit) (input: PSObject) =
-        match input.BaseObject with
-        | :? IDictionary as dct ->
-            for d in Seq.cast<DictionaryEntry> dct do
-                Entry.Dict d |> add
-        | _ -> Entry.Obj input |> add
+    type IInputStore =
+        abstract member Add: PSObject -> unit
+        abstract member GetAll: unit -> Entry seq
+        abstract member Count: unit -> int
+
+    type NormalInputStore() =
+        let store: Entry Generic.List = Generic.List()
+
+        interface IInputStore with
+            member __.Add input =
+                match input.BaseObject with
+                | :? IDictionary as dct ->
+                    for d in Seq.cast<DictionaryEntry> dct do
+                        Entry.Dict d |> store.Add
+                | _ -> Entry.Obj input |> store.Add
+
+            member __.GetAll() = store
+            member __.Count() = store.Count
+
+    type UniqueInputStore() =
+        let store: Specialized.OrderedDictionary = Specialized.OrderedDictionary()
+
+        let add (entry: Entry) =
+            if store.Contains entry |> not then
+                (entry, null) |> store.Add
+
+        interface IInputStore with
+            member __.Add input =
+                match input.BaseObject with
+                | :? IDictionary as dct ->
+                    for d in Seq.cast<DictionaryEntry> dct do
+                        d |> Entry.Dict |> add
+                | _ -> input |> Entry.Obj |> add
+
+            member __.GetAll() = store.Keys |> Seq.cast<Entry>
+            member __.Count() = store.Count
+
+    let getInputStore (unique: bool) =
+        match unique with
+        | true -> UniqueInputStore() :> IInputStore
+        | _ -> NormalInputStore() :> IInputStore
 
     let buildProperties (exists: string -> bool) (add: string * string seq -> Unit) (input: PSObject) =
         let name = input.BaseObject.GetType().FullName
