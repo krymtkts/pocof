@@ -308,6 +308,24 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -Unique
+
+Enabling `Unique` will exclude duplicates in `InputObject`.
+`Unique` maintains the order of InputObject after excluding duplicates.
+`Unique` uses the `Equals` and `GetHashCode` methods of `InputObject` to check for equality.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
