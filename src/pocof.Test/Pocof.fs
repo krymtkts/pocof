@@ -332,7 +332,7 @@ module interact =
 
         actual |> List.ofSeq |> shouldEqual expected
 
-module buildInput =
+module NormalInputStore =
     open System.Collections
 
     let mapToObj x =
@@ -341,19 +341,17 @@ module buildInput =
     [<Fact>]
     let ``should return the list with added Obj`` () =
         let expected = [ 1 ] |> mapToObj
-        let input: Pocof.Entry Generic.List = Generic.List()
-
-        Pocof.addInput input.Add (1 |> PSObject.AsPSObject)
-        input |> List.ofSeq |> shouldEqual expected
+        let input: Pocof.IInputStore = Pocof.getInputStore false
+        input.Add(1 |> PSObject.AsPSObject)
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Obj to tail.`` () =
         let expected = [ 0; 1 ] |> mapToObj
-        let input: Pocof.Entry Generic.List = Generic.List()
-        input.Add(0 |> PSObject.AsPSObject |> Entry.Obj)
-
-        Pocof.addInput input.Add (1 |> PSObject.AsPSObject)
-        input |> List.ofSeq |> shouldEqual expected
+        let input: Pocof.IInputStore = Pocof.getInputStore false
+        input.Add(0 |> PSObject.AsPSObject)
+        input.Add(1 |> PSObject.AsPSObject)
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Dict`` () =
@@ -361,7 +359,7 @@ module buildInput =
             [ DictionaryEntry("a", 1); DictionaryEntry("b", 2); DictionaryEntry("c", 3) ]
             |> List.map Entry.Dict
 
-        let input: Pocof.Entry Generic.List = Generic.List()
+        let input: Pocof.IInputStore = Pocof.getInputStore false
 
         let inputObject =
             let h = new OrderedHashtable()
@@ -370,8 +368,87 @@ module buildInput =
             h.Add("c", 3)
             h |> PSObject.AsPSObject
 
-        Pocof.addInput input.Add inputObject
-        input |> List.ofSeq |> shouldEqual expected
+        input.Add inputObject
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.Count() |> shouldEqual (Seq.length expected)
+
+module UniqueInputStore =
+    open System.Collections
+
+    let mapToObj x =
+        x |> List.map (PSObject.AsPSObject >> Entry.Obj)
+
+    [<Fact>]
+    let ``should return the list with added Obj`` () =
+        let expected = [ 1 ] |> mapToObj
+        let input: Pocof.IInputStore = Pocof.getInputStore true
+        input.Add(1 |> PSObject.AsPSObject)
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return the list with added Obj to tail.`` () =
+        let expected = [ 0; 1 ] |> mapToObj
+        let input: Pocof.IInputStore = Pocof.getInputStore true
+        input.Add(0 |> PSObject.AsPSObject)
+        input.Add(1 |> PSObject.AsPSObject)
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return the list with added Dict`` () =
+        let expected =
+            [ DictionaryEntry("a", 1); DictionaryEntry("b", 2); DictionaryEntry("c", 3) ]
+            |> List.map Entry.Dict
+
+        let input: Pocof.IInputStore = Pocof.getInputStore true
+
+        let inputObject =
+            let h = new OrderedHashtable()
+            h.Add("a", 1)
+            h.Add("b", 2)
+            h.Add("c", 3)
+            h |> PSObject.AsPSObject
+
+        input.Add inputObject
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
+
+    [<Fact>]
+    let ``should return the unique list.`` () =
+        let expected = [ 1; 2; 3 ] |> mapToObj
+        let input: Pocof.IInputStore = Pocof.getInputStore true
+
+        input.Add(1 |> PSObject.AsPSObject)
+        input.Add(2 |> PSObject.AsPSObject)
+        input.Add(3 |> PSObject.AsPSObject)
+        input.Add(2 |> PSObject.AsPSObject)
+        input.Add(1 |> PSObject.AsPSObject)
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.Count() |> shouldEqual (Seq.length expected)
+
+    [<Fact>]
+    let ``should return the unique list with Dict.`` () =
+        let expected =
+            [ DictionaryEntry("a", 1)
+              DictionaryEntry("b", 2)
+              DictionaryEntry("c", 3)
+              DictionaryEntry("b", 4) ]
+            |> List.map Entry.Dict
+
+        let input: Pocof.IInputStore = Pocof.getInputStore true
+
+        let h = new OrderedHashtable()
+        h.Add("a", 1)
+        h.Add("b", 2)
+        h.Add("c", 3)
+        h |> PSObject.AsPSObject |> input.Add
+
+        let h = new OrderedHashtable()
+        h.Add("a", 1)
+        h.Add("b", 4)
+        h.Add("c", 3)
+        h |> PSObject.AsPSObject |> input.Add
+
+        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.Count() |> shouldEqual (Seq.length expected)
 
 module buildProperties =
     open System.Collections

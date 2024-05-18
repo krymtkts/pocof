@@ -203,6 +203,17 @@
           </dev:type>
           <dev:defaultValue>False</dev:defaultValue>
         </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Unique</maml:name>
+          <maml:description>
+            <maml:para>Enabling `Unique` will exclude duplicates in `InputObject`. `Unique` maintains the order of InputObject after excluding duplicates. `Unique` uses the `Equals` and `GetHashCode` methods of `InputObject` to check for equality.</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
       </command:syntaxItem>
     </command:syntax>
     <command:parameters>
@@ -370,6 +381,18 @@
         <maml:name>SuppressProperties</maml:name>
         <maml:description>
           <maml:para>Enabling `SuppressProperties` will disable the display of properties under the query input.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Unique</maml:name>
+        <maml:description>
+          <maml:para>Enabling `Unique` will exclude duplicates in `InputObject`. `Unique` maintains the order of InputObject after excluding duplicates. `Unique` uses the `Equals` and `GetHashCode` methods of `InputObject` to check for equality.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>

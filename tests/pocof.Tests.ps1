@@ -171,6 +171,30 @@ Describe 'pocof' {
                 [System.Threading.Thread]::CurrentThread.CurrentCulture = $culture
             }
         }
+
+        Context 'with unique switch' -ForEach @(
+            @{ Unique = $true }
+        ) {
+            It "Given '<InputObject>', it exclude duplications as '<Expected>'." -TestCases @(
+                @{InputObject = (1..10) + (1..20); Expected = 1..20 ; Params = $BaseParam + $_ }
+                @{InputObject = @(
+                        [ordered]@{a = 1; b = 2; c = 3 }
+                        [ordered]@{b = 2; c = 3; d = 4 }
+                    )
+                    Expected = @(
+                        [Collections.DictionaryEntry]::new('a', 1)
+                        [Collections.DictionaryEntry]::new('b', 2)
+                        [Collections.DictionaryEntry]::new('c', 3)
+                        [Collections.DictionaryEntry]::new('d', 4)
+                    )
+                    Params = $BaseParam + $_
+                }
+            ) {
+                $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
+                $tmp = @{InputObject = $InputObject } + $Params
+                Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
+            }
+        }
     }
     Context 'Select-Pocof cmdlet with property' -ForEach @{
         InputObject = @(
