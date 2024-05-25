@@ -98,12 +98,10 @@ module Data =
         | _ -> Error <| $"Unknown %s{aType.Name} '%s{s}'."
 
     let private fromString<'a> s =
-        let name = String.lower s
-        let aType = typeof<'a>
-
-        match name with
-        | Found aType (set []) u -> FSharpValue.MakeUnion(u, [||]) :?> 'a
-        | _ -> failwithf $"Unknown %s{aType.Name} '%s{s}'."
+        tryFromStringExcludes<'a> (set []) s
+        |> function
+            | Ok x -> x
+            | Error e -> failwith e
 
     let private toString (x: 'a) =
         match FSharpValue.GetUnionFields(x, typeof<'a>) with
