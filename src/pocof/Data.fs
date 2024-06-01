@@ -43,6 +43,9 @@ module Debug =
 module LanguageExtension =
     open System
 
+    module Option =
+        let dispose (d: 'a option when 'a :> IDisposable) = d |> Option.iter (fun d -> d.Dispose())
+
     module String =
         let lower (s: string) = s.ToLower()
         let upper (s: string) = s.ToUpper()

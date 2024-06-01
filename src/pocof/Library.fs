@@ -100,7 +100,9 @@ type SelectPocofCommand() =
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
-        use buff =
-            Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke conf.Layout
+        let buff =
+            Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke conf
 
         Pocof.interact conf state pos buff <| input.GetAll() |> Seq.iter __.WriteObject
+
+        buff |> Option.dispose
