@@ -162,41 +162,38 @@ module Pocof =
         abstract member GetAll: unit -> Entry seq
         abstract member Count: unit -> int
 
-    type NormalInputStore() =
-        let store: Entry Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+    [<AbstractClass>]
+    type AbstractInputStore() =
+        member val Store: Entry Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+
+        abstract member AddEntry: Entry -> unit
 
         interface IInputStore with
             member __.Add input =
                 match input.BaseObject with
                 | :? IDictionary as dct ->
                     for d in Seq.cast<DictionaryEntry> dct do
-                        Entry.Dict d |> store.Enqueue
-                | _ -> Entry.Obj input |> store.Enqueue
+                        d |> Entry.Dict |> __.AddEntry
+                | _ -> input |> Entry.Obj |> __.AddEntry
 
-            member __.GetAll() = store
-            member __.Count() = store.Count
+            member __.GetAll() = __.Store
+            member __.Count() = __.Store.Count
+
+    type NormalInputStore() =
+        inherit AbstractInputStore()
+
+        override __.AddEntry entry = entry |> base.Store.Enqueue
 
     type UniqueInputStore() =
-        let store: Entry Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+        inherit AbstractInputStore()
 
         let keys: Concurrent.ConcurrentDictionary<Entry, unit> =
             Concurrent.ConcurrentDictionary()
 
-        let add (entry: Entry) =
+        override __.AddEntry entry =
             if keys.ContainsKey entry |> not then
                 if (entry, ()) |> keys.TryAdd then
-                    entry |> store.Enqueue
-
-        interface IInputStore with
-            member __.Add input =
-                match input.BaseObject with
-                | :? IDictionary as dct ->
-                    for d in Seq.cast<DictionaryEntry> dct do
-                        d |> Entry.Dict |> add
-                | _ -> input |> Entry.Obj |> add
-
-            member __.GetAll() = store
-            member __.Count() = store.Count
+                    entry |> __.Store.Enqueue
 
     let getInputStore (unique: bool) =
         match unique with
