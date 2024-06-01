@@ -9,6 +9,7 @@ open Handle
 
 [<RequireQualifiedAccess>]
 module Pocof =
+    open System.Threading
     type Entry = Data.Entry
     type KeyPattern = Data.KeyPattern
     type Action = Data.Action
@@ -21,13 +22,18 @@ module Pocof =
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
 
+    [<RequireQualifiedAccess>]
+    type RenderEvent =
+        | Render of InternalState * Entry seq * Result<string list, string>
+        | Quit
+
     [<NoComparison>]
     [<NoEquality>]
     type LoopFixedArguments =
         { Keymaps: Map<KeyPattern, Action>
           Input: Entry seq
           PropMap: Map<string, string>
-          WriteScreen: Screen.WriteScreen
+          PublishEvent: RenderEvent -> unit
           GetKey: unit -> ConsoleKeyInfo list
           GetConsoleWidth: unit -> int
           GetLengthInBufferCells: string -> int }
@@ -96,11 +102,16 @@ module Pocof =
                 state
                 |> InternalState.updateFilteredCount (Seq.length results)
                 |> adjustQueryWindow args
-
-            args.WriteScreen state results
-            <| match state.SuppressProperties with
-               | true -> Ok []
-               | _ -> Query.props state
+#if DEBUG
+            Logger.LogFile [ $"publish render {results |> Seq.length}" ]
+#endif
+            (state,
+             results,
+             match state.SuppressProperties with
+             | true -> Ok []
+             | _ -> Query.props state)
+            |> RenderEvent.Render
+            |> args.PublishEvent
 
             results, state
 
@@ -118,8 +129,12 @@ module Pocof =
         args.GetKey()
         |> Keys.get args.Keymaps
         |> function
-            | Action.Cancel -> seq []
-            | Action.Finish -> unwrap results
+            | Action.Cancel ->
+                args.PublishEvent RenderEvent.Quit
+                seq []
+            | Action.Finish ->
+                args.PublishEvent RenderEvent.Quit
+                unwrap results
             | action ->
                 action
                 |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
@@ -135,6 +150,7 @@ module Pocof =
         (state: InternalState)
         (pos: Position)
         (buff: Screen.Buff option)
+        (publish: RenderEvent -> unit)
         (input: Entry seq)
         =
 
@@ -152,12 +168,38 @@ module Pocof =
                 { Keymaps = conf.Keymaps
                   Input = input
                   PropMap = propMap
-                  WriteScreen = buff.WriteScreen conf.Layout
+                  PublishEvent = publish
                   GetKey = buff.GetKey
                   GetConsoleWidth = buff.GetConsoleWidth
                   GetLengthInBufferCells = buff.GetLengthInBufferCells }
 
             loop args input state pos context
+
+    [<TailCall>]
+    let rec render
+        (conf: InternalConfig)
+        (renderStack: Concurrent.ConcurrentStack<RenderEvent>)
+        (buff: Screen.Buff option)
+        =
+
+        buff
+        |> function
+            | None -> ()
+            | Some b ->
+                match renderStack.TryPop() with
+                | false, _ ->
+                    Thread.Sleep 10
+                    render conf renderStack buff
+                | _, e ->
+                    e
+                    |> function
+                        | RenderEvent.Render(x1, x2, x3) ->
+#if DEBUG
+                            Logger.LogFile [ $"render. length: {x2 |> Seq.length}" ]
+#endif
+                            b.WriteScreen conf.Layout x1 x2 x3
+                            render conf renderStack buff
+                        | RenderEvent.Quit -> ()
 
     type IInputStore =
         abstract member Add: PSObject -> unit

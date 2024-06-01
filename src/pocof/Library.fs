@@ -14,6 +14,10 @@ type SelectPocofCommand() =
 
     let mutable input: Pocof.IInputStore = Pocof.NormalInputStore()
     let properties: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+
+    let renderStack: Concurrent.ConcurrentStack<Pocof.RenderEvent> =
+        Concurrent.ConcurrentStack()
+
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
@@ -103,6 +107,10 @@ type SelectPocofCommand() =
         let buff =
             Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke conf
 
-        Pocof.interact conf state pos buff <| input.GetAll() |> Seq.iter __.WriteObject
+        let mainTask =
+            async { return Pocof.interact conf state pos buff renderStack.Push <| input.GetAll() }
+            |> Async.StartAsTask
 
+        buff |> Pocof.render conf renderStack
+        mainTask |> _.Result |> Seq.iter __.WriteObject
         buff |> Option.dispose
