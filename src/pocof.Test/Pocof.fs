@@ -262,8 +262,8 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let actual =
-            Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        use buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff input
 
         actual |> Seq.length |> shouldEqual 5
 
@@ -282,8 +282,8 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let actual =
-            Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        use buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff input
 
         actual |> Seq.length |> shouldEqual 5
 
@@ -303,8 +303,8 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let actual =
-            Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        use buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff input
 
         actual |> Seq.length |> shouldEqual 5
 
@@ -323,8 +323,8 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let actual =
-            Pocof.interact config state pos (fun () -> rui) (fun _ -> Seq.empty) input
+        use buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff input
 
         actual |> Seq.length |> shouldEqual 5
 

@@ -125,14 +125,10 @@ module Pocof =
                 |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
                 |||> loop args results
 
-    let interact
-        (conf: InternalConfig)
-        (state: InternalState)
-        (pos: Position)
-        (rui: unit -> Screen.IRawUI)
-        (invoke: obj seq -> string seq)
-        (input: Entry seq)
-        =
+    let initScreen (rui: unit -> Screen.IRawUI) (invoke: obj seq -> string seq) (layout: Layout) =
+        Screen.init rui invoke layout
+
+    let interact (conf: InternalConfig) (state: InternalState) (pos: Position) (buff: Screen.Buff) (input: Entry seq) =
 
         let state, context = Query.prepare state
 
@@ -144,8 +140,6 @@ module Pocof =
             let l = Query.run context input propMap
             unwrap l
         | _ ->
-            use buff = Screen.init rui invoke conf.Layout
-
             let args =
                 { Keymaps = conf.Keymaps
                   Input = input
