@@ -177,11 +177,15 @@ module Pocof =
             member __.Count() = store.Count
 
     type UniqueInputStore() =
-        let store: Specialized.OrderedDictionary = Specialized.OrderedDictionary()
+        let store: Entry Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+
+        let keys: Concurrent.ConcurrentDictionary<Entry, unit> =
+            Concurrent.ConcurrentDictionary()
 
         let add (entry: Entry) =
-            if store.Contains entry |> not then
-                (entry, null) |> store.Add
+            if keys.ContainsKey entry |> not then
+                if (entry, ()) |> keys.TryAdd then
+                    entry |> store.Enqueue
 
         interface IInputStore with
             member __.Add input =
@@ -191,7 +195,7 @@ module Pocof =
                         d |> Entry.Dict |> add
                 | _ -> input |> Entry.Obj |> add
 
-            member __.GetAll() = store.Keys |> Seq.cast<Entry>
+            member __.GetAll() = store
             member __.Count() = store.Count
 
     let getInputStore (unique: bool) =
