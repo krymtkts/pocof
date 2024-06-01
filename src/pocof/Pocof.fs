@@ -163,15 +163,15 @@ module Pocof =
         abstract member Count: unit -> int
 
     type NormalInputStore() =
-        let store: Entry Generic.List = Generic.List()
+        let store: Entry Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
 
         interface IInputStore with
             member __.Add input =
                 match input.BaseObject with
                 | :? IDictionary as dct ->
                     for d in Seq.cast<DictionaryEntry> dct do
-                        Entry.Dict d |> store.Add
-                | _ -> Entry.Obj input |> store.Add
+                        Entry.Dict d |> store.Enqueue
+                | _ -> Entry.Obj input |> store.Enqueue
 
             member __.GetAll() = store
             member __.Count() = store.Count
