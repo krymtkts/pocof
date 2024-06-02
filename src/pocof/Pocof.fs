@@ -9,17 +9,27 @@ open Handle
 
 [<RequireQualifiedAccess>]
 module Pocof =
+    open System.Threading
+    open System.Reflection
+
     type Entry = Data.Entry
     type KeyPattern = Data.KeyPattern
     type Action = Data.Action
     type Matcher = Data.Matcher
     type Operator = Data.Operator
     type Layout = Data.Layout
+    type InternalConfig = Data.InternalConfig
 
     type RawUI = Screen.RawUI
+    type Buff = Screen.Buff
 
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
+
+    [<RequireQualifiedAccess>]
+    type RenderEvent =
+        | Render of InternalState * Entry seq * Result<string list, string>
+        | Quit
 
     [<NoComparison>]
     [<NoEquality>]
@@ -27,7 +37,7 @@ module Pocof =
         { Keymaps: Map<KeyPattern, Action>
           Input: Entry seq
           PropMap: Map<string, string>
-          WriteScreen: Screen.WriteScreen
+          PublishEvent: RenderEvent -> unit
           GetKey: unit -> ConsoleKeyInfo list
           GetConsoleWidth: unit -> int
           GetLengthInBufferCells: string -> int }
@@ -96,11 +106,16 @@ module Pocof =
                 state
                 |> InternalState.updateFilteredCount (Seq.length results)
                 |> adjustQueryWindow args
-
-            args.WriteScreen state results
-            <| match state.SuppressProperties with
-               | true -> Ok []
-               | _ -> Query.props state
+#if DEBUG
+            Logger.LogFile [ $"publish render {results |> Seq.length}" ]
+#endif
+            (state,
+             results,
+             match state.SuppressProperties with
+             | true -> Ok []
+             | _ -> Query.props state)
+            |> RenderEvent.Render
+            |> args.PublishEvent
 
             results, state
 
@@ -118,8 +133,12 @@ module Pocof =
         args.GetKey()
         |> Keys.get args.Keymaps
         |> function
-            | Action.Cancel -> seq []
-            | Action.Finish -> unwrap results
+            | Action.Cancel ->
+                args.PublishEvent RenderEvent.Quit
+                seq []
+            | Action.Finish ->
+                args.PublishEvent RenderEvent.Quit
+                unwrap results
             | action ->
                 action
                 |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
@@ -129,70 +148,153 @@ module Pocof =
         (conf: InternalConfig)
         (state: InternalState)
         (pos: Position)
-        (rui: unit -> Screen.IRawUI)
-        (invoke: obj seq -> string seq)
+        (buff: Screen.Buff option)
+        (publish: RenderEvent -> unit)
         (input: Entry seq)
         =
 
         let state, context = Query.prepare state
 
-        let propMap =
-            state.Properties |> List.map (fun p -> String.lower p, p) |> Map.ofList
+#if DEBUG
+        Logger.LogFile [ $"props. length: {state.Properties |> Seq.length}" ]
+#endif
+        let propMap = state.Properties |> Seq.map (fun p -> String.lower p, p) |> Map.ofSeq
 
-        match conf.NotInteractive with
-        | true ->
+        match buff with
+        | None ->
             let l = Query.run context input propMap
             unwrap l
-        | _ ->
-            use buff = Screen.init rui invoke conf.Layout
-
+        | Some buff ->
             let args =
                 { Keymaps = conf.Keymaps
                   Input = input
                   PropMap = propMap
-                  WriteScreen = buff.WriteScreen conf.Layout
+                  PublishEvent = publish
                   GetKey = buff.GetKey
                   GetConsoleWidth = buff.GetConsoleWidth
                   GetLengthInBufferCells = buff.GetLengthInBufferCells }
 
             loop args input state pos context
 
+    let initScreen (rui: unit -> Screen.IRawUI) (invoke: obj seq -> string seq) (conf: InternalConfig) =
+        match conf.NotInteractive with
+        | true -> None
+        | _ -> Screen.init rui invoke conf.Layout |> Some
+
+    [<TailCall>]
+    let rec render
+        (conf: InternalConfig)
+        (renderStack: Concurrent.ConcurrentStack<RenderEvent>)
+        (buff: Screen.Buff option)
+        =
+
+        buff
+        |> function
+            | None -> ()
+            | Some b ->
+                match renderStack.TryPop() with
+                | false, _ ->
+                    Thread.Sleep 10
+                    render conf renderStack buff
+                | _, e ->
+                    e
+                    |> function
+                        | RenderEvent.Render(x1, x2, x3) ->
+#if DEBUG
+                            Logger.LogFile [ $"render. length: {x2 |> Seq.length}" ]
+#endif
+                            b.WriteScreen conf.Layout x1 x2 x3
+                            render conf renderStack buff
+                        | RenderEvent.Quit -> ()
+
+    let stopUpstreamCommandsException (cmdlet: Cmdlet) =
+        let stopUpstreamCommandsExceptionType =
+            Assembly
+                .GetAssembly(typeof<PSCmdlet>)
+                .GetType("System.Management.Automation.StopUpstreamCommandsException")
+
+        let stopUpstreamCommandsException =
+            Activator.CreateInstance(
+                stopUpstreamCommandsExceptionType,
+                BindingFlags.Default
+                ||| BindingFlags.CreateInstance
+                ||| BindingFlags.Instance
+                ||| BindingFlags.Public,
+                null,
+                [| cmdlet :> obj |],
+                null
+            )
+            :?> Exception
+
+        stopUpstreamCommandsException
+
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    type ContinueProcessing =
+        | Continue
+        | StopUpstreamCommands
+
+    let renderOnce
+        (conf: InternalConfig)
+        (renderStack: Concurrent.ConcurrentStack<RenderEvent>)
+        (buff: Screen.Buff option)
+        =
+        buff
+        |> function
+            | None -> ContinueProcessing.Continue
+            | Some b ->
+                match renderStack.TryPop() with
+                | false, _ -> ContinueProcessing.Continue
+                | _, e ->
+                    e
+                    |> function
+                        | RenderEvent.Render(x1, x2, x3) ->
+#if DEBUG
+                            Logger.LogFile
+                                [ $"renderOnce. length: {x2 |> Seq.length} renderStack: {renderStack.Count}" ]
+#endif
+                            b.WriteScreen conf.Layout x1 x2 x3
+                            ContinueProcessing.Continue
+                        | RenderEvent.Quit -> ContinueProcessing.StopUpstreamCommands
+
     type IInputStore =
         abstract member Add: PSObject -> unit
         abstract member GetAll: unit -> Entry seq
         abstract member Count: unit -> int
 
-    type NormalInputStore() =
-        let store: Entry Generic.List = Generic.List()
+    [<AbstractClass>]
+    type AbstractInputStore() =
+        member val Store: Entry Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+
+        abstract member AddEntry: Entry -> unit
 
         interface IInputStore with
             member __.Add input =
                 match input.BaseObject with
                 | :? IDictionary as dct ->
                     for d in Seq.cast<DictionaryEntry> dct do
-                        Entry.Dict d |> store.Add
-                | _ -> Entry.Obj input |> store.Add
+                        d |> Entry.Dict |> __.AddEntry
+                | _ -> input |> Entry.Obj |> __.AddEntry
 
-            member __.GetAll() = store
-            member __.Count() = store.Count
+            member __.GetAll() = __.Store
+            member __.Count() = __.Store.Count
+
+    type NormalInputStore() =
+        inherit AbstractInputStore()
+
+        override __.AddEntry entry = entry |> base.Store.Enqueue
 
     type UniqueInputStore() =
-        let store: Specialized.OrderedDictionary = Specialized.OrderedDictionary()
+        inherit AbstractInputStore()
 
-        let add (entry: Entry) =
-            if store.Contains entry |> not then
-                (entry, null) |> store.Add
+        let keys: Concurrent.ConcurrentDictionary<Entry, unit> =
+            Concurrent.ConcurrentDictionary()
 
-        interface IInputStore with
-            member __.Add input =
-                match input.BaseObject with
-                | :? IDictionary as dct ->
-                    for d in Seq.cast<DictionaryEntry> dct do
-                        d |> Entry.Dict |> add
-                | _ -> input |> Entry.Obj |> add
-
-            member __.GetAll() = store.Keys |> Seq.cast<Entry>
-            member __.Count() = store.Count
+        override __.AddEntry entry =
+            if keys.ContainsKey entry |> not then
+                if (entry, ()) |> keys.TryAdd then
+                    entry |> __.Store.Enqueue
 
     let getInputStore (unique: bool) =
         match unique with
@@ -213,3 +315,17 @@ module Pocof =
                 |> Seq.map _.Name
 
             (name, props) |> add
+
+    type PropertyStore() =
+        let propertiesDictionary: Generic.Dictionary<string, string seq> =
+            Generic.Dictionary()
+
+        let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+        member __.ContainsKey = propertiesDictionary.ContainsKey
+
+        member __.Add(name, props) =
+            if propertiesDictionary.ContainsKey name |> not then
+                propertiesDictionary.Add(name, props)
+                props |> Seq.iter properties.Enqueue
+
+        member __.GetAll() = properties

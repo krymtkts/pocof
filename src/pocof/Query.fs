@@ -220,9 +220,9 @@ module Query =
         | PropertySearch.Search(prefix: string)
         | PropertySearch.Rotate(prefix: string, _, _) ->
             let p = transform prefix
-            let ret = List.filter (transform >> String.startsWith p) state.Properties
+            let ret = Seq.filter (transform >> String.startsWith p) state.Properties
 
-            match ret with
-            | [] -> Error "Property not found"
-            | _ -> Ok ret
-        | _ -> Ok []
+            match ret |> Seq.length with
+            | 0 -> Error "Property not found"
+            | _ -> ret |> List.ofSeq |> Ok
+        | _ -> Ok <| []
