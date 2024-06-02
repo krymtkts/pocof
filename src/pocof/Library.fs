@@ -5,6 +5,7 @@ open System.Collections
 open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
+open System.Threading.Tasks
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
@@ -15,10 +16,13 @@ type SelectPocofCommand() =
     let mutable input: Pocof.IInputStore = Pocof.NormalInputStore()
     let properties: Generic.Dictionary<string, string seq> = Generic.Dictionary()
 
-    let renderStack: Concurrent.ConcurrentStack<Pocof.RenderEvent> =
+    let renderStack: Pocof.RenderEvent Concurrent.ConcurrentStack =
         Concurrent.ConcurrentStack()
 
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
+    let mutable buff: Pocof.Buff option = None
+    let mutable mainTask: obj seq Task = null
+    let mutable conf: Pocof.InternalConfig option = None
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -81,13 +85,7 @@ type SelectPocofCommand() =
 
         input <- __.Unique.IsPresent |> Pocof.getInputStore
 
-    override __.ProcessRecord() =
-        for o in __.InputObject do
-            o |> input.Add
-            o |> Pocof.buildProperties properties.ContainsKey properties.Add
-
-    override __.EndProcessing() =
-        let conf, state, pos =
+        let cnf, state, pos =
             Pocof.initConfig
                 { Query = __.Query
                   Matcher = __.Matcher
@@ -104,13 +102,35 @@ type SelectPocofCommand() =
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
-        let buff =
-            Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke conf
+        conf <- cnf |> Some
 
-        let mainTask =
-            async { return Pocof.interact conf state pos buff renderStack.Push <| input.GetAll() }
+        buff <- Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke cnf
+
+        mainTask <-
+            async { return Pocof.interact cnf state pos buff renderStack.Push <| input.GetAll() }
             |> Async.StartAsTask
 
-        buff |> Pocof.render conf renderStack
+    override __.ProcessRecord() =
+        for o in __.InputObject do
+            o |> input.Add
+            o |> Pocof.buildProperties properties.ContainsKey properties.Add
+
+        if (input.Count() % 2) = 0 then
+            // TODO: use match ... with because cannot call `__.EndProcessing` under `function` ?
+            match conf with
+            | None -> ()
+            | Some cnf ->
+                // TODO: It is better to draw at regular intervals even if the query is not updated.
+                let a = buff |> Pocof.renderOnce cnf renderStack
+
+                match a with
+                | Pocof.ContinueProcessing.Continue -> ()
+                | Pocof.ContinueProcessing.StopUpstreamCommands ->
+                    conf <- None // TODO: screen cleanup is required.
+                    __.EndProcessing()
+                    __ |> Pocof.stopUpstreamCommandsException |> raise
+
+    override __.EndProcessing() =
+        conf |> Option.iter (fun conf -> buff |> Pocof.render conf renderStack)
         mainTask |> _.Result |> Seq.iter __.WriteObject
         buff |> Option.dispose

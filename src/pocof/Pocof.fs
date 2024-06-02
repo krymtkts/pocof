@@ -10,14 +10,18 @@ open Handle
 [<RequireQualifiedAccess>]
 module Pocof =
     open System.Threading
+    open System.Reflection
+
     type Entry = Data.Entry
     type KeyPattern = Data.KeyPattern
     type Action = Data.Action
     type Matcher = Data.Matcher
     type Operator = Data.Operator
     type Layout = Data.Layout
+    type InternalConfig = Data.InternalConfig
 
     type RawUI = Screen.RawUI
+    type Buff = Screen.Buff
 
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
@@ -140,11 +144,6 @@ module Pocof =
                 |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
                 |||> loop args results
 
-    let initScreen (rui: unit -> Screen.IRawUI) (invoke: obj seq -> string seq) (conf: InternalConfig) =
-        match conf.NotInteractive with
-        | true -> None
-        | _ -> Screen.init rui invoke conf.Layout |> Some
-
     let interact
         (conf: InternalConfig)
         (state: InternalState)
@@ -175,6 +174,11 @@ module Pocof =
 
             loop args input state pos context
 
+    let initScreen (rui: unit -> Screen.IRawUI) (invoke: obj seq -> string seq) (conf: InternalConfig) =
+        match conf.NotInteractive with
+        | true -> None
+        | _ -> Screen.init rui invoke conf.Layout |> Some
+
     [<TailCall>]
     let rec render
         (conf: InternalConfig)
@@ -200,6 +204,57 @@ module Pocof =
                             b.WriteScreen conf.Layout x1 x2 x3
                             render conf renderStack buff
                         | RenderEvent.Quit -> ()
+
+    let stopUpstreamCommandsException (cmdlet: Cmdlet) =
+        let stopUpstreamCommandsExceptionType =
+            Assembly
+                .GetAssembly(typeof<PSCmdlet>)
+                .GetType("System.Management.Automation.StopUpstreamCommandsException")
+
+        let stopUpstreamCommandsException =
+            Activator.CreateInstance(
+                stopUpstreamCommandsExceptionType,
+                BindingFlags.Default
+                ||| BindingFlags.CreateInstance
+                ||| BindingFlags.Instance
+                ||| BindingFlags.Public,
+                null,
+                [| cmdlet :> obj |],
+                null
+            )
+            :?> Exception
+
+        stopUpstreamCommandsException
+
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    type ContinueProcessing =
+        | Continue
+        | StopUpstreamCommands
+
+    let renderOnce
+        (conf: InternalConfig)
+        (renderStack: Concurrent.ConcurrentStack<RenderEvent>)
+        (buff: Screen.Buff option)
+        =
+        buff
+        |> function
+            | None -> ContinueProcessing.StopUpstreamCommands
+            | Some b ->
+                match renderStack.TryPop() with
+                | false, _ -> ContinueProcessing.Continue
+                | _, e ->
+                    e
+                    |> function
+                        | RenderEvent.Render(x1, x2, x3) ->
+#if DEBUG
+                            Logger.LogFile
+                                [ $"renderOnce. length: {x2 |> Seq.length} renderStack: {renderStack.Count}" ]
+#endif
+                            b.WriteScreen conf.Layout x1 x2 x3
+                            ContinueProcessing.Continue
+                        | RenderEvent.Quit -> ContinueProcessing.StopUpstreamCommands
 
     type IInputStore =
         abstract member Add: PSObject -> unit
