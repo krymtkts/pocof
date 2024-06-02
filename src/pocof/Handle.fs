@@ -261,21 +261,22 @@ module Handle =
         | PropertySearch.Search keyword ->
             let candidates =
                 state.Properties
-                |> List.filter (String.lower >> String.startsWith (String.lower keyword))
+                |> Seq.filter (String.lower >> String.startsWith (String.lower keyword))
+                |> List.ofSeq
 
-            match candidates with
-            | [] -> InternalState.noRefresh state, pos, context
-            | candidates ->
-                let candidate = List.head candidates
+            match candidates |> Seq.length with
+            | 0 -> InternalState.noRefresh state, pos, context
+            | _ ->
+                let candidate = Seq.head candidates
                 let basePosition, head, tail = splitQuery keyword candidate
 #if DEBUG
                 Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
                 buildValues head candidate tail keyword 0 candidates basePosition
         | PropertySearch.Rotate(keyword, i, candidates) ->
-            let cur = candidates.[i]
-            let i = (i + 1) % List.length candidates
-            let next = candidates.[i]
+            let cur = candidates |> Seq.item i
+            let i = (i + 1) % Seq.length candidates
+            let next = candidates |> Seq.item i
             let basePosition, head, tail = splitQuery cur next
 #if DEBUG
             Logger.LogFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]

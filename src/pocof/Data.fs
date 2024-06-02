@@ -200,7 +200,7 @@ module Data =
     type PropertySearch =
         | NoSearch
         | Search of keyword: string
-        | Rotate of keyword: string * index: int * candidates: string list
+        | Rotate of keyword: string * index: int * candidates: string seq
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -367,7 +367,7 @@ module Data =
           PropertySearch: PropertySearch
           Notification: string
           SuppressProperties: bool
-          Properties: string list
+          Properties: Generic.IReadOnlyCollection<string>
           Prompt: string
           FilteredCount: int
           ConsoleWidth: int
@@ -462,7 +462,7 @@ module Data =
           Prompt: string
           Layout: string
           Keymaps: Map<KeyPattern, Action>
-          Properties: string list
+          Properties: Generic.IReadOnlyCollection<string>
           EntryCount: int
           ConsoleWidth: int
           ConsoleHeight: int }

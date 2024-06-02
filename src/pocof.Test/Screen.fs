@@ -358,7 +358,8 @@ module ``Buff writeScreen`` =
             |> InternalState.updateWindowWidth
             |> Pocof.Query.InternalState.prepareNotification
 
-        buff.WriteScreen Layout.TopDown state [] <| Ok state.Properties
+        buff.WriteScreen Layout.TopDown state []
+        <| (state.Properties |> List.ofSeq |> Ok)
 
         let expected =
             List.concat

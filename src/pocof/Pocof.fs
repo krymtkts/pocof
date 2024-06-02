@@ -155,8 +155,10 @@ module Pocof =
 
         let state, context = Query.prepare state
 
-        let propMap =
-            state.Properties |> List.map (fun p -> String.lower p, p) |> Map.ofList
+#if DEBUG
+        Logger.LogFile [ $"props. length: {state.Properties |> Seq.length}" ]
+#endif
+        let propMap = state.Properties |> Seq.map (fun p -> String.lower p, p) |> Map.ofSeq
 
         match buff with
         | None ->
@@ -240,7 +242,7 @@ module Pocof =
         =
         buff
         |> function
-            | None -> ContinueProcessing.StopUpstreamCommands
+            | None -> ContinueProcessing.Continue
             | Some b ->
                 match renderStack.TryPop() with
                 | false, _ -> ContinueProcessing.Continue
@@ -313,3 +315,17 @@ module Pocof =
                 |> Seq.map _.Name
 
             (name, props) |> add
+
+    type PropertyStore() =
+        let propertiesDictionary: Generic.Dictionary<string, string seq> =
+            Generic.Dictionary()
+
+        let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+        member __.ContainsKey = propertiesDictionary.ContainsKey
+
+        member __.Add(name, props) =
+            if propertiesDictionary.ContainsKey name |> not then
+                propertiesDictionary.Add(name, props)
+                props |> Seq.iter properties.Enqueue
+
+        member __.GetAll() = properties

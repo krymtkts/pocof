@@ -14,7 +14,7 @@ type SelectPocofCommand() =
     inherit PSCmdlet()
 
     let mutable input: Pocof.IInputStore = Pocof.NormalInputStore()
-    let properties: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+    let properties: Pocof.PropertyStore = Pocof.PropertyStore()
 
     let renderStack: Pocof.RenderEvent Concurrent.ConcurrentStack =
         Concurrent.ConcurrentStack()
@@ -97,7 +97,7 @@ type SelectPocofCommand() =
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = keymaps
-                  Properties = properties.Values |> Seq.concat |> Set.ofSeq |> Seq.toList
+                  Properties = properties.GetAll()
                   EntryCount = input.Count()
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
@@ -113,6 +113,7 @@ type SelectPocofCommand() =
     override __.ProcessRecord() =
         for o in __.InputObject do
             o |> input.Add
+
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
         if (input.Count() % 2) = 0 then
