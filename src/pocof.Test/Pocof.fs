@@ -332,6 +332,19 @@ module interact =
 
         actual |> List.ofSeq |> shouldEqual expected
 
+module initScreen =
+    ()
+
+module render =
+    ()
+
+module stopUpstreamCommandsException  =
+    // TODO: This test is not implemented because it cannot be tested in the current environment.
+    ()
+
+module renderOnce =
+    ()
+
 module NormalInputStore =
     open System.Collections
 
