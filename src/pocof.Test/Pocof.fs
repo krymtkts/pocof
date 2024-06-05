@@ -337,7 +337,41 @@ module initScreen =
     ()
 
 module render =
-    ()
+    open System.Collections
+    open System.Threading
+
+    [<Fact>]
+    let ``should return unit when Screen.Buff is None.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack = Concurrent.ConcurrentStack()
+        let buff = None
+        let actual = Pocof.render config stack buff
+        actual |> shouldEqual ()
+
+    [<Fact>]
+    let ``should return ContinueProcessing.StopUpstreamCommands when event stack has a quit event.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        async {
+            Thread.Sleep 100
+            (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> stack.Push
+            Thread.Sleep 100
+            (state, Seq.empty, ["Value"] |> Ok ) |> Pocof.RenderEvent.Render |> stack.Push
+            Thread.Sleep 100
+            Pocof.RenderEvent.Quit |> stack.Push
+        } |> Async.Start
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let actual = Pocof.render config stack buff
+        actual |> shouldEqual ()
 
 module stopUpstreamCommandsException  =
     // TODO: This test is not implemented because it cannot be tested in the current environment.
