@@ -346,7 +346,10 @@ module render =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
-        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack = Concurrent.ConcurrentStack()
+
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
         let buff = None
         let actual = Pocof.render config stack buff
         actual |> shouldEqual ()
@@ -357,6 +360,7 @@ module render =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
+
         let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
 
@@ -364,16 +368,18 @@ module render =
             Thread.Sleep 100
             (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> stack.Push
             Thread.Sleep 100
-            (state, Seq.empty, ["Value"] |> Ok ) |> Pocof.RenderEvent.Render |> stack.Push
+            (state, Seq.empty, [ "Value" ] |> Ok) |> Pocof.RenderEvent.Render |> stack.Push
             Thread.Sleep 100
             Pocof.RenderEvent.Quit |> stack.Push
-        } |> Async.Start
+        }
+        |> Async.Start
+
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let actual = Pocof.render config stack buff
         actual |> shouldEqual ()
 
-module stopUpstreamCommandsException  =
+module stopUpstreamCommandsException =
     // TODO: This test is not implemented because it cannot be tested in the current environment.
     ()
 
@@ -386,7 +392,10 @@ module renderOnce =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
-        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack = Concurrent.ConcurrentStack()
+
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
         let buff = None
         let actual = Pocof.renderOnce config stack buff
         actual |> shouldEqual Pocof.ContinueProcessing.Continue
@@ -397,8 +406,10 @@ module renderOnce =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
+
         let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
+
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let actual = Pocof.renderOnce config stack buff
@@ -410,8 +421,10 @@ module renderOnce =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
+
         let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
+
         (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> stack.Push
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
@@ -424,8 +437,10 @@ module renderOnce =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
+
         let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
+
         Pocof.RenderEvent.Quit |> stack.Push
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
@@ -633,20 +648,20 @@ module PropertyStore =
     let ``should add values.`` () =
         let expected = [ "a"; "b"; "c" ]
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-        properties.Add ("a", ["a"; "b"; "c"])
+        properties.Add("a", [ "a"; "b"; "c" ])
         properties.GetAll() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``shouldn't add existing name.`` () =
-        let expected = [ "a"; "b"; "c"; ]
+        let expected = [ "a"; "b"; "c" ]
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-        properties.Add ("a", ["a"; "b"; "c"])
-        properties.Add ("a", [ "d"; "e"; "f"])
+        properties.Add("a", [ "a"; "b"; "c" ])
+        properties.Add("a", [ "d"; "e"; "f" ])
         properties.GetAll() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``shouldn't add duplicated values.`` () =
-        let expected = [ "a"; "b"; "c"; ]
+        let expected = [ "a"; "b"; "c" ]
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-        properties.Add ("a", [ "a"; "b"; "a"; "b"; "c"; ])
+        properties.Add("a", [ "a"; "b"; "a"; "b"; "c" ])
         properties.GetAll() |> List.ofSeq |> shouldEqual expected

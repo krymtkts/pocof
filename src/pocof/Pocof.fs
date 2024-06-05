@@ -318,6 +318,7 @@ module Pocof =
     type PropertyStore() =
         let typeNameDictionary: Concurrent.ConcurrentDictionary<string, unit> =
             Concurrent.ConcurrentDictionary()
+
         let propertiesDictionary: Concurrent.ConcurrentDictionary<string, unit> =
             Concurrent.ConcurrentDictionary()
 
