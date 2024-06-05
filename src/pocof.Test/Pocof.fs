@@ -627,3 +627,26 @@ module buildProperties =
 
         Pocof.buildProperties props.ContainsKey props.Add inputObject
         props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
+
+module PropertyStore =
+    [<Fact>]
+    let ``should add values.`` () =
+        let expected = [ "a"; "b"; "c" ]
+        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+        properties.Add ("a", ["a"; "b"; "c"])
+        properties.GetAll() |> List.ofSeq |> shouldEqual expected
+
+    [<Fact>]
+    let ``shouldn't add existing name.`` () =
+        let expected = [ "a"; "b"; "c"; ]
+        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+        properties.Add ("a", ["a"; "b"; "c"])
+        properties.Add ("a", [ "d"; "e"; "f"])
+        properties.GetAll() |> List.ofSeq |> shouldEqual expected
+
+    [<Fact>]
+    let ``shouldn't add duplicated values.`` () =
+        let expected = [ "a"; "b"; "c"; ]
+        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+        properties.Add ("a", [ "a"; "b"; "a"; "b"; "c"; ])
+        properties.GetAll() |> List.ofSeq |> shouldEqual expected

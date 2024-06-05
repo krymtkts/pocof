@@ -292,9 +292,8 @@ module Pocof =
             Concurrent.ConcurrentDictionary()
 
         override __.AddEntry entry =
-            if keys.ContainsKey entry |> not then
-                if (entry, ()) |> keys.TryAdd then
-                    entry |> __.Store.Enqueue
+            if (entry, ()) |> keys.TryAdd then
+                entry |> __.Store.Enqueue
 
     let getInputStore (unique: bool) =
         match unique with
@@ -317,15 +316,18 @@ module Pocof =
             (name, props) |> add
 
     type PropertyStore() =
-        let propertiesDictionary: Generic.Dictionary<string, string seq> =
-            Generic.Dictionary()
+        let typeNameDictionary: Concurrent.ConcurrentDictionary<string, unit> =
+            Concurrent.ConcurrentDictionary()
+        let propertiesDictionary: Concurrent.ConcurrentDictionary<string, unit> =
+            Concurrent.ConcurrentDictionary()
 
         let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
         member __.ContainsKey = propertiesDictionary.ContainsKey
 
         member __.Add(name, props) =
-            if propertiesDictionary.ContainsKey name |> not then
-                propertiesDictionary.Add(name, props)
-                props |> Seq.iter properties.Enqueue
+            if typeNameDictionary.TryAdd(name, ()) then
+                for prop in props do
+                    if propertiesDictionary.TryAdd(prop, ()) then
+                        prop |> properties.Enqueue
 
         member __.GetAll() = properties
