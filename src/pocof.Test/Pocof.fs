@@ -332,6 +332,121 @@ module interact =
 
         actual |> List.ofSeq |> shouldEqual expected
 
+module initScreen =
+    // NOTE: covered by interact tests.
+    ()
+
+module render =
+    open System.Collections
+    open System.Threading
+
+    [<Fact>]
+    let ``should return unit when Screen.Buff is None.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        let buff = None
+        let actual = Pocof.render config stack buff
+        actual |> shouldEqual ()
+
+    [<Fact>]
+    let ``should return ContinueProcessing.StopUpstreamCommands when event stack has a quit event.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        async {
+            Thread.Sleep 100
+            (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> stack.Push
+            Thread.Sleep 100
+            (state, Seq.empty, [ "Value" ] |> Ok) |> Pocof.RenderEvent.Render |> stack.Push
+            Thread.Sleep 100
+            Pocof.RenderEvent.Quit |> stack.Push
+        }
+        |> Async.Start
+
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let actual = Pocof.render config stack buff
+        actual |> shouldEqual ()
+
+module stopUpstreamCommandsException =
+    // TODO: This test is not implemented because it cannot be tested in the current environment.
+    ()
+
+module renderOnce =
+    open System.Collections
+
+    [<Fact>]
+    let ``should return ContinueProcessing.Continue when Screen.Buff is None.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        let buff = None
+        let actual = Pocof.renderOnce config stack buff
+        actual |> shouldEqual Pocof.ContinueProcessing.Continue
+
+    [<Fact>]
+    let ``should return ContinueProcessing.Continue when event stack is empty.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let actual = Pocof.renderOnce config stack buff
+        actual |> shouldEqual Pocof.ContinueProcessing.Continue
+
+    [<Fact>]
+    let ``should return ContinueProcessing.Continue when event stack has a render event.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> stack.Push
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let actual = Pocof.renderOnce config stack buff
+        actual |> shouldEqual Pocof.ContinueProcessing.Continue
+
+    [<Fact>]
+    let ``should return ContinueProcessing.StopUpstreamCommands when event stack has a quit event.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        Pocof.RenderEvent.Quit |> stack.Push
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let actual = Pocof.renderOnce config stack buff
+        actual |> shouldEqual Pocof.ContinueProcessing.StopUpstreamCommands
+
 module NormalInputStore =
     open System.Collections
 
@@ -527,3 +642,26 @@ module buildProperties =
 
         Pocof.buildProperties props.ContainsKey props.Add inputObject
         props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
+
+module PropertyStore =
+    [<Fact>]
+    let ``should add values.`` () =
+        let expected = [ "a"; "b"; "c" ]
+        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+        properties.Add("a", [ "a"; "b"; "c" ])
+        properties.GetAll() |> List.ofSeq |> shouldEqual expected
+
+    [<Fact>]
+    let ``shouldn't add existing name.`` () =
+        let expected = [ "a"; "b"; "c" ]
+        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+        properties.Add("a", [ "a"; "b"; "c" ])
+        properties.Add("a", [ "d"; "e"; "f" ])
+        properties.GetAll() |> List.ofSeq |> shouldEqual expected
+
+    [<Fact>]
+    let ``shouldn't add duplicated values.`` () =
+        let expected = [ "a"; "b"; "c" ]
+        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+        properties.Add("a", [ "a"; "b"; "a"; "b"; "c" ])
+        properties.GetAll() |> List.ofSeq |> shouldEqual expected
