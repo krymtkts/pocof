@@ -16,7 +16,7 @@ runs:
     - name: Install modules from PSGallery
       shell: pwsh
       run: |
-        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        Set-PSResourceRepository PSGallery -Trusted
         Install-PSResource Psake,Pester,PSScriptAnalyzer -Quiet -Reinstall -Scope CurrentUser
     - name: Execute All Tests
       shell: pwsh
