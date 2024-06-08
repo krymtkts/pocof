@@ -76,6 +76,8 @@ type SelectPocofCommand() =
     abstract member PSHost: unit -> PSHost
     default __.PSHost() = __.Host
 
+    // member __.ForceQuit() = handler.Publish(Pocof.RenderEvent.Quit)
+
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
         | Ok k -> keymaps <- k
