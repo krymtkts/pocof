@@ -100,7 +100,6 @@ type SelectPocofCommand() =
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         conf <- cnf |> Some
-
         buff <- Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke cnf
 
         mainTask <-
@@ -110,7 +109,6 @@ type SelectPocofCommand() =
     override __.ProcessRecord() =
         for o in __.InputObject do
             o |> input.Add
-
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
         if (input.Count() % 2) = 0 then
