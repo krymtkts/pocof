@@ -290,6 +290,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
+        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
 
 
     [<Fact>]
@@ -311,6 +312,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
+        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
 
     [<Fact>]
     let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
@@ -331,6 +333,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
+        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
 
 module initScreen =
     // NOTE: covered by interact tests.
