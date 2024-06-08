@@ -193,9 +193,14 @@ module Pocof =
         member __.Publish = renderStack.Push
 
         member __.Receive() =
+            // NOTE: Currently TryPop and Clear combination isn't atomic. Even if you receive after popping, it is ignored.
             match renderStack.TryPop() with
-            | false, _ -> RenderMessage.None
-            | _, e -> RenderMessage.Received e
+            | false, _ ->
+                renderStack.Clear()
+                RenderMessage.None
+            | _, e ->
+                renderStack.Clear()
+                RenderMessage.Received e
 
     [<TailCall>]
     let rec render (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
