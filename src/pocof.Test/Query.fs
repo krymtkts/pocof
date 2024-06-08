@@ -339,9 +339,7 @@ module run =
             let state = state |> query ":title ja" |> opAnd
             let _, context = Query.prepare state
 
-            Query.run context entries props
-            |> List.ofSeq
-            |> shouldEqual entries
+            Query.run context entries props |> List.ofSeq |> shouldEqual entries
 
     module ``with a Property query`` =
         let getPsObj (f: string, l: string) =
