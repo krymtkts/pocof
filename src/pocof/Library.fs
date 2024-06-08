@@ -18,7 +18,7 @@ type SelectPocofCommand() =
     let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
     let mutable buff: Pocof.Buff option = None
-    let mutable mainTask: obj seq Task = null
+    let mutable mainTask: obj seq Task option = None
     let mutable conf: Pocof.InternalConfig option = None
     let stopwatch = Pocof.Interval()
 
@@ -106,6 +106,7 @@ type SelectPocofCommand() =
         mainTask <-
             async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }
             |> Async.StartAsTask
+            |> Some
 
         stopwatch.Start()
 
@@ -116,7 +117,7 @@ type SelectPocofCommand() =
 
         if stopwatch.HasElapsed() then
             match conf with
-            | None -> stopwatch.Restart()
+            | None -> ()
             | Some cnf ->
                 let e = Pocof.renderOnce cnf handler buff
 
@@ -130,5 +131,5 @@ type SelectPocofCommand() =
     override __.EndProcessing() =
         stopwatch.Stop()
         conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
-        mainTask |> _.Result |> Seq.iter __.WriteObject
+        mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
         buff |> Option.dispose
