@@ -242,25 +242,25 @@ module Pocof =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
-    type ContinueProcessing =
+    type RenderProcess =
         | Continue
         | StopUpstreamCommands
 
     let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
         buff
         |> function
-            | None -> ContinueProcessing.Continue
+            | None -> RenderProcess.Continue
             | Some b ->
                 match handler.Receive() with
-                | RenderMessage.None -> ContinueProcessing.Continue
-                | RenderMessage.Received RenderEvent.Quit -> ContinueProcessing.StopUpstreamCommands
+                | RenderMessage.None -> RenderProcess.Continue
+                | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
                 | RenderMessage.Received(RenderEvent.Render e) ->
 
 #if DEBUG
                     Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
 #endif
                     e |||> b.WriteScreen conf.Layout
-                    ContinueProcessing.Continue
+                    RenderProcess.Continue
 
 
     type Interval(conf, handler, buff) =
@@ -274,15 +274,16 @@ module Pocof =
         member __.Stop = stopwatch.Stop
         // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it directly.
         member __.RenderCancelled() : bool =
+            // TODO: implement interval-bases force flushing.
             if stopwatch.ElapsedMilliseconds >= 10 then
                 stopwatch.Stop()
                 let e = renderOnce conf handler buff
 
                 match e with
-                | ContinueProcessing.Continue ->
+                | RenderProcess.Continue ->
                     stopwatch.Restart()
                     false
-                | ContinueProcessing.StopUpstreamCommands -> true
+                | RenderProcess.StopUpstreamCommands -> true
             else
                 false
 
