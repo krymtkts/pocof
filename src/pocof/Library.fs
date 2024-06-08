@@ -6,6 +6,7 @@ open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
 open System.Threading.Tasks
+open System.Diagnostics
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
@@ -20,6 +21,8 @@ type SelectPocofCommand() =
     let mutable buff: Pocof.Buff option = None
     let mutable mainTask: obj seq Task = null
     let mutable conf: Pocof.InternalConfig option = None
+    let stopwatch = new Stopwatch()
+
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -106,27 +109,30 @@ type SelectPocofCommand() =
             async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }
             |> Async.StartAsTask
 
+        stopwatch.Start()
+
     override __.ProcessRecord() =
         for o in __.InputObject do
             o |> input.Add
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
-        if (input.Count() % 2) = 0 then
-            // TODO: use match ... with because cannot call `__.EndProcessing` under `function` ?
-            match conf with
-            | None -> ()
-            | Some cnf ->
-                // TODO: It is better to draw at regular intervals even if the query is not updated.
-                let a = buff |> Pocof.renderOnce cnf handler
+        if stopwatch.ElapsedMilliseconds >= 10 then
+            stopwatch.Stop()
 
-                match a with
-                | Pocof.ContinueProcessing.Continue -> ()
+            match conf with
+            | None -> stopwatch.Restart()
+            | Some cnf ->
+                let e = Pocof.renderOnce cnf handler buff
+
+                match e with
+                | Pocof.ContinueProcessing.Continue -> stopwatch.Restart()
                 | Pocof.ContinueProcessing.StopUpstreamCommands ->
                     conf <- None // TODO: screen cleanup is required.
                     __.EndProcessing()
                     __ |> Pocof.stopUpstreamCommandsException |> raise
 
     override __.EndProcessing() =
+        stopwatch.Stop()
         conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
         mainTask |> _.Result |> Seq.iter __.WriteObject
         buff |> Option.dispose
