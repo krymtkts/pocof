@@ -444,6 +444,36 @@ module renderOnce =
         let actual = Pocof.renderOnce config handler buff
         actual |> shouldEqual Pocof.ContinueProcessing.StopUpstreamCommands
 
+module Interval =
+    open System.Threading
+
+    [<Fact>]
+    let ``should return false when Screen.Buff is None.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let handler = Pocof.RenderHandler()
+        let buff = None
+        let actual = Pocof.Interval(config, handler, buff)
+        actual.RenderCancelled() |> shouldEqual false
+
+    [<Fact>]
+    let ``should return true when received quit event `` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let handler = Pocof.RenderHandler()
+        Pocof.RenderEvent.Quit |> handler.Publish
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let actual = Pocof.Interval(config, handler, buff)
+        Thread.Sleep 100
+        actual.RenderCancelled() |> shouldEqual true
+
 module NormalInputStore =
     open System.Collections
 
