@@ -15,10 +15,7 @@ type SelectPocofCommand() =
 
     let mutable input: Pocof.IInputStore = Pocof.NormalInputStore()
     let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-
-    let renderStack: Pocof.RenderEvent Concurrent.ConcurrentStack =
-        Concurrent.ConcurrentStack()
-
+    let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
     let mutable buff: Pocof.Buff option = None
     let mutable mainTask: obj seq Task = null
@@ -107,7 +104,7 @@ type SelectPocofCommand() =
         buff <- Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke cnf
 
         mainTask <-
-            async { return Pocof.interact cnf state pos buff renderStack.Push <| input.GetAll() }
+            async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }
             |> Async.StartAsTask
 
     override __.ProcessRecord() =
@@ -122,7 +119,7 @@ type SelectPocofCommand() =
             | None -> ()
             | Some cnf ->
                 // TODO: It is better to draw at regular intervals even if the query is not updated.
-                let a = buff |> Pocof.renderOnce cnf renderStack
+                let a = buff |> Pocof.renderOnce cnf handler
 
                 match a with
                 | Pocof.ContinueProcessing.Continue -> ()
@@ -132,6 +129,6 @@ type SelectPocofCommand() =
                     __ |> Pocof.stopUpstreamCommandsException |> raise
 
     override __.EndProcessing() =
-        conf |> Option.iter (fun conf -> buff |> Pocof.render conf renderStack)
+        conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
         mainTask |> _.Result |> Seq.iter __.WriteObject
         buff |> Option.dispose

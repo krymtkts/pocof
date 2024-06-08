@@ -28,7 +28,7 @@ module Pocof =
 
     [<RequireQualifiedAccess>]
     type RenderEvent =
-        | Render of InternalState * Entry seq * Result<string list, string>
+        | Render of (InternalState * Entry seq * Result<string list, string>)
         | Quit
 
     [<NoComparison>]
@@ -181,31 +181,39 @@ module Pocof =
         | true -> None
         | _ -> Screen.init rui invoke conf.Layout |> Some
 
-    [<TailCall>]
-    let rec render
-        (conf: InternalConfig)
-        (renderStack: Concurrent.ConcurrentStack<RenderEvent>)
-        (buff: Screen.Buff option)
-        =
+    [<RequireQualifiedAccess>]
+    type RenderMessage =
+        | None
+        | Received of RenderEvent
 
+    type RenderHandler() =
+        let renderStack: RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        member __.Publish = renderStack.Push
+
+        member __.Receive() =
+            match renderStack.TryPop() with
+            | false, _ -> RenderMessage.None
+            | _, e -> RenderMessage.Received e
+
+    [<TailCall>]
+    let rec render (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
         buff
         |> function
             | None -> ()
             | Some b ->
-                match renderStack.TryPop() with
-                | false, _ ->
+                match handler.Receive() with
+                | RenderMessage.None ->
                     Thread.Sleep 10
-                    render conf renderStack buff
-                | _, e ->
-                    e
-                    |> function
-                        | RenderEvent.Render(x1, x2, x3) ->
+                    render conf handler buff
+                | RenderMessage.Received RenderEvent.Quit -> ()
+                | RenderMessage.Received(RenderEvent.Render e) ->
 #if DEBUG
-                            Logger.LogFile [ $"render. length: {x2 |> Seq.length}" ]
+                    Logger.LogFile [ $"render. length: {e |> sndOf3 |> Seq.length}" ]
 #endif
-                            b.WriteScreen conf.Layout x1 x2 x3
-                            render conf renderStack buff
-                        | RenderEvent.Quit -> ()
+                    e |||> b.WriteScreen conf.Layout
+                    render conf handler buff
 
     let stopUpstreamCommandsException (cmdlet: Cmdlet) =
         let stopUpstreamCommandsExceptionType =
@@ -235,28 +243,21 @@ module Pocof =
         | Continue
         | StopUpstreamCommands
 
-    let renderOnce
-        (conf: InternalConfig)
-        (renderStack: Concurrent.ConcurrentStack<RenderEvent>)
-        (buff: Screen.Buff option)
-        =
+    let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
         buff
         |> function
             | None -> ContinueProcessing.Continue
             | Some b ->
-                match renderStack.TryPop() with
-                | false, _ -> ContinueProcessing.Continue
-                | _, e ->
-                    e
-                    |> function
-                        | RenderEvent.Render(x1, x2, x3) ->
+                match handler.Receive() with
+                | RenderMessage.None -> ContinueProcessing.Continue
+                | RenderMessage.Received RenderEvent.Quit -> ContinueProcessing.StopUpstreamCommands
+                | RenderMessage.Received(RenderEvent.Render e) ->
+
 #if DEBUG
-                            Logger.LogFile
-                                [ $"renderOnce. length: {x2 |> Seq.length} renderStack: {renderStack.Count}" ]
+                    Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
 #endif
-                            b.WriteScreen conf.Layout x1 x2 x3
-                            ContinueProcessing.Continue
-                        | RenderEvent.Quit -> ContinueProcessing.StopUpstreamCommands
+                    e |||> b.WriteScreen conf.Layout
+                    ContinueProcessing.Continue
 
     type IInputStore =
         abstract member Add: PSObject -> unit

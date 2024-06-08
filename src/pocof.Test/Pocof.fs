@@ -337,7 +337,6 @@ module initScreen =
     ()
 
 module render =
-    open System.Collections
     open System.Threading
 
     [<Fact>]
@@ -347,36 +346,37 @@ module render =
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
 
-        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
-            Concurrent.ConcurrentStack()
-
+        let handler = Pocof.RenderHandler()
         let buff = None
-        let actual = Pocof.render config stack buff
+        let actual = Pocof.render config handler buff
         actual |> shouldEqual ()
 
     [<Fact>]
-    let ``should return ContinueProcessing.StopUpstreamCommands when event stack has a quit event.`` () =
+    let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
 
-        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
-            Concurrent.ConcurrentStack()
+        let handler = Pocof.RenderHandler()
 
         async {
             Thread.Sleep 100
-            (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> stack.Push
+            (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> handler.Publish
             Thread.Sleep 100
-            (state, Seq.empty, [ "Value" ] |> Ok) |> Pocof.RenderEvent.Render |> stack.Push
+
+            (state, Seq.empty, [ "Value" ] |> Ok)
+            |> Pocof.RenderEvent.Render
+            |> handler.Publish
+
             Thread.Sleep 100
-            Pocof.RenderEvent.Quit |> stack.Push
+            Pocof.RenderEvent.Quit |> handler.Publish
         }
         |> Async.Start
 
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.render config stack buff
+        let actual = Pocof.render config handler buff
         actual |> shouldEqual ()
 
 module stopUpstreamCommandsException =
@@ -384,8 +384,6 @@ module stopUpstreamCommandsException =
     ()
 
 module renderOnce =
-    open System.Collections
-
     [<Fact>]
     let ``should return ContinueProcessing.Continue when Screen.Buff is None.`` () =
         let config: InternalConfig =
@@ -393,58 +391,54 @@ module renderOnce =
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
 
-        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
-            Concurrent.ConcurrentStack()
+        let handler = Pocof.RenderHandler()
 
         let buff = None
-        let actual = Pocof.renderOnce config stack buff
+        let actual = Pocof.renderOnce config handler buff
         actual |> shouldEqual Pocof.ContinueProcessing.Continue
 
     [<Fact>]
-    let ``should return ContinueProcessing.Continue when event stack is empty.`` () =
+    let ``should return ContinueProcessing.Continue when handler is empty.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
 
-        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
-            Concurrent.ConcurrentStack()
+        let handler = Pocof.RenderHandler()
 
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.renderOnce config stack buff
+        let actual = Pocof.renderOnce config handler buff
         actual |> shouldEqual Pocof.ContinueProcessing.Continue
 
     [<Fact>]
-    let ``should return ContinueProcessing.Continue when event stack has a render event.`` () =
+    let ``should return ContinueProcessing.Continue when handler has a render event.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
 
-        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
-            Concurrent.ConcurrentStack()
+        let handler = Pocof.RenderHandler()
 
-        (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> stack.Push
+        (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.renderOnce config stack buff
+        let actual = Pocof.renderOnce config handler buff
         actual |> shouldEqual Pocof.ContinueProcessing.Continue
 
     [<Fact>]
-    let ``should return ContinueProcessing.StopUpstreamCommands when event stack has a quit event.`` () =
+    let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap }
 
-        let stack: Pocof.RenderEvent Concurrent.ConcurrentStack =
-            Concurrent.ConcurrentStack()
+        let handler = Pocof.RenderHandler()
 
-        Pocof.RenderEvent.Quit |> stack.Push
+        Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.renderOnce config stack buff
+        let actual = Pocof.renderOnce config handler buff
         actual |> shouldEqual Pocof.ContinueProcessing.StopUpstreamCommands
 
 module NormalInputStore =
