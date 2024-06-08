@@ -20,7 +20,7 @@ type SelectPocofCommand() =
     let mutable buff: Pocof.Buff option = None
     let mutable mainTask: obj seq Task option = None
     let mutable conf: Pocof.InternalConfig option = None
-    let stopwatch = Pocof.Interval()
+    let mutable interval: Pocof.Interval option = None
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -108,28 +108,23 @@ type SelectPocofCommand() =
             |> Async.StartAsTask
             |> Some
 
-        stopwatch.Start()
+        interval <- Pocof.Interval(cnf, handler, buff) |> Some
 
     override __.ProcessRecord() =
         for o in __.InputObject do
             o |> input.Add
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
-        if stopwatch.HasElapsed() then
-            match conf with
-            | None -> ()
-            | Some cnf ->
-                let e = Pocof.renderOnce cnf handler buff
-
-                match e with
-                | Pocof.ContinueProcessing.Continue -> stopwatch.Restart()
-                | Pocof.ContinueProcessing.StopUpstreamCommands ->
-                    conf <- None // TODO: screen cleanup is required.
-                    __.EndProcessing()
-                    __ |> Pocof.stopUpstreamCommandsException |> raise
+        match interval with
+        | None -> ()
+        | Some interval ->
+            if interval.RenderCancelled() then
+                conf <- None // TODO: screen cleanup is required.
+                __.EndProcessing()
+                __ |> Pocof.stopUpstreamCommandsException |> raise
 
     override __.EndProcessing() =
-        stopwatch.Stop()
+        interval |> Option.iter (fun interval -> interval.Stop())
         conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
         mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
         buff |> Option.dispose

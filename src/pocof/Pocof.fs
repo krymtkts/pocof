@@ -264,6 +264,30 @@ module Pocof =
                     e |||> b.WriteScreen conf.Layout
                     ContinueProcessing.Continue
 
+
+    type Interval(conf, handler, buff) =
+        let conf: InternalConfig = conf
+        let handler: RenderHandler = handler
+        let buff: Screen.Buff option = buff
+        let stopwatch = new Stopwatch()
+
+        do stopwatch.Start()
+
+        member __.Stop = stopwatch.Stop
+        // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it directly.
+        member __.RenderCancelled() : bool =
+            if stopwatch.ElapsedMilliseconds >= 10 then
+                stopwatch.Stop()
+                let e = renderOnce conf handler buff
+
+                match e with
+                | ContinueProcessing.Continue ->
+                    stopwatch.Restart()
+                    false
+                | ContinueProcessing.StopUpstreamCommands -> true
+            else
+                false
+
     type IInputStore =
         abstract member Add: PSObject -> unit
         abstract member GetAll: unit -> Entry seq
@@ -338,11 +362,3 @@ module Pocof =
                         prop |> properties.Enqueue
 
         member __.GetAll() = properties
-
-    type Interval() =
-        let stopwatch = new Stopwatch()
-        member __.Start = stopwatch.Start
-        member __.Restart = stopwatch.Restart
-        member __.Stop = stopwatch.Stop
-        // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it directly.
-        member __.HasElapsed() = stopwatch.ElapsedMilliseconds >= 10
