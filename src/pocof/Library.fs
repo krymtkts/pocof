@@ -6,7 +6,6 @@ open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
 open System.Threading.Tasks
-open System.Diagnostics
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
@@ -21,8 +20,7 @@ type SelectPocofCommand() =
     let mutable buff: Pocof.Buff option = None
     let mutable mainTask: obj seq Task = null
     let mutable conf: Pocof.InternalConfig option = None
-    let stopwatch = new Stopwatch()
-
+    let stopwatch = Pocof.Interval()
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -116,9 +114,7 @@ type SelectPocofCommand() =
             o |> input.Add
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
-        if stopwatch.ElapsedMilliseconds >= 10 then
-            stopwatch.Stop()
-
+        if stopwatch.HasElapsed() then
             match conf with
             | None -> stopwatch.Restart()
             | Some cnf ->

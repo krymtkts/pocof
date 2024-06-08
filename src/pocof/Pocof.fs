@@ -2,16 +2,16 @@ namespace Pocof
 
 open System
 open System.Collections
+open System.Diagnostics
 open System.Management.Automation
+open System.Reflection
+open System.Threading
 
 open Data
 open Handle
 
 [<RequireQualifiedAccess>]
 module Pocof =
-    open System.Threading
-    open System.Reflection
-
     type Entry = Data.Entry
     type KeyPattern = Data.KeyPattern
     type Action = Data.Action
@@ -338,3 +338,11 @@ module Pocof =
                         prop |> properties.Enqueue
 
         member __.GetAll() = properties
+
+    type Interval() =
+        let stopwatch = new Stopwatch()
+        member __.Start = stopwatch.Start
+        member __.Restart = stopwatch.Restart
+        member __.Stop = stopwatch.Stop
+        // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it directly.
+        member __.HasElapsed() = stopwatch.ElapsedMilliseconds >= 10
