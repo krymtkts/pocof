@@ -267,7 +267,7 @@ module Pocof =
         let conf: InternalConfig = conf
         let handler: RenderHandler = handler
         let buff: Screen.Buff option = buff
-        let stopwatch = new Stopwatch()
+        let stopwatch = Stopwatch()
 
         do stopwatch.Start()
 

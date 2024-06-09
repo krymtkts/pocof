@@ -14,7 +14,7 @@ Properties {
 
 Task default -depends TestAll
 
-Task TestAll -depends Init, Build, UnitTest, Test, Lint
+Task TestAll -depends Init, Build, UnitTest, Test
 
 Task Init {
     'Init is running!'
@@ -60,7 +60,7 @@ Task Build -depends Clean {
     "Completed to build $ModuleName ver$ModuleVersion"
 }
 
-Task UnitTest {
+Task UnitTest -depends Lint {
     Remove-Item ./src/pocof.Test/TestResults/* -Recurse -ErrorAction SilentlyContinue
     dotnet test --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed"
     if (-not $?) {
