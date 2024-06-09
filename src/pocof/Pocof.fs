@@ -27,6 +27,8 @@ module Pocof =
     let initConfig = Data.initConfig
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
     type RenderEvent =
         | Render of (InternalState * Entry seq * Result<string list, string>)
         | Quit
@@ -182,6 +184,8 @@ module Pocof =
         | _ -> Screen.init rui invoke conf.Layout |> Some
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
     type RenderMessage =
         | None
         | Received of RenderEvent
