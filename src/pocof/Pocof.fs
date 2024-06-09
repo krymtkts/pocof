@@ -2,16 +2,16 @@ namespace Pocof
 
 open System
 open System.Collections
+open System.Diagnostics
 open System.Management.Automation
+open System.Reflection
+open System.Threading
 
 open Data
 open Handle
 
 [<RequireQualifiedAccess>]
 module Pocof =
-    open System.Threading
-    open System.Reflection
-
     type Entry = Data.Entry
     type KeyPattern = Data.KeyPattern
     type Action = Data.Action
@@ -28,7 +28,7 @@ module Pocof =
 
     [<RequireQualifiedAccess>]
     type RenderEvent =
-        | Render of InternalState * Entry seq * Result<string list, string>
+        | Render of (InternalState * Entry seq * Result<string list, string>)
         | Quit
 
     [<NoComparison>]
@@ -181,31 +181,42 @@ module Pocof =
         | true -> None
         | _ -> Screen.init rui invoke conf.Layout |> Some
 
-    [<TailCall>]
-    let rec render
-        (conf: InternalConfig)
-        (renderStack: Concurrent.ConcurrentStack<RenderEvent>)
-        (buff: Screen.Buff option)
-        =
+    [<RequireQualifiedAccess>]
+    type RenderMessage =
+        | None
+        | Received of RenderEvent
 
+    type RenderHandler() =
+        let renderStack: RenderEvent Concurrent.ConcurrentStack =
+            Concurrent.ConcurrentStack()
+
+        member __.Publish = renderStack.Push
+
+        member __.Receive() =
+            // NOTE: Currently TryPop and Clear combination isn't atomic. Even if you receive after popping, it is ignored.
+            match renderStack.TryPop() with
+            | false, _ -> RenderMessage.None
+            | _, e ->
+                renderStack.Clear()
+                RenderMessage.Received e
+
+    [<TailCall>]
+    let rec render (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
         buff
         |> function
             | None -> ()
             | Some b ->
-                match renderStack.TryPop() with
-                | false, _ ->
+                match handler.Receive() with
+                | RenderMessage.None ->
                     Thread.Sleep 10
-                    render conf renderStack buff
-                | _, e ->
-                    e
-                    |> function
-                        | RenderEvent.Render(x1, x2, x3) ->
+                    render conf handler buff
+                | RenderMessage.Received RenderEvent.Quit -> ()
+                | RenderMessage.Received(RenderEvent.Render e) ->
 #if DEBUG
-                            Logger.LogFile [ $"render. length: {x2 |> Seq.length}" ]
+                    Logger.LogFile [ $"render. length: {e |> sndOf3 |> Seq.length}" ]
 #endif
-                            b.WriteScreen conf.Layout x1 x2 x3
-                            render conf renderStack buff
-                        | RenderEvent.Quit -> ()
+                    e |||> b.WriteScreen conf.Layout
+                    render conf handler buff
 
     let stopUpstreamCommandsException (cmdlet: Cmdlet) =
         let stopUpstreamCommandsExceptionType =
@@ -231,32 +242,46 @@ module Pocof =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
-    type ContinueProcessing =
+    type RenderProcess =
         | Continue
         | StopUpstreamCommands
 
-    let renderOnce
-        (conf: InternalConfig)
-        (renderStack: Concurrent.ConcurrentStack<RenderEvent>)
-        (buff: Screen.Buff option)
-        =
+    let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
         buff
         |> function
-            | None -> ContinueProcessing.Continue
+            | None -> RenderProcess.Continue
             | Some b ->
-                match renderStack.TryPop() with
-                | false, _ -> ContinueProcessing.Continue
-                | _, e ->
-                    e
-                    |> function
-                        | RenderEvent.Render(x1, x2, x3) ->
+                match handler.Receive() with
+                | RenderMessage.None -> RenderProcess.Continue
+                | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
+                | RenderMessage.Received(RenderEvent.Render e) ->
+
 #if DEBUG
-                            Logger.LogFile
-                                [ $"renderOnce. length: {x2 |> Seq.length} renderStack: {renderStack.Count}" ]
+                    Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
 #endif
-                            b.WriteScreen conf.Layout x1 x2 x3
-                            ContinueProcessing.Continue
-                        | RenderEvent.Quit -> ContinueProcessing.StopUpstreamCommands
+                    e |||> b.WriteScreen conf.Layout
+                    RenderProcess.Continue
+
+
+    type Interval(conf, handler, buff) =
+        let conf: InternalConfig = conf
+        let handler: RenderHandler = handler
+        let buff: Screen.Buff option = buff
+        let stopwatch = Stopwatch()
+
+        do stopwatch.Start()
+
+        member __.Stop = stopwatch.Stop
+
+        member __.RenderCancelled(action: unit -> unit) =
+            // TODO: implement interval-bases force flushing.
+            if stopwatch.ElapsedMilliseconds >= 10 then
+                stopwatch.Stop()
+
+                renderOnce conf handler buff
+                |> function
+                    | RenderProcess.Continue -> stopwatch.Restart()
+                    | RenderProcess.StopUpstreamCommands -> action ()
 
     type IInputStore =
         abstract member Add: PSObject -> unit

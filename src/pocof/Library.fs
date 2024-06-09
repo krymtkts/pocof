@@ -15,14 +15,12 @@ type SelectPocofCommand() =
 
     let mutable input: Pocof.IInputStore = Pocof.NormalInputStore()
     let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-
-    let renderStack: Pocof.RenderEvent Concurrent.ConcurrentStack =
-        Concurrent.ConcurrentStack()
-
+    let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
     let mutable buff: Pocof.Buff option = None
-    let mutable mainTask: obj seq Task = null
+    let mutable mainTask: obj seq Task option = None
     let mutable conf: Pocof.InternalConfig option = None
+    let mutable interval: Pocof.Interval option = None
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -78,6 +76,8 @@ type SelectPocofCommand() =
     abstract member PSHost: unit -> PSHost
     default __.PSHost() = __.Host
 
+    // member __.ForceQuit() = handler.Publish(Pocof.RenderEvent.Quit)
+
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
         | Ok k -> keymaps <- k
@@ -103,35 +103,32 @@ type SelectPocofCommand() =
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         conf <- cnf |> Some
-
         buff <- Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke cnf
 
         mainTask <-
-            async { return Pocof.interact cnf state pos buff renderStack.Push <| input.GetAll() }
+            async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }
             |> Async.StartAsTask
+            |> Some
+
+        interval <- Pocof.Interval(cnf, handler, buff) |> Some
+
+    // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
+    member __.EndProcessing2() = __.EndProcessing()
 
     override __.ProcessRecord() =
         for o in __.InputObject do
             o |> input.Add
-
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
-        if (input.Count() % 2) = 0 then
-            // TODO: use match ... with because cannot call `__.EndProcessing` under `function` ?
-            match conf with
-            | None -> ()
-            | Some cnf ->
-                // TODO: It is better to draw at regular intervals even if the query is not updated.
-                let a = buff |> Pocof.renderOnce cnf renderStack
-
-                match a with
-                | Pocof.ContinueProcessing.Continue -> ()
-                | Pocof.ContinueProcessing.StopUpstreamCommands ->
-                    conf <- None // TODO: screen cleanup is required.
-                    __.EndProcessing()
-                    __ |> Pocof.stopUpstreamCommandsException |> raise
+        interval
+        |> Option.iter (fun interval ->
+            interval.RenderCancelled(fun _ ->
+                conf <- None // TODO: screen cleanup is required.
+                __.EndProcessing2()
+                __ |> Pocof.stopUpstreamCommandsException |> raise))
 
     override __.EndProcessing() =
-        conf |> Option.iter (fun conf -> buff |> Pocof.render conf renderStack)
-        mainTask |> _.Result |> Seq.iter __.WriteObject
+        interval |> Option.iter (fun interval -> interval.Stop())
+        conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
+        mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
         buff |> Option.dispose
