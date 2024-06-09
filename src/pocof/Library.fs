@@ -113,7 +113,7 @@ type SelectPocofCommand() =
         interval <- Pocof.Interval(cnf, handler, buff) |> Some
 
     // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
-    member __.EndProcessing2() = __.EndProcessing()
+    member internal __.EndProcessing2() = __.EndProcessing()
 
     override __.ProcessRecord() =
         for o in __.InputObject do
