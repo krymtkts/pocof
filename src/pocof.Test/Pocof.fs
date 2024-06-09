@@ -456,8 +456,11 @@ module Interval =
 
         let handler = Pocof.RenderHandler()
         let buff = None
-        let actual = Pocof.Interval(config, handler, buff)
-        actual.RenderCancelled() |> shouldEqual false
+        let interval = Pocof.Interval(config, handler, buff)
+        Thread.Sleep 100
+        let mutable actual = false
+        interval.RenderCancelled(fun _ -> actual <- true)
+        actual |> shouldEqual false
 
     [<Fact>]
     let ``should return true when received quit event `` () =
@@ -470,9 +473,11 @@ module Interval =
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.Interval(config, handler, buff)
+        let interval = Pocof.Interval(config, handler, buff)
         Thread.Sleep 100
-        actual.RenderCancelled() |> shouldEqual true
+        let mutable actual = false
+        interval.RenderCancelled(fun _ -> actual <- true)
+        actual |> shouldEqual true
 
 module NormalInputStore =
     open System.Collections

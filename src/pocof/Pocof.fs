@@ -272,20 +272,16 @@ module Pocof =
         do stopwatch.Start()
 
         member __.Stop = stopwatch.Stop
-        // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it directly.
-        member __.RenderCancelled() : bool =
+
+        member __.RenderCancelled(action: unit -> unit) =
             // TODO: implement interval-bases force flushing.
             if stopwatch.ElapsedMilliseconds >= 10 then
                 stopwatch.Stop()
-                let e = renderOnce conf handler buff
 
-                match e with
-                | RenderProcess.Continue ->
-                    stopwatch.Restart()
-                    false
-                | RenderProcess.StopUpstreamCommands -> true
-            else
-                false
+                renderOnce conf handler buff
+                |> function
+                    | RenderProcess.Continue -> stopwatch.Restart()
+                    | RenderProcess.StopUpstreamCommands -> action ()
 
     type IInputStore =
         abstract member Add: PSObject -> unit
