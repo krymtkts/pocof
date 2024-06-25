@@ -14,7 +14,8 @@ Properties {
 
 Task default -depends TestAll
 
-Task TestAll -depends Init, Build, UnitTest, Test
+# NOTE: I don't know why, but if I add Lint before Test, the module import will be doubled.
+Task TestAll -depends Init, Build, UnitTest, Test, Lint
 
 Task Init {
     'Init is running!'
@@ -60,7 +61,7 @@ Task Build -depends Clean {
     "Completed to build $ModuleName ver$ModuleVersion"
 }
 
-Task UnitTest -depends Lint {
+Task UnitTest {
     Remove-Item ./src/pocof.Test/TestResults/* -Recurse -ErrorAction SilentlyContinue
     dotnet test --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed"
     if (-not $?) {

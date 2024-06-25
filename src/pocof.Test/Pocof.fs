@@ -398,7 +398,12 @@ module renderOnce =
 
         let buff = None
         let actual = Pocof.renderOnce config handler buff
-        actual |> shouldEqual Pocof.RenderProcess.Continue
+
+        actual
+        |> function
+            | Pocof.RenderProcess.Noop -> true
+            | _ -> false
+        |> shouldEqual true
 
     [<Fact>]
     let ``should return ContinueProcessing.Continue when handler is empty.`` () =
@@ -412,7 +417,12 @@ module renderOnce =
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let actual = Pocof.renderOnce config handler buff
-        actual |> shouldEqual Pocof.RenderProcess.Continue
+
+        actual
+        |> function
+            | Pocof.RenderProcess.Noop -> true
+            | _ -> false
+        |> shouldEqual true
 
     [<Fact>]
     let ``should return ContinueProcessing.Continue when handler has a render event.`` () =
@@ -427,7 +437,12 @@ module renderOnce =
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let actual = Pocof.renderOnce config handler buff
-        actual |> shouldEqual Pocof.RenderProcess.Continue
+
+        actual
+        |> function
+            | Pocof.RenderProcess.Rendered _ -> true
+            | _ -> false
+        |> shouldEqual true
 
     [<Fact>]
     let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =
@@ -448,7 +463,7 @@ module Interval =
     open System.Threading
 
     [<Fact>]
-    let ``should return false when Screen.Buff is None.`` () =
+    let ``shouldn't invoke cancel action if Screen.Buff is None.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
@@ -456,14 +471,14 @@ module Interval =
 
         let handler = Pocof.RenderHandler()
         let buff = None
-        let interval = Pocof.Interval(config, handler, buff)
+        let interval = Pocof.Periodic(config, handler, buff)
         Thread.Sleep 100
         let mutable actual = false
-        interval.RenderCancelled(fun _ -> actual <- true)
+        interval.Render(fun _ -> actual <- true)
         actual |> shouldEqual false
 
     [<Fact>]
-    let ``should return true when received quit event `` () =
+    let ``should invoke cancel action when stopping upstream commands.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
@@ -473,11 +488,87 @@ module Interval =
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let interval = Pocof.Interval(config, handler, buff)
+        let interval = Pocof.Periodic(config, handler, buff)
         Thread.Sleep 100
         let mutable actual = false
-        interval.RenderCancelled(fun _ -> actual <- true)
+        interval.Render(fun _ -> actual <- true)
         actual |> shouldEqual true
+
+    [<Fact>]
+    let ``shouldn't invoke cancel action if rendering completed.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let handler = Pocof.RenderHandler()
+        Pocof.RenderEvent.Render(state, [], Ok []) |> handler.Publish
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let interval = Pocof.Periodic(config, handler, buff)
+        Thread.Sleep 100
+        let mutable actual = false
+        interval.Render(fun _ -> actual <- true)
+        actual |> shouldEqual false
+
+    [<Fact>]
+    let ``shouldn't invoke cancel action if first time idle rendering.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let handler = Pocof.RenderHandler()
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let interval = Pocof.Periodic(config, handler, buff)
+        Thread.Sleep 100
+        let mutable actual = false
+        interval.Render(fun _ -> actual <- true)
+        actual |> shouldEqual false
+
+    [<Fact>]
+    let ``shouldn't invoke cancel action during 11 idle rendering.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let handler = Pocof.RenderHandler()
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let interval = Pocof.Periodic(config, handler, buff)
+        Thread.Sleep 100
+        let mutable actual = false
+
+        List.replicate 11 ()
+        |> List.iter (fun _ ->
+            interval.Render(fun _ -> actual <- true)
+            Thread.Sleep 10)
+
+        actual |> shouldEqual false
+
+    [<Fact>]
+    let ``shouldn't invoke cancel action during 12 idle rendering.`` () =
+        let config: InternalConfig =
+            { NotInteractive = false
+              Layout = Layout.BottomUpHalf
+              Keymaps = Keys.defaultKeymap }
+
+        let handler = Pocof.RenderHandler()
+        Pocof.RenderEvent.Render(state, [], Ok []) |> handler.Publish
+        let rui = new MockRawUI()
+        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let interval = Pocof.Periodic(config, handler, buff)
+        Thread.Sleep 100
+        let mutable actual = false
+
+        List.replicate 12 ()
+        |> List.iter (fun _ ->
+            interval.Render(fun _ -> actual <- true)
+            Thread.Sleep 10)
+
+        actual |> shouldEqual false
 
 module NormalInputStore =
     open System.Collections

@@ -27,6 +27,8 @@ module Pocof =
     let initConfig = Data.initConfig
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
     type RenderEvent =
         | Render of (InternalState * Entry seq * Result<string list, string>)
         | Quit
@@ -182,6 +184,8 @@ module Pocof =
         | _ -> Screen.init rui invoke conf.Layout |> Some
 
     [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
     type RenderMessage =
         | None
         | Received of RenderEvent
@@ -243,16 +247,17 @@ module Pocof =
     [<NoComparison>]
     [<NoEquality>]
     type RenderProcess =
-        | Continue
+        | Noop
+        | Rendered of (InternalState * Entry seq * Result<string list, string>)
         | StopUpstreamCommands
 
     let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
         buff
         |> function
-            | None -> RenderProcess.Continue
+            | None -> RenderProcess.Noop
             | Some b ->
                 match handler.Receive() with
-                | RenderMessage.None -> RenderProcess.Continue
+                | RenderMessage.None -> RenderProcess.Noop
                 | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
                 | RenderMessage.Received(RenderEvent.Render e) ->
 
@@ -260,28 +265,50 @@ module Pocof =
                     Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
 #endif
                     e |||> b.WriteScreen conf.Layout
-                    RenderProcess.Continue
+                    RenderProcess.Rendered e
 
 
-    type Interval(conf, handler, buff) =
+    type Periodic(conf, handler, buff) =
         let conf: InternalConfig = conf
         let handler: RenderHandler = handler
         let buff: Screen.Buff option = buff
         let stopwatch = Stopwatch()
+        let mutable idleRenderCount = 0
+        let mutable latest = None
+
+        let (|Cancelled|_|) =
+            function
+            | RenderProcess.Noop ->
+                // TODO: If buff is None, there is no need for this Interval to go through rendering.
+                match buff with
+                | None -> None
+                | Some b ->
+                    if idleRenderCount >= 10 then
+                        idleRenderCount <- 0
+                        latest |> Option.iter (fun e -> e |||> b.WriteScreen conf.Layout)
+                        None
+                    else
+                        idleRenderCount <- idleRenderCount + 1
+                        None
+            | RenderProcess.Rendered e ->
+                latest <- Some e
+                stopwatch.Restart()
+                None
+            | RenderProcess.StopUpstreamCommands ->
+                idleRenderCount <- 0
+                stopwatch.Stop()
+                Some()
 
         do stopwatch.Start()
 
         member __.Stop = stopwatch.Stop
 
-        member __.RenderCancelled(action: unit -> unit) =
-            // TODO: implement interval-bases force flushing.
+        member __.Render(actionForCancel: unit -> unit) =
             if stopwatch.ElapsedMilliseconds >= 10 then
-                stopwatch.Stop()
-
                 renderOnce conf handler buff
                 |> function
-                    | RenderProcess.Continue -> stopwatch.Restart()
-                    | RenderProcess.StopUpstreamCommands -> action ()
+                    | Cancelled _ -> actionForCancel ()
+                    | _ -> ()
 
     type IInputStore =
         abstract member Add: PSObject -> unit

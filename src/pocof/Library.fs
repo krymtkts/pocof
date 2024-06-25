@@ -20,7 +20,7 @@ type SelectPocofCommand() =
     let mutable buff: Pocof.Buff option = None
     let mutable mainTask: obj seq Task option = None
     let mutable conf: Pocof.InternalConfig option = None
-    let mutable interval: Pocof.Interval option = None
+    let mutable periodic: Pocof.Periodic option = None
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -110,25 +110,27 @@ type SelectPocofCommand() =
             |> Async.StartAsTask
             |> Some
 
-        interval <- Pocof.Interval(cnf, handler, buff) |> Some
+        periodic <- Pocof.Periodic(cnf, handler, buff) |> Some
 
     // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
-    member __.EndProcessing2() = __.EndProcessing()
+    member internal __.ForceEndProcessing() = __.EndProcessing()
 
     override __.ProcessRecord() =
         for o in __.InputObject do
             o |> input.Add
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
-        interval
+        periodic
         |> Option.iter (fun interval ->
-            interval.RenderCancelled(fun _ ->
-                conf <- None // TODO: screen cleanup is required.
-                __.EndProcessing2()
+            interval.Render(fun _ ->
+                // NOTE: to disable the interactive mode at EndProcessing.
+                conf <- None
+                // NOTE: required to call EndProcessing manually when the upstream command is stopped.
+                __.ForceEndProcessing()
                 __ |> Pocof.stopUpstreamCommandsException |> raise))
 
     override __.EndProcessing() =
-        interval |> Option.iter (fun interval -> interval.Stop())
+        periodic |> Option.iter _.Stop()
         conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
-        mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
         buff |> Option.dispose
+        mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)

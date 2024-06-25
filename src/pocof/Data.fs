@@ -44,7 +44,7 @@ module LanguageExtension =
     open System
 
     module Option =
-        let dispose (d: 'a option when 'a :> IDisposable) = d |> Option.iter (fun d -> d.Dispose())
+        let dispose (d: 'a option when 'a :> IDisposable) = d |> Option.iter _.Dispose()
 
     module String =
         let lower (s: string) = s.ToLower()
@@ -445,6 +445,7 @@ module Data =
                 ConsoleWidth = consoleWidth }
             |> updateWindowWidth
 
+        // TODO: update FilteredCount when rendering.
         let updateFilteredCount (count: int) (state: InternalState) =
             { state with FilteredCount = count } |> updateWindowWidth
 
