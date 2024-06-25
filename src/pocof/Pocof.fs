@@ -272,20 +272,29 @@ module Pocof =
         let handler: RenderHandler = handler
         let buff: Screen.Buff option = buff
         let stopwatch = Stopwatch()
+        let mutable idleRenderCount = 0
+
+        let (|Cancelled|_|) =
+            function
+            | RenderProcess.Continue ->
+                idleRenderCount <- idleRenderCount + 1
+                stopwatch.Restart()
+                None
+            | RenderProcess.StopUpstreamCommands ->
+                idleRenderCount <- 0
+                stopwatch.Stop()
+                Some()
 
         do stopwatch.Start()
 
         member __.Stop = stopwatch.Stop
 
         member __.RenderCancelled(action: unit -> unit) =
-            // TODO: implement interval-bases force flushing.
             if stopwatch.ElapsedMilliseconds >= 10 then
-                stopwatch.Stop()
-
                 renderOnce conf handler buff
                 |> function
-                    | RenderProcess.Continue -> stopwatch.Restart()
-                    | RenderProcess.StopUpstreamCommands -> action ()
+                    | Cancelled _ -> action ()
+                    | _ -> ()
 
     type IInputStore =
         abstract member Add: PSObject -> unit
