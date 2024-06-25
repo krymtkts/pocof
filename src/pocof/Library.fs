@@ -113,7 +113,7 @@ type SelectPocofCommand() =
         periodic <- Pocof.Periodic(cnf, handler, buff) |> Some
 
     // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
-    member internal __.EndProcessing2() = __.EndProcessing()
+    member internal __.ForceEndProcessing() = __.EndProcessing()
 
     override __.ProcessRecord() =
         for o in __.InputObject do
@@ -123,12 +123,14 @@ type SelectPocofCommand() =
         periodic
         |> Option.iter (fun interval ->
             interval.Render(fun _ ->
-                conf <- None // TODO: screen cleanup is required.
-                __.EndProcessing2()
+                // NOTE: to disable the interactive mode at EndProcessing.
+                conf <- None
+                // NOTE: required to call EndProcessing manually when the upstream command is stopped.
+                __.ForceEndProcessing()
                 __ |> Pocof.stopUpstreamCommandsException |> raise))
 
     override __.EndProcessing() =
         periodic |> Option.iter _.Stop()
         conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
-        mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
         buff |> Option.dispose
+        mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
