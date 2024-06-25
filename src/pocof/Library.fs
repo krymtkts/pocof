@@ -128,7 +128,7 @@ type SelectPocofCommand() =
                 __ |> Pocof.stopUpstreamCommandsException |> raise))
 
     override __.EndProcessing() =
-        interval |> Option.iter (fun interval -> interval.Stop())
+        interval |> Option.iter _.Stop()
         conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
         mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
         buff |> Option.dispose
