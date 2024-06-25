@@ -398,7 +398,12 @@ module renderOnce =
 
         let buff = None
         let actual = Pocof.renderOnce config handler buff
-        actual |> shouldEqual Pocof.RenderProcess.Continue
+
+        actual
+        |> function
+            | Pocof.RenderProcess.Noop -> true
+            | _ -> false
+        |> shouldEqual true
 
     [<Fact>]
     let ``should return ContinueProcessing.Continue when handler is empty.`` () =
@@ -412,7 +417,12 @@ module renderOnce =
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let actual = Pocof.renderOnce config handler buff
-        actual |> shouldEqual Pocof.RenderProcess.Continue
+
+        actual
+        |> function
+            | Pocof.RenderProcess.Noop -> true
+            | _ -> false
+        |> shouldEqual true
 
     [<Fact>]
     let ``should return ContinueProcessing.Continue when handler has a render event.`` () =
@@ -427,7 +437,12 @@ module renderOnce =
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let actual = Pocof.renderOnce config handler buff
-        actual |> shouldEqual Pocof.RenderProcess.Continue
+
+        actual
+        |> function
+            | Pocof.RenderProcess.Rendered _ -> true
+            | _ -> false
+        |> shouldEqual true
 
     [<Fact>]
     let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =

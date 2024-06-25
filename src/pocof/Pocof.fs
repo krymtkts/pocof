@@ -247,16 +247,17 @@ module Pocof =
     [<NoComparison>]
     [<NoEquality>]
     type RenderProcess =
-        | Continue
+        | Noop
+        | Rendered of (InternalState * Entry seq * Result<string list, string>)
         | StopUpstreamCommands
 
     let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
         buff
         |> function
-            | None -> RenderProcess.Continue
+            | None -> RenderProcess.Noop
             | Some b ->
                 match handler.Receive() with
-                | RenderMessage.None -> RenderProcess.Continue
+                | RenderMessage.None -> RenderProcess.Noop
                 | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
                 | RenderMessage.Received(RenderEvent.Render e) ->
 
@@ -264,7 +265,7 @@ module Pocof =
                     Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
 #endif
                     e |||> b.WriteScreen conf.Layout
-                    RenderProcess.Continue
+                    RenderProcess.Rendered e
 
 
     type Interval(conf, handler, buff) =
@@ -273,11 +274,24 @@ module Pocof =
         let buff: Screen.Buff option = buff
         let stopwatch = Stopwatch()
         let mutable idleRenderCount = 0
+        let mutable latest = None
 
         let (|Cancelled|_|) =
             function
-            | RenderProcess.Continue ->
-                idleRenderCount <- idleRenderCount + 1
+            | RenderProcess.Noop ->
+                // TODO: If buff is None, there is no need for this Interval to go through rendering.
+                match buff with
+                | None -> None
+                | Some b ->
+                    if idleRenderCount >= 10 then
+                        idleRenderCount <- 0
+                        latest |> Option.iter (fun e -> e |||> b.WriteScreen conf.Layout)
+                        None
+                    else
+                        idleRenderCount <- idleRenderCount + 1
+                        None
+            | RenderProcess.Rendered e ->
+                latest <- Some e
                 stopwatch.Restart()
                 None
             | RenderProcess.StopUpstreamCommands ->
