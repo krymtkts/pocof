@@ -268,7 +268,7 @@ module Pocof =
                     RenderProcess.Rendered e
 
 
-    type Interval(conf, handler, buff) =
+    type Periodic(conf, handler, buff) =
         let conf: InternalConfig = conf
         let handler: RenderHandler = handler
         let buff: Screen.Buff option = buff
@@ -303,11 +303,11 @@ module Pocof =
 
         member __.Stop = stopwatch.Stop
 
-        member __.RenderCancelled(action: unit -> unit) =
+        member __.Render(actionForCancel: unit -> unit) =
             if stopwatch.ElapsedMilliseconds >= 10 then
                 renderOnce conf handler buff
                 |> function
-                    | Cancelled _ -> action ()
+                    | Cancelled _ -> actionForCancel ()
                     | _ -> ()
 
     type IInputStore =

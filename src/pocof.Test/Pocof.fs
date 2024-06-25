@@ -471,10 +471,10 @@ module Interval =
 
         let handler = Pocof.RenderHandler()
         let buff = None
-        let interval = Pocof.Interval(config, handler, buff)
+        let interval = Pocof.Periodic(config, handler, buff)
         Thread.Sleep 100
         let mutable actual = false
-        interval.RenderCancelled(fun _ -> actual <- true)
+        interval.Render(fun _ -> actual <- true)
         actual |> shouldEqual false
 
     [<Fact>]
@@ -488,10 +488,10 @@ module Interval =
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let interval = Pocof.Interval(config, handler, buff)
+        let interval = Pocof.Periodic(config, handler, buff)
         Thread.Sleep 100
         let mutable actual = false
-        interval.RenderCancelled(fun _ -> actual <- true)
+        interval.Render(fun _ -> actual <- true)
         actual |> shouldEqual true
 
 module NormalInputStore =
