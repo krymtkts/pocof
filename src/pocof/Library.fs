@@ -110,7 +110,10 @@ type SelectPocofCommand() =
             |> Async.StartAsTask
             |> Some
 
-        periodic <- Pocof.Periodic(cnf, handler, buff) |> Some
+        periodic <-
+            match buff with
+            | None -> None
+            | Some buff -> Pocof.Periodic(cnf, handler, buff) |> Some
 
     // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
     member internal __.ForceEndProcessing() = __.EndProcessing()
