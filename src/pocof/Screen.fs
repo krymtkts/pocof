@@ -5,6 +5,29 @@ module Screen =
     open System.Management.Automation.Host
     open System.Threading
 
+    type IConsoleInterface =
+        abstract member ReadKey: bool -> ConsoleKeyInfo
+        abstract member Write: string -> unit
+        abstract member TreatControlCAsInput: bool with get, set
+        abstract member CursorVisible: bool with get, set
+        abstract member KeyAvailable: bool with get
+
+    type ConsoleInterface() =
+        interface IConsoleInterface with
+
+            member __.ReadKey(intercept: bool) = Console.ReadKey intercept
+            member __.Write(s: string) = Console.Write s
+
+            member __.TreatControlCAsInput
+                with get () = Console.TreatControlCAsInput
+                and set (v: bool): unit = Console.TreatControlCAsInput <- v
+
+            member __.CursorVisible
+                with get () = Console.CursorVisible
+                and set (v: bool): unit = Console.CursorVisible <- v
+
+            member __.KeyAvailable = Console.KeyAvailable
+
     type IRawUI =
         inherit IDisposable
         abstract member GetCursorPosition: unit -> int * int
@@ -17,10 +40,11 @@ module Screen =
         abstract member KeyAvailable: unit -> bool
         abstract member HideCursorWhileRendering: unit -> IDisposable
 
-    type RawUI(rui) =
+    type RawUI(rui, console) =
         let rui: PSHostRawUserInterface = rui
+        let console: IConsoleInterface = console
 
-        let ctrlCAsInput: bool = Console.TreatControlCAsInput
+        let ctrlCAsInput: bool = console.TreatControlCAsInput
 
         do Console.TreatControlCAsInput <- true
 
@@ -37,20 +61,20 @@ module Screen =
 
             member __.Write (x: int) (y: int) (s: string) =
                 (__ :> IRawUI).SetCursorPosition x y
-                Console.Write s
+                console.Write s
 
-            member __.ReadKey(intercept: bool) = Console.ReadKey intercept
-            member __.KeyAvailable() = Console.KeyAvailable
+            member __.ReadKey(intercept: bool) = console.ReadKey intercept
+            member __.KeyAvailable() = console.KeyAvailable
 
             member __.HideCursorWhileRendering() =
-                Console.CursorVisible <- false
+                console.CursorVisible <- false
 
                 { new IDisposable with
-                    member _.Dispose() = Console.CursorVisible <- true }
+                    member _.Dispose() = console.CursorVisible <- true }
 
         interface IDisposable with
             member __.Dispose() =
-                Console.TreatControlCAsInput <- ctrlCAsInput
+                console.TreatControlCAsInput <- ctrlCAsInput
 
     let private note = "note>"
 

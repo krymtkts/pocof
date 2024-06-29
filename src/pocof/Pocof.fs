@@ -22,6 +22,9 @@ module Pocof =
 
     type RawUI = Screen.RawUI
     type Buff = Screen.Buff
+    type IConsoleInterface = Screen.IConsoleInterface
+    // TODO: refactor to remove the alias.
+    type ConsoleInterface = Screen.ConsoleInterface
 
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig

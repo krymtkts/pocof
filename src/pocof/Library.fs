@@ -77,7 +77,8 @@ type SelectPocofCommand() =
     abstract member PSHost: unit -> PSHost
     default __.PSHost() = __.Host
 
-    // member __.ForceQuit() = handler.Publish(Pocof.RenderEvent.Quit)
+    abstract member ConsoleInterface: unit -> Pocof.IConsoleInterface
+    default __.ConsoleInterface() = new Pocof.ConsoleInterface()
 
     abstract member GetStopUpstreamCommandsExceptionType: unit -> Type
 
@@ -111,7 +112,7 @@ type SelectPocofCommand() =
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         conf <- cnf |> Some
-        buff <- Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke cnf
+        buff <- Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI, __.ConsoleInterface())) __.Invoke cnf
 
         mainTask <-
             async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }

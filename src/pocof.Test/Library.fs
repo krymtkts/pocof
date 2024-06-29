@@ -110,6 +110,33 @@ module SelectPocofCommand =
     open FsUnitTyped
 
     open Pocof
+    open System.Threading
+
+    // NOTE: instead of the StopUpstreamCommandsException.
+    type MockException(o: obj) =
+        inherit Exception()
+
+
+    type MockConsoleInterface() =
+        let mutable keyAvailable = true
+
+        interface Pocof.IConsoleInterface with
+
+            member __.ReadKey(_: bool) =
+                keyAvailable <- false
+                new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false)
+
+            member __.Write(s: string) = ()
+
+            member __.TreatControlCAsInput
+                with get () = true
+                and set (v: bool): unit = ()
+
+            member __.CursorVisible
+                with get () = true
+                and set (v: bool): unit = ()
+
+            member __.KeyAvailable = keyAvailable
 
     type SelectPocofCommandForTest() =
         inherit SelectPocofCommand()
@@ -118,11 +145,30 @@ module SelectPocofCommand =
         override __.Invoke(input: 'a seq) = input |> Seq.map string
         override __.PSHost() = __.Host
 
+        override __.ConsoleInterface() =
+            Logger.LogFile [ "make mock console interface" ]
+            new MockConsoleInterface()
+
+        override __.GetStopUpstreamCommandsExceptionType() = typeof<MockException>
+
         // NOTE: PSCmdlet cannot invoke directly. So, use this method for testing.
         member __.InvokeForTest() =
             __.BeginProcessing()
             __.ProcessRecord()
             __.EndProcessing()
+
+        // NOTE: emulate the Cmdlet record precessing flow.
+        member __.InvokeForTest2() =
+            __.BeginProcessing()
+
+            let mutable loop = true
+
+            while loop do
+                try
+                    Thread.Sleep 50
+                    __.ProcessRecord()
+                with :? MockException as _ ->
+                    loop <- false
 
         member __.InvokeForTest3() =
             __.ProcessRecord()
@@ -154,6 +200,23 @@ module SelectPocofCommand =
             k
 
         shouldFail<ArgumentException> (fun () -> cmdlet.InvokeForTest())
+
+    [<Fact>]
+    let ``should return when cancellation received.`` () =
+        let runtime = new Mock.CommandRuntime()
+        let cmdlet = SelectPocofCommandForTest()
+
+        cmdlet.CommandRuntime <- runtime
+        cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+
+        cmdlet.Keymaps <-
+            let k = new Hashtable()
+            k.Add("Escape", "Cancel")
+            k
+
+        cmdlet.InvokeForTest2()
+
+        runtime.Output |> shouldEqual []
 
     [<Fact>]
     let ``should return empty. unreachable pass that only for the code coverage.`` () =
