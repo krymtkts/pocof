@@ -20,11 +20,17 @@ module Pocof =
     type Layout = Data.Layout
     type InternalConfig = Data.InternalConfig
 
-    type RawUI = Screen.RawUI
     type Buff = Screen.Buff
+    type IConsoleInterface = Screen.IConsoleInterface
+    // TODO: refactor to remove the alias.
+    type ConsoleInterface = Screen.ConsoleInterface
 
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
+
+    let initRawUI psRawUI console : unit -> Screen.IRawUI =
+        fun (_: unit) -> new Screen.RawUI(psRawUI, console)
+
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -222,15 +228,10 @@ module Pocof =
                     e |||> b.WriteScreen conf.Layout
                     render conf handler buff
 
-    let stopUpstreamCommandsException (cmdlet: Cmdlet) =
-        let stopUpstreamCommandsExceptionType =
-            Assembly
-                .GetAssembly(typeof<PSCmdlet>)
-                .GetType("System.Management.Automation.StopUpstreamCommandsException")
-
+    let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
         let stopUpstreamCommandsException =
             Activator.CreateInstance(
-                stopUpstreamCommandsExceptionType,
+                exp,
                 BindingFlags.Default
                 ||| BindingFlags.CreateInstance
                 ||| BindingFlags.Instance
@@ -251,27 +252,22 @@ module Pocof =
         | Rendered of (InternalState * Entry seq * Result<string list, string>)
         | StopUpstreamCommands
 
-    let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
-        buff
-        |> function
-            | None -> RenderProcess.Noop
-            | Some b ->
-                match handler.Receive() with
-                | RenderMessage.None -> RenderProcess.Noop
-                | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
-                | RenderMessage.Received(RenderEvent.Render e) ->
+    let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff) =
+        match handler.Receive() with
+        | RenderMessage.None -> RenderProcess.Noop
+        | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
+        | RenderMessage.Received(RenderEvent.Render e) ->
 
 #if DEBUG
-                    Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
+            Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
 #endif
-                    e |||> b.WriteScreen conf.Layout
-                    RenderProcess.Rendered e
-
+            e |||> buff.WriteScreen conf.Layout
+            RenderProcess.Rendered e
 
     type Periodic(conf, handler, buff) =
         let conf: InternalConfig = conf
         let handler: RenderHandler = handler
-        let buff: Screen.Buff option = buff
+        let buff: Screen.Buff = buff
         let stopwatch = Stopwatch()
         let mutable idleRenderCount = 0
         let mutable latest = None
@@ -279,17 +275,13 @@ module Pocof =
         let (|Cancelled|_|) =
             function
             | RenderProcess.Noop ->
-                // TODO: If buff is None, there is no need for this Interval to go through rendering.
-                match buff with
-                | None -> None
-                | Some b ->
-                    if idleRenderCount >= 10 then
-                        idleRenderCount <- 0
-                        latest |> Option.iter (fun e -> e |||> b.WriteScreen conf.Layout)
-                        None
-                    else
-                        idleRenderCount <- idleRenderCount + 1
-                        None
+                if idleRenderCount >= 10 then
+                    idleRenderCount <- 0
+                    latest |> Option.iter (fun e -> e |||> buff.WriteScreen conf.Layout)
+                    None
+                else
+                    idleRenderCount <- idleRenderCount + 1
+                    None
             | RenderProcess.Rendered e ->
                 latest <- Some e
                 stopwatch.Restart()

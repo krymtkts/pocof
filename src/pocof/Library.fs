@@ -5,6 +5,7 @@ open System.Collections
 open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
+open System.Reflection
 open System.Threading.Tasks
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
@@ -76,7 +77,15 @@ type SelectPocofCommand() =
     abstract member PSHost: unit -> PSHost
     default __.PSHost() = __.Host
 
-    // member __.ForceQuit() = handler.Publish(Pocof.RenderEvent.Quit)
+    abstract member ConsoleInterface: unit -> Pocof.IConsoleInterface
+    default __.ConsoleInterface() = new Pocof.ConsoleInterface()
+
+    abstract member GetStopUpstreamCommandsExceptionType: unit -> Type
+
+    default __.GetStopUpstreamCommandsExceptionType() =
+        Assembly
+            .GetAssembly(typeof<PSCmdlet>)
+            .GetType("System.Management.Automation.StopUpstreamCommandsException")
 
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
@@ -103,14 +112,18 @@ type SelectPocofCommand() =
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         conf <- cnf |> Some
-        buff <- Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI)) __.Invoke cnf
+
+        buff <- Pocof.initScreen (Pocof.initRawUI (__.PSHost().UI.RawUI) (__.ConsoleInterface())) __.Invoke cnf
 
         mainTask <-
             async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }
             |> Async.StartAsTask
             |> Some
 
-        periodic <- Pocof.Periodic(cnf, handler, buff) |> Some
+        periodic <-
+            match buff with
+            | None -> None
+            | Some buff -> Pocof.Periodic(cnf, handler, buff) |> Some
 
     // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
     member internal __.ForceEndProcessing() = __.EndProcessing()
@@ -121,13 +134,16 @@ type SelectPocofCommand() =
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
         periodic
-        |> Option.iter (fun interval ->
-            interval.Render(fun _ ->
+        |> Option.iter (fun periodic ->
+            periodic.Render(fun _ ->
                 // NOTE: to disable the interactive mode at EndProcessing.
                 conf <- None
                 // NOTE: required to call EndProcessing manually when the upstream command is stopped.
                 __.ForceEndProcessing()
-                __ |> Pocof.stopUpstreamCommandsException |> raise))
+
+                __
+                |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
+                |> raise))
 
     override __.EndProcessing() =
         periodic |> Option.iter _.Stop()
