@@ -132,8 +132,8 @@ type SelectPocofCommand() =
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
         periodic
-        |> Option.iter (fun interval ->
-            interval.Render(fun _ ->
+        |> Option.iter (fun periodic ->
+            periodic.Render(fun _ ->
                 // NOTE: to disable the interactive mode at EndProcessing.
                 conf <- None
                 // NOTE: required to call EndProcessing manually when the upstream command is stopped.
