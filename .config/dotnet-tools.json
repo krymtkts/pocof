@@ -6,13 +6,15 @@
       "version": "0.21.2",
       "commands": [
         "dotnet-fsharplint"
-      ]
+      ],
+      "rollForward": false
     },
     "fantomas": {
       "version": "6.3.9",
       "commands": [
         "fantomas"
-      ]
+      ],
+      "rollForward": true
     }
   }
 }
