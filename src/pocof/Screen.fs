@@ -46,7 +46,7 @@ module Screen =
 
         let ctrlCAsInput: bool = console.TreatControlCAsInput
 
-        do Console.TreatControlCAsInput <- true
+        do console.TreatControlCAsInput <- true
 
         interface IRawUI with
             member __.GetCursorPosition() =
