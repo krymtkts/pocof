@@ -25,7 +25,8 @@ updates:
       time: "06:00"
       timezone: "Asia/Tokyo"
     groups:
-      # TODO: Currently, version higher than 0.21.2 don't work with .NET 8.
+      # TODO: Currently, versions higher than 0.21.2 fail with .NET 8.
+      # TODO: is this related to https://github.com/fsprojects/FSharpLint/issues/687 ?
       # dotnet-tools:
       #   patterns:
       #     - "dotnet-fsharplint"
