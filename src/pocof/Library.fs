@@ -112,7 +112,8 @@ type SelectPocofCommand() =
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
         conf <- cnf |> Some
-        buff <- Pocof.initScreen (fun _ -> new Pocof.RawUI(__.PSHost().UI.RawUI, __.ConsoleInterface())) __.Invoke cnf
+
+        buff <- Pocof.initScreen (Pocof.initRawUI (__.PSHost().UI.RawUI) (__.ConsoleInterface())) __.Invoke cnf
 
         mainTask <-
             async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }

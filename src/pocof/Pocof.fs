@@ -20,7 +20,6 @@ module Pocof =
     type Layout = Data.Layout
     type InternalConfig = Data.InternalConfig
 
-    type RawUI = Screen.RawUI
     type Buff = Screen.Buff
     type IConsoleInterface = Screen.IConsoleInterface
     // TODO: refactor to remove the alias.
@@ -28,6 +27,10 @@ module Pocof =
 
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
+
+    let initRawUI psRawUI console : unit -> Screen.IRawUI =
+        fun (_: unit) -> new Screen.RawUI(psRawUI, console)
+
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
