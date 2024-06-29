@@ -5,6 +5,7 @@ open System.Collections
 open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
+open System.Reflection
 open System.Threading.Tasks
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
@@ -78,6 +79,13 @@ type SelectPocofCommand() =
 
     // member __.ForceQuit() = handler.Publish(Pocof.RenderEvent.Quit)
 
+    abstract member GetStopUpstreamCommandsExceptionType: unit -> Type
+
+    default __.GetStopUpstreamCommandsExceptionType() =
+        Assembly
+            .GetAssembly(typeof<PSCmdlet>)
+            .GetType("System.Management.Automation.StopUpstreamCommandsException")
+
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
         | Ok k -> keymaps <- k
@@ -130,7 +138,10 @@ type SelectPocofCommand() =
                 conf <- None
                 // NOTE: required to call EndProcessing manually when the upstream command is stopped.
                 __.ForceEndProcessing()
-                __ |> Pocof.stopUpstreamCommandsException |> raise))
+
+                __
+                |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
+                |> raise))
 
     override __.EndProcessing() =
         periodic |> Option.iter _.Stop()

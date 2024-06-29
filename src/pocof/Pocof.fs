@@ -222,15 +222,10 @@ module Pocof =
                     e |||> b.WriteScreen conf.Layout
                     render conf handler buff
 
-    let stopUpstreamCommandsException (cmdlet: Cmdlet) =
-        let stopUpstreamCommandsExceptionType =
-            Assembly
-                .GetAssembly(typeof<PSCmdlet>)
-                .GetType("System.Management.Automation.StopUpstreamCommandsException")
-
+    let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
         let stopUpstreamCommandsException =
             Activator.CreateInstance(
-                stopUpstreamCommandsExceptionType,
+                exp,
                 BindingFlags.Default
                 ||| BindingFlags.CreateInstance
                 ||| BindingFlags.Instance

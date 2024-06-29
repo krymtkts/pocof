@@ -383,8 +383,13 @@ module render =
         actual |> shouldEqual ()
 
 module stopUpstreamCommandsException =
-    // TODO: This test is not implemented because it cannot be tested in the current environment.
-    ()
+    type MockException(o: obj) =
+        inherit Exception()
+
+    [<Fact>]
+    let ``should return the exception instance.`` () =
+        let actual = Pocof.stopUpstreamCommandsException typeof<MockException> null
+        actual.GetType() |> shouldEqual typeof<MockException>
 
 module renderOnce =
     [<Fact>]
