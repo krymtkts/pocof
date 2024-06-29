@@ -110,7 +110,6 @@ module SelectPocofCommand =
     open FsUnitTyped
 
     open Pocof
-    open System.Threading
 
     type SelectPocofCommandForTest() =
         inherit SelectPocofCommand()
@@ -124,13 +123,6 @@ module SelectPocofCommand =
             __.BeginProcessing()
             __.ProcessRecord()
             __.EndProcessing()
-
-        // TODO: fix it to run.
-        // member __.InvokeForTest2() =
-        //     __.BeginProcessing()
-        //     __.ForceQuit()
-        //     __.ProcessRecord()
-        //     __.EndProcessing()
 
         member __.InvokeForTest3() =
             __.ProcessRecord()
@@ -162,18 +154,6 @@ module SelectPocofCommand =
             k
 
         shouldFail<ArgumentException> (fun () -> cmdlet.InvokeForTest())
-
-    //
-    // [<Fact>]
-    // let ``should return.`` () =
-    //     let runtime = new Mock.CommandRuntime()
-    //     let cmdlet = SelectPocofCommandForTest()
-
-    //     cmdlet.CommandRuntime <- runtime
-    //     cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
-    //     cmdlet.InvokeForTest2()
-
-    //     runtime.Output |> shouldEqual []
 
     [<Fact>]
     let ``should return empty. unreachable pass that only for the code coverage.`` () =
