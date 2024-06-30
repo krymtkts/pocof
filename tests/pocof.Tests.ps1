@@ -229,4 +229,45 @@ Describe 'pocof' {
             ) $PocofShould
         }
     }
+    Context 'Select-Pocof cmdlet with huge records' -ForEach @{
+        InputObject = @(1..100000); BaseParam = @{NonInteractive = $true };
+    } {
+        Context 'In <Matcher> mode with single property "and" (default)' -ForEach @(
+            @{ Matcher = 'MATCH'; Query = '99999' },
+            @{ Matcher = 'LIKE'; Query = '99999' },
+            @{ Matcher = 'EQ'; Query = '99999' }
+        ) {
+            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
+                @{Expected = @(99999); Params = $BaseParam + $_ }
+            ) $PocofShould
+        }
+    }
+    Context 'Select-Pocof cmdlet with huge hashmap' -ForEach @{
+        InputObject = @(1..100000) | ForEach-Object -Begin { $ret = @{} } -Process { $ret[$_] = $_ } -End { $ret }
+        BaseParam = @{NonInteractive = $true }
+    } {
+        Context 'In <Matcher> mode with single property "and" (default)' -ForEach @(
+            @{ Matcher = 'MATCH'; Query = ':key 99999' },
+            @{ Matcher = 'LIKE'; Query = ':key 99999' },
+            @{ Matcher = 'EQ'; Query = ':key 99999' }
+        ) {
+            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
+                @{Expected = @([Collections.DictionaryEntry]::new(99999, 99999)); Params = $BaseParam + $_ }
+            ) $PocofShould
+        }
+    }
+    Context 'Select-Pocof cmdlet with huge PSObject' -ForEach @{
+        InputObject = @(1..100000) | ForEach-Object { [PSCustomObject]@{ Name = $_ } }
+        BaseParam = @{NonInteractive = $true }
+    } {
+        Context 'In <Matcher> mode with single property "and" (default)' -ForEach @(
+            @{ Matcher = 'MATCH'; Query = ':name 99999' },
+            @{ Matcher = 'LIKE'; Query = ':name 99999' },
+            @{ Matcher = 'EQ'; Query = ':name 99999' }
+        ) {
+            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
+                @{Expected = @($InputObject[-2]); Params = $BaseParam + $_ }
+            ) $PocofShould
+        }
+    }
 }
