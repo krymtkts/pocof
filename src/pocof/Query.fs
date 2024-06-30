@@ -1,6 +1,7 @@
 namespace Pocof
 
 open System
+open System.Collections
 open System.Management.Automation
 open System.Text.RegularExpressions
 
@@ -171,9 +172,10 @@ module Query =
             { context with
                 Answer = prepareAnswer state }
 
-    let run (context: QueryContext) (entries: Entry seq) (props: Map<string, string>) =
+    let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
 #if DEBUG
         Logger.LogFile context.Queries
+        Logger.LogFile [ props.Count ]
 #endif
 
         let values (o: Entry) =
