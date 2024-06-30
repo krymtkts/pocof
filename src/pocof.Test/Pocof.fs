@@ -30,6 +30,7 @@ let initState () : InternalState =
       Notification = ""
       SuppressProperties = false
       Properties = [ "Name"; "LastModified"; "Path" ]
+      PropertyMap = Map [ ("name", "Name"); ("lastmodified", "LastWriteTime"); ("path", "FullName") ]
       Prompt = "query"
       FilteredCount = 0
       ConsoleWidth = 60
@@ -39,8 +40,6 @@ let state = initState ()
 let publishEvent _ = ()
 
 let pos = { Y = 0; Height = 0 } // NOTE: not used in this test.
-
-let propMap = Map.empty
 
 let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
 
@@ -106,7 +105,6 @@ module loop =
         let args: Pocof.LoopFixedArguments =
             { Keymaps = Keys.defaultKeymap
               Input = input
-              PropMap = propMap
               PublishEvent = publishEvent
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
@@ -131,7 +129,6 @@ module loop =
         let args: Pocof.LoopFixedArguments =
             { Keymaps = Keys.defaultKeymap
               Input = input
-              PropMap = propMap
               PublishEvent = publishEvent
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
@@ -164,7 +161,6 @@ module loop =
         let args: Pocof.LoopFixedArguments =
             { Keymaps = Keys.defaultKeymap
               Input = input
-              PropMap = propMap
               PublishEvent = publishEvent
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
@@ -198,7 +194,6 @@ module loop =
         let args: Pocof.LoopFixedArguments =
             { Keymaps = Keys.defaultKeymap
               Input = input
-              PropMap = propMap
               PublishEvent = publishEvent
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
@@ -759,7 +754,7 @@ module PropertyStore =
         let expected = [ "a"; "b"; "c" ]
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
         properties.Add("a", [ "a"; "b"; "c" ])
-        properties.GetAll() |> List.ofSeq |> shouldEqual expected
+        properties.GetList() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``shouldn't add existing name.`` () =
@@ -767,11 +762,11 @@ module PropertyStore =
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
         properties.Add("a", [ "a"; "b"; "c" ])
         properties.Add("a", [ "d"; "e"; "f" ])
-        properties.GetAll() |> List.ofSeq |> shouldEqual expected
+        properties.GetList() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``shouldn't add duplicated values.`` () =
         let expected = [ "a"; "b"; "c" ]
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
         properties.Add("a", [ "a"; "b"; "a"; "b"; "c" ])
-        properties.GetAll() |> List.ofSeq |> shouldEqual expected
+        properties.GetList() |> List.ofSeq |> shouldEqual expected

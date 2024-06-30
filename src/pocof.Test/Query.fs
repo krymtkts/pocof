@@ -23,6 +23,7 @@ let initState () : Data.InternalState =
       Notification = ""
       SuppressProperties = false
       Properties = [ "Name"; "Attribute"; "Length" ]
+      PropertyMap = Map [ ("name", "Name"); ("attribute", "Attribute"); ("length", "Length") ]
       Prompt = "query"
       FilteredCount = 0
       ConsoleWidth = 60

@@ -24,6 +24,7 @@ module invokeAction =
           Notification = ""
           SuppressProperties = false
           Properties = []
+          PropertyMap = Map []
           Prompt = "query"
           FilteredCount = 0
           ConsoleWidth = 60

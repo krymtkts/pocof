@@ -44,7 +44,6 @@ module Pocof =
     type LoopFixedArguments =
         { Keymaps: Map<KeyPattern, Action>
           Input: Entry seq
-          PropMap: Map<string, string>
           PublishEvent: RenderEvent -> unit
           GetKey: unit -> ConsoleKeyInfo list
           GetConsoleWidth: unit -> int
@@ -108,15 +107,13 @@ module Pocof =
         match state.Refresh with
         | Refresh.NotRequired -> results, state
         | _ ->
-            let results = Query.run context args.Input args.PropMap
+            let results = Query.run context args.Input state.PropertyMap
 
             let state =
                 state
                 |> InternalState.updateFilteredCount (Seq.length results)
                 |> adjustQueryWindow args
-#if DEBUG
-            Logger.LogFile [ $"publish render {results |> Seq.length}" ]
-#endif
+
             (state,
              results,
              match state.SuppressProperties with
@@ -163,20 +160,14 @@ module Pocof =
 
         let state, context = Query.prepare state
 
-#if DEBUG
-        Logger.LogFile [ $"props. length: {state.Properties |> Seq.length}" ]
-#endif
-        let propMap = state.Properties |> Seq.map (fun p -> String.lower p, p) |> Map.ofSeq
-
         match buff with
         | None ->
-            let l = Query.run context input propMap
+            let l = Query.run context input state.PropertyMap
             unwrap l
         | Some buff ->
             let args =
                 { Keymaps = conf.Keymaps
                   Input = input
-                  PropMap = propMap
                   PublishEvent = publish
                   GetKey = buff.GetKey
                   GetConsoleWidth = buff.GetConsoleWidth
@@ -293,7 +284,9 @@ module Pocof =
 
         do stopwatch.Start()
 
-        member __.Stop = stopwatch.Stop
+        member __.Stop() =
+            stopwatch.Stop()
+            latest |> Option.iter (fun e -> e |||> buff.WriteScreen conf.Layout)
 
         member __.Render(actionForCancel: unit -> unit) =
             if stopwatch.ElapsedMilliseconds >= 10 then
@@ -367,6 +360,10 @@ module Pocof =
             Concurrent.ConcurrentDictionary()
 
         let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+
+        let propertiesMap: Concurrent.ConcurrentDictionary<string, string> =
+            Concurrent.ConcurrentDictionary()
+
         member __.ContainsKey = propertiesDictionary.ContainsKey
 
         member __.Add(name, props) =
@@ -374,5 +371,7 @@ module Pocof =
                 for prop in props do
                     if propertiesDictionary.TryAdd(prop, ()) then
                         prop |> properties.Enqueue
+                        propertiesMap.TryAdd(String.lower prop, prop) |> ignore
 
-        member __.GetAll() = properties
+        member __.GetList() = properties
+        member __.GetMap() = propertiesMap
