@@ -145,9 +145,7 @@ module SelectPocofCommand =
         override __.Invoke(input: 'a seq) = input |> Seq.map string
         override __.PSHost() = __.Host
 
-        override __.ConsoleInterface() =
-            Logger.LogFile [ "make mock console interface" ]
-            new MockConsoleInterface()
+        override __.ConsoleInterface() = new MockConsoleInterface()
 
         override __.GetStopUpstreamCommandsExceptionType() = typeof<MockException>
 

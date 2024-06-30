@@ -114,9 +114,7 @@ module Pocof =
                 state
                 |> InternalState.updateFilteredCount (Seq.length results)
                 |> adjustQueryWindow args
-#if DEBUG
-            Logger.LogFile [ $"publish render {results |> Seq.length}" ]
-#endif
+
             (state,
              results,
              match state.SuppressProperties with
@@ -162,10 +160,6 @@ module Pocof =
         =
 
         let state, context = Query.prepare state
-
-#if DEBUG
-        Logger.LogFile [ $"props. length: {state.Properties |> Seq.length}" ]
-#endif
         let propMap = state.Properties |> Seq.map (fun p -> String.lower p, p) |> Map.ofSeq
 
         match buff with
