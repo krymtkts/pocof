@@ -284,7 +284,9 @@ module Pocof =
 
         do stopwatch.Start()
 
-        member __.Stop = stopwatch.Stop
+        member __.Stop() =
+            stopwatch.Stop()
+            latest |> Option.iter (fun e -> e |||> buff.WriteScreen conf.Layout)
 
         member __.Render(actionForCancel: unit -> unit) =
             if stopwatch.ElapsedMilliseconds >= 10 then
