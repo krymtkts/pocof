@@ -138,6 +138,7 @@ module Pocof =
                 args.PublishEvent RenderEvent.Quit
                 unwrap results
             | action ->
+                // NOTE: update the console width before invokeAction because users can modify the console width during blocking by args.GetKey.
                 action
                 |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
                 |||> loop args results
