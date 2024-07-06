@@ -90,10 +90,10 @@ module Pocof =
 #endif
             wx
 
-    let adjustQueryWindow (args: LoopFixedArguments) (state: InternalState) =
+    let adjustQueryWindow (getLengthInBufferCells: string -> int) (state: InternalState) =
         { state with
             InternalState.QueryState.WindowBeginningCursor =
-                calculateWindowBeginningCursor args.GetLengthInBufferCells state.QueryState }
+                calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
 
     let queryAndRender
         (args: LoopFixedArguments)
@@ -111,7 +111,7 @@ module Pocof =
             let state =
                 state
                 |> InternalState.updateFilteredCount (Seq.length results)
-                |> adjustQueryWindow args
+                |> adjustQueryWindow args.GetLengthInBufferCells
 
             (state, results, Query.props state) |> RenderEvent.Render |> args.PublishEvent
 
@@ -266,7 +266,12 @@ module Pocof =
                     latest
                     |> Option.iter (fun (state, result, props) ->
                         // TODO: encapsulate this from here.
-                        let state = state |> InternalState.updateFilteredCount (Seq.length result)
+                        let state =
+                            state
+                            |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
+                            |> InternalState.updateFilteredCount (Seq.length result)
+                            |> adjustQueryWindow buff.GetLengthInBufferCells
+
                         buff.WriteScreen conf.Layout state result props)
 
                     None
