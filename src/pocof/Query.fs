@@ -213,14 +213,14 @@ module Query =
         entries |> Seq.filter predicate
 
     let props (state: InternalState) =
-        let transform (x: string) =
-            match state.QueryCondition.CaseSensitive with
-            | true -> x
-            | _ -> String.lower x
+        match state.SuppressProperties, state.PropertySearch with
+        | false, PropertySearch.Search(prefix: string)
+        | false, PropertySearch.Rotate(prefix: string, _, _) ->
+            let transform (x: string) =
+                match state.QueryCondition.CaseSensitive with
+                | true -> x
+                | _ -> String.lower x
 
-        match state.PropertySearch with
-        | PropertySearch.Search(prefix: string)
-        | PropertySearch.Rotate(prefix: string, _, _) ->
             let p = transform prefix
             let ret = Seq.filter (transform >> String.startsWith p) state.Properties
 

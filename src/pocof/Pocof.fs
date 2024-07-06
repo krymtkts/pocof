@@ -113,13 +113,7 @@ module Pocof =
                 |> InternalState.updateFilteredCount (Seq.length results)
                 |> adjustQueryWindow args
 
-            (state,
-             results,
-             match state.SuppressProperties with
-             | true -> Ok []
-             | _ -> Query.props state)
-            |> RenderEvent.Render
-            |> args.PublishEvent
+            (state, results, Query.props state) |> RenderEvent.Render |> args.PublishEvent
 
             results, state
 
