@@ -254,40 +254,44 @@ module Pocof =
         let handler: RenderHandler = handler
         let buff: Screen.Buff = buff
         let stopwatch = Stopwatch()
-        let mutable idleRenderCount = 0
+        let idlingStopwatch = Stopwatch()
         let mutable latest = None
 
         let (|Cancelled|_|) =
             function
             | RenderProcess.Noop ->
-                if idleRenderCount >= 10 then
-                    idleRenderCount <- 0
+                if idlingStopwatch.ElapsedMilliseconds >= 1000 then
+                    idlingStopwatch.Reset()
 
                     latest
                     |> Option.iter (fun (state, result, props) ->
                         // TODO: encapsulate this from here.
                         let state =
                             state
+                            // NOTE: adjust the console width before writing the screen.
                             |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
                             |> InternalState.updateFilteredCount (Seq.length result)
                             |> adjustQueryWindow buff.GetLengthInBufferCells
 
                         buff.WriteScreen conf.Layout state result props)
 
+                    idlingStopwatch.Start()
                     None
                 else
-                    idleRenderCount <- idleRenderCount + 1
                     None
             | RenderProcess.Rendered e ->
                 latest <- Some e
                 stopwatch.Restart()
+                idlingStopwatch.Restart()
                 None
             | RenderProcess.StopUpstreamCommands ->
-                idleRenderCount <- 0
                 stopwatch.Stop()
+                idlingStopwatch.Stop()
                 Some()
 
-        do stopwatch.Start()
+        do
+            stopwatch.Start()
+            idlingStopwatch.Start()
 
         member __.Stop() =
             stopwatch.Stop()
