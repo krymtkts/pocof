@@ -43,6 +43,12 @@ let pos = { Y = 0; Height = 0 } // NOTE: not used in this test.
 
 let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
 
+module initConsoleInterface =
+    [<Fact>]
+    let ``should return ConsoleInterface.`` () =
+        let actual = Pocof.initConsoleInterface ()
+        actual.GetType() |> shouldEqual typeof<Screen.ConsoleInterface>
+
 module calculateWindowBeginningCursor =
     [<Fact>]
     let ``should return 0.`` () =
@@ -455,11 +461,12 @@ module Interval =
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let interval = Pocof.Periodic(config, handler, buff.Value)
+        let periodic = Pocof.Periodic(config, handler, buff.Value)
         Thread.Sleep 100
         let mutable actual = false
-        interval.Render(fun _ -> actual <- true)
+        periodic.Render(fun _ -> actual <- true)
         actual |> shouldEqual true
+        periodic.Stop()
 
     [<Fact>]
     let ``shouldn't invoke cancel action if rendering completed.`` () =
@@ -472,11 +479,12 @@ module Interval =
         Pocof.RenderEvent.Render(state, [], Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let interval = Pocof.Periodic(config, handler, buff.Value)
+        let periodic = Pocof.Periodic(config, handler, buff.Value)
         Thread.Sleep 100
         let mutable actual = false
-        interval.Render(fun _ -> actual <- true)
+        periodic.Render(fun _ -> actual <- true)
         actual |> shouldEqual false
+        periodic.Stop()
 
     [<Fact>]
     let ``shouldn't invoke anything if ElapsedMilliseconds is less than 10ms.`` () =
@@ -488,10 +496,11 @@ module Interval =
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let interval = Pocof.Periodic(config, handler, buff.Value)
+        let periodic = Pocof.Periodic(config, handler, buff.Value)
         let mutable actual = false
-        interval.Render(fun _ -> actual <- true)
+        periodic.Render(fun _ -> actual <- true)
         actual |> shouldEqual false
+        periodic.Stop()
 
     [<Fact>]
     let ``shouldn't invoke cancel action if first time idle rendering.`` () =
@@ -503,11 +512,12 @@ module Interval =
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let interval = Pocof.Periodic(config, handler, buff.Value)
+        let periodic = Pocof.Periodic(config, handler, buff.Value)
         Thread.Sleep 100
         let mutable actual = false
-        interval.Render(fun _ -> actual <- true)
+        periodic.Render(fun _ -> actual <- true)
         actual |> shouldEqual false
+        periodic.Stop()
 
     [<Fact>]
     let ``shouldn't invoke cancel action during 11 idle rendering.`` () =
@@ -519,16 +529,17 @@ module Interval =
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let interval = Pocof.Periodic(config, handler, buff.Value)
+        let periodic = Pocof.Periodic(config, handler, buff.Value)
         Thread.Sleep 100
         let mutable actual = false
 
         List.replicate 11 ()
         |> List.iter (fun _ ->
-            interval.Render(fun _ -> actual <- true)
+            periodic.Render(fun _ -> actual <- true)
             Thread.Sleep 10)
 
         actual |> shouldEqual false
+        periodic.Stop()
 
     [<Fact>]
     let ``shouldn't invoke cancel action during 12 idle rendering.`` () =
@@ -541,16 +552,17 @@ module Interval =
         Pocof.RenderEvent.Render(state, [], Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let interval = Pocof.Periodic(config, handler, buff.Value)
+        let periodic = Pocof.Periodic(config, handler, buff.Value)
         Thread.Sleep 100
         let mutable actual = false
 
         List.replicate 12 ()
         |> List.iter (fun _ ->
-            interval.Render(fun _ -> actual <- true)
+            periodic.Render(fun _ -> actual <- true)
             Thread.Sleep 10)
 
         actual |> shouldEqual false
+        periodic.Stop()
 
 module NormalInputStore =
     open System.Collections
