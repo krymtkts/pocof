@@ -106,8 +106,8 @@ type SelectPocofCommand() =
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = keymaps
-                  Properties = properties.GetList()
-                  PropertiesMap = properties.GetMap()
+                  Properties = properties.GetProperties()
+                  PropertiesMap = properties.GetPropertyMap()
                   EntryCount = input.Count()
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
@@ -117,7 +117,7 @@ type SelectPocofCommand() =
         buff <- Pocof.initScreen (Pocof.initRawUI (__.PSHost().UI.RawUI) (__.ConsoleInterface())) __.Invoke cnf
 
         mainTask <-
-            async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }
+            async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetEntries() }
             |> Async.StartAsTask
             |> Some
 

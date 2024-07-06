@@ -575,7 +575,7 @@ module NormalInputStore =
         let expected = [ 1 ] |> mapToObj
         let input: Pocof.IInputStore = Pocof.getInputStore false
         input.Add(1 |> PSObject.AsPSObject)
-        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.GetEntries() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Obj to tail.`` () =
@@ -583,7 +583,7 @@ module NormalInputStore =
         let input: Pocof.IInputStore = Pocof.getInputStore false
         input.Add(0 |> PSObject.AsPSObject)
         input.Add(1 |> PSObject.AsPSObject)
-        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.GetEntries() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Dict`` () =
@@ -601,7 +601,7 @@ module NormalInputStore =
             h |> PSObject.AsPSObject
 
         input.Add inputObject
-        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.GetEntries() |> List.ofSeq |> shouldEqual expected
         input.Count() |> shouldEqual (Seq.length expected)
 
 module UniqueInputStore =
@@ -615,7 +615,7 @@ module UniqueInputStore =
         let expected = [ 1 ] |> mapToObj
         let input: Pocof.IInputStore = Pocof.getInputStore true
         input.Add(1 |> PSObject.AsPSObject)
-        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.GetEntries() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Obj to tail.`` () =
@@ -623,7 +623,7 @@ module UniqueInputStore =
         let input: Pocof.IInputStore = Pocof.getInputStore true
         input.Add(0 |> PSObject.AsPSObject)
         input.Add(1 |> PSObject.AsPSObject)
-        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.GetEntries() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return the list with added Dict`` () =
@@ -641,7 +641,7 @@ module UniqueInputStore =
             h |> PSObject.AsPSObject
 
         input.Add inputObject
-        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.GetEntries() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``should return the unique list.`` () =
@@ -653,7 +653,7 @@ module UniqueInputStore =
         input.Add(3 |> PSObject.AsPSObject)
         input.Add(2 |> PSObject.AsPSObject)
         input.Add(1 |> PSObject.AsPSObject)
-        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.GetEntries() |> List.ofSeq |> shouldEqual expected
         input.Count() |> shouldEqual (Seq.length expected)
 
     [<Fact>]
@@ -679,7 +679,7 @@ module UniqueInputStore =
         h.Add("c", 3)
         h |> PSObject.AsPSObject |> input.Add
 
-        input.GetAll() |> List.ofSeq |> shouldEqual expected
+        input.GetEntries() |> List.ofSeq |> shouldEqual expected
         input.Count() |> shouldEqual (Seq.length expected)
 
 module buildProperties =
@@ -766,7 +766,7 @@ module PropertyStore =
         let expected = [ "a"; "b"; "c" ]
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
         properties.Add("a", [ "a"; "b"; "c" ])
-        properties.GetList() |> List.ofSeq |> shouldEqual expected
+        properties.GetProperties() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``shouldn't add existing name.`` () =
@@ -774,11 +774,11 @@ module PropertyStore =
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
         properties.Add("a", [ "a"; "b"; "c" ])
         properties.Add("a", [ "d"; "e"; "f" ])
-        properties.GetList() |> List.ofSeq |> shouldEqual expected
+        properties.GetProperties() |> List.ofSeq |> shouldEqual expected
 
     [<Fact>]
     let ``shouldn't add duplicated values.`` () =
         let expected = [ "a"; "b"; "c" ]
         let properties: Pocof.PropertyStore = Pocof.PropertyStore()
         properties.Add("a", [ "a"; "b"; "a"; "b"; "c" ])
-        properties.GetList() |> List.ofSeq |> shouldEqual expected
+        properties.GetProperties() |> List.ofSeq |> shouldEqual expected

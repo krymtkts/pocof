@@ -302,7 +302,7 @@ module Pocof =
 
     type IInputStore =
         abstract member Add: PSObject -> unit
-        abstract member GetAll: unit -> Entry seq
+        abstract member GetEntries: unit -> Entry seq
         abstract member Count: unit -> int
 
     [<AbstractClass>]
@@ -319,7 +319,7 @@ module Pocof =
                         d |> Entry.Dict |> __.AddEntry
                 | _ -> input |> Entry.Obj |> __.AddEntry
 
-            member __.GetAll() = __.Store
+            member __.GetEntries() = __.Store
             member __.Count() = __.Store.Count
 
     type NormalInputStore() =
@@ -378,5 +378,5 @@ module Pocof =
                         prop |> properties.Enqueue
                         propertiesMap.TryAdd(String.lower prop, prop) |> ignore
 
-        member __.GetList() = properties
-        member __.GetMap() = propertiesMap
+        member __.GetProperties() = properties
+        member __.GetPropertyMap() = propertiesMap
