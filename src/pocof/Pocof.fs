@@ -29,8 +29,7 @@ module Pocof =
     let initRawUI psRawUI console : unit -> Screen.IRawUI =
         fun (_: unit) -> new Screen.RawUI(psRawUI, console)
 
-    let initConsoleInterface () : Screen.IConsoleInterface =
-        new Screen.ConsoleInterface()
+    let initConsoleInterface () : Screen.IConsoleInterface = new Screen.ConsoleInterface()
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -268,7 +267,13 @@ module Pocof =
             | RenderProcess.Noop ->
                 if idleRenderCount >= 10 then
                     idleRenderCount <- 0
-                    latest |> Option.iter (fun e -> e |||> buff.WriteScreen conf.Layout)
+
+                    latest
+                    |> Option.iter (fun (state, result, props) ->
+                        // TODO: encapsulate this from here.
+                        let state = state |> InternalState.updateFilteredCount (Seq.length result)
+                        buff.WriteScreen conf.Layout state result props)
+
                     None
                 else
                     idleRenderCount <- idleRenderCount + 1

@@ -446,7 +446,6 @@ module Data =
                 ConsoleWidth = consoleWidth }
             |> updateWindowWidth
 
-        // TODO: update FilteredCount when rendering.
         let updateFilteredCount (count: int) (state: InternalState) =
             { state with FilteredCount = count } |> updateWindowWidth
 
