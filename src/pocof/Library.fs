@@ -78,7 +78,7 @@ type SelectPocofCommand() =
     default __.PSHost() = __.Host
 
     abstract member ConsoleInterface: unit -> Pocof.IConsoleInterface
-    default __.ConsoleInterface() = new Pocof.ConsoleInterface()
+    default __.ConsoleInterface() = Pocof.initConsoleInterface ()
 
     abstract member GetStopUpstreamCommandsExceptionType: unit -> Type
 
@@ -106,7 +106,8 @@ type SelectPocofCommand() =
                   Prompt = __.Prompt
                   Layout = __.Layout
                   Keymaps = keymaps
-                  Properties = properties.GetAll()
+                  Properties = properties.GetProperties()
+                  PropertiesMap = properties.GetPropertyMap()
                   EntryCount = input.Count()
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
@@ -116,7 +117,7 @@ type SelectPocofCommand() =
         buff <- Pocof.initScreen (Pocof.initRawUI (__.PSHost().UI.RawUI) (__.ConsoleInterface())) __.Invoke cnf
 
         mainTask <-
-            async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetAll() }
+            async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetEntries() }
             |> Async.StartAsTask
             |> Some
 

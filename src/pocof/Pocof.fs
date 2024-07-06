@@ -22,8 +22,6 @@ module Pocof =
 
     type Buff = Screen.Buff
     type IConsoleInterface = Screen.IConsoleInterface
-    // TODO: refactor to remove the alias.
-    type ConsoleInterface = Screen.ConsoleInterface
 
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
@@ -31,6 +29,7 @@ module Pocof =
     let initRawUI psRawUI console : unit -> Screen.IRawUI =
         fun (_: unit) -> new Screen.RawUI(psRawUI, console)
 
+    let initConsoleInterface () : Screen.IConsoleInterface = new Screen.ConsoleInterface()
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -44,7 +43,6 @@ module Pocof =
     type LoopFixedArguments =
         { Keymaps: Map<KeyPattern, Action>
           Input: Entry seq
-          PropMap: Map<string, string>
           PublishEvent: RenderEvent -> unit
           GetKey: unit -> ConsoleKeyInfo list
           GetConsoleWidth: unit -> int
@@ -92,10 +90,10 @@ module Pocof =
 #endif
             wx
 
-    let adjustQueryWindow (args: LoopFixedArguments) (state: InternalState) =
+    let adjustQueryWindow (getLengthInBufferCells: string -> int) (state: InternalState) =
         { state with
             InternalState.QueryState.WindowBeginningCursor =
-                calculateWindowBeginningCursor args.GetLengthInBufferCells state.QueryState }
+                calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
 
     let queryAndRender
         (args: LoopFixedArguments)
@@ -108,22 +106,14 @@ module Pocof =
         match state.Refresh with
         | Refresh.NotRequired -> results, state
         | _ ->
-            let results = Query.run context args.Input args.PropMap
+            let results = Query.run context args.Input state.PropertyMap
 
             let state =
                 state
                 |> InternalState.updateFilteredCount (Seq.length results)
-                |> adjustQueryWindow args
-#if DEBUG
-            Logger.LogFile [ $"publish render {results |> Seq.length}" ]
-#endif
-            (state,
-             results,
-             match state.SuppressProperties with
-             | true -> Ok []
-             | _ -> Query.props state)
-            |> RenderEvent.Render
-            |> args.PublishEvent
+                |> adjustQueryWindow args.GetLengthInBufferCells
+
+            (state, results, Query.props state) |> RenderEvent.Render |> args.PublishEvent
 
             results, state
 
@@ -148,6 +138,7 @@ module Pocof =
                 args.PublishEvent RenderEvent.Quit
                 unwrap results
             | action ->
+                // NOTE: update the console width before invokeAction because users can modify the console width during blocking by args.GetKey.
                 action
                 |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
                 |||> loop args results
@@ -163,20 +154,14 @@ module Pocof =
 
         let state, context = Query.prepare state
 
-#if DEBUG
-        Logger.LogFile [ $"props. length: {state.Properties |> Seq.length}" ]
-#endif
-        let propMap = state.Properties |> Seq.map (fun p -> String.lower p, p) |> Map.ofSeq
-
         match buff with
         | None ->
-            let l = Query.run context input propMap
+            let l = Query.run context input state.PropertyMap
             unwrap l
         | Some buff ->
             let args =
                 { Keymaps = conf.Keymaps
                   Input = input
-                  PropMap = propMap
                   PublishEvent = publish
                   GetKey = buff.GetKey
                   GetConsoleWidth = buff.GetConsoleWidth
@@ -277,7 +262,18 @@ module Pocof =
             | RenderProcess.Noop ->
                 if idleRenderCount >= 10 then
                     idleRenderCount <- 0
-                    latest |> Option.iter (fun e -> e |||> buff.WriteScreen conf.Layout)
+
+                    latest
+                    |> Option.iter (fun (state, result, props) ->
+                        // TODO: encapsulate this from here.
+                        let state =
+                            state
+                            |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
+                            |> InternalState.updateFilteredCount (Seq.length result)
+                            |> adjustQueryWindow buff.GetLengthInBufferCells
+
+                        buff.WriteScreen conf.Layout state result props)
+
                     None
                 else
                     idleRenderCount <- idleRenderCount + 1
@@ -293,7 +289,9 @@ module Pocof =
 
         do stopwatch.Start()
 
-        member __.Stop = stopwatch.Stop
+        member __.Stop() =
+            stopwatch.Stop()
+            latest |> Option.iter (fun e -> e |||> buff.WriteScreen conf.Layout)
 
         member __.Render(actionForCancel: unit -> unit) =
             if stopwatch.ElapsedMilliseconds >= 10 then
@@ -304,7 +302,7 @@ module Pocof =
 
     type IInputStore =
         abstract member Add: PSObject -> unit
-        abstract member GetAll: unit -> Entry seq
+        abstract member GetEntries: unit -> Entry seq
         abstract member Count: unit -> int
 
     [<AbstractClass>]
@@ -321,7 +319,7 @@ module Pocof =
                         d |> Entry.Dict |> __.AddEntry
                 | _ -> input |> Entry.Obj |> __.AddEntry
 
-            member __.GetAll() = __.Store
+            member __.GetEntries() = __.Store
             member __.Count() = __.Store.Count
 
     type NormalInputStore() =
@@ -367,6 +365,10 @@ module Pocof =
             Concurrent.ConcurrentDictionary()
 
         let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+
+        let propertiesMap: Concurrent.ConcurrentDictionary<string, string> =
+            Concurrent.ConcurrentDictionary()
+
         member __.ContainsKey = propertiesDictionary.ContainsKey
 
         member __.Add(name, props) =
@@ -374,5 +376,7 @@ module Pocof =
                 for prop in props do
                     if propertiesDictionary.TryAdd(prop, ()) then
                         prop |> properties.Enqueue
+                        propertiesMap.TryAdd(String.lower prop, prop) |> ignore
 
-        member __.GetAll() = properties
+        member __.GetProperties() = properties
+        member __.GetPropertyMap() = propertiesMap

@@ -369,6 +369,7 @@ module Data =
           Notification: string
           SuppressProperties: bool
           Properties: Generic.IReadOnlyCollection<string>
+          PropertyMap: Generic.IReadOnlyDictionary<string, string>
           Prompt: string
           FilteredCount: int
           ConsoleWidth: int
@@ -445,7 +446,6 @@ module Data =
                 ConsoleWidth = consoleWidth }
             |> updateWindowWidth
 
-        // TODO: update FilteredCount when rendering.
         let updateFilteredCount (count: int) (state: InternalState) =
             { state with FilteredCount = count } |> updateWindowWidth
 
@@ -465,6 +465,7 @@ module Data =
           Layout: string
           Keymaps: Map<KeyPattern, Action>
           Properties: Generic.IReadOnlyCollection<string>
+          PropertiesMap: Generic.IReadOnlyDictionary<string, string>
           EntryCount: int
           ConsoleWidth: int
           ConsoleHeight: int }
@@ -488,6 +489,7 @@ module Data =
               Notification = ""
               SuppressProperties = p.SuppressProperties
               Properties = p.Properties
+              PropertyMap = p.PropertiesMap
               Prompt = p.Prompt
               FilteredCount = p.EntryCount
               ConsoleWidth = p.ConsoleWidth
