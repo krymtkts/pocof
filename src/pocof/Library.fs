@@ -78,7 +78,7 @@ type SelectPocofCommand() =
     default __.PSHost() = __.Host
 
     abstract member ConsoleInterface: unit -> Pocof.IConsoleInterface
-    default __.ConsoleInterface() = new Pocof.ConsoleInterface()
+    default __.ConsoleInterface() = Pocof.initConsoleInterface ()
 
     abstract member GetStopUpstreamCommandsExceptionType: unit -> Type
 
