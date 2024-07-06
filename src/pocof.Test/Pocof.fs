@@ -503,7 +503,7 @@ module Interval =
         periodic.Stop()
 
     [<Fact>]
-    let ``shouldn't invoke cancel action if first time idle rendering.`` () =
+    let ``shouldn't invoke idling action if first time idle rendering.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
@@ -520,7 +520,7 @@ module Interval =
         periodic.Stop()
 
     [<Fact>]
-    let ``shouldn't invoke cancel action during 11 idle rendering.`` () =
+    let ``should invoke idling action after 1 second.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
@@ -530,19 +530,14 @@ module Interval =
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let periodic = Pocof.Periodic(config, handler, buff.Value)
-        Thread.Sleep 100
+        Thread.Sleep 1000
         let mutable actual = false
-
-        List.replicate 11 ()
-        |> List.iter (fun _ ->
-            periodic.Render(fun _ -> actual <- true)
-            Thread.Sleep 10)
-
+        periodic.Render(fun _ -> actual <- true)
         actual |> shouldEqual false
         periodic.Stop()
 
     [<Fact>]
-    let ``shouldn't invoke cancel action during 12 idle rendering.`` () =
+    let ``should invoke idling rendering action after 1 second.`` () =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
@@ -559,7 +554,7 @@ module Interval =
         List.replicate 12 ()
         |> List.iter (fun _ ->
             periodic.Render(fun _ -> actual <- true)
-            Thread.Sleep 10)
+            Thread.Sleep 100)
 
         actual |> shouldEqual false
         periodic.Stop()
