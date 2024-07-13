@@ -55,7 +55,6 @@ module LanguageExtension =
         let trim (s: string) = s.Trim()
         let replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
 
-    let sndOf3 (_, x, _) = x
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
     let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
@@ -311,7 +310,7 @@ module Data =
             let s = state.Query.Substring(0, state.Cursor) |> String.split " " |> Seq.last
 
 #if DEBUG
-            Logger.LogFile [ $"query '{state.Query}' x '{state.Cursor}' string '{s}'" ]
+            Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
 #endif
 
             match s with

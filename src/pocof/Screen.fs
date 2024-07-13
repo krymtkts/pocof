@@ -132,9 +132,6 @@ module Screen =
             | x ->
                 let l = l + (x + Math.Sign(x)) / 2
                 let q = q.Substring(0, l)
-#if DEBUG
-                Logger.LogFile [ $"l '{l}'" ]
-#endif
                 getQuery w q l
 
         let selectRange (queryState: Data.QueryState) (q: string) =
@@ -175,7 +172,7 @@ module Screen =
 
 #if DEBUG
                 Logger.LogFile
-                    [ $"q '{q}' ql '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+                    [ $"query '{q}' query length '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
                 getQuery state.QueryState.WindowWidth q <| String.length q
                 |> selectRange state.QueryState
@@ -290,10 +287,6 @@ module Screen =
                         |> List.ofArray
                         |> (@) acc)
                     []
-
-#if DEBUG
-            Logger.LogFile [ $"out length '{Seq.length out}'" ]
-#endif
 
             seq { 0..height }
             |> Seq.iter (fun i ->

@@ -58,7 +58,7 @@ module Pocof =
         | bx when bx <= state.WindowWidth ->
 #if DEBUG
             Logger.LogFile
-                [ $"bx '{bx}' WindowWidth '{state.WindowWidth}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}'" ]
+                [ $"LengthInBufferCells '{bx}' WindowWidth '{state.WindowWidth}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}'" ]
 #endif
             state.WindowBeginningCursor
         | _ ->
@@ -70,7 +70,7 @@ module Pocof =
     let calculateWindowBeginningCursor (getLengthInBufferCells: string -> int) (state: QueryState) =
 #if DEBUG
         Logger.LogFile
-            [ $"Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+            [ $"Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
 #endif
         match state.WindowBeginningCursor > state.Cursor with
         | true -> state.Cursor
@@ -86,7 +86,7 @@ module Pocof =
 
 #if DEBUG
             Logger.LogFile
-                [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+                [ $"WindowBeginningCursor '{wx}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
 #endif
             wx
 
@@ -207,9 +207,6 @@ module Pocof =
                     render conf handler buff
                 | RenderMessage.Received RenderEvent.Quit -> ()
                 | RenderMessage.Received(RenderEvent.Render e) ->
-#if DEBUG
-                    Logger.LogFile [ $"render. length: {e |> sndOf3 |> Seq.length}" ]
-#endif
                     e |||> b.WriteScreen conf.Layout
                     render conf handler buff
 
@@ -242,10 +239,6 @@ module Pocof =
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
         | RenderMessage.Received(RenderEvent.Render e) ->
-
-#if DEBUG
-            Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
-#endif
             e |||> buff.WriteScreen conf.Layout
             RenderProcess.Rendered e
 

@@ -175,7 +175,6 @@ module Query =
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
 #if DEBUG
         Logger.LogFile context.Queries
-        Logger.LogFile [ props.Count ]
 #endif
 
         let values (o: Entry) =
