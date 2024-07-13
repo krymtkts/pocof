@@ -95,7 +95,7 @@ module Pocof =
             InternalState.QueryState.WindowBeginningCursor =
                 calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
 
-    let queryAndRender
+    let query
         (args: LoopFixedArguments)
         (results: Entry seq)
         (state: InternalState)
@@ -126,7 +126,7 @@ module Pocof =
         (context: QueryContext)
         =
 
-        let results, state = queryAndRender args results state pos context
+        let results, state = query args results state pos context
 
         args.GetKey()
         |> Keys.get args.Keymaps
