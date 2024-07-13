@@ -257,24 +257,22 @@ module Pocof =
         let idlingStopwatch = Stopwatch()
         let mutable latest = None
 
+        let renderAgain (state, result, props) =
+            let state =
+                state
+                // NOTE: adjust the console width before writing the screen.
+                |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
+                |> InternalState.updateFilteredCount (Seq.length result)
+                |> adjustQueryWindow buff.GetLengthInBufferCells
+
+            buff.WriteScreen conf.Layout state result props
+
         let (|Cancelled|_|) =
             function
             | RenderProcess.Noop ->
                 if idlingStopwatch.ElapsedMilliseconds >= 1000 then
                     idlingStopwatch.Reset()
-
-                    latest
-                    |> Option.iter (fun (state, result, props) ->
-                        // TODO: encapsulate this from here.
-                        let state =
-                            state
-                            // NOTE: adjust the console width before writing the screen.
-                            |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
-                            |> InternalState.updateFilteredCount (Seq.length result)
-                            |> adjustQueryWindow buff.GetLengthInBufferCells
-
-                        buff.WriteScreen conf.Layout state result props)
-
+                    latest |> Option.iter renderAgain
                     idlingStopwatch.Start()
                     None
                 else
@@ -295,7 +293,8 @@ module Pocof =
 
         member __.Stop() =
             stopwatch.Stop()
-            latest |> Option.iter (fun e -> e |||> buff.WriteScreen conf.Layout)
+            idlingStopwatch.Stop()
+            latest |> Option.iter renderAgain
 
         member __.Render(actionForCancel: unit -> unit) =
             if stopwatch.ElapsedMilliseconds >= 10 then
