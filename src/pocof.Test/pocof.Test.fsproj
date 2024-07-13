@@ -35,6 +35,7 @@
     <!-- NOTE: for suppressing vulnerability report the transient dependencies from Microsoft.PowerShell.SDK 7.4.3 or lower. -->
     <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
     <!-- NOTE: for suppressing vulnerability report the transient dependencies from xunit that depends .NET Standard 1.6. -->
+    <!-- see https://github.com/xunit/xunit/issues/2778 and its related issues. -->
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
