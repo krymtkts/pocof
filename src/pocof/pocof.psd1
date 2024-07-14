@@ -12,7 +12,7 @@
     RootModule = 'pocof.dll'
 
     # Version number of this module.
-    ModuleVersion = '0.14.0'
+    ModuleVersion = '0.14.1'
 
     # Supported PSEditions
     CompatiblePSEditions = @(
