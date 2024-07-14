@@ -474,7 +474,7 @@ module Data =
             { Query = p.Query
               Cursor = String.length p.Query
               WindowBeginningCursor = 0 // NOTE: adjust later.
-              WindowWidth = p.ConsoleWidth
+              WindowWidth = 0 // NOTE: adjust later.
               InputMode = InputMode.Input }
 
         let s =
