@@ -5,6 +5,7 @@ module Screen =
     open System.Management.Automation.Host
     open System.Threading
 
+    [<Interface>]
     type IConsoleInterface =
         abstract member ReadKey: bool -> ConsoleKeyInfo
         abstract member Write: string -> unit
@@ -12,6 +13,7 @@ module Screen =
         abstract member CursorVisible: bool with get, set
         abstract member KeyAvailable: bool with get
 
+    [<Sealed>]
     type ConsoleInterface() =
         interface IConsoleInterface with
 
@@ -28,6 +30,7 @@ module Screen =
 
             member __.KeyAvailable = Console.KeyAvailable
 
+    [<Interface>]
     type IRawUI =
         inherit IDisposable
         abstract member GetCursorPosition: unit -> int * int
@@ -40,6 +43,7 @@ module Screen =
         abstract member KeyAvailable: unit -> bool
         abstract member HideCursorWhileRendering: unit -> IDisposable
 
+    [<Sealed>]
     type RawUI(rui, console) =
         let rui: PSHostRawUserInterface = rui
         let console: IConsoleInterface = console
@@ -83,6 +87,7 @@ module Screen =
     let escapeSequenceInvert = "\x1b[7m"
     let escapeSequenceResetInvert = "\x1b[27m"
 
+    [<Sealed>]
     type Buff(r, i, layout) =
         let rui: IRawUI = r
         let invoke: obj seq -> string seq = i

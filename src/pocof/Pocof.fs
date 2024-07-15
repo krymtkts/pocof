@@ -181,6 +181,7 @@ module Pocof =
         | None
         | Received of RenderEvent
 
+    [<Sealed>]
     type RenderHandler() =
         let renderStack: RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
@@ -242,6 +243,7 @@ module Pocof =
             e |||> buff.WriteScreen conf.Layout
             RenderProcess.Rendered e
 
+    [<Sealed>]
     type Periodic(conf, handler, buff) =
         let conf: InternalConfig = conf
         let handler: RenderHandler = handler
@@ -296,6 +298,7 @@ module Pocof =
                     | Cancelled _ -> actionForCancel ()
                     | _ -> ()
 
+    [<Interface>]
     type IInputStore =
         abstract member Add: PSObject -> unit
         abstract member GetEntries: unit -> Entry seq
@@ -318,11 +321,13 @@ module Pocof =
             member __.GetEntries() = __.Store
             member __.Count() = __.Store.Count
 
+    [<Sealed>]
     type NormalInputStore() =
         inherit AbstractInputStore()
 
         override __.AddEntry entry = entry |> base.Store.Enqueue
 
+    [<Sealed>]
     type UniqueInputStore() =
         inherit AbstractInputStore()
 
@@ -353,6 +358,7 @@ module Pocof =
 
             (name, props) |> add
 
+    [<Sealed>]
     type PropertyStore() =
         let typeNameDictionary: Concurrent.ConcurrentDictionary<string, unit> =
             Concurrent.ConcurrentDictionary()
