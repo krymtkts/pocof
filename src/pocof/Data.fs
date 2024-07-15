@@ -208,8 +208,10 @@ module Data =
         | Required
         | NotRequired
 
+    // NOTE: Comparison and Equality are required.
     type KeyPattern = { Modifier: int; Key: ConsoleKey }
 
+    [<NoComparison>]
     type InternalConfig =
         { Layout: Layout
           Keymaps: Map<KeyPattern, Action>
@@ -221,6 +223,7 @@ module Data =
         | Input
         | Select of count: int
 
+    [<NoComparison>]
     type QueryState =
         { Query: string
           Cursor: int
@@ -317,6 +320,7 @@ module Data =
             | Prefix ":" p -> PropertySearch.Search p
             | _ -> PropertySearch.NoSearch
 
+    [<NoComparison>]
     type QueryCondition =
         { Matcher: Matcher
           Operator: Operator
@@ -336,6 +340,7 @@ module Data =
               __.Operator.ToString() ]
             |> String.concat ""
 
+    [<NoComparison>]
     module QueryCondition =
         let rotateMatcher (condition: QueryCondition) =
             { condition with
@@ -361,6 +366,7 @@ module Data =
             { condition with
                 Invert = not condition.Invert }
 
+    [<NoComparison>]
     type InternalState =
         { QueryState: QueryState
           QueryCondition: QueryCondition
