@@ -58,7 +58,7 @@ module Pocof =
         | bx when bx <= state.WindowWidth ->
 #if DEBUG
             Logger.LogFile
-                [ $"bx '{bx}' WindowWidth '{state.WindowWidth}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}'" ]
+                [ $"LengthInBufferCells '{bx}' WindowWidth '{state.WindowWidth}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}'" ]
 #endif
             state.WindowBeginningCursor
         | _ ->
@@ -70,7 +70,7 @@ module Pocof =
     let calculateWindowBeginningCursor (getLengthInBufferCells: string -> int) (state: QueryState) =
 #if DEBUG
         Logger.LogFile
-            [ $"Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+            [ $"Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
 #endif
         match state.WindowBeginningCursor > state.Cursor with
         | true -> state.Cursor
@@ -86,7 +86,7 @@ module Pocof =
 
 #if DEBUG
             Logger.LogFile
-                [ $"wx '{wx}' Cursor '{state.Cursor}' WindowBeginningX '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+                [ $"WindowBeginningCursor '{wx}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
 #endif
             wx
 
@@ -95,7 +95,7 @@ module Pocof =
             InternalState.QueryState.WindowBeginningCursor =
                 calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
 
-    let queryAndRender
+    let query
         (args: LoopFixedArguments)
         (results: Entry seq)
         (state: InternalState)
@@ -126,7 +126,7 @@ module Pocof =
         (context: QueryContext)
         =
 
-        let results, state = queryAndRender args results state pos context
+        let results, state = query args results state pos context
 
         args.GetKey()
         |> Keys.get args.Keymaps
@@ -181,6 +181,7 @@ module Pocof =
         | None
         | Received of RenderEvent
 
+    [<Sealed>]
     type RenderHandler() =
         let renderStack: RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
@@ -207,9 +208,6 @@ module Pocof =
                     render conf handler buff
                 | RenderMessage.Received RenderEvent.Quit -> ()
                 | RenderMessage.Received(RenderEvent.Render e) ->
-#if DEBUG
-                    Logger.LogFile [ $"render. length: {e |> sndOf3 |> Seq.length}" ]
-#endif
                     e |||> b.WriteScreen conf.Layout
                     render conf handler buff
 
@@ -242,13 +240,10 @@ module Pocof =
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
         | RenderMessage.Received(RenderEvent.Render e) ->
-
-#if DEBUG
-            Logger.LogFile [ $"renderOnce. length: {e |> sndOf3 |> Seq.length}" ]
-#endif
             e |||> buff.WriteScreen conf.Layout
             RenderProcess.Rendered e
 
+    [<Sealed>]
     type Periodic(conf, handler, buff) =
         let conf: InternalConfig = conf
         let handler: RenderHandler = handler
@@ -303,6 +298,7 @@ module Pocof =
                     | Cancelled _ -> actionForCancel ()
                     | _ -> ()
 
+    [<Interface>]
     type IInputStore =
         abstract member Add: PSObject -> unit
         abstract member GetEntries: unit -> Entry seq
@@ -325,11 +321,13 @@ module Pocof =
             member __.GetEntries() = __.Store
             member __.Count() = __.Store.Count
 
+    [<Sealed>]
     type NormalInputStore() =
         inherit AbstractInputStore()
 
         override __.AddEntry entry = entry |> base.Store.Enqueue
 
+    [<Sealed>]
     type UniqueInputStore() =
         inherit AbstractInputStore()
 
@@ -360,6 +358,7 @@ module Pocof =
 
             (name, props) |> add
 
+    [<Sealed>]
     type PropertyStore() =
         let typeNameDictionary: Concurrent.ConcurrentDictionary<string, unit> =
             Concurrent.ConcurrentDictionary()

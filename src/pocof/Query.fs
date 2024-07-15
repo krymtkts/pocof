@@ -175,7 +175,6 @@ module Query =
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
 #if DEBUG
         Logger.LogFile context.Queries
-        Logger.LogFile [ props.Count ]
 #endif
 
         let values (o: Entry) =
@@ -184,19 +183,19 @@ module Query =
                 (fun acc x ->
                     match x with
                     | QueryPart.Property(p, v) ->
-                        let propName =
-                            match props.TryGetValue p with
-                            | true, v -> v
-                            | _ -> ""
-
-                        let prop =
-                            match o with
-                            | Entry.Dict(dct) -> dct ?=> propName
-                            | Entry.Obj(o) -> o ?-> propName
-
-                        match prop with
-                        | Some(pv) -> (pv, v) :: acc
-                        | None -> acc
+                        props.TryGetValue p
+                        |> function
+                            | true, n -> Some n
+                            | _ -> None
+                        |> function
+                            | Some(propName) ->
+                                match o with
+                                | Entry.Dict(dct) -> dct ?=> propName
+                                | Entry.Obj(o) -> o ?-> propName
+                            | None -> None
+                        |> function
+                            | Some(pv) -> (pv, v) :: acc
+                            | None -> acc
                     | QueryPart.Normal(v) ->
                         match o with
                         | Entry.Dict(dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
@@ -208,7 +207,7 @@ module Query =
         let predicate (o: Entry) =
             match values o with
             | [] -> true
-            | xs -> xs |> context.Test(fun x -> x |> swap |> (context.Is >> context.Answer))
+            | xs -> xs |> context.Test(swap >> context.Is >> context.Answer)
 
         entries |> Seq.filter predicate
 

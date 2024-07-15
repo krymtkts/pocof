@@ -6,6 +6,7 @@ open System.Collections
 module Keys =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<NoEquality>]
     type private Modifiers =
         | Plain
         | Modifier of ConsoleModifiers
@@ -133,6 +134,7 @@ module Keys =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<NoEquality>]
     type private Key =
         | Char of char
         | Control of ConsoleKey

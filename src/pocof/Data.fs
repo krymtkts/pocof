@@ -55,7 +55,6 @@ module LanguageExtension =
         let trim (s: string) = s.Trim()
         let replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
 
-    let sndOf3 (_, x, _) = x
     let swap (l, r) = (r, l)
     let alwaysTrue _ = true
     let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
@@ -209,8 +208,10 @@ module Data =
         | Required
         | NotRequired
 
+    // NOTE: Comparison and Equality are required.
     type KeyPattern = { Modifier: int; Key: ConsoleKey }
 
+    [<NoComparison>]
     type InternalConfig =
         { Layout: Layout
           Keymaps: Map<KeyPattern, Action>
@@ -222,6 +223,7 @@ module Data =
         | Input
         | Select of count: int
 
+    [<NoComparison>]
     type QueryState =
         { Query: string
           Cursor: int
@@ -311,13 +313,14 @@ module Data =
             let s = state.Query.Substring(0, state.Cursor) |> String.split " " |> Seq.last
 
 #if DEBUG
-            Logger.LogFile [ $"query '{state.Query}' x '{state.Cursor}' string '{s}'" ]
+            Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
 #endif
 
             match s with
             | Prefix ":" p -> PropertySearch.Search p
             | _ -> PropertySearch.NoSearch
 
+    [<NoComparison>]
     type QueryCondition =
         { Matcher: Matcher
           Operator: Operator
@@ -337,6 +340,7 @@ module Data =
               __.Operator.ToString() ]
             |> String.concat ""
 
+    [<NoComparison>]
     module QueryCondition =
         let rotateMatcher (condition: QueryCondition) =
             { condition with
@@ -362,6 +366,7 @@ module Data =
             { condition with
                 Invert = not condition.Invert }
 
+    [<NoComparison>]
     type InternalState =
         { QueryState: QueryState
           QueryCondition: QueryCondition
@@ -475,7 +480,7 @@ module Data =
             { Query = p.Query
               Cursor = String.length p.Query
               WindowBeginningCursor = 0 // NOTE: adjust later.
-              WindowWidth = p.ConsoleWidth
+              WindowWidth = 0 // NOTE: adjust later.
               InputMode = InputMode.Input }
 
         let s =
