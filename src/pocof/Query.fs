@@ -172,48 +172,55 @@ module Query =
             { context with
                 Answer = prepareAnswer state }
 
+
+    let
+#if !DEBUG
+        inline
+#endif
+        tryGetPropertyName
+            (props: Generic.IReadOnlyDictionary<string, string>)
+            p
+            =
+        match props.TryGetValue p with
+        | true, n -> Some n
+        | _ -> None
+
+    let
+#if !DEBUG
+        inline
+#endif
+        tryGetPropertyValue
+            o
+            =
+        function
+        | Some(propName) ->
+            match o with
+            | Entry.Dict(dct) -> dct ?=> propName
+            | Entry.Obj(o) -> o ?-> propName
+        | None -> None
+
+    [<TailCall>]
+    let rec processQueries entry props acc queries =
+        match queries with
+        | [] -> acc
+        | QueryPart.Property(p, v) :: tail ->
+            tryGetPropertyName props p
+            |> tryGetPropertyValue entry
+            |> function
+                | Some(pv) -> processQueries entry props ((pv.ToString(), v) :: acc) tail
+                | None -> acc
+        | QueryPart.Normal(v) :: tail ->
+            match entry with
+            | Entry.Dict(dct) ->
+                processQueries entry props ((dct.Key.ToString(), v) :: (dct.Value.ToString(), v) :: acc) tail
+            | Entry.Obj(o) -> processQueries entry props ((o.ToString(), v) :: acc) tail
+
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
 #if DEBUG
         Logger.LogFile context.Queries
 #endif
-
-        let
-#if !DEBUG
-        inline
-#endif
-            tryGetPropertyName p =
-                match props.TryGetValue p with
-                | true, n -> Some n
-                | _ -> None
-
-        let
-#if !DEBUG
-        inline
-#endif
-            tryGetPropertyValue o =
-                function
-                | Some(propName) ->
-                    match o with
-                    | Entry.Dict(dct) -> dct ?=> propName
-                    | Entry.Obj(o) -> o ?-> propName
-                | None -> None
-
         let values (o: Entry) =
-            context.Queries
-            |> List.fold
-                (fun acc x ->
-                    match x with
-                    | QueryPart.Property(p, v) ->
-                        tryGetPropertyName p
-                        |> tryGetPropertyValue o
-                        |> function
-                            | Some(pv) -> (pv.ToString(), v) :: acc
-                            | None -> acc
-                    | QueryPart.Normal(v) ->
-                        match o with
-                        | Entry.Dict(dct) -> (dct.Key.ToString(), v) :: (dct.Value.ToString(), v) :: acc
-                        | Entry.Obj(o) -> (o.ToString(), v) :: acc)
-                []
+            context.Queries |> processQueries o props []
 
         let predicate (o: Entry) =
             match values o with
