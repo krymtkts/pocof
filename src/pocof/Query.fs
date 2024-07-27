@@ -207,15 +207,13 @@ module Query =
                         tryGetPropertyName p
                         |> tryGetPropertyValue o
                         |> function
-                            | Some(pv) -> (pv, v) :: acc
+                            | Some(pv) -> (pv.ToString(), v) :: acc
                             | None -> acc
                     | QueryPart.Normal(v) ->
                         match o with
-                        | Entry.Dict(dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
-                        | Entry.Obj(o) -> (o, v) :: acc)
+                        | Entry.Dict(dct) -> (dct.Key.ToString(), v) :: (dct.Value.ToString(), v) :: acc
+                        | Entry.Obj(o) -> (o.ToString(), v) :: acc)
                 []
-            // NOTE: stringify using the current locale.
-            |> List.map (fun (s, v) -> (s.ToString(), v))
 
         let predicate (o: Entry) =
             match values o with
