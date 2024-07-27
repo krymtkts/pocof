@@ -2,10 +2,23 @@ namespace Pocof
 
 open System
 open System.Collections
+open System.Linq
 open System.Management.Automation
 open System.Text.RegularExpressions
 
 open Data
+
+type pseq<'T> = ParallelQuery<'T>
+
+module PSeq =
+    let ofSeq (source: seq<'T>) = source.AsParallel().AsOrdered()
+
+    let filter predicate source =
+        ParallelEnumerable.Where(source, Func<_, _>(predicate))
+
+    let length source = ParallelEnumerable.Count(source)
+
+    let toSeq (source: pseq<'T>) = source.AsSequential()
 
 module Query =
     let private equalOpt sensitive =
@@ -209,7 +222,7 @@ module Query =
             | [] -> true
             | xs -> xs |> context.Test(swap >> context.Is >> context.Answer)
 
-        entries |> Seq.filter predicate
+        entries |> PSeq.ofSeq |> PSeq.filter predicate |> PSeq.toSeq
 
     let props (state: InternalState) =
         match state.SuppressProperties, state.PropertySearch with
