@@ -70,6 +70,8 @@ module LanguageExtension =
         | x when x > 0 -> Some x
         | _ -> None
 
+    // NOTE: Follow the naming style of built-in types.
+    // fsharplint:disable-next-line
     type pseq<'T> = ParallelQuery<'T>
 
     module PSeq =
