@@ -82,8 +82,6 @@ module LanguageExtension =
 
         let length (source: pseq<'T>) : int = ParallelEnumerable.Count(source)
 
-        let toSeq (source: pseq<'T>) : seq<'T> = source.AsSequential()
-
         let empty<'T> : pseq<'T> = ParallelEnumerable.Empty<'T>()
 
 module Data =
