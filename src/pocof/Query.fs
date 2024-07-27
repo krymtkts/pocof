@@ -74,13 +74,11 @@ module Query =
         with _ ->
             None
 
-    type TesterType<'A> = ('A -> bool) -> 'A list -> bool
-
     [<NoComparison>]
     [<NoEquality>]
     type QueryContext =
         { Queries: QueryPart list
-          Test: TesterType<string * string>
+          Test: bool
           Is: string * string -> bool
           Answer: bool -> bool }
 
@@ -113,8 +111,8 @@ module Query =
 
     let private prepareTest (state: InternalState) =
         match state.QueryCondition.Operator with
-        | Operator.Or -> List.exists
-        | _ -> List.forall
+        | Operator.Or -> false
+        | _ -> true
 
     let private prepareIs (state: InternalState) =
         match state.QueryCondition.Matcher with
@@ -200,34 +198,61 @@ module Query =
         | None -> None
 
     [<TailCall>]
-    let rec processQueries entry props acc queries =
+    let rec processQueries (test: string * string -> bool) (combination: bool) props entry queries invalidProperty =
         match queries with
-        | [] -> acc
+        | [] -> combination || invalidProperty
         | QueryPart.Property(p, v) :: tail ->
             tryGetPropertyName props p
             |> tryGetPropertyValue entry
             |> function
-                | Some(pv) -> processQueries entry props ((pv.ToString(), v) :: acc) tail
-                | None -> acc
+                | Some(pv) ->
+                    match test (pv.ToString(), v) with
+                    | true ->
+                        match combination with
+                        | true -> processQueries test combination props entry tail invalidProperty
+                        | _ -> true
+                    | _ ->
+                        match combination with
+                        | true -> false
+                        | _ -> processQueries test combination props entry tail invalidProperty
+                | None -> processQueries test combination props entry tail true
         | QueryPart.Normal(v) :: tail ->
             match entry with
             | Entry.Dict(dct) ->
-                processQueries entry props ((dct.Key.ToString(), v) :: (dct.Value.ToString(), v) :: acc) tail
-            | Entry.Obj(o) -> processQueries entry props ((o.ToString(), v) :: acc) tail
+                match test (dct.Key.ToString(), v), test (dct.Value.ToString(), v) with
+                | true, true ->
+                    match combination with
+                    | true -> processQueries test combination props entry tail invalidProperty
+                    | _ -> true
+                | false, false ->
+                    match combination with
+                    | true -> false
+                    | _ -> processQueries test combination props entry tail invalidProperty
+                | _ -> not combination
+            | Entry.Obj(o) ->
+                match test (o.ToString(), v) with
+                | true ->
+                    match combination with
+                    | true -> processQueries test combination props entry tail invalidProperty
+                    | _ -> true
+                | _ ->
+                    match combination with
+                    | true -> false
+                    | _ -> processQueries test combination props entry tail invalidProperty
 
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
 #if DEBUG
         Logger.LogFile context.Queries
 #endif
-        let values (o: Entry) =
-            context.Queries |> processQueries o props []
+        let test = swap >> context.Is >> context.Answer
 
-        let predicate (o: Entry) =
-            match values o with
-            | [] -> true
-            | xs -> xs |> context.Test(swap >> context.Is >> context.Answer)
+        match context.Queries with
+        | [] -> entries |> PSeq.ofSeq
+        | _ ->
+            let predicate (o: Entry) =
+                processQueries test context.Test props o context.Queries false
 
-        entries |> PSeq.ofSeq |> PSeq.filter predicate
+            entries |> PSeq.ofSeq |> PSeq.filter predicate
 
     let props (state: InternalState) =
         match state.SuppressProperties, state.PropertySearch with
