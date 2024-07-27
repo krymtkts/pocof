@@ -366,10 +366,14 @@ module render =
 
         async {
             Thread.Sleep 100
-            (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> handler.Publish
+
+            (state, PSeq.empty, Error "error")
+            |> Pocof.RenderEvent.Render
+            |> handler.Publish
+
             Thread.Sleep 100
 
-            (state, Seq.empty, [ "Value" ] |> Ok)
+            (state, PSeq.empty, [ "Value" ] |> Ok)
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
@@ -421,7 +425,10 @@ module renderOnce =
 
         let handler = Pocof.RenderHandler()
 
-        (state, Seq.empty, Error "error") |> Pocof.RenderEvent.Render |> handler.Publish
+        (state, PSeq.empty, Error "error")
+        |> Pocof.RenderEvent.Render
+        |> handler.Publish
+
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let actual = Pocof.renderOnce config handler buff.Value
@@ -476,7 +483,7 @@ module Interval =
               Keymaps = Keys.defaultKeymap }
 
         let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Render(state, [], Ok []) |> handler.Publish
+        Pocof.RenderEvent.Render(state, PSeq.empty, Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let periodic = Pocof.Periodic(config, handler, buff.Value)
@@ -544,7 +551,7 @@ module Interval =
               Keymaps = Keys.defaultKeymap }
 
         let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Render(state, [], Ok []) |> handler.Publish
+        Pocof.RenderEvent.Render(state, PSeq.empty, Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
         let periodic = Pocof.Periodic(config, handler, buff.Value)

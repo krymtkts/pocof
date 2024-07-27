@@ -42,6 +42,7 @@ module Debug =
 [<AutoOpen>]
 module LanguageExtension =
     open System
+    open System.Linq
 
     module Option =
         let dispose (d: 'a option when 'a :> IDisposable) = d |> Option.iter _.Dispose()
@@ -68,6 +69,20 @@ module LanguageExtension =
         match value with
         | x when x > 0 -> Some x
         | _ -> None
+
+    type pseq<'T> = ParallelQuery<'T>
+
+    module PSeq =
+        let ofSeq (source: seq<'T>) : pseq<'T> = source.AsParallel().AsOrdered()
+
+        let filter predicate (source: pseq<'T>) : pseq<'T> =
+            ParallelEnumerable.Where(source, Func<_, _>(predicate))
+
+        let length (source: pseq<'T>) : int = ParallelEnumerable.Count(source)
+
+        let toSeq (source: pseq<'T>) : seq<'T> = source.AsSequential()
+
+        let empty<'T> : pseq<'T> = ParallelEnumerable.Empty<'T>()
 
 module Data =
     open System
