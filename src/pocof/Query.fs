@@ -177,22 +177,35 @@ module Query =
         Logger.LogFile context.Queries
 #endif
 
+        let
+#if !DEBUG
+        inline
+#endif
+            tryGetPropertyName p =
+                match props.TryGetValue p with
+                | true, n -> Some n
+                | _ -> None
+
+        let
+#if !DEBUG
+        inline
+#endif
+            tryGetPropertyValue o =
+                function
+                | Some(propName) ->
+                    match o with
+                    | Entry.Dict(dct) -> dct ?=> propName
+                    | Entry.Obj(o) -> o ?-> propName
+                | None -> None
+
         let values (o: Entry) =
             context.Queries
             |> List.fold
                 (fun acc x ->
                     match x with
                     | QueryPart.Property(p, v) ->
-                        props.TryGetValue p
-                        |> function
-                            | true, n -> Some n
-                            | _ -> None
-                        |> function
-                            | Some(propName) ->
-                                match o with
-                                | Entry.Dict(dct) -> dct ?=> propName
-                                | Entry.Obj(o) -> o ?-> propName
-                            | None -> None
+                        tryGetPropertyName p
+                        |> tryGetPropertyValue o
                         |> function
                             | Some(pv) -> (pv, v) :: acc
                             | None -> acc
