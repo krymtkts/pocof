@@ -35,7 +35,7 @@ module Pocof =
     [<NoComparison>]
     [<NoEquality>]
     type RenderEvent =
-        | Render of (InternalState * Entry seq * Result<string list, string>)
+        | Render of (InternalState * Entry pseq * Result<string list, string>)
         | Quit
 
     [<NoComparison>]
@@ -110,7 +110,7 @@ module Pocof =
 
             let state =
                 state
-                |> InternalState.updateFilteredCount (Seq.length results)
+                |> InternalState.updateFilteredCount (PSeq.length results)
                 |> adjustQueryWindow args.GetLengthInBufferCells
 
             (state, results, Query.props state) |> RenderEvent.Render |> args.PublishEvent
@@ -232,7 +232,7 @@ module Pocof =
     [<NoEquality>]
     type RenderProcess =
         | Noop
-        | Rendered of (InternalState * Entry seq * Result<string list, string>)
+        | Rendered of (InternalState * Entry pseq * Result<string list, string>)
         | StopUpstreamCommands
 
     let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff) =
@@ -257,7 +257,7 @@ module Pocof =
                 state
                 // NOTE: adjust the console width before writing the screen.
                 |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
-                |> InternalState.updateFilteredCount (Seq.length result)
+                |> InternalState.updateFilteredCount (PSeq.length result)
                 |> adjustQueryWindow buff.GetLengthInBufferCells
 
             buff.WriteScreen conf.Layout state result props

@@ -209,7 +209,7 @@ module Query =
             | [] -> true
             | xs -> xs |> context.Test(swap >> context.Is >> context.Answer)
 
-        entries |> Seq.filter predicate
+        entries |> PSeq.ofSeq |> PSeq.filter predicate
 
     let props (state: InternalState) =
         match state.SuppressProperties, state.PropertySearch with
