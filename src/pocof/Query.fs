@@ -244,7 +244,9 @@ module Query =
 #if DEBUG
         Logger.LogFile context.Queries
 #endif
-        let test = swap >> context.Is >> context.Answer
+        // NOTE: use pipeline for inline optimization.
+        let test x =
+            x |> swap |> context.Is |> context.Answer
 
         match context.Queries with
         | [] -> entries |> PSeq.ofSeq
