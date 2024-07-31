@@ -201,12 +201,38 @@ module Query =
     let rec processQueries (test: string * string -> bool) (combination: bool) props entry queries invalidProperty =
         match queries with
         | [] -> combination || invalidProperty
-        | QueryPart.Property(p, v) :: tail ->
-            tryGetPropertyName props p
-            |> tryGetPropertyValue entry
-            |> function
-                | Some(pv) ->
-                    match test (pv.ToString(), v) with
+        | head :: tail ->
+            match head with
+            | QueryPart.Property(p, v) ->
+                tryGetPropertyName props p
+                |> tryGetPropertyValue entry
+                |> function
+                    | Some(pv) ->
+                        match test (pv.ToString(), v) with
+                        | true ->
+                            match combination with
+                            | true -> processQueries test combination props entry tail invalidProperty
+                            | _ -> true
+                        | _ ->
+                            match combination with
+                            | true -> false
+                            | _ -> processQueries test combination props entry tail invalidProperty
+                    | None -> processQueries test combination props entry tail true
+            | QueryPart.Normal(v) ->
+                match entry with
+                | Entry.Dict(dct) ->
+                    match test (dct.Key.ToString(), v), test (dct.Value.ToString(), v) with
+                    | true, true ->
+                        match combination with
+                        | true -> processQueries test combination props entry tail invalidProperty
+                        | _ -> true
+                    | false, false ->
+                        match combination with
+                        | true -> false
+                        | _ -> processQueries test combination props entry tail invalidProperty
+                    | _ -> not combination
+                | Entry.Obj(o) ->
+                    match test (o.ToString(), v) with
                     | true ->
                         match combination with
                         | true -> processQueries test combination props entry tail invalidProperty
@@ -215,30 +241,6 @@ module Query =
                         match combination with
                         | true -> false
                         | _ -> processQueries test combination props entry tail invalidProperty
-                | None -> processQueries test combination props entry tail true
-        | QueryPart.Normal(v) :: tail ->
-            match entry with
-            | Entry.Dict(dct) ->
-                match test (dct.Key.ToString(), v), test (dct.Value.ToString(), v) with
-                | true, true ->
-                    match combination with
-                    | true -> processQueries test combination props entry tail invalidProperty
-                    | _ -> true
-                | false, false ->
-                    match combination with
-                    | true -> false
-                    | _ -> processQueries test combination props entry tail invalidProperty
-                | _ -> not combination
-            | Entry.Obj(o) ->
-                match test (o.ToString(), v) with
-                | true ->
-                    match combination with
-                    | true -> processQueries test combination props entry tail invalidProperty
-                    | _ -> true
-                | _ ->
-                    match combination with
-                    | true -> false
-                    | _ -> processQueries test combination props entry tail invalidProperty
 
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
 #if DEBUG
