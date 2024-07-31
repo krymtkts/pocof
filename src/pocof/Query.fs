@@ -78,7 +78,7 @@ module Query =
     [<NoEquality>]
     type QueryContext =
         { Queries: QueryPart list
-          Test: bool
+          Test: Operator
           Is: string * string -> bool
           Answer: bool -> bool }
 
@@ -138,7 +138,6 @@ module Query =
 
     let prepare (state: InternalState) =
         let queries = prepareQuery state
-        let test = prepareTest state
         let is = prepareIs state
         let answer = prepareAnswer state
         let notification = prepareNotification state
@@ -146,7 +145,7 @@ module Query =
         { state with
             Notification = notification },
         { Queries = queries
-          Test = test
+          Test = state.QueryCondition.Operator
           Is = is
           Answer = answer }
 
@@ -164,7 +163,7 @@ module Query =
 
         let prepareTest state context =
             { context with
-                Test = prepareTest state }
+                Test = state.QueryCondition.Operator }
 
         let prepareAnswer state context =
             { context with
@@ -197,50 +196,49 @@ module Query =
             | Entry.Obj(o) -> o ?-> propName
         | None -> None
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    type QueryResult =
+        | Matched
+        | Unmatched
+        | PartialMatched
+        | PropertyNotFound
+
     [<TailCall>]
-    let rec processQueries (test: string * string -> bool) (combination: bool) props entry queries invalidProperty =
+    let rec processQueries (test: string * string -> bool) (combination: Operator) props entry queries invalidProperty =
         match queries with
-        | [] -> combination || invalidProperty
+        | [] -> (combination <> Operator.Or) || invalidProperty
         | head :: tail ->
-            match head with
-            | QueryPart.Property(p, v) ->
-                tryGetPropertyName props p
-                |> tryGetPropertyValue entry
-                |> function
-                    | Some(pv) ->
-                        match test (pv.ToString(), v) with
-                        | true ->
-                            match combination with
-                            | true -> processQueries test combination props entry tail invalidProperty
-                            | _ -> true
-                        | _ ->
-                            match combination with
-                            | true -> false
-                            | _ -> processQueries test combination props entry tail invalidProperty
-                    | None -> processQueries test combination props entry tail true
-            | QueryPart.Normal(v) ->
-                match entry with
-                | Entry.Dict(dct) ->
-                    match test (dct.Key.ToString(), v), test (dct.Value.ToString(), v) with
-                    | true, true ->
-                        match combination with
-                        | true -> processQueries test combination props entry tail invalidProperty
-                        | _ -> true
-                    | false, false ->
-                        match combination with
-                        | true -> false
-                        | _ -> processQueries test combination props entry tail invalidProperty
-                    | _ -> not combination
-                | Entry.Obj(o) ->
-                    match test (o.ToString(), v) with
-                    | true ->
-                        match combination with
-                        | true -> processQueries test combination props entry tail invalidProperty
-                        | _ -> true
-                    | _ ->
-                        match combination with
-                        | true -> false
-                        | _ -> processQueries test combination props entry tail invalidProperty
+            let a =
+                match head with
+                | QueryPart.Property(p, v) ->
+                    tryGetPropertyName props p
+                    |> tryGetPropertyValue entry
+                    |> function
+                        | Some(pv) ->
+                            match test (pv.ToString(), v) with
+                            | true -> QueryResult.Matched
+                            | _ -> QueryResult.Unmatched
+                        | None -> QueryResult.PropertyNotFound
+                | QueryPart.Normal(v) ->
+                    match entry with
+                    | Entry.Dict(dct) ->
+                        match test (dct.Key.ToString(), v), test (dct.Value.ToString(), v) with
+                        | true, true -> QueryResult.Matched
+                        | false, false -> QueryResult.Unmatched
+                        | _ -> QueryResult.PartialMatched
+                    | Entry.Obj(o) ->
+                        match test (o.ToString(), v) with
+                        | true -> QueryResult.Matched
+                        | _ -> QueryResult.Unmatched
+
+            match a, combination with
+            | QueryResult.Matched, Operator.And
+            | QueryResult.Unmatched, Operator.Or -> processQueries test combination props entry tail invalidProperty
+            | QueryResult.PropertyNotFound, _ -> processQueries test combination props entry tail true
+            | _, Operator.Or -> true
+            | _ -> false
 
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
 #if DEBUG
