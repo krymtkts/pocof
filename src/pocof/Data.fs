@@ -60,13 +60,21 @@ module LanguageExtension =
 #if !DEBUG
         inline
 #endif
-        swap (l, r) = (r, l)
+        swap
+            (l, r)
+            =
+        (r, l)
+
     let
 
 #if !DEBUG
-    inline
+        inline
 #endif
-        alwaysTrue _ = true
+        alwaysTrue
+            _
+            =
+        true
+
     let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
 
     let (|Negative|_|) (value: int) =
