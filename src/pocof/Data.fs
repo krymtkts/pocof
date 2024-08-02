@@ -65,16 +65,6 @@ module LanguageExtension =
             =
         (r, l)
 
-    let
-
-#if !DEBUG
-        inline
-#endif
-        alwaysTrue
-            _
-            =
-        true
-
     let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
 
     let (|Negative|_|) (value: int) =

@@ -25,12 +25,12 @@ module Query =
 
     let private equals (opt: StringComparison) (r: string, l: string) =
         match r with
-        | "" -> alwaysTrue ()
+        | "" -> true
         | _ -> String.equals opt r l
 
     let private likes (opt: WildcardOptions) (wcp: string, value: string) =
         match wcp with
-        | "" -> alwaysTrue ()
+        | "" -> true
         | _ -> WildcardPattern.Get(wcp, opt).IsMatch value
 
     let private matches (opt: RegexOptions) (pattern: string, value: string) =
