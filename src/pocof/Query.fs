@@ -109,11 +109,6 @@ module Query =
             |> List.ofSeq
             |> parseQuery []
 
-    let private prepareTest (state: InternalState) =
-        match state.QueryCondition.Operator with
-        | Operator.Or -> false
-        | _ -> true
-
     let private prepareIs (state: InternalState) =
         match state.QueryCondition.Matcher with
         | Matcher.Eq -> equals << equalOpt
