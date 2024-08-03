@@ -78,7 +78,7 @@ module Query =
     [<NoEquality>]
     type QueryContext =
         { Queries: QueryPart list
-          Test: Operator }
+          Operator: Operator }
 
     [<TailCall>]
     let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart list) (xs: string list) =
@@ -142,7 +142,7 @@ module Query =
         { state with
             Notification = notification },
         { Queries = queries
-          Test = state.QueryCondition.Operator }
+          Operator = state.QueryCondition.Operator }
 
     module InternalState =
         let prepareNotification state =
@@ -152,11 +152,11 @@ module Query =
     module QueryContext =
         let prepareQuery state context =
             { context with
-                Queries = prepareQuery state }
+                QueryContext.Queries = prepareQuery state }
 
         let prepareTest state context =
             { context with
-                Test = state.QueryCondition.Operator }
+                QueryContext.Operator = state.QueryCondition.Operator }
 
     let
 #if !DEBUG
@@ -232,15 +232,12 @@ module Query =
 #if DEBUG
         Logger.LogFile context.Queries
 #endif
-        // // NOTE: use pipeline for inline optimization.
-        // let test x =
-        //     x |> swap |> context.Is |> context.Answer
 
         match context.Queries with
         | [] -> entries |> PSeq.ofSeq
         | _ ->
             let predicate (o: Entry) =
-                processQueries context.Test props o context.Queries false
+                processQueries context.Operator props o context.Queries false
 
             entries |> PSeq.ofSeq |> PSeq.filter predicate
 
