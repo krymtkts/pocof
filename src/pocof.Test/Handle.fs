@@ -44,6 +44,18 @@ module invokeAction =
             context
         )
 
+    let testQueryPartNormal value =
+        function
+        | [ Query.QueryPart.Normal(x) ] -> x value |> shouldEqual true
+        | _ -> failwith "invalid query part normal."
+
+    let testQueryPartProperty propertyName value =
+        function
+        | [ Query.QueryPart.Property(x, y) ] ->
+            x |> shouldEqual propertyName
+            y value |> shouldEqual true
+        | _ -> failwith "invalid query part property."
+
     module ``with Noop`` =
         [<Fact>]
         let ``shouldn't return any difference.`` () = noop Action.Noop
@@ -505,7 +517,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal "" ] // TODO: Should be an empty list, though harmless.
+            a3.Queries |> testQueryPartNormal ""
 
         [<Fact>]
         let ``should remove the selection.`` () =
@@ -555,7 +567,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal "name" ]
+            a3.Queries |> testQueryPartNormal "name"
 
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
@@ -653,7 +665,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("query") ]
+            a3.Queries |> testQueryPartNormal "query"
 
         [<Fact>]
         let ``should remove all characters when the cursor is over the query length.`` () =
@@ -675,7 +687,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("") ]
+            a3.Queries |> testQueryPartNormal ""
 
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
@@ -699,7 +711,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("query") ]
+            a3.Queries |> testQueryPartNormal "query"
 
         [<Fact>]
         let ``should remove all characters before the cursor including the selection.`` () =
@@ -722,7 +734,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ry") ]
+            a3.Queries |> testQueryPartNormal "ry"
 
         [<Fact>]
         let ``should remove all characters before the cursor and the the selection.`` () =
@@ -745,7 +757,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ry") ]
+            a3.Queries |> testQueryPartNormal "ry"
 
     module ``with KillEndOfLine`` =
         [<Fact>]
@@ -768,7 +780,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("example") ]
+            a3.Queries |> testQueryPartNormal "example"
 
         [<Fact>]
         let ``should not change state if the cursor position is at the end of line.`` () =
@@ -791,7 +803,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("example") ]
+            a3.Queries |> testQueryPartNormal "example"
 
         [<Fact>]
         let ``should remove all characters after the cursor including the selection.`` () =
@@ -814,7 +826,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ex") ]
+            a3.Queries |> testQueryPartNormal "ex"
 
         [<Fact>]
         let ``should remove all characters before the cursor and the the selection.`` () =
@@ -837,7 +849,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("ex") ]
+            a3.Queries |> testQueryPartNormal "ex"
 
     module ``with SelectBackwardChar`` =
         [<Fact>]
@@ -1289,7 +1301,7 @@ module invokeAction =
             let _, _, a3 =
                 testStateAndContext Action.RotateOperator stateBefore context stateAfter
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("") ]
+            a3.Queries |> testQueryPartNormal ""
 
         [<Fact>]
         let ``should switch NONE to OR.`` () = test Operator.None Operator.Or
@@ -1411,7 +1423,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Normal("") ]
+            a3.Queries |> testQueryPartNormal ""
 
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with empty properties list.`` () =
@@ -1548,7 +1560,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Property("name", "foo") ]
+            a3.Queries |> testQueryPartProperty "name" "foo"
 
         [<Fact>]
         let ``shouldn't return any difference when a property is already completed.`` () =
@@ -1592,7 +1604,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Property("name", "a") ]
+            a3.Queries |> testQueryPartProperty "name" "a"
 
         [<Fact>]
         let ``should return current completion when a property is already completed and cursor in mid position of it.``
@@ -1617,7 +1629,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual [ Query.QueryPart.Property("name", "a") ]
+            a3.Queries |> testQueryPartProperty "name" "a"
 
         [<Fact>]
         let ``should return next property when rotation.`` () =
