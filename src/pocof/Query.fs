@@ -169,7 +169,7 @@ module Query =
 #if !DEBUG
         inline
 #endif
-        tryGetPropertyName
+        private tryGetPropertyName
             (props: Generic.IReadOnlyDictionary<string, string>)
             p
             =
@@ -181,7 +181,7 @@ module Query =
 #if !DEBUG
         inline
 #endif
-        tryGetPropertyValue
+        private tryGetPropertyValue
             o
             =
         function
