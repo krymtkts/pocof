@@ -42,9 +42,17 @@ module Query =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<NoEquality>]
     type QueryPart =
         | Normal of is: (string -> bool)
         | Property of lowerCaseName: string * is: (string -> bool)
+
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    type QueryNode =
+        | Part of head: QueryPart * tail: QueryNode
+        | End
 
     let
 #if !DEBUG
@@ -77,11 +85,11 @@ module Query =
     [<NoComparison>]
     [<NoEquality>]
     type QueryContext =
-        { Queries: QueryPart list
+        { Queries: QueryNode
           Operator: Operator }
 
     [<TailCall>]
-    let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart list) (xs: string list) =
+    let rec private parseQuery (is: string -> string -> bool) (acc: QueryNode) (xs: string list) =
         match xs with
         | [] -> acc
         | (x :: xs) ->
@@ -90,12 +98,15 @@ module Query =
                 parseQuery is
                 <| match x with
                    | Prefix ":" _ -> acc
-                   | _ -> QueryPart.Normal(is x) :: acc
+                   | _ -> QueryNode.Part(QueryPart.Normal(is x), acc)
                 <| []
             | y :: zs ->
                 match x with
-                | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y) :: acc <| zs
-                | _ -> parseQuery is <| QueryPart.Normal(is x) :: acc <| xs
+                | Prefix ":" p ->
+                    parseQuery is
+                    <| QueryNode.Part(QueryPart.Property(String.lower p, is y), acc)
+                    <| zs
+                | _ -> parseQuery is <| QueryNode.Part(QueryPart.Normal(is x), acc) <| xs
 
     let private prepareTest (state: InternalState) =
         let answer =
@@ -117,13 +128,13 @@ module Query =
         let is = prepareTest state
 
         match state.QueryCondition.Operator with
-        | Operator.None -> [ QueryPart.Normal <| is state.QueryState.Query ]
+        | Operator.None -> QueryNode.Part(is state.QueryState.Query |> QueryPart.Normal, QueryNode.End)
         | _ ->
             state.QueryState.Query
             |> String.trim
             |> String.split " "
             |> List.ofSeq
-            |> parseQuery is []
+            |> parseQuery is QueryNode.End
 
     let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with
@@ -196,8 +207,8 @@ module Query =
     [<TailCall>]
     let rec processQueries (combination: Operator) props entry queries invalidProperty =
         match queries with
-        | [] -> (combination <> Operator.Or) || invalidProperty
-        | head :: tail ->
+        | QueryNode.End -> combination <> Operator.Or || invalidProperty
+        | QueryNode.Part(head, tail) ->
             let a =
                 match head with
                 | QueryPart.Property(p, test) ->
@@ -229,12 +240,12 @@ module Query =
             | _ -> false
 
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
-#if DEBUG
-        Logger.LogFile context.Queries
-#endif
+        // #if DEBUG
+        //         Logger.LogFile context.Queries
+        // #endif
 
         match context.Queries with
-        | [] -> entries |> PSeq.ofSeq
+        | QueryNode.End(_) -> entries |> PSeq.ofSeq
         | _ ->
             let predicate (o: Entry) =
                 processQueries context.Operator props o context.Queries false

@@ -44,14 +44,19 @@ module invokeAction =
             context
         )
 
+    let testQueryEnd =
+        function
+        | Query.QueryNode.End -> ()
+        | _ -> failwith "invalid query node end."
+
     let testQueryPartNormal value =
         function
-        | [ Query.QueryPart.Normal(x) ] -> x value |> shouldEqual true
+        | Query.QueryNode.Part(Query.QueryPart.Normal(x), Query.QueryNode.End) -> x value |> shouldEqual true
         | _ -> failwith "invalid query part normal."
 
     let testQueryPartProperty propertyName value =
         function
-        | [ Query.QueryPart.Property(x, y) ] ->
+        | Query.QueryNode.Part(Query.QueryPart.Property(x, y), Query.QueryNode.End) ->
             x |> shouldEqual propertyName
             y value |> shouldEqual true
         | _ -> failwith "invalid query part property."
@@ -84,7 +89,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return a non-search state and cursor=6 when the query is space.`` () =
@@ -108,7 +113,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should remove the selection and add query.`` () =
@@ -133,7 +138,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with BackwardChar`` =
         [<Fact>]
@@ -157,7 +162,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return state with cursor=4 when moving forward on ':name' with cursor=5.`` () =
@@ -182,7 +187,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return state with cursor=4 and InputMode=Input when moving forward on ':name' with cursor=5 and InputMode=Select.``
@@ -211,7 +216,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with ForwardChar`` =
         [<Fact>]
@@ -237,7 +242,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return state with Refresh.NotRequired when moving forward on ':name' with cursor=5 and query.Length=3.``
@@ -264,7 +269,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return state with cursor=2 and InputMode=Input when moving forward on ':name' with cursor=1 and InputMode=Select.``
@@ -293,7 +298,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with BeginningOfLine`` =
         [<Fact>]
@@ -318,7 +323,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return state with Refresh.NotRequired.`` () =
@@ -343,7 +348,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return state with cursor=0 and InputMode=Input.`` () =
@@ -369,7 +374,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with EndOfLine`` =
         [<Fact>]
@@ -393,7 +398,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return state with Refresh.NotRequired.`` () =
@@ -417,7 +422,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return state with cursor=query length and InputMode=Input.`` () =
@@ -442,7 +447,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with DeleteBackwardChar`` =
         [<Fact>]
@@ -467,7 +472,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
@@ -492,7 +497,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should correct state if the cursor position is over the query length.`` () =
@@ -542,7 +547,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with DeleteForwardChar`` =
         [<Fact>]
@@ -592,7 +597,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should correct state if the cursor position is over the query length.`` () =
@@ -617,7 +622,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should remove the selection.`` () =
@@ -642,7 +647,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with KillBeginningOfLine`` =
         [<Fact>]
@@ -871,7 +876,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with Cursor=4 and InputMode=Select -1 when moving backward on ':name' with Cursor=5 and InputMode=Input.``
@@ -897,7 +902,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with Cursor=3 and InputMode=Select -2 when moving backward on ':name' with Cursor=4 and InputMode=Select -1.``
@@ -924,7 +929,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with SelectForwardChar`` =
         [<Fact>]
@@ -951,7 +956,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with Cursor=1 and InputMode=Select 2 when moving forward on ':name' with Cursor=1 and InputMode=Select 1.``
@@ -978,7 +983,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with no change when moving forward on ':name' with Cursor=5.`` () =
@@ -1004,7 +1009,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with SelectToBeginningOfLine`` =
         [<Fact>]
@@ -1031,7 +1036,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with Cursor=0 and InputMode=Select -5 when moving head on ':name' with Cursor=4 and InputMode=Select -1.``
@@ -1058,7 +1063,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with no change when moving head on ':name' with Cursor=0.`` () =
@@ -1082,7 +1087,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with SelectToEndOfLine`` =
         [<Fact>]
@@ -1109,7 +1114,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with Cursor=5 and InputMode=Select 5 when moving tail on ':name' with Cursor=1 and InputMode=Select 1.``
@@ -1136,7 +1141,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with no change when moving tail on ':name' with Cursor=5.`` () =
@@ -1161,7 +1166,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     module ``with SelectAll`` =
         [<Fact>]
@@ -1186,7 +1191,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with Cursor=5 and InputMode=Select 5 with Cursor=1 and InputMode=Input.`` () =
@@ -1211,7 +1216,7 @@ module invokeAction =
                 pos
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return QueryState with Cursor=5 and InputMode=Select 5 with Cursor=5.`` () =
@@ -1235,7 +1240,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
     let testStateAndContext action state context expectedState =
         let a1, a2, a3 = invokeAction state position context action
@@ -1443,7 +1448,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered and found no property completion.`` () =
@@ -1464,7 +1469,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return the first completion when a empty keyword.`` () =
@@ -1488,7 +1493,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return completion when a property is found.`` () =
@@ -1512,7 +1517,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return completion when some properties are found.`` () =
@@ -1536,7 +1541,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should insert completion to mid of query when a property is found.`` () =
@@ -1582,7 +1587,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``shouldn't return any difference when a property is already completed to mid of query.`` () =
@@ -1653,7 +1658,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should return first property when next rotation not found.`` () =
@@ -1677,4 +1682,4 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> shouldEqual []
+            a3.Queries |> testQueryEnd
