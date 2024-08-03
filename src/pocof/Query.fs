@@ -25,12 +25,12 @@ module Query =
 
     let private equals (opt: StringComparison) (r: string, l: string) =
         match r with
-        | "" -> alwaysTrue ()
+        | "" -> true
         | _ -> String.equals opt r l
 
     let private likes (opt: WildcardOptions) (wcp: string, value: string) =
         match wcp with
-        | "" -> alwaysTrue ()
+        | "" -> true
         | _ -> WildcardPattern.Get(wcp, opt).IsMatch value
 
     let private matches (opt: RegexOptions) (pattern: string, value: string) =
@@ -74,13 +74,11 @@ module Query =
         with _ ->
             None
 
-    type TesterType<'A> = ('A -> bool) -> 'A list -> bool
-
     [<NoComparison>]
     [<NoEquality>]
     type QueryContext =
         { Queries: QueryPart list
-          Test: TesterType<string * string>
+          Test: Operator
           Is: string * string -> bool
           Answer: bool -> bool }
 
@@ -111,11 +109,6 @@ module Query =
             |> List.ofSeq
             |> parseQuery []
 
-    let private prepareTest (state: InternalState) =
-        match state.QueryCondition.Operator with
-        | Operator.Or -> List.exists
-        | _ -> List.forall
-
     let private prepareIs (state: InternalState) =
         match state.QueryCondition.Matcher with
         | Matcher.Eq -> equals << equalOpt
@@ -140,7 +133,6 @@ module Query =
 
     let prepare (state: InternalState) =
         let queries = prepareQuery state
-        let test = prepareTest state
         let is = prepareIs state
         let answer = prepareAnswer state
         let notification = prepareNotification state
@@ -148,7 +140,7 @@ module Query =
         { state with
             Notification = notification },
         { Queries = queries
-          Test = test
+          Test = state.QueryCondition.Operator
           Is = is
           Answer = answer }
 
@@ -166,50 +158,98 @@ module Query =
 
         let prepareTest state context =
             { context with
-                Test = prepareTest state }
+                Test = state.QueryCondition.Operator }
 
         let prepareAnswer state context =
             { context with
                 Answer = prepareAnswer state }
 
+
+    let
+#if !DEBUG
+        inline
+#endif
+        private tryGetPropertyName
+            (props: Generic.IReadOnlyDictionary<string, string>)
+            p
+            =
+        match props.TryGetValue p with
+        | true, n -> Some n
+        | _ -> None
+
+    let
+#if !DEBUG
+        inline
+#endif
+        private tryGetPropertyValue
+            o
+            =
+        function
+        | Some(propName) ->
+            match o with
+            | Entry.Dict(dct) -> dct ?=> propName
+            | Entry.Obj(o) -> o ?-> propName
+        | None -> None
+
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    type QueryResult =
+        | Matched
+        | Unmatched
+        | PartialMatched
+        | PropertyNotFound
+
+    [<TailCall>]
+    let rec processQueries (test: string * string -> bool) (combination: Operator) props entry queries invalidProperty =
+        match queries with
+        | [] -> (combination <> Operator.Or) || invalidProperty
+        | head :: tail ->
+            let a =
+                match head with
+                | QueryPart.Property(p, v) ->
+                    tryGetPropertyName props p
+                    |> tryGetPropertyValue entry
+                    |> function
+                        | Some(pv) ->
+                            match test (pv.ToString(), v) with
+                            | true -> QueryResult.Matched
+                            | _ -> QueryResult.Unmatched
+                        | None -> QueryResult.PropertyNotFound
+                | QueryPart.Normal(v) ->
+                    match entry with
+                    | Entry.Dict(dct) ->
+                        match test (dct.Key.ToString(), v), test (dct.Value.ToString(), v) with
+                        | true, true -> QueryResult.Matched
+                        | false, false -> QueryResult.Unmatched
+                        | _ -> QueryResult.PartialMatched
+                    | Entry.Obj(o) ->
+                        match test (o.ToString(), v) with
+                        | true -> QueryResult.Matched
+                        | _ -> QueryResult.Unmatched
+
+            match a, combination with
+            | QueryResult.Matched, Operator.And
+            | QueryResult.Unmatched, Operator.Or -> processQueries test combination props entry tail invalidProperty
+            | QueryResult.PropertyNotFound, _ -> processQueries test combination props entry tail true
+            | _, Operator.Or -> true
+            | _ -> false
+
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
 #if DEBUG
         Logger.LogFile context.Queries
 #endif
+        // NOTE: use pipeline for inline optimization.
+        let test x =
+            x |> swap |> context.Is |> context.Answer
 
-        let values (o: Entry) =
-            context.Queries
-            |> List.fold
-                (fun acc x ->
-                    match x with
-                    | QueryPart.Property(p, v) ->
-                        props.TryGetValue p
-                        |> function
-                            | true, n -> Some n
-                            | _ -> None
-                        |> function
-                            | Some(propName) ->
-                                match o with
-                                | Entry.Dict(dct) -> dct ?=> propName
-                                | Entry.Obj(o) -> o ?-> propName
-                            | None -> None
-                        |> function
-                            | Some(pv) -> (pv, v) :: acc
-                            | None -> acc
-                    | QueryPart.Normal(v) ->
-                        match o with
-                        | Entry.Dict(dct) -> (dct.Key, v) :: (dct.Value, v) :: acc
-                        | Entry.Obj(o) -> (o, v) :: acc)
-                []
-            // NOTE: stringify using the current locale.
-            |> List.map (fun (s, v) -> (s.ToString(), v))
+        match context.Queries with
+        | [] -> entries |> PSeq.ofSeq
+        | _ ->
+            let predicate (o: Entry) =
+                processQueries test context.Test props o context.Queries false
 
-        let predicate (o: Entry) =
-            match values o with
-            | [] -> true
-            | xs -> xs |> context.Test(swap >> context.Is >> context.Answer)
-
-        entries |> PSeq.ofSeq |> PSeq.filter predicate
+            entries |> PSeq.ofSeq |> PSeq.filter predicate
 
     let props (state: InternalState) =
         match state.SuppressProperties, state.PropertySearch with

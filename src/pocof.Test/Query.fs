@@ -35,9 +35,6 @@ let caseSensitive (s: Data.InternalState) =
     { s with
         QueryCondition.CaseSensitive = true }
 
-module prepare =
-    ()
-
 module props =
     [<Fact>]
     let ``should return OK with empty list.`` () =
@@ -91,6 +88,8 @@ module props =
         |> shouldEqual (Ok [ "Name" ])
 
 module run =
+    open System.Collections
+
     let duplicateCase (s: string) = [ s; s.ToLower() ]
     let mapToObj = List.map (PSObject.AsPSObject >> Data.Entry.Obj)
 
@@ -283,8 +282,6 @@ module run =
 
     module ``with a Dictionary query`` =
         let props = Map []
-
-        open System.Collections
         let mapToDict = List.map Data.Entry.Dict
 
         let entries =
@@ -342,6 +339,12 @@ module run =
 
             Query.run context entries props |> List.ofSeq |> shouldEqual entries
 
+            let props = Map [ "title", "Title" ]
+            let state = state |> query ":title ja" |> opAnd
+            let _, context = Query.prepare state
+
+            Query.run context entries props |> List.ofSeq |> shouldEqual entries
+
     module ``with a Property query`` =
         let getPsObj (f: string, l: string) =
             let ret = PSObject()
@@ -380,6 +383,9 @@ module run =
             let state = state |> query ":f a"
             let _, context = Query.prepare state
 
+            Query.run context entries props |> List.ofSeq |> shouldEqual entries
+
+            let props = Map [ "f", "F" ]
             Query.run context entries props |> List.ofSeq |> shouldEqual entries
 
         [<Fact>]
