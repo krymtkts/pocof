@@ -46,17 +46,17 @@ module invokeAction =
 
     let testQueryEnd =
         function
-        | Query.QueryNode.End -> ()
+        | Query.QueryPart.End -> ()
         | _ -> failwith "invalid query node end."
 
     let testQueryPartNormal value =
         function
-        | Query.QueryNode.Part(Query.QueryPart.Normal(x), Query.QueryNode.End) -> x value |> shouldEqual true
+        | Query.QueryPart.Normal(x, Query.QueryPart.End) -> x value |> shouldEqual true
         | _ -> failwith "invalid query part normal."
 
     let testQueryPartProperty propertyName value =
         function
-        | Query.QueryNode.Part(Query.QueryPart.Property(x, y), Query.QueryNode.End) ->
+        | Query.QueryPart.Property(x, y, Query.QueryPart.End) ->
             x |> shouldEqual propertyName
             y value |> shouldEqual true
         | _ -> failwith "invalid query part property."

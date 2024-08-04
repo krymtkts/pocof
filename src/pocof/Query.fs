@@ -44,14 +44,8 @@ module Query =
     [<NoComparison>]
     [<NoEquality>]
     type QueryPart =
-        | Normal of is: (string -> bool)
-        | Property of lowerCaseName: string * is: (string -> bool)
-
-    [<RequireQualifiedAccess>]
-    [<NoComparison>]
-    [<NoEquality>]
-    type QueryNode =
-        | Part of head: QueryPart * tail: QueryNode
+        | Normal of is: (string -> bool) * tail: QueryPart
+        | Property of lowerCaseName: string * is: (string -> bool) * tail: QueryPart
         | End
 
     let
@@ -85,11 +79,11 @@ module Query =
     [<NoComparison>]
     [<NoEquality>]
     type QueryContext =
-        { Queries: QueryNode
+        { Queries: QueryPart
           Operator: Operator }
 
     [<TailCall>]
-    let rec private parseQuery (is: string -> string -> bool) (acc: QueryNode) (xs: string list) =
+    let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart) (xs: string list) =
         match xs with
         | [] -> acc
         | (x :: xs) ->
@@ -98,15 +92,12 @@ module Query =
                 parseQuery is
                 <| match x with
                    | Prefix ":" _ -> acc
-                   | _ -> QueryNode.Part(QueryPart.Normal(is x), acc)
+                   | _ -> QueryPart.Normal(is x, acc)
                 <| []
             | y :: zs ->
                 match x with
-                | Prefix ":" p ->
-                    parseQuery is
-                    <| QueryNode.Part(QueryPart.Property(String.lower p, is y), acc)
-                    <| zs
-                | _ -> parseQuery is <| QueryNode.Part(QueryPart.Normal(is x), acc) <| xs
+                | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y, acc) <| zs
+                | _ -> parseQuery is <| QueryPart.Normal(is x, acc) <| xs
 
     let private prepareTest (state: InternalState) =
         let answer =
@@ -128,13 +119,13 @@ module Query =
         let is = prepareTest state
 
         match state.QueryCondition.Operator with
-        | Operator.None -> QueryNode.Part(is state.QueryState.Query |> QueryPart.Normal, QueryNode.End)
+        | Operator.None -> QueryPart.Normal(is state.QueryState.Query, QueryPart.End)
         | _ ->
             state.QueryState.Query
             |> String.trim
             |> String.split " "
             |> List.ofSeq
-            |> parseQuery is QueryNode.End
+            |> parseQuery is QueryPart.End
 
     let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with
@@ -199,6 +190,7 @@ module Query =
     [<NoComparison>]
     [<NoEquality>]
     type QueryResult =
+        | End
         | Matched
         | Unmatched
         | PartialMatched
@@ -206,38 +198,37 @@ module Query =
 
     [<TailCall>]
     let rec processQueries (combination: Operator) props entry queries invalidProperty =
-        match queries with
-        | QueryNode.End -> combination <> Operator.Or || invalidProperty
-        | QueryNode.Part(head, tail) ->
-            let a =
-                match head with
-                | QueryPart.Property(p, test) ->
-                    tryGetPropertyName props p
-                    |> tryGetPropertyValue entry
-                    |> function
-                        | Some(pv) ->
-                            match pv.ToString() |> test with
-                            | true -> QueryResult.Matched
-                            | _ -> QueryResult.Unmatched
-                        | None -> QueryResult.PropertyNotFound
-                | QueryPart.Normal(test) ->
-                    match entry with
-                    | Entry.Dict(dct) ->
-                        match dct.Key.ToString() |> test, dct.Value.ToString() |> test with
-                        | true, true -> QueryResult.Matched
-                        | false, false -> QueryResult.Unmatched
-                        | _ -> QueryResult.PartialMatched
-                    | Entry.Obj(o) ->
-                        match o.ToString() |> test with
-                        | true -> QueryResult.Matched
-                        | _ -> QueryResult.Unmatched
+        let result, tail =
+            match queries with
+            | QueryPart.End -> QueryResult.End, QueryPart.End
+            | QueryPart.Property(p, test, tail) ->
+                tryGetPropertyName props p
+                |> tryGetPropertyValue entry
+                |> function
+                    | Some(pv) ->
+                        match pv.ToString() |> test with
+                        | true -> QueryResult.Matched, tail
+                        | _ -> QueryResult.Unmatched, tail
+                    | None -> QueryResult.PropertyNotFound, tail
+            | QueryPart.Normal(test, tail) ->
+                match entry with
+                | Entry.Dict(dct) ->
+                    match dct.Key.ToString() |> test, dct.Value.ToString() |> test with
+                    | true, true -> QueryResult.Matched, tail
+                    | false, false -> QueryResult.Unmatched, tail
+                    | _ -> QueryResult.PartialMatched, tail
+                | Entry.Obj(o) ->
+                    match o.ToString() |> test with
+                    | true -> QueryResult.Matched, tail
+                    | _ -> QueryResult.Unmatched, tail
 
-            match a, combination with
-            | QueryResult.Matched, Operator.And
-            | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail invalidProperty
-            | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail true
-            | _, Operator.Or -> true
-            | _ -> false
+        match result, combination with
+        | QueryResult.End, _ -> combination <> Operator.Or || invalidProperty
+        | QueryResult.Matched, Operator.And
+        | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail invalidProperty
+        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail true
+        | _, Operator.Or -> true
+        | _ -> false
 
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
@@ -245,7 +236,7 @@ module Query =
         // #endif
 
         match context.Queries with
-        | QueryNode.End(_) -> entries |> PSeq.ofSeq
+        | QueryPart.End -> entries |> PSeq.ofSeq
         | _ ->
             let predicate (o: Entry) =
                 processQueries context.Operator props o context.Queries false
