@@ -23,22 +23,22 @@ module Query =
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let private equals (opt: StringComparison) (r: string) (l: string) =
+    let private equals (opt: StringComparison) (r: string) =
         match r with
-        | "" -> true
-        | _ -> String.equals opt r l
+        | "" -> alwaysTrue
+        | _ -> String.equals opt r
 
-    let private likes (opt: WildcardOptions) (wcp: string) (value: string) =
+    let private likes (opt: WildcardOptions) (wcp: string) =
         match wcp with
-        | "" -> true
-        | _ -> WildcardPattern.Get(wcp, opt).IsMatch value
+        | "" -> alwaysTrue
+        | _ -> WildcardPattern.Get(wcp, opt).IsMatch
 
-    let private matches (opt: RegexOptions) (pattern: string) (value: string) =
+    let private matches (opt: RegexOptions) (pattern: string) =
         try
             // NOTE: expect using cache.
-            Regex.IsMatch(value, pattern, opt)
+            Regex(pattern, opt).IsMatch
         with _ ->
-            true
+            alwaysTrue
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -100,11 +100,6 @@ module Query =
                 | _ -> parseQuery is <| QueryPart.Normal(is x, acc) <| xs
 
     let private prepareTest (state: InternalState) =
-        let answer =
-            match String.IsNullOrWhiteSpace state.QueryState.Query, state.QueryCondition.Invert with
-            | false, true -> not
-            | _ -> id
-
         let is =
             state.QueryCondition.CaseSensitive
             |> match state.QueryCondition.Matcher with
@@ -112,8 +107,9 @@ module Query =
                | Matcher.Like -> likeOpt >> likes
                | Matcher.Match -> matchOpt >> matches
 
-        let x r l = is r l |> answer
-        x
+        match String.IsNullOrWhiteSpace state.QueryState.Query, state.QueryCondition.Invert with
+        | false, true -> fun r -> is r >> not
+        | _ -> is
 
     let private prepareQuery (state: InternalState) =
         let is = prepareTest state

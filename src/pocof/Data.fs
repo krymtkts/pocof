@@ -56,6 +56,15 @@ module LanguageExtension =
         let trim (s: string) = s.Trim()
         let replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
 
+    let
+#if !DEBUG
+        inline
+#endif
+        alwaysTrue
+            _
+            =
+        true
+
     let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
 
     let (|Negative|_|) (value: int) =
