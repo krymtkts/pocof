@@ -60,10 +60,10 @@ module LanguageExtension =
 #if !DEBUG
         inline
 #endif
-        swap
-            (l, r)
+        alwaysTrue
+            _
             =
-        (r, l)
+        true
 
     let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
 

@@ -190,7 +190,7 @@ module Handle =
             |> InternalState.prepareNotification
             |> InternalState.updateWindowWidth
 
-        state, pos, context |> QueryContext.prepareIs state
+        state, pos, context |> QueryContext.prepareQuery state
 
     let private rotateOperator (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -208,7 +208,7 @@ module Handle =
             |> InternalState.refresh
             |> InternalState.updateWindowWidth
 
-        state, pos, context |> QueryContext.prepareIs state
+        state, pos, context |> QueryContext.prepareQuery state
 
     let private toggleInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -217,7 +217,7 @@ module Handle =
             |> InternalState.refresh
             |> InternalState.updateWindowWidth
 
-        state, pos, context |> QueryContext.prepareAnswer state
+        state, pos, context |> QueryContext.prepareQuery state
 
     let private toggleSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
         let state = state |> InternalState.toggleSuppressProperties |> InternalState.refresh
