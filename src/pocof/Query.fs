@@ -185,6 +185,7 @@ module Query =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type QueryResult =
         | End
         | Matched
