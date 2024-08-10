@@ -35,6 +35,39 @@ let caseSensitive (s: Data.InternalState) =
     { s with
         QueryCondition.CaseSensitive = true }
 
+module operator =
+    open System.Collections
+
+    [<Fact>]
+    let ``?=> should return Jane.`` () =
+        let d = DictionaryEntry("Jane", "Doe")
+        Query.(?=>) d "Key" |> shouldEqual (Some("Jane"))
+
+    [<Fact>]
+    let ``?=> should return None.`` () =
+        let d = DictionaryEntry("Jane", "Doe")
+        Query.(?=>) d "Ke" |> shouldEqual None
+
+    [<Fact>]
+    let ``?=> should return None when null.`` () =
+        let d = DictionaryEntry("Jane", "Doe")
+        Query.(?=>) d null |> shouldEqual None
+
+    [<Fact>]
+    let ``?-> should return 1.`` () =
+        let o = "a" |> PSObject.AsPSObject
+        Query.(?->) o "Length" |> shouldEqual (Some(1))
+
+    [<Fact>]
+    let ``?-> should return None.`` () =
+        let o = "a" |> PSObject.AsPSObject
+        Query.(?->) o "Lengt" |> shouldEqual None
+
+    [<Fact>]
+    let ``?-> should return None when null.`` () =
+        let o = "a" |> PSObject.AsPSObject
+        Query.(?->) o null |> shouldEqual None
+
 module props =
     [<Fact>]
     let ``should return OK with empty list.`` () =

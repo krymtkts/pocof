@@ -50,9 +50,9 @@ module Query =
 
     let
 #if !DEBUG
-        inline
+        inline private
 #endif
-        private (?=>)
+        (?=>)
             (x: 'a)
             (prop: string)
             =
@@ -68,9 +68,9 @@ module Query =
 
     let
 #if !DEBUG
-        inline
+        inline private
 #endif
-        private (?->)
+        (?->)
             (x: PSObject)
             (prop: string)
             =
