@@ -204,7 +204,6 @@ module Query =
     let rec processQueries (combination: Operator) props entry queries hasNoMatch =
         let result, tail =
             match queries with
-            | QueryPart.End -> QueryResult.End, QueryPart.End
             | QueryPart.Property(p, test, tail) ->
                 tryGetPropertyName props p
                 |> tryGetPropertyValue entry
@@ -223,14 +222,16 @@ module Query =
                     match o.ToString() |> test with
                     | true -> QueryResult.Matched, tail
                     | _ -> QueryResult.Unmatched, tail
+            | QueryPart.End -> QueryResult.End, QueryPart.End
 
         match result, combination with
-        | QueryResult.End, Operator.Or -> hasNoMatch
-        | QueryResult.End, _ -> true
         | QueryResult.Matched, Operator.And
         | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail false
         | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
+        | QueryResult.End, Operator.Or -> hasNoMatch
+        | QueryResult.End, _
         | _, Operator.Or -> true
+        // TODO: I will deprecate Operator.None.
         | _ -> false
 
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
