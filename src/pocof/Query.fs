@@ -202,10 +202,8 @@ module Query =
                 tryGetPropertyName props p
                 |> tryGetPropertyValue entry
                 |> function
-                    | Some(pv) ->
-                        match pv.ToString() |> test with
-                        | true -> QueryResult.Matched, tail
-                        | _ -> QueryResult.Unmatched, tail
+                    | Some(pv) when pv.ToString() |> test -> QueryResult.Matched, tail
+                    | Some(_) -> QueryResult.Unmatched, tail
                     | None -> QueryResult.PropertyNotFound, tail
             | QueryPart.Normal(test, tail) ->
                 match entry with
@@ -220,7 +218,8 @@ module Query =
                     | _ -> QueryResult.Unmatched, tail
 
         match result, combination with
-        | QueryResult.End, _ -> combination <> Operator.Or || invalidProperty
+        | QueryResult.End, Operator.Or -> invalidProperty
+        | QueryResult.End, _ -> true
         | QueryResult.Matched, Operator.And
         | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail invalidProperty
         | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail true
