@@ -91,6 +91,44 @@ module LanguageExtension =
 
         let empty<'T> : pseq<'T> = ParallelEnumerable.Empty<'T>()
 
+module Operator =
+    open System.Management.Automation
+
+    let
+#if !DEBUG
+        inline
+#endif
+        (?=>)
+            (x: 'T)
+            (prop: string)
+            =
+        try
+            // TODO: consider using cache.
+            let propInfo = x.GetType().GetProperty prop
+
+            match propInfo with
+            | null -> None
+            | _ -> Some(propInfo.GetValue(x, null) :?> 'R)
+        with _ ->
+            None
+
+    let
+#if !DEBUG
+        inline
+#endif
+        (?->)
+            (x: PSObject)
+            (prop: string)
+            =
+        try
+            let prop = x.Properties.Item prop
+
+            match prop with
+            | null -> None
+            | _ -> prop.Value |> Some
+        with _ ->
+            None
+
 module Data =
     open System
     open System.Collections

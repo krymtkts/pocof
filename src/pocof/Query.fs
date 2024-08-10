@@ -5,6 +5,7 @@ open System.Collections
 open System.Management.Automation
 open System.Text.RegularExpressions
 
+open Operator
 open Data
 
 module Query =
@@ -47,41 +48,6 @@ module Query =
         | Normal of is: (string -> bool) * tail: QueryPart
         | Property of lowerCaseName: string * is: (string -> bool) * tail: QueryPart
         | End
-
-    let
-#if !DEBUG
-        inline private
-#endif
-        (?=>)
-            (x: 'a)
-            (prop: string)
-            =
-        try
-            // TODO: consider using cache.
-            let propInfo = x.GetType().GetProperty prop
-
-            match propInfo with
-            | null -> None
-            | _ -> Some(propInfo.GetValue(x, null) :?> 'b)
-        with _ ->
-            None
-
-    let
-#if !DEBUG
-        inline private
-#endif
-        (?->)
-            (x: PSObject)
-            (prop: string)
-            =
-        try
-            let prop = x.Properties.Item prop
-
-            match prop with
-            | null -> None
-            | _ -> prop.Value |> Some
-        with _ ->
-            None
 
     [<NoComparison>]
     [<NoEquality>]
