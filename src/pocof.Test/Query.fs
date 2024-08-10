@@ -35,6 +35,40 @@ let caseSensitive (s: Data.InternalState) =
     { s with
         QueryCondition.CaseSensitive = true }
 
+module operator =
+    open System.Collections
+    open Pocof.Operator
+
+    [<Fact>]
+    let ``?=> should return Jane.`` () =
+        let d = DictionaryEntry("Jane", "Doe")
+        d ?=> "Key" |> shouldEqual (Some("Jane"))
+
+    [<Fact>]
+    let ``?=> should return None.`` () =
+        let d = DictionaryEntry("Jane", "Doe")
+        d ?=> "Ke" |> shouldEqual None
+
+    [<Fact>]
+    let ``?=> should return None when null.`` () =
+        let d = DictionaryEntry("Jane", "Doe")
+        d ?=> null |> shouldEqual None
+
+    [<Fact>]
+    let ``?-> should return 1.`` () =
+        let o = "a" |> PSObject.AsPSObject
+        o ?-> "Length" |> shouldEqual (Some(1))
+
+    [<Fact>]
+    let ``?-> should return None.`` () =
+        let o = "a" |> PSObject.AsPSObject
+        o ?-> "Lengt" |> shouldEqual None
+
+    [<Fact>]
+    let ``?-> should return None when null.`` () =
+        let o = "a" |> PSObject.AsPSObject
+        o ?-> null |> shouldEqual None
+
 module props =
     [<Fact>]
     let ``should return OK with empty list.`` () =
@@ -398,6 +432,22 @@ module run =
         [<Fact>]
         let ``should return filtered entries when incomplete composite query.`` () =
             let state = state |> query "a :fn"
+            let _, context = Query.prepare state
+            let filtered = [ entries.[1]; entries.[3] ]
+
+            Query.run context entries props |> List.ofSeq |> shouldEqual filtered
+
+        [<Fact>]
+        let ``should return filtered entries when a non-existent property query exists after a correct query`` () =
+            let state = state |> query "a :f e "
+            let _, context = Query.prepare state
+            let filtered = [ entries.[1]; entries.[3] ]
+
+            Query.run context entries props |> List.ofSeq |> shouldEqual filtered
+
+        [<Fact>]
+        let ``should return filtered entries when a non-existent property query exists before a correct query`` () =
+            let state = state |> query ":f e a"
             let _, context = Query.prepare state
             let filtered = [ entries.[1]; entries.[3] ]
 
