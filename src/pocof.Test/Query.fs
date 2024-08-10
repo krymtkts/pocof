@@ -403,6 +403,22 @@ module run =
 
             Query.run context entries props |> List.ofSeq |> shouldEqual filtered
 
+        [<Fact>]
+        let ``should return filtered entries when a non-existent property query exists after a correct query`` () =
+            let state = state |> query "a :f e "
+            let _, context = Query.prepare state
+            let filtered = [ entries.[1]; entries.[3] ]
+
+            Query.run context entries props |> List.ofSeq |> shouldEqual filtered
+
+        [<Fact>]
+        let ``should return filtered entries when a non-existent property query exists before a correct query`` () =
+            let state = state |> query ":f e a"
+            let _, context = Query.prepare state
+            let filtered = [ entries.[1]; entries.[3] ]
+
+            Query.run context entries props |> List.ofSeq |> shouldEqual filtered
+
     module ``with a locale`` =
         open System.Globalization
 
