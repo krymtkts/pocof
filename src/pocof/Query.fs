@@ -171,23 +171,23 @@ module Query =
         let result, tail =
             match queries with
             | QueryPart.Property(p, test, tail) ->
-                tryGetPropertyName props p
-                |> tryGetPropertyValue entry
-                |> function
-                    | Some(pv) when pv.ToString() |> test -> QueryResult.Matched, tail
-                    | Some(_) -> QueryResult.Unmatched, tail
-                    | None -> QueryResult.PropertyNotFound, tail
+                match tryGetPropertyName props p |> tryGetPropertyValue entry with
+                | Some(pv) when pv.ToString() |> test -> QueryResult.Matched
+                | Some(_) -> QueryResult.Unmatched
+                | None -> QueryResult.PropertyNotFound
+                , tail
             | QueryPart.Normal(test, tail) ->
                 match entry with
                 | Entry.Dict(dct) ->
                     match dct.Key.ToString() |> test, dct.Value.ToString() |> test with
-                    | true, true -> QueryResult.Matched, tail
-                    | false, false -> QueryResult.Unmatched, tail
-                    | _ -> QueryResult.PartialMatched, tail
+                    | true, true -> QueryResult.Matched
+                    | false, false -> QueryResult.Unmatched
+                    | _ -> QueryResult.PartialMatched
                 | Entry.Obj(o) ->
                     match o.ToString() |> test with
-                    | true -> QueryResult.Matched, tail
-                    | _ -> QueryResult.Unmatched, tail
+                    | true -> QueryResult.Matched
+                    | _ -> QueryResult.Unmatched
+                , tail
             | QueryPart.End -> QueryResult.End, QueryPart.End
 
         match result, combination with
