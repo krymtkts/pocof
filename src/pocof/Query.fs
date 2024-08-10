@@ -201,7 +201,7 @@ module Query =
         | PropertyNotFound
 
     [<TailCall>]
-    let rec processQueries (combination: Operator) props entry queries invalidProperty =
+    let rec processQueries (combination: Operator) props entry queries hasNoMatch =
         let result, tail =
             match queries with
             | QueryPart.End -> QueryResult.End, QueryPart.End
@@ -225,11 +225,11 @@ module Query =
                     | _ -> QueryResult.Unmatched, tail
 
         match result, combination with
-        | QueryResult.End, Operator.Or -> invalidProperty
+        | QueryResult.End, Operator.Or -> hasNoMatch
         | QueryResult.End, _ -> true
         | QueryResult.Matched, Operator.And
-        | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail invalidProperty
-        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail true
+        | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail false
+        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
         | _, Operator.Or -> true
         | _ -> false
 
@@ -242,7 +242,7 @@ module Query =
         | QueryPart.End -> entries |> PSeq.ofSeq
         | _ ->
             let predicate (o: Entry) =
-                processQueries context.Operator props o context.Queries false
+                processQueries context.Operator props o context.Queries true
 
             entries |> PSeq.ofSeq |> PSeq.filter predicate
 
