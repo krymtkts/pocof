@@ -57,9 +57,12 @@ module Query =
             (prop: string)
             =
         try
-            // TODO: not so good.
+            // TODO: consider using cache.
             let propInfo = x.GetType().GetProperty prop
-            Some(propInfo.GetValue(x, null) :?> 'b)
+
+            match propInfo with
+            | null -> None
+            | _ -> Some(propInfo.GetValue(x, null) :?> 'b)
         with _ ->
             None
 
@@ -72,7 +75,11 @@ module Query =
             (prop: string)
             =
         try
-            Some (x.Properties.Item prop).Value
+            let prop = x.Properties.Item prop
+
+            match prop with
+            | null -> None
+            | _ -> prop.Value |> Some
         with _ ->
             None
 
