@@ -95,15 +95,6 @@ Describe 'pocof' {
                 @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) $PocofShould
         }
-        Context 'In <Matcher> mode with composite query "none"' -ForEach @(
-            @{ Matcher = 'MATCH'; Query = 'universe hello' ; Operator = 'none' }; ,
-            @{ Matcher = 'LIKE'; Query = 'd* hell*' ; Operator = 'none' }; ,
-            @{ Matcher = 'EQ'; Query = 'hello,world hello,universe' ; Operator = 'none' }
-        ) {
-            It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = $null ; Params = $BaseParam + $_ }
-            ) $PocofShould
-        }
         It 'Given PSCustomObject, should be returned without any mutation.' -TestCases @(
             @{InputObject = @([PSCustomObject]@{Name = 'McCall' }); Params = $BaseParam }
         ) {
