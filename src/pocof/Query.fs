@@ -87,14 +87,11 @@ module Query =
     let private prepareQuery (state: InternalState) =
         let is = prepareTest state
 
-        match state.QueryCondition.Operator with
-        | Operator.None -> QueryPart.Normal(is state.QueryState.Query, QueryPart.End)
-        | _ ->
-            state.QueryState.Query
-            |> String.trim
-            |> String.split " "
-            |> List.ofSeq
-            |> parseQuery is QueryPart.End
+        state.QueryState.Query
+        |> String.trim
+        |> String.split " "
+        |> List.ofSeq
+        |> parseQuery is QueryPart.End
 
     let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with

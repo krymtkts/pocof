@@ -235,7 +235,6 @@ module Data =
     type Operator =
         | And
         | Or
-        | None
 
         override __.ToString() = toString __ |> String.lower
 
@@ -415,8 +414,7 @@ module Data =
                 Operator =
                     match condition.Operator with
                     | Operator.Or -> Operator.And
-                    | Operator.And -> Operator.None
-                    | Operator.None -> Operator.Or }
+                    | Operator.And -> Operator.Or }
 
         let toggleCaseSensitive (condition: QueryCondition) =
             { condition with
