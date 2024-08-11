@@ -1286,9 +1286,8 @@ module invokeAction =
         let test before after =
             let a =
                 match before, after with
-                | Operator.None, Operator.Or -> -2
                 | Operator.Or, Operator.And -> 1
-                | Operator.And, Operator.None -> 1
+                | Operator.And, Operator.Or -> -1
                 | _ -> failwith "invalid case in RotateOperator test."
 
             let stateBefore =
@@ -1309,13 +1308,10 @@ module invokeAction =
             a3.Queries |> testQueryPartNormal ""
 
         [<Fact>]
-        let ``should switch NONE to OR.`` () = test Operator.None Operator.Or
-
-        [<Fact>]
         let ``should switch OR to AND.`` () = test Operator.Or Operator.And
 
         [<Fact>]
-        let ``should switch AND to NONE.`` () = test Operator.And Operator.None
+        let ``should switch AND to OR.`` () = test Operator.And Operator.Or
 
     module ``with ToggleCaseSensitive`` =
         let test before after =
