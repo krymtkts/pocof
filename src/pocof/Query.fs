@@ -156,7 +156,7 @@ module Query =
     [<NoComparison>]
     [<NoEquality>]
     [<Struct>]
-    type QueryResult =
+    type private QueryResult =
         | End
         | Matched
         | Unmatched
@@ -164,7 +164,7 @@ module Query =
         | PropertyNotFound
 
     [<TailCall>]
-    let rec processQueries (combination: Operator) props entry queries hasNoMatch =
+    let rec private processQueries (combination: Operator) props entry queries hasNoMatch =
         let result, tail =
             match queries with
             | QueryPart.Property(p, test, tail) ->
