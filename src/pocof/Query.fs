@@ -193,12 +193,13 @@ module Query =
         match result, combination with
         | QueryResult.Matched, Operator.And
         | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail false
-        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
+        | QueryResult.End, Operator.And
+        | QueryResult.Matched, Operator.Or
+        | QueryResult.PartialMatched, Operator.Or -> true
+        | QueryResult.Unmatched, Operator.And
+        | QueryResult.PartialMatched, Operator.And -> false
         | QueryResult.End, Operator.Or -> hasNoMatch
-        | QueryResult.End, _
-        | _, Operator.Or -> true
-        // TODO: I will deprecate Operator.None.
-        | _ -> false
+        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
 
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
