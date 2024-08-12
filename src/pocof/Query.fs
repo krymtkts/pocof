@@ -24,15 +24,9 @@ module Query =
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let private equals (opt: StringComparison) (r: string) =
-        match r with
-        | "" -> alwaysTrue
-        | _ -> String.equals opt r
+    let private equals (opt: StringComparison) (r: string) = String.equals opt r
 
-    let private likes (opt: WildcardOptions) (wcp: string) =
-        match wcp with
-        | "" -> alwaysTrue
-        | _ -> WildcardPattern.Get(wcp, opt).IsMatch
+    let private likes (opt: WildcardOptions) (wcp: string) = WildcardPattern.Get(wcp, opt).IsMatch
 
     let private matches (opt: RegexOptions) (pattern: string) =
         try
