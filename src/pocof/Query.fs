@@ -85,16 +85,16 @@ module Query =
         | _ -> is
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
-        let is =
-            match query with
-            | "" -> fun x y -> true
-            | _ -> prepareTest condition
+        match query with
+        | "" -> QueryPart.End
+        | _ ->
+            let is = prepareTest condition
 
-        query
-        |> String.trim
-        |> String.split " "
-        |> List.ofSeq
-        |> parseQuery is QueryPart.End
+            query
+            |> String.trim
+            |> String.split " "
+            |> List.ofSeq
+            |> parseQuery is QueryPart.End
 
     let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with

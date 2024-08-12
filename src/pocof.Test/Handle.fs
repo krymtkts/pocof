@@ -522,7 +522,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> testQueryPartNormal ""
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should remove the selection.`` () =
@@ -692,7 +692,7 @@ module invokeAction =
                 { Y = 0; Height = 20 }
             )
 
-            a3.Queries |> testQueryPartNormal ""
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should not change state if the cursor position is at the begin of line.`` () =
@@ -1305,7 +1305,7 @@ module invokeAction =
             let _, _, a3 =
                 testStateAndContext Action.RotateOperator stateBefore context stateAfter
 
-            a3.Queries |> testQueryPartNormal ""
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``should switch OR to AND.`` () = test Operator.Or Operator.And
@@ -1424,7 +1424,7 @@ module invokeAction =
                 position
             )
 
-            a3.Queries |> testQueryPartNormal ""
+            a3.Queries |> testQueryEnd
 
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with empty properties list.`` () =
