@@ -72,22 +72,25 @@ module Query =
                 | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y, acc) <| zs
                 | _ -> parseQuery is <| QueryPart.Normal(is x, acc) <| xs
 
-    let private prepareTest (state: InternalState) =
+    let private prepareTest (condition: QueryCondition) =
         let is =
-            state.QueryCondition.CaseSensitive
-            |> match state.QueryCondition.Matcher with
+            condition.CaseSensitive
+            |> match condition.Matcher with
                | Matcher.Eq -> equalOpt >> equals
                | Matcher.Like -> likeOpt >> likes
                | Matcher.Match -> matchOpt >> matches
 
-        match String.IsNullOrWhiteSpace state.QueryState.Query, state.QueryCondition.Invert with
-        | false, true -> fun r -> is r >> not
+        match condition.Invert with
+        | true -> fun r -> is r >> not
         | _ -> is
 
-    let private prepareQuery (state: InternalState) =
-        let is = prepareTest state
+    let private prepareQuery (query: string) (condition: QueryCondition) =
+        let is =
+            match query with
+            | "" -> fun x y -> true
+            | _ -> prepareTest condition
 
-        state.QueryState.Query
+        query
         |> String.trim
         |> String.split " "
         |> List.ofSeq
@@ -104,7 +107,7 @@ module Query =
         | _ -> ""
 
     let prepare (state: InternalState) =
-        let queries = prepareQuery state
+        let queries = prepareQuery state.QueryState.Query state.QueryCondition
         let notification = prepareNotification state
 
         { state with
@@ -120,7 +123,7 @@ module Query =
     module QueryContext =
         let prepareQuery state context =
             { context with
-                QueryContext.Queries = prepareQuery state }
+                QueryContext.Queries = prepareQuery state.QueryState.Query state.QueryCondition }
 
         let prepareTest state context =
             { context with
