@@ -24,15 +24,9 @@ module Query =
         | true -> RegexOptions.None
         | _ -> RegexOptions.IgnoreCase
 
-    let private equals (opt: StringComparison) (r: string) =
-        match r with
-        | "" -> alwaysTrue
-        | _ -> String.equals opt r
+    let private equals (opt: StringComparison) (r: string) = String.equals opt r
 
-    let private likes (opt: WildcardOptions) (wcp: string) =
-        match wcp with
-        | "" -> alwaysTrue
-        | _ -> WildcardPattern.Get(wcp, opt).IsMatch
+    let private likes (opt: WildcardOptions) (wcp: string) = WildcardPattern.Get(wcp, opt).IsMatch
 
     let private matches (opt: RegexOptions) (pattern: string) =
         try
@@ -72,26 +66,29 @@ module Query =
                 | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y, acc) <| zs
                 | _ -> parseQuery is <| QueryPart.Normal(is x, acc) <| xs
 
-    let private prepareTest (state: InternalState) =
+    let private prepareTest (condition: QueryCondition) =
         let is =
-            state.QueryCondition.CaseSensitive
-            |> match state.QueryCondition.Matcher with
+            condition.CaseSensitive
+            |> match condition.Matcher with
                | Matcher.Eq -> equalOpt >> equals
                | Matcher.Like -> likeOpt >> likes
                | Matcher.Match -> matchOpt >> matches
 
-        match String.IsNullOrWhiteSpace state.QueryState.Query, state.QueryCondition.Invert with
-        | false, true -> fun r -> is r >> not
+        match condition.Invert with
+        | true -> fun r -> is r >> not
         | _ -> is
 
-    let private prepareQuery (state: InternalState) =
-        let is = prepareTest state
+    let private prepareQuery (query: string) (condition: QueryCondition) =
+        match query with
+        | "" -> QueryPart.End
+        | _ ->
+            let is = prepareTest condition
 
-        state.QueryState.Query
-        |> String.trim
-        |> String.split " "
-        |> List.ofSeq
-        |> parseQuery is QueryPart.End
+            query
+            |> String.trim
+            |> String.split " "
+            |> List.ofSeq
+            |> parseQuery is QueryPart.End
 
     let private prepareNotification (state: InternalState) =
         match state.QueryCondition.Matcher with
@@ -104,7 +101,7 @@ module Query =
         | _ -> ""
 
     let prepare (state: InternalState) =
-        let queries = prepareQuery state
+        let queries = prepareQuery state.QueryState.Query state.QueryCondition
         let notification = prepareNotification state
 
         { state with
@@ -120,7 +117,7 @@ module Query =
     module QueryContext =
         let prepareQuery state context =
             { context with
-                QueryContext.Queries = prepareQuery state }
+                QueryContext.Queries = prepareQuery state.QueryState.Query state.QueryCondition }
 
         let prepareTest state context =
             { context with
@@ -156,7 +153,7 @@ module Query =
     [<NoComparison>]
     [<NoEquality>]
     [<Struct>]
-    type QueryResult =
+    type private QueryResult =
         | End
         | Matched
         | Unmatched
@@ -164,7 +161,7 @@ module Query =
         | PropertyNotFound
 
     [<TailCall>]
-    let rec processQueries (combination: Operator) props entry queries hasNoMatch =
+    let rec private processQueries (combination: Operator) props entry queries hasNoMatch =
         let result, tail =
             match queries with
             | QueryPart.Property(p, test, tail) ->
@@ -190,12 +187,13 @@ module Query =
         match result, combination with
         | QueryResult.Matched, Operator.And
         | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail false
-        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
+        | QueryResult.End, Operator.And
+        | QueryResult.Matched, Operator.Or
+        | QueryResult.PartialMatched, Operator.Or -> true
+        | QueryResult.Unmatched, Operator.And
+        | QueryResult.PartialMatched, Operator.And -> false
         | QueryResult.End, Operator.Or -> hasNoMatch
-        | QueryResult.End, _
-        | _, Operator.Or -> true
-        // TODO: I will deprecate Operator.None.
-        | _ -> false
+        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
 
     let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
@@ -214,13 +212,12 @@ module Query =
         match state.SuppressProperties, state.PropertySearch with
         | false, PropertySearch.Search(prefix: string)
         | false, PropertySearch.Rotate(prefix: string, _, _) ->
-            let transform (x: string) =
+            let predicate =
                 match state.QueryCondition.CaseSensitive with
-                | true -> x
-                | _ -> String.lower x
+                | true -> String.startsWith prefix
+                | _ -> fun s -> s.StartsWith(prefix, true, Globalization.CultureInfo.CurrentCulture)
 
-            let p = transform prefix
-            let ret = Seq.filter (transform >> String.startsWith p) state.Properties
+            let ret = Seq.filter predicate state.Properties
 
             match ret |> Seq.length with
             | 0 -> Error "Property not found"
