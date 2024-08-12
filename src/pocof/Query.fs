@@ -215,11 +215,11 @@ module Query =
             let predicate =
                 match state.QueryCondition.CaseSensitive with
                 | true -> String.startsWith prefix
-                | _ -> fun s -> s.StartsWith(prefix, true, Globalization.CultureInfo.CurrentCulture)
+                | _ -> fun s -> s.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase)
 
             let ret = Seq.filter predicate state.Properties
 
             match ret |> Seq.length with
             | 0 -> Error "Property not found"
             | _ -> ret |> List.ofSeq |> Ok
-        | _ -> Ok <| []
+        | _ -> Ok []
