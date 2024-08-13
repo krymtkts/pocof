@@ -34,6 +34,7 @@ module Pocof =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type RenderEvent =
         | Render of (InternalState * Entry pseq * Result<string list, string>)
         | Quit
@@ -176,6 +177,7 @@ module Pocof =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type RenderMessage =
         | None
         | Received of RenderEvent
@@ -229,6 +231,7 @@ module Pocof =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type RenderProcess =
         | Noop
         | Rendered of (InternalState * Entry pseq * Result<string list, string>)
