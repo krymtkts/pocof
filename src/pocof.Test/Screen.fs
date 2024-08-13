@@ -6,6 +6,7 @@ open Xunit
 open FsUnitTyped
 
 open Pocof.Data
+open Pocof.LanguageExtension
 open Pocof.Screen
 
 [<AutoOpen>]
@@ -147,7 +148,7 @@ module ``Buff writeScreen`` =
     let getRenderedScreen rui state layout =
         // NOTE: avoid cleanup of buff to check screen.
         let buff = new Buff(rui, (fun _ -> Seq.empty), layout)
-        buff.WriteScreen layout state [] <| Ok []
+        buff.WriteScreen layout state PSeq.empty <| Ok []
         rui
 
     [<Fact>]
@@ -366,7 +367,7 @@ module ``Buff writeScreen`` =
             |> InternalState.updateWindowWidth
             |> Pocof.Query.InternalState.prepareNotification
 
-        buff.WriteScreen Layout.TopDown state []
+        buff.WriteScreen Layout.TopDown state PSeq.empty
         <| (state.Properties |> List.ofSeq |> Ok)
 
         let expected =
@@ -405,7 +406,7 @@ module ``Buff writeScreen`` =
               Refresh = Refresh.Required }
             |> InternalState.updateWindowWidth
 
-        buff.WriteScreen Layout.TopDown state [] <| Error "Property not found"
+        buff.WriteScreen Layout.TopDown state PSeq.empty <| Error "Property not found"
 
         let expected =
             List.concat
@@ -453,7 +454,9 @@ module ``Buff writeScreen`` =
             |> InternalState.updateWindowWidth
 
         let entries =
-            [ 1..10 ] |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
+            [ 1..10 ]
+            |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
+            |> PSeq.ofSeq
 
         buff.WriteScreen Layout.TopDown state entries <| Ok []
 
@@ -500,7 +503,9 @@ module ``Buff writeScreen`` =
             |> InternalState.updateWindowWidth
 
         let entries =
-            [ 1..100 ] |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
+            [ 1..100 ]
+            |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
+            |> PSeq.ofSeq
 
         buff.WriteScreen Layout.TopDown state entries <| Ok []
 

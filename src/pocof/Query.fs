@@ -195,18 +195,18 @@ module Query =
         | QueryResult.End, Operator.Or -> hasNoMatch
         | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
 
-    let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
+    let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
         //         Logger.LogFile context.Queries
         // #endif
 
         match context.Queries with
-        | QueryPart.End -> entries |> PSeq.ofSeq
+        | QueryPart.End -> entries
         | _ ->
             let predicate (o: Entry) =
                 processQueries context.Operator props o context.Queries true
 
-            entries |> PSeq.ofSeq |> PSeq.filter predicate
+            entries |> PSeq.filter predicate
 
     let props (state: InternalState) =
         match state.SuppressProperties, state.PropertySearch with

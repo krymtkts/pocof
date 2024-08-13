@@ -250,7 +250,7 @@ module Screen =
         member __.WriteScreen
             (layout: Data.Layout)
             (state: Data.InternalState)
-            (entries: Data.Entry seq)
+            (entries: Data.Entry pseq)
             (props: Result<string list, string>)
             =
             use _ = rui.HideCursorWhileRendering()

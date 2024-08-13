@@ -42,7 +42,7 @@ module Pocof =
     [<NoEquality>]
     type LoopFixedArguments =
         { Keymaps: Map<KeyPattern, Action>
-          Input: Entry seq
+          Input: Entry pseq
           PublishEvent: RenderEvent -> unit
           GetKey: unit -> ConsoleKeyInfo list
           GetConsoleWidth: unit -> int
@@ -153,6 +153,7 @@ module Pocof =
         =
 
         let state, context = Query.prepare state
+        let input = input |> PSeq.ofSeq
 
         match buff with
         | None ->

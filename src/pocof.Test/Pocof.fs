@@ -110,7 +110,7 @@ module loop =
 
         let args: Pocof.LoopFixedArguments =
             { Keymaps = Keys.defaultKeymap
-              Input = input
+              Input = input |> PSeq.ofSeq
               PublishEvent = publishEvent
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
@@ -134,7 +134,7 @@ module loop =
 
         let args: Pocof.LoopFixedArguments =
             { Keymaps = Keys.defaultKeymap
-              Input = input
+              Input = input |> PSeq.ofSeq
               PublishEvent = publishEvent
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
@@ -166,7 +166,7 @@ module loop =
 
         let args: Pocof.LoopFixedArguments =
             { Keymaps = Keys.defaultKeymap
-              Input = input
+              Input = input |> PSeq.ofSeq
               PublishEvent = publishEvent
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
@@ -199,7 +199,7 @@ module loop =
 
         let args: Pocof.LoopFixedArguments =
             { Keymaps = Keys.defaultKeymap
-              Input = input
+              Input = input |> PSeq.ofSeq
               PublishEvent = publishEvent
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
