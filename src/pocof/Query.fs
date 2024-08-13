@@ -90,11 +90,11 @@ module Query =
             |> List.ofSeq
             |> parseQuery is QueryPart.End
 
-    let private prepareNotification (state: InternalState) =
-        match state.QueryCondition.Matcher with
+    let private prepareNotification (query: string) (condition: QueryCondition) =
+        match condition.Matcher with
         | Matcher.Match ->
             try
-                Regex(state.QueryState.Query) |> ignore
+                Regex(query) |> ignore
                 ""
             with e ->
                 e.Message
@@ -102,7 +102,7 @@ module Query =
 
     let prepare (state: InternalState) =
         let queries = prepareQuery state.QueryState.Query state.QueryCondition
-        let notification = prepareNotification state
+        let notification = prepareNotification state.QueryState.Query state.QueryCondition
 
         { state with
             Notification = notification },
@@ -112,7 +112,7 @@ module Query =
     module InternalState =
         let prepareNotification state =
             { state with
-                Notification = prepareNotification state }
+                Notification = prepareNotification state.QueryState.Query state.QueryCondition }
 
     module QueryContext =
         let prepareQuery state context =
@@ -195,31 +195,28 @@ module Query =
         | QueryResult.End, Operator.Or -> hasNoMatch
         | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
 
-    let run (context: QueryContext) (entries: Entry seq) (props: Generic.IReadOnlyDictionary<string, string>) =
+    let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
         //         Logger.LogFile context.Queries
         // #endif
 
         match context.Queries with
-        | QueryPart.End -> entries |> PSeq.ofSeq
+        | QueryPart.End -> entries
         | _ ->
             let predicate (o: Entry) =
                 processQueries context.Operator props o context.Queries true
 
-            entries |> PSeq.ofSeq |> PSeq.filter predicate
+            entries |> PSeq.filter predicate
 
     let props (state: InternalState) =
         match state.SuppressProperties, state.PropertySearch with
         | false, PropertySearch.Search(prefix: string)
         | false, PropertySearch.Rotate(prefix: string, _, _) ->
-            let predicate =
-                match state.QueryCondition.CaseSensitive with
-                | true -> String.startsWith prefix
-                | _ -> fun s -> s.StartsWith(prefix, true, Globalization.CultureInfo.CurrentCulture)
-
-            let ret = Seq.filter predicate state.Properties
+            let ret =
+                state.Properties
+                |> Seq.filter (fun (s: string) -> s.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase))
 
             match ret |> Seq.length with
             | 0 -> Error "Property not found"
             | _ -> ret |> List.ofSeq |> Ok
-        | _ -> Ok <| []
+        | _ -> Ok []
