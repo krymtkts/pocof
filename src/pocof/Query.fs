@@ -212,12 +212,9 @@ module Query =
         match state.SuppressProperties, state.PropertySearch with
         | false, PropertySearch.Search(prefix: string)
         | false, PropertySearch.Rotate(prefix: string, _, _) ->
-            let predicate =
-                match state.QueryCondition.CaseSensitive with
-                | true -> String.startsWith prefix
-                | _ -> fun s -> s.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase)
-
-            let ret = Seq.filter predicate state.Properties
+            let ret =
+                state.Properties
+                |> Seq.filter (fun (s: string) -> s.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase))
 
             match ret |> Seq.length with
             | 0 -> Error "Property not found"
