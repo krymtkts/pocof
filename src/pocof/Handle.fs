@@ -67,6 +67,8 @@ module Handle =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
     type private Direction =
         | Backward
         | Forward
