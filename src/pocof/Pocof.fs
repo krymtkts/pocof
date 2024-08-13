@@ -156,9 +156,7 @@ module Pocof =
         let input = input |> PSeq.ofSeq
 
         match buff with
-        | None ->
-            let l = Query.run context input state.PropertyMap
-            unwrap l
+        | None -> Query.run context input state.PropertyMap |> unwrap
         | Some buff ->
             let args =
                 { Keymaps = conf.Keymaps
