@@ -90,11 +90,11 @@ module Query =
             |> List.ofSeq
             |> parseQuery is QueryPart.End
 
-    let private prepareNotification (state: InternalState) =
-        match state.QueryCondition.Matcher with
+    let private prepareNotification (query: string) (condition: QueryCondition) =
+        match condition.Matcher with
         | Matcher.Match ->
             try
-                Regex(state.QueryState.Query) |> ignore
+                Regex(query) |> ignore
                 ""
             with e ->
                 e.Message
@@ -102,7 +102,7 @@ module Query =
 
     let prepare (state: InternalState) =
         let queries = prepareQuery state.QueryState.Query state.QueryCondition
-        let notification = prepareNotification state
+        let notification = prepareNotification state.QueryState.Query state.QueryCondition
 
         { state with
             Notification = notification },
@@ -112,7 +112,7 @@ module Query =
     module InternalState =
         let prepareNotification state =
             { state with
-                Notification = prepareNotification state }
+                Notification = prepareNotification state.QueryState.Query state.QueryCondition }
 
     module QueryContext =
         let prepareQuery state context =
