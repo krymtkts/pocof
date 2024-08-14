@@ -262,8 +262,8 @@ module Screen =
             use _ = rui.HideCursorWhileRendering()
 
             let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions layout
-            let topLine = info state
-            topLine |> __.WriteScreenLine baseLine
+            let information = info state
+            information |> __.WriteScreenLine baseLine
 
 #if DEBUG
             Logger.LogFile
@@ -308,7 +308,7 @@ module Screen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetLengthInBufferCells(topLine.Substring(0, getCursorPosition state))
+            <| rui.GetLengthInBufferCells(information.Substring(0, getCursorPosition state))
             <| baseLine
 
         member __.GetConsoleWidth = rui.GetWindowWidth
