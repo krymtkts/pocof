@@ -199,6 +199,12 @@ module Screen =
                         read acc
                     | _ -> List.rev acc
 
+        let getCursorPosition (state: Data.InternalState) =
+            match state.QueryState.InputMode with
+            | Data.InputMode.Input -> 0
+            | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
+            |> (+) (Data.InternalState.getX state)
+
         interface IDisposable with
             member __.Dispose() =
                 (rui :> IDisposable).Dispose()
@@ -302,7 +308,7 @@ module Screen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetLengthInBufferCells(topLine.Substring(0, Data.InternalState.getX state))
+            <| rui.GetLengthInBufferCells(topLine.Substring(0, getCursorPosition state))
             <| baseLine
 
         member __.GetConsoleWidth = rui.GetWindowWidth
