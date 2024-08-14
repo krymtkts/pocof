@@ -292,11 +292,7 @@ module Screen =
                 |> Seq.fold
                     (fun acc s ->
                         // NOTE: This split lines is implemented complicated way because of netstandard2.0.
-                        s
-                        |> String.replace Environment.NewLine "\n"
-                        |> String.split "\n"
-                        |> List.ofArray
-                        |> (@) acc)
+                        s |> String.split2 [| "\r\n"; "\n" |] |> List.ofArray |> (@) acc)
                     []
 
             seq { 0..screenHeight }

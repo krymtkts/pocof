@@ -52,6 +52,10 @@ module LanguageExtension =
         let upper (s: string) = s.ToUpper()
         let startsWith (value: string) (s: string) = s.StartsWith(value)
         let split (separator: string) (s: string) = s.Split(separator.ToCharArray())
+
+        let split2 (separators: string array) (s: string) =
+            s.Split(separators, StringSplitOptions.None)
+
         let equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
         let trim (s: string) = s.Trim()
         let replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
