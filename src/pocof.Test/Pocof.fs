@@ -352,7 +352,7 @@ module render =
 
         let handler = Pocof.RenderHandler()
         let buff = None
-        let actual = Pocof.render config handler buff
+        let actual = Pocof.render buff handler config
         actual |> shouldEqual ()
 
     [<Fact>]
@@ -384,7 +384,7 @@ module render =
 
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.render config handler buff
+        let actual = Pocof.render buff handler  config
         actual |> shouldEqual ()
 
 module stopUpstreamCommandsException =

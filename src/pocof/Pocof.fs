@@ -198,7 +198,7 @@ module Pocof =
                 RenderMessage.Received e
 
     [<TailCall>]
-    let rec render (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
+    let rec render (buff: Screen.Buff option) (handler: RenderHandler) (conf: InternalConfig) =
         buff
         |> function
             | None -> ()
@@ -206,11 +206,11 @@ module Pocof =
                 match handler.Receive() with
                 | RenderMessage.None ->
                     Thread.Sleep 10
-                    render conf handler buff
+                    render buff handler conf
                 | RenderMessage.Received RenderEvent.Quit -> ()
                 | RenderMessage.Received(RenderEvent.Render e) ->
                     e |||> b.WriteScreen conf.Layout
-                    render conf handler buff
+                    render buff handler conf
 
     let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
         let stopUpstreamCommandsException =

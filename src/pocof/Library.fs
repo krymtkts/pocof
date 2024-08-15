@@ -148,6 +148,6 @@ type SelectPocofCommand() =
 
     override __.EndProcessing() =
         periodic |> Option.iter _.Stop()
-        conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
+        conf |> Option.iter (Pocof.render buff handler)
         buff |> Option.dispose
         mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
