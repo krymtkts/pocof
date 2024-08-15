@@ -199,6 +199,12 @@ module Screen =
                         read acc
                     | _ -> List.rev acc
 
+        let getCursorPosition (state: Data.InternalState) =
+            match state.QueryState.InputMode with
+            | Data.InputMode.Input -> 0
+            | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
+            |> (+) (Data.InternalState.getX state)
+
         interface IDisposable with
             member __.Dispose() =
                 (rui :> IDisposable).Dispose()
@@ -255,13 +261,13 @@ module Screen =
             =
             use _ = rui.HideCursorWhileRendering()
 
-            let basePosition, firstLine, toHeight, height = __.CalculatePositions layout
-            let topLine = info state
-            topLine |> __.WriteScreenLine basePosition
+            let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions layout
+            let information = info state
+            information |> __.WriteScreenLine baseLine
 
 #if DEBUG
             Logger.LogFile
-                [ $"basePosition {basePosition}, firstLine {firstLine}, toHeight {toHeight}, height {height}" ]
+                [ $"baseLine {baseLine}, firstLine {firstLine}, toHeight {toHeight}, screenHeight {screenHeight}" ]
 #endif
 
             __.WriteScreenLine firstLine
@@ -280,20 +286,16 @@ module Screen =
                | _ -> note + state.Notification
 
             let out =
-                Seq.truncate height entries
+                Seq.truncate screenHeight entries
                 |> Data.unwrap
                 |> invoke
                 |> Seq.fold
                     (fun acc s ->
                         // NOTE: This split lines is implemented complicated way because of netstandard2.0.
-                        s
-                        |> String.replace Environment.NewLine "\n"
-                        |> String.split "\n"
-                        |> List.ofArray
-                        |> (@) acc)
+                        s |> String.split2 [| "\r\n"; "\n" |] |> List.ofArray |> (@) acc)
                     []
 
-            seq { 0..height }
+            seq { 0..screenHeight }
             |> Seq.iter (fun i ->
                 __.WriteScreenLine
                 <| toHeight i
@@ -302,8 +304,8 @@ module Screen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetLengthInBufferCells(topLine.Substring(0, Data.InternalState.getX state))
-            <| basePosition
+            <| rui.GetLengthInBufferCells(information.Substring(0, getCursorPosition state))
+            <| baseLine
 
         member __.GetConsoleWidth = rui.GetWindowWidth
 

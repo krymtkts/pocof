@@ -34,6 +34,7 @@ module Pocof =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type RenderEvent =
         | Render of (InternalState * Entry pseq * Result<string list, string>)
         | Quit
@@ -156,9 +157,7 @@ module Pocof =
         let input = input |> PSeq.ofSeq
 
         match buff with
-        | None ->
-            let l = Query.run context input state.PropertyMap
-            unwrap l
+        | None -> Query.run context input state.PropertyMap |> unwrap
         | Some buff ->
             let args =
                 { Keymaps = conf.Keymaps
@@ -178,6 +177,7 @@ module Pocof =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type RenderMessage =
         | None
         | Received of RenderEvent
@@ -231,6 +231,7 @@ module Pocof =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type RenderProcess =
         | Noop
         | Rendered of (InternalState * Entry pseq * Result<string list, string>)
