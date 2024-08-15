@@ -384,7 +384,7 @@ module render =
 
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.render buff handler  config
+        let actual = Pocof.render buff handler config
         actual |> shouldEqual ()
 
 module stopUpstreamCommandsException =
@@ -468,10 +468,13 @@ module Interval =
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let periodic = Pocof.Periodic(config, handler, buff.Value)
-        Thread.Sleep 100
         let mutable actual = false
-        periodic.Render(fun _ -> actual <- true)
+
+        let periodic =
+            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+
+        Thread.Sleep 100
+        periodic.Render()
         actual |> shouldEqual true
         periodic.Stop()
 
@@ -486,10 +489,13 @@ module Interval =
         Pocof.RenderEvent.Render(state, PSeq.empty, Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let periodic = Pocof.Periodic(config, handler, buff.Value)
-        Thread.Sleep 100
         let mutable actual = false
-        periodic.Render(fun _ -> actual <- true)
+
+        let periodic =
+            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+
+        Thread.Sleep 100
+        periodic.Render()
         actual |> shouldEqual false
         periodic.Stop()
 
@@ -503,9 +509,12 @@ module Interval =
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let periodic = Pocof.Periodic(config, handler, buff.Value)
         let mutable actual = false
-        periodic.Render(fun _ -> actual <- true)
+
+        let periodic =
+            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+
+        periodic.Render()
         actual |> shouldEqual false
         periodic.Stop()
 
@@ -519,10 +528,13 @@ module Interval =
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let periodic = Pocof.Periodic(config, handler, buff.Value)
-        Thread.Sleep 100
         let mutable actual = false
-        periodic.Render(fun _ -> actual <- true)
+
+        let periodic =
+            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+
+        Thread.Sleep 100
+        periodic.Render()
         actual |> shouldEqual false
         periodic.Stop()
 
@@ -536,10 +548,13 @@ module Interval =
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let periodic = Pocof.Periodic(config, handler, buff.Value)
-        Thread.Sleep 1000
         let mutable actual = false
-        periodic.Render(fun _ -> actual <- true)
+
+        let periodic =
+            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+
+        Thread.Sleep 1000
+        periodic.Render()
         actual |> shouldEqual false
         periodic.Stop()
 
@@ -554,13 +569,16 @@ module Interval =
         Pocof.RenderEvent.Render(state, PSeq.empty, Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let periodic = Pocof.Periodic(config, handler, buff.Value)
-        Thread.Sleep 100
         let mutable actual = false
+
+        let periodic =
+            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+
+        Thread.Sleep 100
 
         List.replicate 12 ()
         |> List.iter (fun _ ->
-            periodic.Render(fun _ -> actual <- true)
+            periodic.Render()
             Thread.Sleep 100)
 
         actual |> shouldEqual false

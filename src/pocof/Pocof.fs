@@ -246,10 +246,11 @@ module Pocof =
             RenderProcess.Rendered e
 
     [<Sealed>]
-    type Periodic(conf, handler, buff) =
+    type Periodic(conf, handler, buff, cancelAction) =
         let conf: InternalConfig = conf
         let handler: RenderHandler = handler
         let buff: Screen.Buff = buff
+        let cancelAction: unit -> unit = cancelAction
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
         let mutable latest = None
@@ -293,11 +294,11 @@ module Pocof =
             idlingStopwatch.Stop()
             latest |> Option.iter renderAgain
 
-        member __.Render(actionForCancel: unit -> unit) =
+        member __.Render() =
             if stopwatch.ElapsedMilliseconds >= 10 then
                 renderOnce conf handler buff
                 |> function
-                    | Cancelled _ -> actionForCancel ()
+                    | Cancelled _ -> cancelAction ()
                     | _ -> ()
 
     [<Interface>]
