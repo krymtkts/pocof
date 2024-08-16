@@ -198,7 +198,7 @@ module Pocof =
                 RenderMessage.Received e
 
     [<TailCall>]
-    let rec render (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff option) =
+    let rec render (buff: Screen.Buff option) (handler: RenderHandler) (conf: InternalConfig) =
         buff
         |> function
             | None -> ()
@@ -206,11 +206,11 @@ module Pocof =
                 match handler.Receive() with
                 | RenderMessage.None ->
                     Thread.Sleep 10
-                    render conf handler buff
+                    render buff handler conf
                 | RenderMessage.Received RenderEvent.Quit -> ()
                 | RenderMessage.Received(RenderEvent.Render e) ->
                     e |||> b.WriteScreen conf.Layout
-                    render conf handler buff
+                    render buff handler conf
 
     let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
         let stopUpstreamCommandsException =
@@ -246,10 +246,11 @@ module Pocof =
             RenderProcess.Rendered e
 
     [<Sealed>]
-    type Periodic(conf, handler, buff) =
+    type Periodic(conf, handler, buff, cancelAction) =
         let conf: InternalConfig = conf
         let handler: RenderHandler = handler
         let buff: Screen.Buff = buff
+        let cancelAction: unit -> unit = cancelAction
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
         let mutable latest = None
@@ -293,11 +294,11 @@ module Pocof =
             idlingStopwatch.Stop()
             latest |> Option.iter renderAgain
 
-        member __.Render(actionForCancel: unit -> unit) =
+        member __.Render() =
             if stopwatch.ElapsedMilliseconds >= 10 then
                 renderOnce conf handler buff
                 |> function
-                    | Cancelled _ -> actionForCancel ()
+                    | Cancelled _ -> cancelAction ()
                     | _ -> ()
 
     [<Interface>]

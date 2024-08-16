@@ -69,7 +69,7 @@ type SelectPocofCommand() =
             @"$input | Format-Table | Out-String",
             true,
             PipelineResultTypes.None,
-            Array.ofSeq (input),
+            Array.ofSeq input,
             null
         )
         |> Seq.map string
@@ -121,10 +121,20 @@ type SelectPocofCommand() =
             |> Async.StartAsTask
             |> Some
 
+        let cancelAction () =
+            // NOTE: to disable the interactive mode at EndProcessing.
+            conf <- None
+            // NOTE: required to call EndProcessing manually when the upstream command is stopped.
+            __.ForceEndProcessing()
+
+            __
+            |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
+            |> raise
+
         periodic <-
             match buff with
             | None -> None
-            | Some buff -> Pocof.Periodic(cnf, handler, buff) |> Some
+            | Some buff -> Pocof.Periodic(cnf, handler, buff, cancelAction) |> Some
 
     // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
     member internal __.ForceEndProcessing() = __.EndProcessing()
@@ -134,20 +144,10 @@ type SelectPocofCommand() =
             o |> input.Add
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
-        periodic
-        |> Option.iter (fun periodic ->
-            periodic.Render(fun _ ->
-                // NOTE: to disable the interactive mode at EndProcessing.
-                conf <- None
-                // NOTE: required to call EndProcessing manually when the upstream command is stopped.
-                __.ForceEndProcessing()
-
-                __
-                |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
-                |> raise))
+        periodic |> Option.iter _.Render()
 
     override __.EndProcessing() =
         periodic |> Option.iter _.Stop()
-        conf |> Option.iter (fun conf -> buff |> Pocof.render conf handler)
+        conf |> Option.iter (Pocof.render buff handler)
         buff |> Option.dispose
         mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
