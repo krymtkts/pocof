@@ -69,7 +69,7 @@ type SelectPocofCommand() =
             @"$input | Format-Table | Out-String",
             true,
             PipelineResultTypes.None,
-            Array.ofSeq (input),
+            Array.ofSeq input,
             null
         )
         |> Seq.map string
