@@ -34,7 +34,7 @@ type SelectPocofCommand() =
     member val Matcher = string Pocof.Matcher.Match with get, set
 
     [<Parameter>]
-    [<ValidateSet("And", "Or", "None")>]
+    [<ValidateSet("And", "Or")>]
     member val Operator = string Pocof.Operator.And with get, set
 
     [<Parameter>]
