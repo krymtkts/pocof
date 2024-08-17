@@ -24,7 +24,7 @@ Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>]
 The `Select-Pocof` cmdlet selects objects from a collection based on interactive query.
 For example, you can use the `Select-Pocof` cmdlet to select files that located current directory with interactive window.
 
-You can use 3 matching mode `Match`, `Like` or `Eq` and can use 3 operator mode `And`, `Or` or `None`.
+You can use 3 matching mode `Match`, `Like` or `Eq` and can use 3 operator mode `And` or `Or`.
 
 By default, the query matches to the stringified object.
 A query starting with a colon, such as `:property-name`, indicates a property query.
@@ -273,17 +273,16 @@ Accept wildcard characters: False
 ### -Operator
 
 Select the logical operator to use when specifying query strings.
-You can use `And`, `Or` or `None`.
+You can use `And` or `Or`.
 
 - `And` provides logical "And" to multi query generated from splitting query by whitespace
 - `Or` provides logical "Or" to multi query generated from splitting query by whitespace
-- `None` provides simple matching with a raw query
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
-Accepted values: And, Or, None
+Accepted values: And, Or
 
 Required: False
 Position: Named
