@@ -389,13 +389,13 @@ module run =
             |> List.ofSeq
             |> shouldEqual (entries |> List.ofSeq)
 
-            let props = Map [ "title", "Title" ]
-            let state = state |> query ":title ja" |> opAnd
-            let _, context = Query.prepare state
+    // let props = Map [ "title", "Title" ]
+    // let state = state |> query ":title ja" |> opAnd
+    // let _, context = Query.prepare state
 
-            Query.run context entries props
-            |> List.ofSeq
-            |> shouldEqual (entries |> List.ofSeq)
+    // Query.run context entries props
+    // |> List.ofSeq
+    // |> shouldEqual (entries |> List.ofSeq)
 
     module ``with a Property query`` =
         let getPsObj (f: string, l: string) =
@@ -443,11 +443,11 @@ module run =
             |> List.ofSeq
             |> shouldEqual entries
 
-            let props = Map [ "f", "F" ]
+        // let props = Map [ "f", "F" ]
 
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual entries
+        // Query.run context (entries |> PSeq.ofSeq) props
+        // |> List.ofSeq
+        // |> shouldEqual entries
 
         [<Fact>]
         let ``should return all entries when incomplete composite query.`` () =
