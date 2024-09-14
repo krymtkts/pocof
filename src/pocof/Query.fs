@@ -135,6 +135,19 @@ module Query =
         | true, n -> Some n
         | _ -> None
 
+
+    let
+#if !DEBUG
+        inline
+#endif
+        private getPropertyValue
+            propName
+            o
+            =
+        match o with
+        | Entry.Dict(dct) -> dct ?=> propName
+        | Entry.Obj(o) -> o ?-> propName
+
     let
 #if !DEBUG
         inline
@@ -195,6 +208,33 @@ module Query =
         | QueryResult.End, Operator.Or -> hasNoMatch
         | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
 
+    [<TailCall>]
+    let rec private generatePredicate (combination: bool -> bool -> bool) props (acc: (Entry -> bool) list) queries =
+        match queries with
+        | QueryPart.Property(p, test, tail) ->
+            match tryGetPropertyName props p with
+            | Some(pn) ->
+                let x entry =
+                    match getPropertyValue pn entry with
+                    | Some(pv) -> pv.ToString() |> test
+                    | None -> false
+
+                generatePredicate combination props (x :: acc) tail
+            | None -> generatePredicate combination props acc tail
+
+        | QueryPart.Normal(test, tail) ->
+            let x entry =
+                match entry with
+                | Entry.Dict(dct) -> combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
+                | Entry.Obj(o) -> o.ToString() |> test
+
+            generatePredicate combination props (x :: acc) tail
+        | QueryPart.End ->
+            match acc with
+            | [] -> alwaysTrue
+            // TODO: should i use code quotation to remove redundant lambda?
+            | _ -> acc |> List.rev |> List.reduce (fun acc x -> fun e -> combination (acc e) (x e))
+
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
         //         Logger.LogFile context.Queries
@@ -203,8 +243,12 @@ module Query =
         match context.Queries with
         | QueryPart.End -> entries
         | _ ->
-            let predicate (o: Entry) =
-                processQueries context.Operator props o context.Queries true
+            let combination =
+                match context.Operator with
+                | Operator.And -> (&&)
+                | Operator.Or -> (||)
+
+            let predicate = generatePredicate combination props [] context.Queries
 
             entries |> PSeq.filter predicate
 
