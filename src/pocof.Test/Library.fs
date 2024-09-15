@@ -212,7 +212,7 @@ module SelectPocofCommand =
             k.Add("Escape", "Cancel")
             k
 
-        cmdlet.InvokeForTest2()
+        cmdlet.InvokeForTest()
 
         runtime.Output |> shouldEqual []
 
