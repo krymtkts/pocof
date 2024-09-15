@@ -17,7 +17,6 @@ type SelectPocofCommand() =
     let properties: Pocof.PropertyStore = Pocof.PropertyStore()
     let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
-    let mutable conf: Pocof.InternalConfig option = None
     let mutable periodic: Pocof.Periodic option = None
     let mutable waitResult: (unit -> obj seq) option = None
 
@@ -93,8 +92,6 @@ type SelectPocofCommand() =
         input <- __.Unique.IsPresent |> Pocof.getInputStore
 
         let cancelAction () =
-            // NOTE: to disable the interactive mode at EndProcessing.
-            conf <- None
             // NOTE: required to call EndProcessing manually when the upstream command is stopped.
             __.ForceEndProcessing()
 
@@ -102,7 +99,7 @@ type SelectPocofCommand() =
             |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
             |> raise
 
-        let c, p, w =
+        let p, w =
             Pocof.init
                 (__.PSHost().UI.RawUI)
                 (__.ConsoleInterface())
@@ -126,7 +123,6 @@ type SelectPocofCommand() =
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
-        conf <- c |> Some
         periodic <- p
         waitResult <- w
 

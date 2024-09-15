@@ -399,7 +399,7 @@ module Pocof =
         match conf.NotInteractive with
         | true ->
             let render () = interactOnce state (entries ())
-            conf, None, render |> Some
+            None, render |> Some
         | _ ->
             let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout
 
@@ -415,4 +415,4 @@ module Pocof =
                 buff :> IDisposable |> _.Dispose()
                 mainTask.Result
 
-            conf, periodic |> Some, waitResult |> Some
+            periodic |> Some, waitResult |> Some
