@@ -155,23 +155,6 @@ module SelectPocofCommand =
             __.ProcessRecord()
             __.EndProcessing()
 
-        // NOTE: emulate the Cmdlet record precessing flow.
-        member __.InvokeForTest2() =
-            __.BeginProcessing()
-
-            let mutable loop = true
-
-            while loop do
-                try
-                    Thread.Sleep 50
-                    __.ProcessRecord()
-                with :? MockException as _ ->
-                    loop <- false
-
-        member __.InvokeForTest3() =
-            __.ProcessRecord()
-            __.EndProcessing()
-
     [<Fact>]
     let ``should return values with non-interactive mode.`` () =
         let runtime = new Mock.CommandRuntime()
@@ -212,18 +195,6 @@ module SelectPocofCommand =
             k.Add("Escape", "Cancel")
             k
 
-        cmdlet.InvokeForTest2()
-
-        runtime.Output |> shouldEqual []
-
-    [<Fact>]
-    let ``should return empty. unreachable pass that only for the code coverage.`` () =
-        let runtime = new Mock.CommandRuntime()
-        let cmdlet = SelectPocofCommandForTest()
-
-        cmdlet.CommandRuntime <- runtime
-        cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
-        cmdlet.NonInteractive <- true
-        cmdlet.InvokeForTest3()
+        cmdlet.InvokeForTest()
 
         runtime.Output |> shouldEqual []

@@ -103,55 +103,37 @@ module loop =
     [<Fact>]
     let ``should return result when finishing.`` () =
         let input = results |> List.map toObj
-        let state, context = Query.prepare state
-
         let rui = new MockRawUI(60, 30, [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ])
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args: Pocof.LoopFixedArguments =
-            { Keymaps = Keys.defaultKeymap
-              Input = input |> PSeq.ofSeq
-              PublishEvent = publishEvent
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = String.length }
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
-        let actual = Pocof.loop args input state pos context
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 5
-
         actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
-
         rui.Check()
 
     [<Fact>]
     let ``shouldn't return result when canceling.`` () =
         let input = results |> List.map toObj
-
-        let state, context = Query.prepare { state with SuppressProperties = true }
-
         let rui = new MockRawUI(60, 30, [], true)
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args: Pocof.LoopFixedArguments =
-            { Keymaps = Keys.defaultKeymap
-              Input = input |> PSeq.ofSeq
-              PublishEvent = publishEvent
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = String.length }
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
-        let actual = Pocof.loop args input state pos context
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 0
         rui.Check()
 
     [<Fact>]
     let ``should return result when finishing after noop.`` () =
         let input = results |> List.map toObj
-
-        let state, context =
-            Query.prepare
-                { state with
-                    Refresh = Refresh.NotRequired }
 
         let rui =
             new MockRawUI(
@@ -162,27 +144,20 @@ module loop =
                   MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
-        let args: Pocof.LoopFixedArguments =
-            { Keymaps = Keys.defaultKeymap
-              Input = input |> PSeq.ofSeq
-              PublishEvent = publishEvent
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = String.length }
-
-        let actual = Pocof.loop args input state pos context
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 5
-
         actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
-
         rui.Check()
 
     [<Fact>]
     let ``should return result when finishing with filter.`` () =
         let input = results |> List.map toObj
-        let state, context = Query.prepare state
 
         let rui =
             new MockRawUI(
@@ -195,17 +170,14 @@ module loop =
                   MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
-        let args: Pocof.LoopFixedArguments =
-            { Keymaps = Keys.defaultKeymap
-              Input = input |> PSeq.ofSeq
-              PublishEvent = publishEvent
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = String.length }
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff publishEvent input
 
-        let actual = Pocof.loop args input state pos context
         actual |> Seq.length |> shouldEqual 2
         Seq.item 0 actual = results.[0] |> shouldEqual true
         Seq.item 1 actual = results.[3] |> shouldEqual true
@@ -263,7 +235,7 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -271,6 +243,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
+        (buff :> IDisposable).Dispose()
 
     [<Fact>]
     let ``should return result when interaction finished in Interactive mode and TopDown Layout.`` () =
@@ -283,7 +256,7 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -291,7 +264,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
-        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
+        (buff :> IDisposable).Dispose()
 
 
     [<Fact>]
@@ -305,7 +278,7 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -313,7 +286,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
-        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
+        (buff :> IDisposable).Dispose()
 
     [<Fact>]
     let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
@@ -326,7 +299,7 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -334,7 +307,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
-        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
+        (buff :> IDisposable).Dispose()
 
 module initScreen =
     // NOTE: covered by interact tests.
@@ -343,17 +316,17 @@ module initScreen =
 module render =
     open System.Threading
 
-    [<Fact>]
-    let ``should return unit when Screen.Buff is None.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+    // [<Fact>]
+    // let ``should return unit when Screen.Buff is None.`` () =
+    //     let config: InternalConfig =
+    //         { NotInteractive = false
+    //           Layout = Layout.BottomUpHalf
+    //           Keymaps = Keys.defaultKeymap }
 
-        let handler = Pocof.RenderHandler()
-        let buff = None
-        let actual = Pocof.render buff handler config
-        actual |> shouldEqual ()
+    //     let handler = Pocof.RenderHandler()
+    //     let buff = None
+    //     let actual = Pocof.render buff handler config
+    //     actual |> shouldEqual ()
 
     [<Fact>]
     let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =
@@ -383,7 +356,7 @@ module render =
         |> Async.Start
 
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.render buff handler config
         actual |> shouldEqual ()
 
@@ -407,8 +380,8 @@ module renderOnce =
         let handler = Pocof.RenderHandler()
 
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.renderOnce config handler buff.Value
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.renderOnce config handler buff
 
         actual
         |> function
@@ -430,8 +403,8 @@ module renderOnce =
         |> handler.Publish
 
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.renderOnce config handler buff.Value
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.renderOnce config handler buff
 
         actual
         |> function
@@ -450,8 +423,8 @@ module renderOnce =
 
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
-        let actual = Pocof.renderOnce config handler buff.Value
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.renderOnce config handler buff
         actual |> shouldEqual Pocof.RenderProcess.StopUpstreamCommands
 
 module Interval =
@@ -467,11 +440,10 @@ module Interval =
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
 
-        let periodic =
-            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+        let periodic = Pocof.Periodic(config, handler, buff, (fun _ -> actual <- true))
 
         Thread.Sleep 100
         periodic.Render()
@@ -488,11 +460,10 @@ module Interval =
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Render(state, PSeq.empty, Ok []) |> handler.Publish
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
 
-        let periodic =
-            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+        let periodic = Pocof.Periodic(config, handler, buff, (fun _ -> actual <- true))
 
         Thread.Sleep 100
         periodic.Render()
@@ -508,11 +479,10 @@ module Interval =
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
 
-        let periodic =
-            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+        let periodic = Pocof.Periodic(config, handler, buff, (fun _ -> actual <- true))
 
         periodic.Render()
         actual |> shouldEqual false
@@ -527,11 +497,10 @@ module Interval =
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
 
-        let periodic =
-            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+        let periodic = Pocof.Periodic(config, handler, buff, (fun _ -> actual <- true))
 
         Thread.Sleep 100
         periodic.Render()
@@ -547,11 +516,10 @@ module Interval =
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
 
-        let periodic =
-            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+        let periodic = Pocof.Periodic(config, handler, buff, (fun _ -> actual <- true))
 
         Thread.Sleep 1000
         periodic.Render()
@@ -568,11 +536,10 @@ module Interval =
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Render(state, PSeq.empty, Ok []) |> handler.Publish
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
 
-        let periodic =
-            Pocof.Periodic(config, handler, buff.Value, (fun _ -> actual <- true))
+        let periodic = Pocof.Periodic(config, handler, buff, (fun _ -> actual <- true))
 
         Thread.Sleep 100
 

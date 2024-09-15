@@ -91,7 +91,7 @@ module Pocof =
 #endif
             wx
 
-    let adjustQueryWindow (getLengthInBufferCells: string -> int) (state: InternalState) =
+    let private adjustQueryWindow (getLengthInBufferCells: string -> int) (state: InternalState) =
         { state with
             InternalState.QueryState.WindowBeginningCursor =
                 calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
@@ -119,7 +119,7 @@ module Pocof =
             results, state
 
     [<TailCall>]
-    let rec loop
+    let rec private loop
         (args: LoopFixedArguments)
         (results: Entry seq)
         (state: InternalState)
@@ -148,7 +148,8 @@ module Pocof =
         (conf: InternalConfig)
         (state: InternalState)
         (pos: Position)
-        (buff: Screen.Buff option)
+        (buff: Screen.Buff)
+        // (buff: Screen.Buff option)
         (publish: RenderEvent -> unit)
         (input: Entry seq)
         =
@@ -156,23 +157,22 @@ module Pocof =
         let state, context = Query.prepare state
         let input = input |> PSeq.ofSeq
 
-        match buff with
-        | None -> Query.run context input state.PropertyMap |> unwrap
-        | Some buff ->
-            let args =
-                { Keymaps = conf.Keymaps
-                  Input = input
-                  PublishEvent = publish
-                  GetKey = buff.GetKey
-                  GetConsoleWidth = buff.GetConsoleWidth
-                  GetLengthInBufferCells = buff.GetLengthInBufferCells }
+        let args =
+            { Keymaps = conf.Keymaps
+              Input = input
+              PublishEvent = publish
+              GetKey = buff.GetKey
+              GetConsoleWidth = buff.GetConsoleWidth
+              GetLengthInBufferCells = buff.GetLengthInBufferCells }
 
-            loop args input state pos context
+        loop args input state pos context
 
-    let initScreen (rui: unit -> Screen.IRawUI) (invoke: obj seq -> string seq) (conf: InternalConfig) =
-        match conf.NotInteractive with
-        | true -> None
-        | _ -> Screen.init rui invoke conf.Layout |> Some
+    let interactOnce (state: InternalState) (input: Entry seq) =
+
+        let state, context = Query.prepare state
+        let input = input |> PSeq.ofSeq
+
+        Query.run context input state.PropertyMap |> unwrap
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -198,19 +198,15 @@ module Pocof =
                 RenderMessage.Received e
 
     [<TailCall>]
-    let rec render (buff: Screen.Buff option) (handler: RenderHandler) (conf: InternalConfig) =
-        buff
-        |> function
-            | None -> ()
-            | Some b ->
-                match handler.Receive() with
-                | RenderMessage.None ->
-                    Thread.Sleep 10
-                    render buff handler conf
-                | RenderMessage.Received RenderEvent.Quit -> ()
-                | RenderMessage.Received(RenderEvent.Render e) ->
-                    e |||> b.WriteScreen conf.Layout
-                    render buff handler conf
+    let rec render (buff: Screen.Buff) (handler: RenderHandler) (conf: InternalConfig) =
+        match handler.Receive() with
+        | RenderMessage.None ->
+            Thread.Sleep 10
+            render buff handler conf
+        | RenderMessage.Received RenderEvent.Quit -> ()
+        | RenderMessage.Received(RenderEvent.Render e) ->
+            e |||> buff.WriteScreen conf.Layout
+            render buff handler conf
 
     let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
         let stopUpstreamCommandsException =
@@ -385,3 +381,37 @@ module Pocof =
 
         member __.GetProperties() = properties
         member __.GetPropertyMap() = propertiesMap
+
+    let init
+        (psRawUI: Host.PSHostRawUserInterface)
+        (console: Screen.IConsoleInterface)
+        invoke
+        cancelAction
+        (handler: RenderHandler)
+        (entries: unit -> seq<Entry>)
+        (p: IncomingParameters)
+        =
+        let conf, state, pos = initConfig p
+
+        match conf.NotInteractive with
+        | true ->
+            let render () = ()
+            let waitResult () = interactOnce state (entries ())
+            render, waitResult
+        | _ ->
+            let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout
+
+            let mainTask =
+                async { return interact conf state pos buff handler.Publish <| entries () }
+                |> Async.StartAsTask
+
+            let periodic = Periodic(conf, handler, buff, cancelAction)
+            let renderPeriodic () = periodic.Render()
+
+            let waitResult () =
+                periodic.Stop()
+                render buff handler conf
+                buff :> IDisposable |> _.Dispose()
+                mainTask.Result
+
+            renderPeriodic, waitResult

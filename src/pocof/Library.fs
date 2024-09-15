@@ -6,7 +6,6 @@ open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
 open System.Reflection
-open System.Threading.Tasks
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
@@ -18,10 +17,8 @@ type SelectPocofCommand() =
     let properties: Pocof.PropertyStore = Pocof.PropertyStore()
     let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
-    let mutable buff: Pocof.Buff option = None
-    let mutable mainTask: obj seq Task option = None
-    let mutable conf: Pocof.InternalConfig option = None
-    let mutable periodic: Pocof.Periodic option = None
+    let mutable renderPeriodic: unit -> unit = fun () -> ()
+    let mutable waitResult: unit -> obj seq = fun () -> Seq.empty
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -94,8 +91,22 @@ type SelectPocofCommand() =
 
         input <- __.Unique.IsPresent |> Pocof.getInputStore
 
-        let cnf, state, pos =
-            Pocof.initConfig
+        let cancelAction () =
+            // NOTE: required to call EndProcessing manually when the upstream command is stopped.
+            __.ForceEndProcessing()
+
+            __
+            |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
+            |> raise
+
+        let r, w =
+            Pocof.init
+                (__.PSHost().UI.RawUI)
+                (__.ConsoleInterface())
+                __.Invoke
+                cancelAction
+                handler
+                input.GetEntries
                 { Query = __.Query
                   Matcher = __.Matcher
                   Operator = __.Operator
@@ -112,29 +123,8 @@ type SelectPocofCommand() =
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 
-        conf <- cnf |> Some
-
-        buff <- Pocof.initScreen (Pocof.initRawUI (__.PSHost().UI.RawUI) (__.ConsoleInterface())) __.Invoke cnf
-
-        mainTask <-
-            async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetEntries() }
-            |> Async.StartAsTask
-            |> Some
-
-        let cancelAction () =
-            // NOTE: to disable the interactive mode at EndProcessing.
-            conf <- None
-            // NOTE: required to call EndProcessing manually when the upstream command is stopped.
-            __.ForceEndProcessing()
-
-            __
-            |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
-            |> raise
-
-        periodic <-
-            match buff with
-            | None -> None
-            | Some buff -> Pocof.Periodic(cnf, handler, buff, cancelAction) |> Some
+        renderPeriodic <- r
+        waitResult <- w
 
     // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
     member internal __.ForceEndProcessing() = __.EndProcessing()
@@ -144,10 +134,7 @@ type SelectPocofCommand() =
             o |> input.Add
             o |> Pocof.buildProperties properties.ContainsKey properties.Add
 
-        periodic |> Option.iter _.Render()
+        renderPeriodic ()
 
     override __.EndProcessing() =
-        periodic |> Option.iter _.Stop()
-        conf |> Option.iter (Pocof.render buff handler)
-        buff |> Option.dispose
-        mainTask |> Option.iter (_.Result >> Seq.iter __.WriteObject)
+        waitResult () |> Seq.iter __.WriteObject
