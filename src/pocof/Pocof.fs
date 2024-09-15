@@ -157,9 +157,6 @@ module Pocof =
         let state, context = Query.prepare state
         let input = input |> PSeq.ofSeq
 
-        // match buff with
-        // | None -> Query.run context input state.PropertyMap |> unwrap
-        // | Some buff ->
         let args =
             { Keymaps = conf.Keymaps
               Input = input
