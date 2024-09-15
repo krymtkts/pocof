@@ -263,7 +263,7 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -271,6 +271,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
+        (buff :> IDisposable).Dispose()
 
     [<Fact>]
     let ``should return result when interaction finished in Interactive mode and TopDown Layout.`` () =
@@ -283,7 +284,7 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -291,7 +292,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
-        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
+        (buff :> IDisposable).Dispose()
 
 
     [<Fact>]
@@ -305,7 +306,7 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -313,7 +314,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
-        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
+        (buff :> IDisposable).Dispose()
 
     [<Fact>]
     let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
@@ -326,7 +327,7 @@ module interact =
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -334,7 +335,7 @@ module interact =
         let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
         actual |> List.ofSeq |> shouldEqual expected
-        buff |> Option.iter (fun b -> (b :> IDisposable).Dispose())
+        (buff :> IDisposable).Dispose()
 
 module initScreen =
     // NOTE: covered by interact tests.
@@ -343,17 +344,17 @@ module initScreen =
 module render =
     open System.Threading
 
-    [<Fact>]
-    let ``should return unit when Screen.Buff is None.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+    // [<Fact>]
+    // let ``should return unit when Screen.Buff is None.`` () =
+    //     let config: InternalConfig =
+    //         { NotInteractive = false
+    //           Layout = Layout.BottomUpHalf
+    //           Keymaps = Keys.defaultKeymap }
 
-        let handler = Pocof.RenderHandler()
-        let buff = None
-        let actual = Pocof.render buff handler config
-        actual |> shouldEqual ()
+    //     let handler = Pocof.RenderHandler()
+    //     let buff = None
+    //     let actual = Pocof.render buff handler config
+    //     actual |> shouldEqual ()
 
     [<Fact>]
     let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =
@@ -383,7 +384,7 @@ module render =
         |> Async.Start
 
         let rui = new MockRawUI()
-        let buff = Pocof.initScreen (fun _ -> rui) (fun _ -> Seq.empty) config
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.render buff handler config
         actual |> shouldEqual ()
 
