@@ -177,11 +177,6 @@ module Pocof =
 
         Query.run context input state.PropertyMap |> unwrap
 
-    let initScreen (rui: unit -> Screen.IRawUI) (invoke: obj seq -> string seq) (conf: InternalConfig) =
-        match conf.NotInteractive with
-        | true -> None
-        | _ -> Screen.init rui invoke conf.Layout |> Some
-
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
