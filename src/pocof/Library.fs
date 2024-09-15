@@ -18,7 +18,7 @@ type SelectPocofCommand() =
     let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
     let mutable periodic: Pocof.Periodic option = None
-    let mutable waitResult: (unit -> obj seq) option = None
+    let mutable waitResult: unit -> obj seq = fun () -> Seq.empty
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -137,4 +137,4 @@ type SelectPocofCommand() =
         periodic |> Option.iter _.Render()
 
     override __.EndProcessing() =
-        waitResult |> Option.iter (fun r -> r () |> Seq.iter __.WriteObject)
+        waitResult () |> Seq.iter __.WriteObject
