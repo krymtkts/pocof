@@ -103,55 +103,37 @@ module loop =
     [<Fact>]
     let ``should return result when finishing.`` () =
         let input = results |> List.map toObj
-        let state, context = Query.prepare state
-
         let rui = new MockRawUI(60, 30, [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ])
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args: Pocof.LoopFixedArguments =
-            { Keymaps = Keys.defaultKeymap
-              Input = input |> PSeq.ofSeq
-              PublishEvent = publishEvent
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = String.length }
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
-        let actual = Pocof.loop args input state pos context
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 5
-
         actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
-
         rui.Check()
 
     [<Fact>]
     let ``shouldn't return result when canceling.`` () =
         let input = results |> List.map toObj
-
-        let state, context = Query.prepare { state with SuppressProperties = true }
-
         let rui = new MockRawUI(60, 30, [], true)
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
-        let args: Pocof.LoopFixedArguments =
-            { Keymaps = Keys.defaultKeymap
-              Input = input |> PSeq.ofSeq
-              PublishEvent = publishEvent
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = String.length }
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
-        let actual = Pocof.loop args input state pos context
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 0
         rui.Check()
 
     [<Fact>]
     let ``should return result when finishing after noop.`` () =
         let input = results |> List.map toObj
-
-        let state, context =
-            Query.prepare
-                { state with
-                    Refresh = Refresh.NotRequired }
 
         let rui =
             new MockRawUI(
@@ -162,27 +144,20 @@ module loop =
                   MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
-        let args: Pocof.LoopFixedArguments =
-            { Keymaps = Keys.defaultKeymap
-              Input = input |> PSeq.ofSeq
-              PublishEvent = publishEvent
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = String.length }
-
-        let actual = Pocof.loop args input state pos context
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 5
-
         actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
-
         rui.Check()
 
     [<Fact>]
     let ``should return result when finishing with filter.`` () =
         let input = results |> List.map toObj
-        let state, context = Query.prepare state
 
         let rui =
             new MockRawUI(
@@ -195,17 +170,14 @@ module loop =
                   MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             )
 
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap }
 
-        let args: Pocof.LoopFixedArguments =
-            { Keymaps = Keys.defaultKeymap
-              Input = input |> PSeq.ofSeq
-              PublishEvent = publishEvent
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = String.length }
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let actual = Pocof.interact config state pos buff publishEvent input
 
-        let actual = Pocof.loop args input state pos context
         actual |> Seq.length |> shouldEqual 2
         Seq.item 0 actual = results.[0] |> shouldEqual true
         Seq.item 1 actual = results.[3] |> shouldEqual true

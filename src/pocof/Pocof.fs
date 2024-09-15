@@ -91,7 +91,7 @@ module Pocof =
 #endif
             wx
 
-    let adjustQueryWindow (getLengthInBufferCells: string -> int) (state: InternalState) =
+    let private adjustQueryWindow (getLengthInBufferCells: string -> int) (state: InternalState) =
         { state with
             InternalState.QueryState.WindowBeginningCursor =
                 calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
@@ -119,7 +119,7 @@ module Pocof =
             results, state
 
     [<TailCall>]
-    let rec loop
+    let rec private loop
         (args: LoopFixedArguments)
         (results: Entry seq)
         (state: InternalState)
