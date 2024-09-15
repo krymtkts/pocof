@@ -12,7 +12,6 @@ open Handle
 
 [<RequireQualifiedAccess>]
 module Pocof =
-    open System.Threading.Tasks
     type Entry = Data.Entry
     type KeyPattern = Data.KeyPattern
     type Action = Data.Action

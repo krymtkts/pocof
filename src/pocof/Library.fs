@@ -6,7 +6,6 @@ open System.Management.Automation
 open System.Management.Automation.Host
 open System.Management.Automation.Runspaces
 open System.Reflection
-open System.Threading.Tasks
 
 [<Cmdlet(VerbsCommon.Select, "Pocof")>]
 [<Alias("pocof")>]
@@ -18,8 +17,6 @@ type SelectPocofCommand() =
     let properties: Pocof.PropertyStore = Pocof.PropertyStore()
     let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
-    let mutable buff: Pocof.Buff option = None
-    let mutable mainTask: obj seq Task option = None
     let mutable conf: Pocof.InternalConfig option = None
     let mutable periodic: Pocof.Periodic option = None
     let mutable render: (unit -> obj seq) option = None
@@ -95,33 +92,6 @@ type SelectPocofCommand() =
 
         input <- __.Unique.IsPresent |> Pocof.getInputStore
 
-        // let cnf, state, pos =
-        //     Pocof.initConfig
-        //         { Query = __.Query
-        //           Matcher = __.Matcher
-        //           Operator = __.Operator
-        //           CaseSensitive = __.CaseSensitive.IsPresent
-        //           InvertQuery = __.InvertQuery.IsPresent
-        //           NotInteractive = __.NonInteractive.IsPresent
-        //           SuppressProperties = __.SuppressProperties.IsPresent
-        //           Prompt = __.Prompt
-        //           Layout = __.Layout
-        //           Keymaps = keymaps
-        //           Properties = properties.GetProperties()
-        //           PropertiesMap = properties.GetPropertyMap()
-        //           EntryCount = input.Count()
-        //           ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
-        //           ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
-
-        // conf <- cnf |> Some
-
-        // buff <- Pocof.initScreen (Pocof.initRawUI (__.PSHost().UI.RawUI) (__.ConsoleInterface())) __.Invoke cnf
-
-        // mainTask <-
-        //     async { return Pocof.interact cnf state pos buff handler.Publish <| input.GetEntries() }
-        //     |> Async.StartAsTask
-        //     |> Some
-
         let cancelAction () =
             // NOTE: to disable the interactive mode at EndProcessing.
             conf <- None
@@ -131,11 +101,6 @@ type SelectPocofCommand() =
             __
             |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
             |> raise
-
-        // periodic <-
-        //     match buff with
-        //     | None -> None
-        //     | Some buff -> Pocof.Periodic(cnf, handler, buff, cancelAction) |> Some
 
         let c, p, r =
             Pocof.initPocof
@@ -176,7 +141,4 @@ type SelectPocofCommand() =
         periodic |> Option.iter _.Render()
 
     override __.EndProcessing() =
-        // periodic |> Option.iter _.Stop()
-        // conf |> Option.iter (Pocof.render buff handler)
-        // buff |> Option.dispose
         render |> Option.iter (fun r -> r () |> Seq.iter __.WriteObject)
