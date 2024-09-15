@@ -170,32 +170,13 @@ module Pocof =
 
         loop args input state pos context
 
-    let interactOnce
-        // (conf: InternalConfig)
-        (state: InternalState)
-        // (pos: Position)
-        // (buff: Screen.Buff)
-        // (buff: Screen.Buff option)
-        // (publish: RenderEvent -> unit)
-        (input: Entry seq)
-        =
+    let interactOnce (state: InternalState) (input: Entry seq) =
 
         let state, context = Query.prepare state
         let input = input |> PSeq.ofSeq
 
-        // match buff with
-        // | None ->
         Query.run context input state.PropertyMap |> unwrap
-    // | Some buff ->
-    // let args =
-    //     { Keymaps = conf.Keymaps
-    //       Input = input
-    //       PublishEvent = publish
-    //       GetKey = buff.GetKey
-    //       GetConsoleWidth = buff.GetConsoleWidth
-    //       GetLengthInBufferCells = buff.GetLengthInBufferCells }
 
-    // loop args input state pos context
     let initScreen (rui: unit -> Screen.IRawUI) (invoke: obj seq -> string seq) (conf: InternalConfig) =
         match conf.NotInteractive with
         | true -> None
@@ -226,10 +207,6 @@ module Pocof =
 
     [<TailCall>]
     let rec render (buff: Screen.Buff) (handler: RenderHandler) (conf: InternalConfig) =
-        // buff
-        // |> function
-        //     | None -> ()
-        //     | Some b ->
         match handler.Receive() with
         | RenderMessage.None ->
             Thread.Sleep 10
