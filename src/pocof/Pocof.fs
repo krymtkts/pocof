@@ -413,7 +413,7 @@ module Pocof =
         member __.GetProperties() = properties
         member __.GetPropertyMap() = propertiesMap
 
-    let initPocof
+    let init
         (psRawUI: Host.PSHostRawUserInterface)
         (console: Screen.IConsoleInterface)
         invoke
@@ -437,10 +437,10 @@ module Pocof =
 
             let periodic = Periodic(conf, handler, buff, cancelAction)
 
-            let render () =
+            let waitResult () =
                 periodic.Stop()
                 render buff handler conf
                 buff :> IDisposable |> _.Dispose()
                 mainTask.Result
 
-            conf, periodic |> Some, render |> Some
+            conf, periodic |> Some, waitResult |> Some

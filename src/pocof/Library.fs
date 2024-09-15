@@ -19,7 +19,7 @@ type SelectPocofCommand() =
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
     let mutable conf: Pocof.InternalConfig option = None
     let mutable periodic: Pocof.Periodic option = None
-    let mutable render: (unit -> obj seq) option = None
+    let mutable waitResult: (unit -> obj seq) option = None
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     member val InputObject: PSObject[] = [||] with get, set
@@ -102,8 +102,8 @@ type SelectPocofCommand() =
             |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
             |> raise
 
-        let c, p, r =
-            Pocof.initPocof
+        let c, p, w =
+            Pocof.init
                 (__.PSHost().UI.RawUI)
                 (__.ConsoleInterface())
                 __.Invoke
@@ -128,7 +128,7 @@ type SelectPocofCommand() =
 
         conf <- c |> Some
         periodic <- p
-        render <- r
+        waitResult <- w
 
     // NOTE: Unfortunately, EndProcessing is protected method in PSCmdlet. so we cannot use it publicly.
     member internal __.ForceEndProcessing() = __.EndProcessing()
@@ -141,4 +141,4 @@ type SelectPocofCommand() =
         periodic |> Option.iter _.Render()
 
     override __.EndProcessing() =
-        render |> Option.iter (fun r -> r () |> Seq.iter __.WriteObject)
+        waitResult |> Option.iter (fun r -> r () |> Seq.iter __.WriteObject)
