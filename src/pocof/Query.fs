@@ -144,8 +144,35 @@ module Query =
         | Entry.Dict(dct) -> dct ?=> propName
         | Entry.Obj(o) -> o ?-> propName
 
+    let private generateExpr (op: Operator) (conditions: (Entry -> bool) list) =
+        let xVar = Var("x", typeof<Entry>)
+        let x = xVar |> Expr.Var |> Expr.Cast<Entry>
+
+        let combination =
+            match op with
+            | Operator.And -> fun c acc -> (<@ c %x @>, acc, <@@ false @@>)
+            | Operator.Or -> fun c acc -> (<@ c %x @>, <@@ true @@>, acc)
+
+        let rec recBody acc conditions =
+            match conditions with
+            | [] -> acc
+            | condition :: conditions ->
+                let acc = combination condition acc |> Expr.IfThenElse
+                recBody acc conditions
+
+        let body =
+            match conditions |> List.rev with
+            | [] -> <@@ true @@>
+            | condition :: conditions ->
+                let term = Expr.IfThenElse(<@ condition %x @>, <@ true @>, <@ false @>)
+                recBody term conditions
+
+        let lambda = Expr.Lambda(xVar, body)
+
+        lambda |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
+
     [<TailCall>]
-    let rec private generatePredicate (combination: bool -> bool -> bool) props (acc: (Entry -> bool) list) queries =
+    let rec private generatePredicate (op: Operator) props (acc: (Entry -> bool) list) queries =
         match queries with
         | QueryPart.Property(p, test) :: tail ->
             match tryGetPropertyName props p with
@@ -155,21 +182,26 @@ module Query =
                     | Some(pv) -> pv.ToString() |> test
                     | None -> false
 
-                generatePredicate combination props (x :: acc) tail
-            | None -> generatePredicate combination props acc tail
+                generatePredicate op props (x :: acc) tail
+            | None -> generatePredicate op props acc tail
 
         | QueryPart.Normal(test) :: tail ->
             let x entry =
                 match entry with
-                | Entry.Dict(dct) -> combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
+                | Entry.Dict(dct) ->
+                    let combination =
+                        match op with
+                        | Operator.And -> (&&)
+                        | Operator.Or -> (||)
+
+                    combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
                 | Entry.Obj(o) -> o.ToString() |> test
 
-            generatePredicate combination props (x :: acc) tail
+            generatePredicate op props (x :: acc) tail
         | [] ->
             match acc with
             | [] -> alwaysTrue
-            // TODO: should i use code quotation to remove redundant lambda?
-            | _ -> acc |> List.rev |> List.reduce (fun acc x -> fun e -> combination (acc e) (x e))
+            | _ -> generateExpr op acc
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
@@ -179,12 +211,7 @@ module Query =
         match context.Queries with
         | [] -> entries
         | _ ->
-            let combination =
-                match context.Operator with
-                | Operator.And -> (&&)
-                | Operator.Or -> (||)
-
-            let predicate = generatePredicate combination props [] context.Queries
+            let predicate = generatePredicate context.Operator props [] context.Queries
 
             entries |> PSeq.filter predicate
 
