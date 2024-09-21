@@ -161,7 +161,8 @@ module Query =
                 recBody acc conditions
 
         let body =
-            match conditions |> List.rev with
+            // NOTE: condition's order is already reversed.
+            match conditions with
             | [] -> <@@ true @@>
             | condition :: conditions ->
                 let term = Expr.IfThenElse(<@ condition %x @>, <@ true @>, <@ false @>)
@@ -198,10 +199,7 @@ module Query =
                 | Entry.Obj(o) -> o.ToString() |> test
 
             generatePredicate op props (x :: acc) tail
-        | [] ->
-            match acc with
-            | [] -> alwaysTrue
-            | _ -> generateExpr op acc
+        | [] -> generateExpr op acc
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
