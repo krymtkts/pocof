@@ -1,5 +1,7 @@
 namespace Pocof
 
+open FSharp.Linq.RuntimeHelpers
+open Microsoft.FSharp.Quotations
 open System
 open System.Collections
 open System.Management.Automation
@@ -39,18 +41,17 @@ module Query =
     [<NoComparison>]
     [<NoEquality>]
     type QueryPart =
-        | Normal of is: (string -> bool) * tail: QueryPart
-        | Property of lowerCaseName: string * is: (string -> bool) * tail: QueryPart
-        | End
+        | Normal of is: (string -> bool)
+        | Property of lowerCaseName: string * is: (string -> bool)
 
     [<NoComparison>]
     [<NoEquality>]
     type QueryContext =
-        { Queries: QueryPart
+        { Queries: QueryPart list
           Operator: Operator }
 
     [<TailCall>]
-    let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart) (xs: string list) =
+    let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart list) (xs: string list) =
         match xs with
         | [] -> acc
         | (x :: xs) ->
@@ -59,12 +60,12 @@ module Query =
                 parseQuery is
                 <| match x with
                    | Prefix ":" _ -> acc
-                   | _ -> QueryPart.Normal(is x, acc)
+                   | _ -> QueryPart.Normal(is x) :: acc
                 <| []
             | y :: zs ->
                 match x with
-                | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y, acc) <| zs
-                | _ -> parseQuery is <| QueryPart.Normal(is x, acc) <| xs
+                | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y) :: acc <| zs
+                | _ -> parseQuery is <| QueryPart.Normal(is x) :: acc <| xs
 
     let private prepareTest (condition: QueryCondition) =
         let is =
@@ -80,15 +81,11 @@ module Query =
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
         match query with
-        | "" -> QueryPart.End
+        | "" -> []
         | _ ->
             let is = prepareTest condition
 
-            query
-            |> String.trim
-            |> String.split " "
-            |> List.ofSeq
-            |> parseQuery is QueryPart.End
+            query |> String.trim |> String.split " " |> List.ofSeq |> parseQuery is []
 
     let private prepareNotification (query: string) (condition: QueryCondition) =
         match condition.Matcher with
@@ -150,7 +147,7 @@ module Query =
     [<TailCall>]
     let rec private generatePredicate (combination: bool -> bool -> bool) props (acc: (Entry -> bool) list) queries =
         match queries with
-        | QueryPart.Property(p, test, tail) ->
+        | QueryPart.Property(p, test) :: tail ->
             match tryGetPropertyName props p with
             | Some(pn) ->
                 let x entry =
@@ -161,14 +158,14 @@ module Query =
                 generatePredicate combination props (x :: acc) tail
             | None -> generatePredicate combination props acc tail
 
-        | QueryPart.Normal(test, tail) ->
+        | QueryPart.Normal(test) :: tail ->
             let x entry =
                 match entry with
                 | Entry.Dict(dct) -> combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
                 | Entry.Obj(o) -> o.ToString() |> test
 
             generatePredicate combination props (x :: acc) tail
-        | QueryPart.End ->
+        | [] ->
             match acc with
             | [] -> alwaysTrue
             // TODO: should i use code quotation to remove redundant lambda?
@@ -180,7 +177,7 @@ module Query =
         // #endif
 
         match context.Queries with
-        | QueryPart.End -> entries
+        | [] -> entries
         | _ ->
             let combination =
                 match context.Operator with
