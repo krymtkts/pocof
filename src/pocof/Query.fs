@@ -54,7 +54,7 @@ module Query =
     let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart list) (xs: string list) =
         match xs with
         | [] -> acc
-        | (x :: xs) ->
+        | x :: xs ->
             match xs with
             | [] ->
                 parseQuery is

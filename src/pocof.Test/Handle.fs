@@ -51,12 +51,12 @@ module invokeAction =
 
     let testQueryPartNormal value =
         function
-        | Query.QueryPart.Normal(x) :: [] -> x value |> shouldEqual true
+        | [ Query.QueryPart.Normal(x) ] -> x value |> shouldEqual true
         | _ -> failwith "invalid query part normal."
 
     let testQueryPartProperty propertyName value =
         function
-        | Query.QueryPart.Property(x, y) :: [] ->
+        | [ Query.QueryPart.Property(x, y) ] ->
             x |> shouldEqual propertyName
             y value |> shouldEqual true
         | _ -> failwith "invalid query part property."
