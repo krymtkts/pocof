@@ -1,5 +1,7 @@
 namespace Pocof
 
+open FSharp.Linq.RuntimeHelpers
+open Microsoft.FSharp.Quotations
 open System
 open System.Collections
 open System.Management.Automation
@@ -39,32 +41,31 @@ module Query =
     [<NoComparison>]
     [<NoEquality>]
     type QueryPart =
-        | Normal of is: (string -> bool) * tail: QueryPart
-        | Property of lowerCaseName: string * is: (string -> bool) * tail: QueryPart
-        | End
+        | Normal of is: (string -> bool)
+        | Property of lowerCaseName: string * is: (string -> bool)
 
     [<NoComparison>]
     [<NoEquality>]
     type QueryContext =
-        { Queries: QueryPart
+        { Queries: QueryPart list
           Operator: Operator }
 
     [<TailCall>]
-    let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart) (xs: string list) =
+    let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart list) (xs: string list) =
         match xs with
         | [] -> acc
-        | (x :: xs) ->
+        | x :: xs ->
             match xs with
             | [] ->
                 parseQuery is
                 <| match x with
                    | Prefix ":" _ -> acc
-                   | _ -> QueryPart.Normal(is x, acc)
+                   | _ -> QueryPart.Normal(is x) :: acc
                 <| []
             | y :: zs ->
                 match x with
-                | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y, acc) <| zs
-                | _ -> parseQuery is <| QueryPart.Normal(is x, acc) <| xs
+                | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y) :: acc <| zs
+                | _ -> parseQuery is <| QueryPart.Normal(is x) :: acc <| xs
 
     let private prepareTest (condition: QueryCondition) =
         let is =
@@ -80,15 +81,11 @@ module Query =
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
         match query with
-        | "" -> QueryPart.End
+        | "" -> []
         | _ ->
             let is = prepareTest condition
 
-            query
-            |> String.trim
-            |> String.split " "
-            |> List.ofSeq
-            |> parseQuery is QueryPart.End
+            query |> String.trim |> String.split " " |> List.ofSeq |> parseQuery is []
 
     let private prepareNotification (query: string) (condition: QueryCondition) =
         match condition.Matcher with
@@ -139,61 +136,70 @@ module Query =
 #if !DEBUG
         inline
 #endif
-        private tryGetPropertyValue
+        private getPropertyValue
+            propName
             o
             =
-        function
-        | Some(propName) ->
-            match o with
-            | Entry.Dict(dct) -> dct ?=> propName
-            | Entry.Obj(o) -> o ?-> propName
-        | None -> None
+        match o with
+        | Entry.Dict(dct) -> dct ?=> propName
+        | Entry.Obj(o) -> o ?-> propName
 
-    [<RequireQualifiedAccess>]
-    [<NoComparison>]
-    [<NoEquality>]
-    [<Struct>]
-    type private QueryResult =
-        | End
-        | Matched
-        | Unmatched
-        | PartialMatched
-        | PropertyNotFound
+    let private generateExpr (op: Operator) (conditions: (Entry -> bool) list) =
+        let xVar = Var("x", typeof<Entry>)
+        let x = xVar |> Expr.Var |> Expr.Cast<Entry>
+
+        let combination =
+            match op with
+            | Operator.And -> fun c acc -> (<@ c %x @>, acc, <@@ false @@>)
+            | Operator.Or -> fun c acc -> (<@ c %x @>, <@@ true @@>, acc)
+
+        let rec recBody acc conditions =
+            match conditions with
+            | [] -> acc
+            | condition :: conditions ->
+                let acc = combination condition acc |> Expr.IfThenElse
+                recBody acc conditions
+
+        let body =
+            // NOTE: condition's order is already reversed.
+            match conditions with
+            | [] -> <@@ true @@>
+            | condition :: conditions ->
+                let term = Expr.IfThenElse(<@ condition %x @>, <@ true @>, <@ false @>)
+                recBody term conditions
+
+        let lambda = Expr.Lambda(xVar, body)
+
+        lambda |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
 
     [<TailCall>]
-    let rec private processQueries (combination: Operator) props entry queries hasNoMatch =
-        let result, tail =
-            match queries with
-            | QueryPart.Property(p, test, tail) ->
-                match tryGetPropertyName props p |> tryGetPropertyValue entry with
-                | Some(pv) when pv.ToString() |> test -> QueryResult.Matched
-                | Some(_) -> QueryResult.Unmatched
-                | None -> QueryResult.PropertyNotFound
-                , tail
-            | QueryPart.Normal(test, tail) ->
+    let rec private generatePredicate (op: Operator) props (acc: (Entry -> bool) list) queries =
+        match queries with
+        | QueryPart.Property(p, test) :: tail ->
+            match tryGetPropertyName props p with
+            | Some(pn) ->
+                let x entry =
+                    match getPropertyValue pn entry with
+                    | Some(pv) -> pv.ToString() |> test
+                    | None -> false
+
+                generatePredicate op props (x :: acc) tail
+            | None -> generatePredicate op props acc tail
+
+        | QueryPart.Normal(test) :: tail ->
+            let x entry =
                 match entry with
                 | Entry.Dict(dct) ->
-                    match dct.Key.ToString() |> test, dct.Value.ToString() |> test with
-                    | true, true -> QueryResult.Matched
-                    | false, false -> QueryResult.Unmatched
-                    | _ -> QueryResult.PartialMatched
-                | Entry.Obj(o) ->
-                    match o.ToString() |> test with
-                    | true -> QueryResult.Matched
-                    | _ -> QueryResult.Unmatched
-                , tail
-            | QueryPart.End -> QueryResult.End, QueryPart.End
+                    let combination =
+                        match op with
+                        | Operator.And -> (&&)
+                        | Operator.Or -> (||)
 
-        match result, combination with
-        | QueryResult.Matched, Operator.And
-        | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail false
-        | QueryResult.End, Operator.And
-        | QueryResult.Matched, Operator.Or
-        | QueryResult.PartialMatched, Operator.Or -> true
-        | QueryResult.Unmatched, Operator.And
-        | QueryResult.PartialMatched, Operator.And -> false
-        | QueryResult.End, Operator.Or -> hasNoMatch
-        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
+                    combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
+                | Entry.Obj(o) -> o.ToString() |> test
+
+            generatePredicate op props (x :: acc) tail
+        | [] -> generateExpr op acc
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
@@ -201,10 +207,9 @@ module Query =
         // #endif
 
         match context.Queries with
-        | QueryPart.End -> entries
+        | [] -> entries
         | _ ->
-            let predicate (o: Entry) =
-                processQueries context.Operator props o context.Queries true
+            let predicate = generatePredicate context.Operator props [] context.Queries
 
             entries |> PSeq.filter predicate
 

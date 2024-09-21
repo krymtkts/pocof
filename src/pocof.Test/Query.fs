@@ -389,13 +389,23 @@ module run =
             |> List.ofSeq
             |> shouldEqual (entries |> List.ofSeq)
 
-            let props = Map [ "title", "Title" ]
-            let state = state |> query ":title ja" |> opAnd
+        [<Fact>]
+        let ``should return empty when querying a non-existing property.`` () =
+            let props =
+                DictionaryEntry("Jane", "Doe")
+                |> PSObject.AsPSObject
+                |> _.Properties
+                |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
+                |> Map
+
+            let state = state |> query ":key ja" |> opAnd
+
+            let entries =
+                [ "d" ] |> List.map (PSObject.AsPSObject >> Data.Entry.Obj) |> PSeq.ofSeq
+
             let _, context = Query.prepare state
 
-            Query.run context entries props
-            |> List.ofSeq
-            |> shouldEqual (entries |> List.ofSeq)
+            Query.run context entries props |> List.ofSeq |> shouldEqual (List.empty)
 
     module ``with a Property query`` =
         let getPsObj (f: string, l: string) =
@@ -443,11 +453,6 @@ module run =
             |> List.ofSeq
             |> shouldEqual entries
 
-            let props = Map [ "f", "F" ]
-
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual entries
 
         [<Fact>]
         let ``should return all entries when incomplete composite query.`` () =

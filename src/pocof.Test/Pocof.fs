@@ -183,6 +183,7 @@ module loop =
         Seq.item 1 actual = results.[3] |> shouldEqual true
         rui.Check()
 
+// TODO: FIX IT
 // [<Fact>]
 // let ``should update QueryState.WindowWidth based on ConsoleWidth.`` () =
 //     let input = results |> List.map toObj
@@ -315,18 +316,6 @@ module initScreen =
 
 module render =
     open System.Threading
-
-    // [<Fact>]
-    // let ``should return unit when Screen.Buff is None.`` () =
-    //     let config: InternalConfig =
-    //         { NotInteractive = false
-    //           Layout = Layout.BottomUpHalf
-    //           Keymaps = Keys.defaultKeymap }
-
-    //     let handler = Pocof.RenderHandler()
-    //     let buff = None
-    //     let actual = Pocof.render buff handler config
-    //     actual |> shouldEqual ()
 
     [<Fact>]
     let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =
