@@ -135,7 +135,6 @@ module Query =
         | true, n -> Some n
         | _ -> None
 
-
     let
 #if !DEBUG
         inline
@@ -147,66 +146,6 @@ module Query =
         match o with
         | Entry.Dict(dct) -> dct ?=> propName
         | Entry.Obj(o) -> o ?-> propName
-
-    let
-#if !DEBUG
-        inline
-#endif
-        private tryGetPropertyValue
-            o
-            =
-        function
-        | Some(propName) ->
-            match o with
-            | Entry.Dict(dct) -> dct ?=> propName
-            | Entry.Obj(o) -> o ?-> propName
-        | None -> None
-
-    [<RequireQualifiedAccess>]
-    [<NoComparison>]
-    [<NoEquality>]
-    [<Struct>]
-    type private QueryResult =
-        | End
-        | Matched
-        | Unmatched
-        | PartialMatched
-        | PropertyNotFound
-
-    [<TailCall>]
-    let rec private processQueries (combination: Operator) props entry queries hasNoMatch =
-        let result, tail =
-            match queries with
-            | QueryPart.Property(p, test, tail) ->
-                match tryGetPropertyName props p |> tryGetPropertyValue entry with
-                | Some(pv) when pv.ToString() |> test -> QueryResult.Matched
-                | Some(_) -> QueryResult.Unmatched
-                | None -> QueryResult.PropertyNotFound
-                , tail
-            | QueryPart.Normal(test, tail) ->
-                match entry with
-                | Entry.Dict(dct) ->
-                    match dct.Key.ToString() |> test, dct.Value.ToString() |> test with
-                    | true, true -> QueryResult.Matched
-                    | false, false -> QueryResult.Unmatched
-                    | _ -> QueryResult.PartialMatched
-                | Entry.Obj(o) ->
-                    match o.ToString() |> test with
-                    | true -> QueryResult.Matched
-                    | _ -> QueryResult.Unmatched
-                , tail
-            | QueryPart.End -> QueryResult.End, QueryPart.End
-
-        match result, combination with
-        | QueryResult.Matched, Operator.And
-        | QueryResult.Unmatched, Operator.Or -> processQueries combination props entry tail false
-        | QueryResult.End, Operator.And
-        | QueryResult.Matched, Operator.Or
-        | QueryResult.PartialMatched, Operator.Or -> true
-        | QueryResult.Unmatched, Operator.And
-        | QueryResult.PartialMatched, Operator.And -> false
-        | QueryResult.End, Operator.Or -> hasNoMatch
-        | QueryResult.PropertyNotFound, _ -> processQueries combination props entry tail hasNoMatch
 
     [<TailCall>]
     let rec private generatePredicate (combination: bool -> bool -> bool) props (acc: (Entry -> bool) list) queries =
