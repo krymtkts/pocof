@@ -206,12 +206,12 @@ Describe 'pocof' {
         }
 
         Context 'In <Matcher> mode with composite query "and" (default)' -ForEach @(
-            @{ Matcher = 'MATCH'; Query = ':name os tok' },
-            @{ Matcher = 'MATCH'; Query = ':city tok :name os' },
-            @{ Matcher = 'LIKE'; Query = ':Name os* tok*' },
-            @{ Matcher = 'LIKE'; Query = ':City *yo :Name *sk*' },
-            @{ Matcher = 'EQ'; Query = ':namE osaka tokyo' }
-            @{ Matcher = 'EQ'; Query = ':city tokyo :namE osaka' }
+            @{ Matcher = 'MATCH'; Query = ':name  os tok' },
+            @{ Matcher = 'MATCH'; Query = ':city tok  :name os' },
+            @{ Matcher = 'LIKE'; Query = ':Name  os* tok*' },
+            @{ Matcher = 'LIKE'; Query = ':City *yo  :Name *sk*' },
+            @{ Matcher = 'EQ'; Query = ':namE  osaka tokyo' }
+            @{ Matcher = 'EQ'; Query = ':city tokyo  :namE osaka' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
                 @{Expected = @($InputObject[0]); Params = $BaseParam + $_ }
