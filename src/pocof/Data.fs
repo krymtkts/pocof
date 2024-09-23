@@ -47,6 +47,10 @@ module LanguageExtension =
     module Option =
         let dispose (d: 'a option when 'a :> IDisposable) = d |> Option.iter _.Dispose()
 
+    module Regex =
+        open System.Text.RegularExpressions
+        let split (separator: string) (s: string) = Regex.Split(s, separator)
+
     module String =
         let lower (s: string) = s.ToLower()
         let upper (s: string) = s.ToUpper()

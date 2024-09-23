@@ -85,7 +85,7 @@ module Query =
         | _ ->
             let is = prepareTest condition
 
-            query |> String.trim |> String.split " " |> List.ofSeq |> parseQuery is []
+            query |> String.trim |> Regex.split @"\s+" |> List.ofSeq |> parseQuery is []
 
     let private prepareNotification (query: string) (condition: QueryCondition) =
         match condition.Matcher with
