@@ -366,7 +366,7 @@ module run =
                 |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
                 |> Map
 
-            let state = state |> query ":key ja" |> opAnd
+            let state = state |> query ":key  ja" |> opAnd
             let _, context = Query.prepare state
 
             Query.run context entries props
@@ -382,7 +382,7 @@ module run =
                 |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
                 |> Map
 
-            let state = state |> query ":title ja" |> opAnd
+            let state = state |> query ":title  ja" |> opAnd
             let _, context = Query.prepare state
 
             Query.run context entries props
@@ -425,7 +425,7 @@ module run =
 
         [<Fact>]
         let ``should return filtered entries when composite query with or operator.`` () =
-            let state = state |> query ":fn a :ln d"
+            let state = state |> query ":fn a  :ln  d"
             let _, context = Query.prepare state
 
             let filtered = [ entries.[0]; entries.[1]; entries.[3] ]
@@ -465,7 +465,7 @@ module run =
 
         [<Fact>]
         let ``should return filtered entries when incomplete composite query.`` () =
-            let state = state |> query "a :fn"
+            let state = state |> query "a :fn "
             let _, context = Query.prepare state
             let filtered = [ entries.[1]; entries.[3] ]
 
@@ -475,7 +475,7 @@ module run =
 
         [<Fact>]
         let ``should return filtered entries when a non-existent property query exists after a correct query`` () =
-            let state = state |> query "a :f e "
+            let state = state |> query "a :f  e "
             let _, context = Query.prepare state
             let filtered = [ entries.[1]; entries.[3] ]
 
