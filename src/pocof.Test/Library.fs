@@ -116,7 +116,6 @@ module SelectPocofCommand =
     type MockException(o: obj) =
         inherit Exception()
 
-
     type MockConsoleInterface() =
         let mutable keyAvailable = true
 
@@ -154,6 +153,13 @@ module SelectPocofCommand =
             __.BeginProcessing()
             __.ProcessRecord()
             __.EndProcessing()
+
+        member __.InvokeForTerminationTest() =
+            __.BeginProcessing()
+
+            while true do
+                Thread.Sleep 100
+                __.ProcessRecord()
 
     [<Fact>]
     let ``should return values with non-interactive mode.`` () =
@@ -195,6 +201,25 @@ module SelectPocofCommand =
             k.Add("Escape", "Cancel")
             k
 
-        cmdlet.InvokeForTest()
+        // NOTE: shouldFail does not work with MockException. so, use try-catch.
+        // shouldFail<MockException> (fun () -> cmdlet.InvokeForTerminationTest())
+        try
+            cmdlet.InvokeForTerminationTest()
+        with ex ->
+            typeof<MockException>.IsAssignableFrom(ex.GetType()) |> shouldEqual true
 
-        runtime.Output |> shouldEqual []
+    [<Fact>]
+    let ``should return values.`` () =
+        let runtime = new Mock.CommandRuntime()
+        let cmdlet = SelectPocofCommandForTest()
+
+        cmdlet.CommandRuntime <- runtime
+        cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+
+        cmdlet.Keymaps <-
+            let k = new Hashtable()
+            k.Add("Escape", "Finish")
+            k
+
+        cmdlet.InvokeForTest()
+        runtime.Output |> shouldEqual [ "a" ]
