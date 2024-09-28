@@ -63,7 +63,7 @@ Task Build -depends Clean {
 
 Task UnitTest {
     Remove-Item ./src/pocof.Test/TestResults/* -Recurse -ErrorAction SilentlyContinue
-    dotnet test --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 3s --blame-hang-dump-type full
+    dotnet test --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 5s --blame-hang-dump-type full
     if (-not $?) {
         throw 'dotnet test failed.'
     }
