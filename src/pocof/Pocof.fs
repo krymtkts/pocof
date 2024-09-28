@@ -382,6 +382,14 @@ module Pocof =
         member __.GetProperties() = properties
         member __.GetPropertyMap() = propertiesMap
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type Termination =
+        | Normal
+        | Force
+
     let init
         (psRawUI: Host.PSHostRawUserInterface)
         (console: Screen.IConsoleInterface)
@@ -396,7 +404,7 @@ module Pocof =
         match conf.NotInteractive with
         | true ->
             let render () = ()
-            let waitResult () = interactOnce state (entries ())
+            let waitResult (_) = interactOnce state (entries ())
             render, waitResult
         | _ ->
             let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout
@@ -408,9 +416,13 @@ module Pocof =
             let periodic = Periodic(conf, handler, buff, cancelAction)
             let renderPeriodic () = periodic.Render()
 
-            let waitResult () =
+            let waitResult (term: Termination) =
                 periodic.Stop()
-                render buff handler conf
+
+                match term with
+                | Termination.Force -> ()
+                | _ -> render buff handler conf
+
                 buff :> IDisposable |> _.Dispose()
                 mainTask.Result
 
