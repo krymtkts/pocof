@@ -187,15 +187,29 @@ module Pocof =
         let renderStack: RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
 
+        [<TailCall>]
+        let rec getLatestEvent (h: RenderEvent) (es: RenderEvent list) =
+            match h with
+            | RenderEvent.Quit -> h
+            | h ->
+                match es with
+                | [] -> h
+                | e :: es ->
+                    match e with
+                    | RenderEvent.Quit -> e
+                    | _ -> getLatestEvent h es
+
+        let getLatestEvent (es: RenderEvent list) =
+            match es with
+            | [] -> RenderMessage.None
+            | h :: es -> getLatestEvent h es |> RenderMessage.Received
+
         member __.Publish = renderStack.Push
 
         member __.Receive() =
-            // NOTE: Currently TryPop and Clear combination isn't atomic. Even if you receive after popping, it is ignored.
-            match renderStack.TryPop() with
-            | false, _ -> RenderMessage.None
-            | _, e ->
-                renderStack.Clear()
-                RenderMessage.Received e
+            let items = Array.zeroCreate<RenderEvent> renderStack.Count
+            renderStack.TryPopRange(items) |> ignore
+            items |> Array.toList |> getLatestEvent
 
     [<TailCall>]
     let rec render (buff: Screen.Buff) (handler: RenderHandler) (conf: InternalConfig) =

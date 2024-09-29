@@ -339,8 +339,17 @@ module render =
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
+            (state, PSeq.empty, [ "Value" ] |> Ok)
+            |> Pocof.RenderEvent.Render
+            |> handler.Publish
+
             Thread.Sleep 100
+
             Pocof.RenderEvent.Quit |> handler.Publish
+
+            (state, PSeq.empty, [ "Value" ] |> Ok)
+            |> Pocof.RenderEvent.Render
+            |> handler.Publish
         }
         |> Async.Start
 
