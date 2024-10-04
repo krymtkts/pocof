@@ -139,8 +139,8 @@ module Keys =
     [<Struct>]
     type private Key =
         | Char of c: char
-        | Control of key :ConsoleKey
-        | Shortcut of action :Data.Action
+        | Control of key: ConsoleKey
+        | Shortcut of action: Data.Action
 
     let private key (k: ConsoleKeyInfo) =
         let m = k.Modifiers.GetHashCode()
