@@ -312,4 +312,5 @@ module Handle =
         | Action.ScrollPageUp
         | Action.ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.CompleteProperty -> completeProperty state pos context
-        | x -> failwithf "unrecognized Action. value='%s'" <| x.GetType().Name
+        | Action.Cancel
+        | Action.Finish -> failwithf $"unreachable action received. {action}"
