@@ -285,8 +285,8 @@ module Handle =
 #endif
             buildValues head next tail keyword i candidates basePosition
 
-    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (acton: Action) =
-        match acton with
+    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (action: Action) =
+        match action with
         | Action.Noop -> InternalState.noRefresh state, pos, context
         | Action.AddQuery query -> addQuery state pos context query
         | Action.BackwardChar -> backwardChar state pos context
