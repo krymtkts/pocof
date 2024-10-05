@@ -209,6 +209,8 @@ module Pocof =
         member __.Receive() =
             renderStack.Count
             |> function
+                // NOTE: case of 0 is required for .NET Framework forward compatibility.
+                // NOTE: .NET does not raise an error, but it does not match the documentation.
                 | 0 -> RenderMessage.None
                 | c ->
                     let items = Array.zeroCreate<RenderEvent> c
