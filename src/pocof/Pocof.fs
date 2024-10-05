@@ -207,9 +207,17 @@ module Pocof =
         member __.Publish = renderStack.Push
 
         member __.Receive() =
-            let items = Array.zeroCreate<RenderEvent> renderStack.Count
-            renderStack.TryPopRange(items) |> ignore
-            items |> Array.toList |> getLatestEvent
+            let items =
+                match renderStack.Count with
+                // NOTE: case of 0 is required for .NET Framework forward compatibility.
+                // NOTE: .NET does not raise an error, but it does not match the documentation.
+                | 0 -> []
+                | c ->
+                    let items = Array.zeroCreate<RenderEvent> c
+                    renderStack.TryPopRange(items) |> ignore
+                    items |> Array.toList
+
+            items |> getLatestEvent
 
     [<TailCall>]
     let rec render (buff: Screen.Buff) (handler: RenderHandler) (conf: InternalConfig) =
