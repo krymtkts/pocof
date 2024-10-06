@@ -297,10 +297,14 @@ module Handle =
         | Action.EndOfLine -> endOfLine state pos context
         | Action.DeleteBackwardChar -> deleteBackwardChar state pos context
         | Action.DeleteForwardChar -> deleteForwardChar state pos context
+        | Action.DeleteBackwardWord
+        | Action.DeleteForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.DeleteBackwardInput -> deleteBackwardInput state pos context
         | Action.DeleteForwardInput -> deleteForwardInput state pos context
         | Action.SelectBackwardChar -> selectBackwardChar state pos context
         | Action.SelectForwardChar -> selectForwardChar state pos context
+        | Action.SelectBackwardWord
+        | Action.SelectForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.SelectToBeginningOfLine -> selectToBeginningOfLine state pos context
         | Action.SelectToEndOfLine -> selectToEndOfLine state pos context
         | Action.SelectAll -> selectAll state pos context
