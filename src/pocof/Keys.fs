@@ -28,6 +28,10 @@ module Keys =
 
     let private shift = modify <| Modifiers.Modifier ConsoleModifiers.Shift
 
+    let private ctlSft =
+        modify
+        <| Modifiers.Modifier(ConsoleModifiers.Control ||| ConsoleModifiers.Shift)
+
     let defaultKeymap =
         Map
             [ (plain ConsoleKey.Escape, Data.Action.Cancel)
@@ -43,11 +47,15 @@ module Keys =
 
               (plain ConsoleKey.Backspace, Data.Action.DeleteBackwardChar)
               (plain ConsoleKey.Delete, Data.Action.DeleteForwardChar)
+              (ctrl ConsoleKey.Backspace, Data.Action.DeleteBackwardWord)
+              (ctrl ConsoleKey.Delete, Data.Action.DeleteForwardWord)
               (ctrl ConsoleKey.Home, Data.Action.DeleteBackwardInput)
               (ctrl ConsoleKey.End, Data.Action.DeleteForwardInput)
 
               (shift ConsoleKey.LeftArrow, Data.Action.SelectBackwardChar)
               (shift ConsoleKey.RightArrow, Data.Action.SelectForwardChar)
+              (ctlSft ConsoleKey.LeftArrow, Data.Action.SelectBackwardChar)
+              (ctlSft ConsoleKey.RightArrow, Data.Action.SelectForwardChar)
               (shift ConsoleKey.Home, Data.Action.SelectToBeginningOfLine)
               (shift ConsoleKey.End, Data.Action.SelectToEndOfLine)
               (ctrl ConsoleKey.A, Data.Action.SelectAll)
