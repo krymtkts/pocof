@@ -199,15 +199,15 @@ module Data =
         // edit query.
         | AddQuery of query: string
         | DeleteBackwardChar
-        | DeleteBackwardWord
         | DeleteForwardChar
+        | DeleteBackwardWord
         | DeleteForwardWord
         | DeleteBackwardInput
         | DeleteForwardInput
         // select query.
         | SelectBackwardChar
-        | SelectBackwardWord
         | SelectForwardChar
+        | SelectBackwardWord
         | SelectForwardWord
         | SelectToBeginningOfLine
         | SelectToEndOfLine
