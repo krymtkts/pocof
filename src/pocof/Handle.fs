@@ -291,6 +291,8 @@ module Handle =
         | Action.AddQuery query -> addQuery state pos context query
         | Action.BackwardChar -> backwardChar state pos context
         | Action.ForwardChar -> forwardChar state pos context
+        | Action.BackwardWord
+        | Action.ForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.BeginningOfLine -> beginningOfLine state pos context
         | Action.EndOfLine -> endOfLine state pos context
         | Action.DeleteBackwardChar -> deleteBackwardChar state pos context

@@ -192,6 +192,8 @@ module Data =
         // move cursor.
         | BackwardChar
         | ForwardChar
+        | BackwardWord
+        | ForwardWord
         | BeginningOfLine
         | EndOfLine
         // edit query.
