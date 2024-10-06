@@ -192,17 +192,23 @@ module Data =
         // move cursor.
         | BackwardChar
         | ForwardChar
+        | BackwardWord
+        | ForwardWord
         | BeginningOfLine
         | EndOfLine
         // edit query.
         | AddQuery of query: string
         | DeleteBackwardChar
         | DeleteForwardChar
+        | DeleteBackwardWord
+        | DeleteForwardWord
         | DeleteBackwardInput
         | DeleteForwardInput
         // select query.
         | SelectBackwardChar
         | SelectForwardChar
+        | SelectBackwardWord
+        | SelectForwardWord
         | SelectToBeginningOfLine
         | SelectToEndOfLine
         | SelectAll

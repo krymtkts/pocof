@@ -285,20 +285,26 @@ module Handle =
 #endif
             buildValues head next tail keyword i candidates basePosition
 
-    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (acton: Action) =
-        match acton with
+    let invokeAction (state: InternalState) (pos: Position) (context: QueryContext) (action: Action) =
+        match action with
         | Action.Noop -> InternalState.noRefresh state, pos, context
         | Action.AddQuery query -> addQuery state pos context query
         | Action.BackwardChar -> backwardChar state pos context
         | Action.ForwardChar -> forwardChar state pos context
+        | Action.BackwardWord
+        | Action.ForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.BeginningOfLine -> beginningOfLine state pos context
         | Action.EndOfLine -> endOfLine state pos context
         | Action.DeleteBackwardChar -> deleteBackwardChar state pos context
         | Action.DeleteForwardChar -> deleteForwardChar state pos context
+        | Action.DeleteBackwardWord
+        | Action.DeleteForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.DeleteBackwardInput -> deleteBackwardInput state pos context
         | Action.DeleteForwardInput -> deleteForwardInput state pos context
         | Action.SelectBackwardChar -> selectBackwardChar state pos context
         | Action.SelectForwardChar -> selectForwardChar state pos context
+        | Action.SelectBackwardWord
+        | Action.SelectForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.SelectToBeginningOfLine -> selectToBeginningOfLine state pos context
         | Action.SelectToEndOfLine -> selectToEndOfLine state pos context
         | Action.SelectAll -> selectAll state pos context
@@ -312,4 +318,5 @@ module Handle =
         | Action.ScrollPageUp
         | Action.ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.CompleteProperty -> completeProperty state pos context
-        | x -> failwithf "unrecognized Action. value='%s'" <| x.GetType().Name
+        | Action.Cancel
+        | Action.Finish -> failwithf $"unreachable action received. {action}"

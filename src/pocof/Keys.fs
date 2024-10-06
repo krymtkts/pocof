@@ -7,6 +7,7 @@ module Keys =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type private Modifiers =
         | Plain
         | Modifier of ConsoleModifiers
@@ -27,6 +28,10 @@ module Keys =
 
     let private shift = modify <| Modifiers.Modifier ConsoleModifiers.Shift
 
+    let private ctlSft =
+        modify
+        <| Modifiers.Modifier(ConsoleModifiers.Control ||| ConsoleModifiers.Shift)
+
     let defaultKeymap =
         Map
             [ (plain ConsoleKey.Escape, Data.Action.Cancel)
@@ -34,17 +39,23 @@ module Keys =
               (plain ConsoleKey.Enter, Data.Action.Finish)
 
               (plain ConsoleKey.LeftArrow, Data.Action.BackwardChar)
+              (ctrl ConsoleKey.LeftArrow, Data.Action.BackwardWord)
               (plain ConsoleKey.RightArrow, Data.Action.ForwardChar)
+              (ctrl ConsoleKey.RightArrow, Data.Action.ForwardWord)
               (plain ConsoleKey.Home, Data.Action.BeginningOfLine)
               (plain ConsoleKey.End, Data.Action.EndOfLine)
 
               (plain ConsoleKey.Backspace, Data.Action.DeleteBackwardChar)
               (plain ConsoleKey.Delete, Data.Action.DeleteForwardChar)
+              (ctrl ConsoleKey.Backspace, Data.Action.DeleteBackwardWord)
+              (ctrl ConsoleKey.Delete, Data.Action.DeleteForwardWord)
               (ctrl ConsoleKey.Home, Data.Action.DeleteBackwardInput)
               (ctrl ConsoleKey.End, Data.Action.DeleteForwardInput)
 
               (shift ConsoleKey.LeftArrow, Data.Action.SelectBackwardChar)
               (shift ConsoleKey.RightArrow, Data.Action.SelectForwardChar)
+              (ctlSft ConsoleKey.LeftArrow, Data.Action.SelectBackwardChar)
+              (ctlSft ConsoleKey.RightArrow, Data.Action.SelectForwardChar)
               (shift ConsoleKey.Home, Data.Action.SelectToBeginningOfLine)
               (shift ConsoleKey.End, Data.Action.SelectToEndOfLine)
               (ctrl ConsoleKey.A, Data.Action.SelectAll)
@@ -128,6 +139,7 @@ module Keys =
 
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type private KeyInfo =
         { Pattern: Data.KeyPattern
           KeyChar: char }
@@ -135,10 +147,11 @@ module Keys =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type private Key =
-        | Char of char
-        | Control of ConsoleKey
-        | Shortcut of Data.Action
+        | Char of c: char
+        | Control of key: ConsoleKey
+        | Shortcut of action: Data.Action
 
     let private key (k: ConsoleKeyInfo) =
         let m = k.Modifiers.GetHashCode()

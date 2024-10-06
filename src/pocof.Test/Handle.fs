@@ -300,6 +300,14 @@ module invokeAction =
 
             a3.Queries |> testQueryEnd
 
+    module ``with BackwardWord`` =
+        [<Fact>]
+        let ``shouldn't return any difference when BackwardWord is entered.`` () = noop Action.BackwardWord
+
+    module ``with ForwardWord`` =
+        [<Fact>]
+        let ``shouldn't return any difference when ForwardWord is entered.`` () = noop Action.ForwardWord
+
     module ``with BeginningOfLine`` =
         [<Fact>]
         let ``should return state with cursor=0.`` () =
@@ -648,6 +656,14 @@ module invokeAction =
             )
 
             a3.Queries |> testQueryEnd
+
+    module ``with DeleteBackwardWord`` =
+        [<Fact>]
+        let ``shouldn't return any difference when DeleteBackwardWord is entered.`` () = noop Action.DeleteBackwardWord
+
+    module ``with DeleteForwardWord`` =
+        [<Fact>]
+        let ``shouldn't return any difference when DeleteForwardWord is entered.`` () = noop Action.DeleteForwardWord
 
     module ``with KillBeginningOfLine`` =
         [<Fact>]
@@ -1010,6 +1026,14 @@ module invokeAction =
             )
 
             a3.Queries |> testQueryEnd
+
+    module ``with SelectBackwardWord`` =
+        [<Fact>]
+        let ``shouldn't return any difference when SelectBackwardWord is entered.`` () = noop Action.SelectBackwardWord
+
+    module ``with SelectForwardWord`` =
+        [<Fact>]
+        let ``shouldn't return any difference when SelectForwardWord is entered.`` () = noop Action.SelectForwardWord
 
     module ``with SelectToBeginningOfLine`` =
         [<Fact>]
