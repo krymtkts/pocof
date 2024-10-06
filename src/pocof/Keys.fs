@@ -35,7 +35,9 @@ module Keys =
               (plain ConsoleKey.Enter, Data.Action.Finish)
 
               (plain ConsoleKey.LeftArrow, Data.Action.BackwardChar)
+              (ctrl ConsoleKey.LeftArrow, Data.Action.BackwardWord)
               (plain ConsoleKey.RightArrow, Data.Action.ForwardChar)
+              (ctrl ConsoleKey.RightArrow, Data.Action.ForwardWord)
               (plain ConsoleKey.Home, Data.Action.BeginningOfLine)
               (plain ConsoleKey.End, Data.Action.EndOfLine)
 
