@@ -7,6 +7,7 @@ module Keys =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type private Modifiers =
         | Plain
         | Modifier of ConsoleModifiers
