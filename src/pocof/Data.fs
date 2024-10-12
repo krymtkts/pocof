@@ -146,8 +146,8 @@ module Data =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     type Entry =
-        | Obj of PSObject
-        | Dict of DictionaryEntry
+        | Obj of o: PSObject
+        | Dict of d: DictionaryEntry
 
     let unwrap (entries: Entry seq) =
         entries
