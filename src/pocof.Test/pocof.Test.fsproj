@@ -31,7 +31,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- NOTE: for creating mock PSObject -->
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.3" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.5" />
     <!-- NOTE: for suppressing vulnerability report the transient dependencies from Microsoft.PowerShell.SDK 7.4.3 or lower. -->
     <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
     <!-- NOTE: for suppressing vulnerability report the transient dependencies from xunit that depends .NET Standard 1.6. -->
