@@ -185,6 +185,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Action =
         | Noop
         | Cancel
