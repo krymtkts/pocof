@@ -3,6 +3,8 @@ namespace Pocof
 open System
 open System.Collections
 
+open Data
+
 module Keys =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -12,7 +14,7 @@ module Keys =
         | Plain
         | Modifier of ConsoleModifiers
 
-    let private modify (x: Modifiers) k : Data.KeyPattern =
+    let private modify (x: Modifiers) k : KeyPattern =
         let m =
             match x with
             | Modifiers.Plain -> 0
@@ -34,44 +36,44 @@ module Keys =
 
     let defaultKeymap =
         Map
-            [ (plain ConsoleKey.Escape, Data.Action.Cancel)
-              (ctrl ConsoleKey.C, Data.Action.Cancel)
-              (plain ConsoleKey.Enter, Data.Action.Finish)
+            [ (plain ConsoleKey.Escape, Action.Cancel)
+              (ctrl ConsoleKey.C, Action.Cancel)
+              (plain ConsoleKey.Enter, Action.Finish)
 
-              (plain ConsoleKey.LeftArrow, Data.Action.BackwardChar)
-              (ctrl ConsoleKey.LeftArrow, Data.Action.BackwardWord)
-              (plain ConsoleKey.RightArrow, Data.Action.ForwardChar)
-              (ctrl ConsoleKey.RightArrow, Data.Action.ForwardWord)
-              (plain ConsoleKey.Home, Data.Action.BeginningOfLine)
-              (plain ConsoleKey.End, Data.Action.EndOfLine)
+              (plain ConsoleKey.LeftArrow, Action.BackwardChar)
+              (ctrl ConsoleKey.LeftArrow, Action.BackwardWord)
+              (plain ConsoleKey.RightArrow, Action.ForwardChar)
+              (ctrl ConsoleKey.RightArrow, Action.ForwardWord)
+              (plain ConsoleKey.Home, Action.BeginningOfLine)
+              (plain ConsoleKey.End, Action.EndOfLine)
 
-              (plain ConsoleKey.Backspace, Data.Action.DeleteBackwardChar)
-              (plain ConsoleKey.Delete, Data.Action.DeleteForwardChar)
-              (ctrl ConsoleKey.Backspace, Data.Action.DeleteBackwardWord)
-              (ctrl ConsoleKey.Delete, Data.Action.DeleteForwardWord)
-              (ctrl ConsoleKey.Home, Data.Action.DeleteBackwardInput)
-              (ctrl ConsoleKey.End, Data.Action.DeleteForwardInput)
+              (plain ConsoleKey.Backspace, Action.DeleteBackwardChar)
+              (plain ConsoleKey.Delete, Action.DeleteForwardChar)
+              (ctrl ConsoleKey.Backspace, Action.DeleteBackwardWord)
+              (ctrl ConsoleKey.Delete, Action.DeleteForwardWord)
+              (ctrl ConsoleKey.Home, Action.DeleteBackwardInput)
+              (ctrl ConsoleKey.End, Action.DeleteForwardInput)
 
-              (shift ConsoleKey.LeftArrow, Data.Action.SelectBackwardChar)
-              (shift ConsoleKey.RightArrow, Data.Action.SelectForwardChar)
-              (ctlSft ConsoleKey.LeftArrow, Data.Action.SelectBackwardChar)
-              (ctlSft ConsoleKey.RightArrow, Data.Action.SelectForwardChar)
-              (shift ConsoleKey.Home, Data.Action.SelectToBeginningOfLine)
-              (shift ConsoleKey.End, Data.Action.SelectToEndOfLine)
-              (ctrl ConsoleKey.A, Data.Action.SelectAll)
+              (shift ConsoleKey.LeftArrow, Action.SelectBackwardChar)
+              (shift ConsoleKey.RightArrow, Action.SelectForwardChar)
+              (ctlSft ConsoleKey.LeftArrow, Action.SelectBackwardChar)
+              (ctlSft ConsoleKey.RightArrow, Action.SelectForwardChar)
+              (shift ConsoleKey.Home, Action.SelectToBeginningOfLine)
+              (shift ConsoleKey.End, Action.SelectToEndOfLine)
+              (ctrl ConsoleKey.A, Action.SelectAll)
 
-              (alt ConsoleKey.R, Data.Action.RotateMatcher)
-              (alt ConsoleKey.L, Data.Action.RotateOperator)
-              (alt ConsoleKey.C, Data.Action.ToggleCaseSensitive)
-              (alt ConsoleKey.I, Data.Action.ToggleInvertFilter)
+              (alt ConsoleKey.R, Action.RotateMatcher)
+              (alt ConsoleKey.L, Action.RotateOperator)
+              (alt ConsoleKey.C, Action.ToggleCaseSensitive)
+              (alt ConsoleKey.I, Action.ToggleInvertFilter)
 
-              (ctrl ConsoleKey.Spacebar, Data.Action.ToggleSuppressProperties)
-              (plain ConsoleKey.UpArrow, Data.Action.SelectLineUp)
-              (plain ConsoleKey.DownArrow, Data.Action.SelectLineDown)
-              (plain ConsoleKey.PageUp, Data.Action.ScrollPageUp)
-              (plain ConsoleKey.PageDown, Data.Action.ScrollPageDown)
+              (ctrl ConsoleKey.Spacebar, Action.ToggleSuppressProperties)
+              (plain ConsoleKey.UpArrow, Action.SelectLineUp)
+              (plain ConsoleKey.DownArrow, Action.SelectLineDown)
+              (plain ConsoleKey.PageUp, Action.ScrollPageUp)
+              (plain ConsoleKey.PageDown, Action.ScrollPageDown)
 
-              (plain ConsoleKey.Tab, Data.Action.CompleteProperty) ]
+              (plain ConsoleKey.Tab, Action.CompleteProperty) ]
 
     let private toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
         match Enum.TryParse<'a>(k, true) with
@@ -140,9 +142,7 @@ module Keys =
     [<NoComparison>]
     [<NoEquality>]
     [<Struct>]
-    type private KeyInfo =
-        { Pattern: Data.KeyPattern
-          KeyChar: char }
+    type private KeyInfo = { Pattern: KeyPattern; KeyChar: char }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -151,7 +151,7 @@ module Keys =
     type private Key =
         | Char of c: char
         | Control of key: ConsoleKey
-        | Shortcut of action: Data.Action
+        | Shortcut of action: Action
 
     let private key (k: ConsoleKeyInfo) =
         let m = k.Modifiers.GetHashCode()
@@ -159,7 +159,7 @@ module Keys =
         { KeyChar = k.KeyChar
           Pattern = { Modifier = m; Key = k.Key } }
 
-    let private (|ShortcutKey|_|) (m: Map<Data.KeyPattern, Data.Action>) (k: KeyInfo) =
+    let private (|ShortcutKey|_|) (m: Map<KeyPattern, Action>) (k: KeyInfo) =
         match Map.tryFind k.Pattern m with
         | Some v -> Some v
         | _ -> None
@@ -169,21 +169,21 @@ module Keys =
         | true -> Some k.Pattern.Key
         | _ -> None
 
-    let private keyToAction (keymap: Map<Data.KeyPattern, Data.Action>) (key: KeyInfo) =
+    let private keyToAction (keymap: Map<KeyPattern, Action>) (key: KeyInfo) =
         match key with
         | ShortcutKey keymap k -> Key.Shortcut k
         | ControlKey c -> Key.Control c
         | _ -> Key.Char key.KeyChar
 
-    let get (keymap: Map<Data.KeyPattern, Data.Action>) (keyInfo: ConsoleKeyInfo list) =
+    let get (keymap: Map<KeyPattern, Action>) (keyInfo: ConsoleKeyInfo list) =
         keyInfo
         |> List.map (key >> keyToAction keymap)
         |> List.fold
             (fun acc x ->
                 (acc, x)
                 |> function
-                    | Data.Action.AddQuery s, Key.Char c -> string c |> (+) s |> Data.Action.AddQuery
-                    | _, Key.Char c -> Data.Action.AddQuery <| string c
+                    | Action.AddQuery s, Key.Char c -> string c |> (+) s |> Action.AddQuery
+                    | _, Key.Char c -> Action.AddQuery <| string c
                     | _, Key.Shortcut a -> a
-                    | _, Key.Control _ -> Data.Action.Noop)
-            Data.Action.Noop
+                    | _, Key.Control _ -> Action.Noop)
+            Action.Noop
