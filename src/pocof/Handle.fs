@@ -44,6 +44,49 @@ module Handle =
 
     let private forwardChar = moveCursorForwardWith InputMode.Input
 
+    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+
+    let private isWordDelimiter (c: char) =
+        Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
+
+    let rec private findWordCursor (str: char list) (cursor: int) =
+        match str with
+        | [] -> cursor
+        | c :: cs ->
+            if isWordDelimiter c then
+                cursor + 1 |> findWordCursor cs
+            else
+                cursor
+
+    let rec private findWordDelimiterCursor (str: char list) (cursor: int) =
+        match str with
+        | [] -> cursor
+        | c :: cs ->
+            if isWordDelimiter c then
+                cursor
+            else
+                cursor + 1 |> findWordDelimiterCursor cs
+
+    let private backwardWord (state: InternalState) =
+        let str =
+            state.QueryState.Query.Substring(0, state.QueryState.Cursor)
+            |> Seq.rev
+            |> List.ofSeq
+
+        // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
+        let i = findWordCursor str 0
+        let str = List.skip i str
+        let i = findWordDelimiterCursor str i
+        moveCursor -i 0 InputMode.Input state
+
+    let private forwardWord (state: InternalState) =
+        let str = state.QueryState.Query.Substring(state.QueryState.Cursor) |> List.ofSeq
+        // NOTE: emulate the behavior of the forward-word function in the PSReadLine.
+        let i = findWordDelimiterCursor str 0
+        let str = List.skip i str
+        let i = findWordCursor str i
+        moveCursor i <| String.length state.QueryState.Query <| InputMode.Input <| state
+
     let private setCursor
         (cursor: int)
         (mode: InputMode)
@@ -291,8 +334,8 @@ module Handle =
         | Action.AddQuery query -> addQuery state pos context query
         | Action.BackwardChar -> backwardChar state pos context
         | Action.ForwardChar -> forwardChar state pos context
-        | Action.BackwardWord
-        | Action.ForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | Action.BackwardWord -> backwardWord state pos context
+        | Action.ForwardWord -> forwardWord state pos context
         | Action.BeginningOfLine -> beginningOfLine state pos context
         | Action.EndOfLine -> endOfLine state pos context
         | Action.DeleteBackwardChar -> deleteBackwardChar state pos context
