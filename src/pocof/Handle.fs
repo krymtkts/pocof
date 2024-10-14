@@ -73,6 +73,7 @@ module Handle =
             |> Seq.rev
             |> List.ofSeq
 
+        // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
         let i = findWordCursor str 0
         let str = List.skip i str
         let i = findWordDelimiterCursor str i
@@ -80,6 +81,7 @@ module Handle =
 
     let private forwardWord (state: InternalState) =
         let str = state.QueryState.Query.Substring(state.QueryState.Cursor) |> List.ofSeq
+        // NOTE: emulate the behavior of the forward-word function in the PSReadLine.
         let i = findWordDelimiterCursor str 0
         let str = List.skip i str
         let i = findWordCursor str i
