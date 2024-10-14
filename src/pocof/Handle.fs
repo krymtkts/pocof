@@ -46,7 +46,7 @@ module Handle =
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
-    let inline private isWordDelimiter (c: char) =
+    let private isWordDelimiter (c: char) =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
     let rec private findWordCursor (str: char list) (cursor: int) =
@@ -66,11 +66,6 @@ module Handle =
                 cursor
             else
                 cursor + 1 |> findWordDelimiterCursor cs
-
-    let private getCursorToNextWord (str: char list) =
-        let i = findWordDelimiterCursor str 0
-        let str = List.skip i str
-        findWordCursor str i
 
     let private backwardWord (state: InternalState) =
         let str =
