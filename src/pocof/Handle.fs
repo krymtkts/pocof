@@ -78,12 +78,16 @@ module Handle =
             |> Seq.rev
             |> List.ofSeq
 
-        let i = getCursorToNextWord str
+        let i = findWordCursor str 0
+        let str = List.skip i str
+        let i = findWordDelimiterCursor str i
         moveCursor -i 0 InputMode.Input state
 
     let private forwardWord (state: InternalState) =
         let str = state.QueryState.Query.Substring(state.QueryState.Cursor) |> List.ofSeq
-        let i = getCursorToNextWord str
+        let i = findWordDelimiterCursor str 0
+        let str = List.skip i str
+        let i = findWordCursor str i
         moveCursor i <| String.length state.QueryState.Query <| InputMode.Input <| state
 
     let private setCursor
