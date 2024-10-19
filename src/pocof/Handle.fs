@@ -50,28 +50,21 @@ module Handle =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
     [<TailCall>]
-    let rec private findWordCursor (str: char list) (cursor: int) =
+    let rec private findCursorOfChar (predicate: char -> bool) (str: char list) (cursor: int) =
         match str with
         | [] -> List.Empty, cursor
         | c :: cs ->
-            if isWordDelimiter c then
-                cursor + 1 |> findWordCursor cs
+            if predicate c then
+                cursor + 1 |> findCursorOfChar predicate cs
             else
                 str, cursor
 
-    [<TailCall>]
-    let rec private findWordDelimiterCursor (str: char list) (cursor: int) =
-        match str with
-        | [] -> List.empty, cursor
-        | c :: cs ->
-            if isWordDelimiter c then
-                str, cursor
-            else
-                cursor + 1 |> findWordDelimiterCursor cs
+    let private findWordCursor = findCursorOfChar isWordDelimiter
+
+    let rec private findWordDelimiterCursor = findCursorOfChar (isWordDelimiter >> not)
 
     let private findBackwardWordCursor (query: string) (cursor: int) =
         let str = query.Substring(0, cursor) |> Seq.rev |> List.ofSeq
-
         // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
         findWordCursor str 0 ||> findWordDelimiterCursor
 
