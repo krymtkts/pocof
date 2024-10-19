@@ -5,6 +5,10 @@ inputs:
   codecov_token:
     description: "Codecov token"
     required: true
+  shell:
+    description: "Shell for the job. pwsh or powershell"
+    required: true
+    default: pwsh
 
 runs:
   using: composite
@@ -14,12 +18,12 @@ runs:
       with:
         global-json-file: ./global.json
     - name: Install modules from PSGallery
-      shell: pwsh
+      shell: ${{ inputs.shell }}
       run: |
         Set-PSResourceRepository PSGallery -Trusted
         Install-PSResource Psake,Pester,PSScriptAnalyzer -Quiet -Reinstall -Scope CurrentUser
     - name: Execute All Tests
-      shell: pwsh
+      shell: ${{ inputs.shell }}
       run: Invoke-Psake -taskList TestAll
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4

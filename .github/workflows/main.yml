@@ -18,6 +18,13 @@ jobs:
           - windows-latest
           - ubuntu-latest
           - macos-latest
+        shell:
+          - pwsh
+        include:
+          - os: windows-latest
+            shell: pwsh
+          - os: windows-latest
+            shell: powershell
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -26,6 +33,7 @@ jobs:
         uses: ./.github/actions/test
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
+          shell: ${{ matrix.shell }}
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/dotnet@master
         # snyk/actions uses Container action that is only supported on Linux.
