@@ -17,11 +17,17 @@ runs:
       uses: actions/setup-dotnet@v4
       with:
         global-json-file: ./global.json
-    - name: Install modules from PSGallery
+    - name: Install modules from PSGallery (pwsh)
       shell: ${{ inputs.shell }}
+      if: inputs.shell == 'pwsh'
       run: |
         Set-PSResourceRepository PSGallery -Trusted
         Install-PSResource Psake,Pester,PSScriptAnalyzer -Quiet -Reinstall -Scope CurrentUser
+    - name: Install modules from PSGallery (powershell)
+      shell: ${{ inputs.shell }}
+      if: inputs.shell == 'powershell'
+      run: |
+        Install-Module -Name Psake,Pester,PSScriptAnalyzer -Force -Scope CurrentUser -Repository PSGallery -SkipPublisherCheck
     - name: Execute All Tests
       shell: ${{ inputs.shell }}
       run: Invoke-Psake -taskList TestAll
