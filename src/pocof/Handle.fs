@@ -44,47 +44,41 @@ module Handle =
 
     let private forwardChar = moveCursorForwardWith InputMode.Input
 
-    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" // TODO: lift to Cmdlet Option.
 
     let private isWordDelimiter (c: char) =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
-    let rec private findWordCursor (str: char list) (cursor: int) =
+    [<TailCall>]
+    let rec private findCursorOfChar (predicate: char -> bool) (str: char list) (cursor: int) =
         match str with
-        | [] -> cursor
+        | [] -> List.Empty, cursor
         | c :: cs ->
-            if isWordDelimiter c then
-                cursor + 1 |> findWordCursor cs
+            if predicate c then
+                cursor + 1 |> findCursorOfChar predicate cs
             else
-                cursor
+                str, cursor
 
-    let rec private findWordDelimiterCursor (str: char list) (cursor: int) =
-        match str with
-        | [] -> cursor
-        | c :: cs ->
-            if isWordDelimiter c then
-                cursor
-            else
-                cursor + 1 |> findWordDelimiterCursor cs
+    let private findWordCursor = findCursorOfChar isWordDelimiter
+
+    let rec private findWordDelimiterCursor = findCursorOfChar (isWordDelimiter >> not)
+
+    let private findBackwardWordCursor (query: string) (cursor: int) =
+        let str = query.Substring(0, cursor) |> Seq.rev |> List.ofSeq
+        // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
+        findWordCursor str 0 ||> findWordDelimiterCursor
 
     let private backwardWord (state: InternalState) =
-        let str =
-            state.QueryState.Query.Substring(0, state.QueryState.Cursor)
-            |> Seq.rev
-            |> List.ofSeq
-
-        // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
-        let i = findWordCursor str 0
-        let str = List.skip i str
-        let i = findWordDelimiterCursor str i
+        let _, i = findBackwardWordCursor state.QueryState.Query state.QueryState.Cursor
         moveCursor -i 0 InputMode.Input state
 
-    let private forwardWord (state: InternalState) =
-        let str = state.QueryState.Query.Substring(state.QueryState.Cursor) |> List.ofSeq
+    let private findForwardWordCursor (query: string) (cursor: int) =
+        let str = query.Substring(cursor) |> List.ofSeq
         // NOTE: emulate the behavior of the forward-word function in the PSReadLine.
-        let i = findWordDelimiterCursor str 0
-        let str = List.skip i str
-        let i = findWordCursor str i
+        findWordDelimiterCursor str 0 ||> findWordCursor
+
+    let private forwardWord (state: InternalState) =
+        let _, i = findForwardWordCursor state.QueryState.Query state.QueryState.Cursor
         moveCursor i <| String.length state.QueryState.Query <| InputMode.Input <| state
 
     let private setCursor
