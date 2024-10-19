@@ -12,10 +12,10 @@ Properties {
     "Module: ${ModuleName} ver${ModuleVersion} root=${ModuleSrcPath} publish=${ModulePublishPath}"
 }
 
-Task default -depends TestAll
+Task default -Depends TestAll
 
 # NOTE: I don't know why, but if I add Lint before Test, the module import will be doubled.
-Task TestAll -depends Init, Build, UnitTest, Test, Lint
+Task TestAll -Depends Init, Build, UnitTest, Test, Lint
 
 Task Init {
     'Init is running!'
@@ -51,7 +51,7 @@ Task Lint {
     }
 }
 
-Task Build -depends Clean {
+Task Build -Depends Clean {
     'Build command let!'
     Import-LocalizedData -BindingVariable module -BaseDirectory $ModuleSrcPath -FileName "${ModuleName}.psd1"
     if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
@@ -70,7 +70,7 @@ Task UnitTest {
     Move-Item ./src/pocof.Test/TestResults/*/coverage.cobertura.xml ./src/pocof.Test/TestResults/coverage.cobertura.xml -Force
 }
 
-Task Coverage -depends UnitTest {
+Task Coverage -Depends UnitTest {
     Remove-Item ./coverage/*
     reportgenerator -reports:'./src/pocof.Test/TestResults/coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
@@ -96,7 +96,7 @@ Task UbuntuPwsh {
     }
 }
 
-Task Import -depends Build {
+Task Import -Depends Build {
     "Import $ModuleName ver$ModuleVersion"
     if ( -not ($ModuleName -and $ModuleVersion)) {
         throw "ModuleName or ModuleVersion not defined. $ModuleName, $ModuleVersion"
@@ -116,21 +116,21 @@ Task Import -depends Build {
     }
 }
 
-Task Test -depends Import {
+Task Test -Depends Import {
     $result = Invoke-Pester -PassThru
     if ($result.Failed) {
         throw 'Invoke-Pester failed.'
     }
 }
 
-Task ExternalHelp -depends Import {
+Task ExternalHelp -Depends Import {
     if (-not (Test-Path ./docs)) {
         New-MarkdownHelp -Module pocof -OutputFolder ./docs
     }
     New-ExternalHelp docs -OutputPath $ModuleSrcPath -Force
 }
 
-Task Release -precondition { $Stage -eq 'Release' } -depends TestAll, ExternalHelp {
+Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll, ExternalHelp {
     "Release $($ModuleName)! version=$ModuleVersion dryrun=$DryRun"
 
     $m = Get-Module $ModuleName
