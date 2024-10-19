@@ -49,6 +49,7 @@ module Handle =
     let private isWordDelimiter (c: char) =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
+    [<TailCall>]
     let rec private findWordCursor (str: char list) (cursor: int) =
         match str with
         | [] -> cursor
@@ -58,6 +59,7 @@ module Handle =
             else
                 cursor
 
+    [<TailCall>]
     let rec private findWordDelimiterCursor (str: char list) (cursor: int) =
         match str with
         | [] -> cursor
