@@ -157,6 +157,14 @@ module Handle =
 
     let private deleteForwardChar = removeChar Direction.Forward 1
 
+    let private deleteBackwardWord (state: InternalState) =
+        let _, i = findBackwardWordCursor state.QueryState.Query state.QueryState.Cursor
+        removeChar Direction.Backward i state
+
+    let private deleteForwardWord (state: InternalState) =
+        let _, i = findForwardWordCursor state.QueryState.Query state.QueryState.Cursor
+        removeChar Direction.Forward i state
+
     let private deleteBackwardInput (state: InternalState) (pos: Position) (context: QueryContext) =
         let state, pos, context =
             match state.QueryState.InputMode with
@@ -350,8 +358,8 @@ module Handle =
         | Action.EndOfLine -> endOfLine state pos context
         | Action.DeleteBackwardChar -> deleteBackwardChar state pos context
         | Action.DeleteForwardChar -> deleteForwardChar state pos context
-        | Action.DeleteBackwardWord
-        | Action.DeleteForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | Action.DeleteBackwardWord -> deleteBackwardWord state pos context
+        | Action.DeleteForwardWord -> deleteForwardWord state pos context
         | Action.DeleteBackwardInput -> deleteBackwardInput state pos context
         | Action.DeleteForwardInput -> deleteForwardInput state pos context
         | Action.SelectBackwardChar -> selectBackwardChar state pos context
