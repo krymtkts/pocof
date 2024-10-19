@@ -336,12 +336,13 @@ module Data =
             | _, 0 -> state.InputMode
             | x, y when (x + y < 0) || (x + y > String.length state.Query) -> state.InputMode
             | _ ->
-                let s =
-                    match state.InputMode with
-                    | InputMode.Input -> 0
-                    | InputMode.Select(s) -> s
-
-                InputMode.Select(s + cursor)
+                match state.InputMode with
+                | InputMode.Input -> 0
+                | InputMode.Select(s) -> s
+                |> (+) cursor
+                |> function
+                    | 0 -> InputMode.Input
+                    | s -> s |> InputMode.Select
 
         let backspaceQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             let index, count =
