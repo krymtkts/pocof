@@ -162,9 +162,7 @@ Describe 'pocof' {
                         Get-Date '2024-01-01'
                     ) ; Params = $BaseParam + $_
                 }
-            ) -Skip:($PSVersionTable.PSEdition -eq 'Desktop' ) {
-                # TODO: This test is not working on Windows PowerShell on GitHub Actions. It works well locally.
-                # TODO: It seems that the culture is not changed.
+            ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
             }
         }
