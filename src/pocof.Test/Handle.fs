@@ -1277,6 +1277,32 @@ module invokeAction =
 
             a3.Queries |> testQueryPartProperty "name" "aaa"
 
+        [<Fact>]
+        let ``should return QueryState with Cursor=0 and InputMode=Input when moving backward with Cursor=1 and InputMode=Select 1.``
+            ()
+            =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name aaa "
+                    InternalState.QueryState.Cursor = 1
+                    InternalState.QueryState.InputMode = InputMode.Select 1
+                    PropertySearch = PropertySearch.Search "name" }
+
+            let state, context = Query.prepare state
+            let pos: Position = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.SelectBackwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Cursor = 0
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.NoSearch },
+                pos
+            )
+
+            a3.Queries |> testQueryPartProperty "name" "aaa"
+
     module ``with SelectForwardWord`` =
         [<Fact>]
         let ``should return QueryState with Cursor=1 and InputMode=Select 1 when moving forward with Cursor=0 and InputMode=Input.``
@@ -1370,6 +1396,30 @@ module invokeAction =
             |> shouldEqual (
                 { state with
                     Refresh = Refresh.NotRequired },
+                pos
+            )
+
+            a3.Queries |> testQueryPartProperty "name" "aaa"
+
+        [<Fact>]
+        let ``should return QueryState with Cursor=10 and InputMode=Input when moving forward with Cursor=6 and InputMode=Select 4.``
+            ()
+            =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name aaa "
+                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.InputMode = InputMode.Select -4 }
+
+            let state, context = Query.prepare state
+            let pos: Position = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.SelectForwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Cursor = 10
+                    InternalState.QueryState.InputMode = InputMode.Input },
                 pos
             )
 
