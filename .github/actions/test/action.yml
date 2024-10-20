@@ -28,6 +28,8 @@ runs:
       if: inputs.shell == 'powershell'
       run: |
         Install-Module -Name Psake,Pester,PSScriptAnalyzer -Force -Scope CurrentUser -Repository PSGallery -SkipPublisherCheck
+        Set-ItemProperty -Path 'HKCU:\Control Panel\International' -Name 'sShortDate' -Value 'yyyy-MM-dd'
+        RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
     - name: Execute All Tests
       shell: ${{ inputs.shell }}
       run: Invoke-Psake -taskList TestAll
