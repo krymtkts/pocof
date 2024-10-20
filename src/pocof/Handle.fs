@@ -194,6 +194,22 @@ module Handle =
         <| QueryState.getQuerySelection 1 state.QueryState
         <| state
 
+    let private selectBackwardWord (state: InternalState) =
+        let _, i = findBackwardWordCursor state.QueryState.Query state.QueryState.Cursor
+
+        setCursor
+        <| state.QueryState.Cursor - i
+        <| QueryState.getQuerySelection -i state.QueryState
+        <| state
+
+    let private selectForwardWord (state: InternalState) =
+        let _, i = findForwardWordCursor state.QueryState.Query state.QueryState.Cursor
+
+        setCursor
+        <| state.QueryState.Cursor + i
+        <| QueryState.getQuerySelection i state.QueryState
+        <| state
+
     let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
         setCursor 0
         <| QueryState.getQuerySelection -state.QueryState.Cursor state.QueryState
@@ -340,8 +356,8 @@ module Handle =
         | Action.DeleteForwardInput -> deleteForwardInput state pos context
         | Action.SelectBackwardChar -> selectBackwardChar state pos context
         | Action.SelectForwardChar -> selectForwardChar state pos context
-        | Action.SelectBackwardWord
-        | Action.SelectForwardWord -> InternalState.noRefresh state, pos, context // TODO: implement it.
+        | Action.SelectBackwardWord -> selectBackwardWord state pos context
+        | Action.SelectForwardWord -> selectForwardWord state pos context
         | Action.SelectToBeginningOfLine -> selectToBeginningOfLine state pos context
         | Action.SelectToEndOfLine -> selectToEndOfLine state pos context
         | Action.SelectAll -> selectAll state pos context

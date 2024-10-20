@@ -56,8 +56,8 @@ module Keys =
 
               (shift ConsoleKey.LeftArrow, Action.SelectBackwardChar)
               (shift ConsoleKey.RightArrow, Action.SelectForwardChar)
-              (ctlSft ConsoleKey.LeftArrow, Action.SelectBackwardChar)
-              (ctlSft ConsoleKey.RightArrow, Action.SelectForwardChar)
+              (ctlSft ConsoleKey.LeftArrow, Action.SelectBackwardWord)
+              (ctlSft ConsoleKey.RightArrow, Action.SelectForwardWord)
               (shift ConsoleKey.Home, Action.SelectToBeginningOfLine)
               (shift ConsoleKey.End, Action.SelectToEndOfLine)
               (ctrl ConsoleKey.A, Action.SelectAll)
