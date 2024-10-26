@@ -811,7 +811,128 @@ module invokeAction =
 
     module ``with DeleteBackwardWord`` =
         [<Fact>]
-        let ``shouldn't return any difference when DeleteBackwardWord is entered.`` () = noop Action.DeleteForwardWord
+        let ``should remove the word to the left of cursor, making state.Query one word shorter.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name pocof "
+                    InternalState.QueryState.Cursor = 6
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+
+            let a1, a2, a3 =
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":pocof "
+                    InternalState.QueryState.Cursor = 1
+                    PropertySearch = PropertySearch.Search "" },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> testQueryEnd
+
+        [<Fact>]
+        let ``should not change state if the cursor position is at the begin of line.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name pocof "
+                    InternalState.QueryState.Cursor = 0
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+
+            let a1, a2, a3 =
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name pocof "
+                    InternalState.QueryState.Cursor = 0
+                    PropertySearch = PropertySearch.NoSearch
+                    Refresh = Refresh.NotRequired },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> testQueryPartProperty "name" "pocof"
+
+        [<Fact>]
+        let ``should correct state if the cursor position is over the query length.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ""
+                    InternalState.QueryState.Cursor = 2
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+
+            let a1, a2, a3 =
+                invokeAction state { Y = 0; Height = 20 } context Action.DeleteBackwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ""
+                    InternalState.QueryState.Cursor = 0
+                    PropertySearch = PropertySearch.NoSearch
+                    Refresh = Refresh.Required },
+                { Y = 0; Height = 20 }
+            )
+
+            a3.Queries |> testQueryEnd
+
+        [<Fact>]
+        let ``should remove the forward selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name pocof "
+                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.InputMode = InputMode.Select -5
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ": "
+                    InternalState.QueryState.Cursor = 1
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "" },
+                pos
+            )
+
+            a3.Queries |> testQueryEnd
+
+        [<Fact>]
+        let ``should remove the backward selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name pocof "
+                    InternalState.QueryState.Cursor = 11
+                    InternalState.QueryState.InputMode = InputMode.Select 1
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name  "
+                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.NoSearch },
+                pos
+            )
+
+            a3.Queries |> testQueryEnd
 
     module ``with DeleteForwardWord`` =
         [<Fact>]
