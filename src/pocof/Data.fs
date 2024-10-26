@@ -295,6 +295,7 @@ module Data =
     [<NoComparison>]
     type InputMode =
         | Input
+        // TODO: positive number is the number of selected characters before the cursor. negative number is the number of selected characters after the cursor. it's complicated.
         | Select of count: int
 
     [<NoComparison>]
