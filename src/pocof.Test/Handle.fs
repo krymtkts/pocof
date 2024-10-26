@@ -910,7 +910,7 @@ module invokeAction =
             a3.Queries |> testQueryEnd
 
         [<Fact>]
-        let ``should remove the backward selection.`` () =
+        let ``should remove the backward word larger than selection.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name pocof "
@@ -929,6 +929,31 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 6
                     InternalState.QueryState.InputMode = InputMode.Input
                     PropertySearch = PropertySearch.NoSearch },
+                pos
+            )
+
+            a3.Queries |> testQueryEnd
+
+        [<Fact>]
+        let ``should remove the backward selection larger then word.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name pocof "
+                    InternalState.QueryState.Cursor = 11
+                    InternalState.QueryState.InputMode = InputMode.Select 7
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteBackwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":nam "
+                    InternalState.QueryState.Cursor = 4
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.Search "nam" },
                 pos
             )
 
@@ -1010,12 +1035,37 @@ module invokeAction =
             a3.Queries |> testQueryEnd
 
         [<Fact>]
-        let ``should remove the forward selection.`` () =
+        let ``should remove the forward selection larger than word.`` () =
             let state =
                 { state with
                     InternalState.QueryState.Query = ":name pocof "
                     InternalState.QueryState.Cursor = 6
                     InternalState.QueryState.InputMode = InputMode.Select -3
+                    PropertySearch = PropertySearch.NoSearch }
+
+            let state, context = Query.prepare state
+            let pos = { Y = 0; Height = 20 }
+            let a1, a2, a3 = invokeAction state pos context Action.DeleteForwardWord
+
+            (a1, a2)
+            |> shouldEqual (
+                { state with
+                    InternalState.QueryState.Query = ":name "
+                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.InputMode = InputMode.Input
+                    PropertySearch = PropertySearch.NoSearch },
+                pos
+            )
+
+            a3.Queries |> testQueryEnd
+
+        [<Fact>]
+        let ``should remove the forward word larger than selection.`` () =
+            let state =
+                { state with
+                    InternalState.QueryState.Query = ":name pocof a"
+                    InternalState.QueryState.Cursor = 6
+                    InternalState.QueryState.InputMode = InputMode.Select -7
                     PropertySearch = PropertySearch.NoSearch }
 
             let state, context = Query.prepare state
