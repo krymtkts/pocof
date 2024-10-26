@@ -180,7 +180,7 @@ module Handle =
 
                     state, pos, context, i // TODO: i has no meaning when the selection is not empty.
                 else
-                    let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
+                    let selection = state.QueryState.Cursor - c
                     let state, pos, context = setCursor selection InputMode.Input state pos context
                     state, pos, context, i - c
 
@@ -203,7 +203,7 @@ module Handle =
 
                     state, pos, context, i // TODO: i has no meaning when the selection is not empty.
                 else
-                    let selection = min state.QueryState.Cursor <| state.QueryState.Cursor - c
+                    let selection = state.QueryState.Cursor - c
                     let state, pos, context = setCursor selection InputMode.Input state pos context
                     state, pos, context, i + c
 
