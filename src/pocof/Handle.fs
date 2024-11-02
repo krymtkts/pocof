@@ -19,7 +19,6 @@ module Handle =
 
         state, pos, context |> QueryContext.prepareQuery state
 
-
     let private updateCursor
         (update: QueryState -> int -> QueryState)
         (cursor: int)
@@ -39,11 +38,8 @@ module Handle =
     let private moveCursor = updateCursor QueryState.moveCursor
     let private moveCursorBackwardWith = moveCursor -1
     let private backwardChar = moveCursorBackwardWith InputMode.Input
-
     let private moveCursorForwardWith (mode: InputMode) (state: InternalState) = moveCursor 1 mode state
-
     let private forwardChar = moveCursorForwardWith InputMode.Input
-
     let defaultWordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" // TODO: lift to Cmdlet Option.
 
     let private isWordDelimiter (wordDelimiters: string) (c: char) =
@@ -151,7 +147,6 @@ module Handle =
                 s, pos, context |> QueryContext.prepareQuery s
 
     let private deleteBackwardChar = removeChar Direction.Backward 1
-
     let private deleteForwardChar = removeChar Direction.Forward 1
 
     let private deleteBackwardWord (state: InternalState) (pos: Position) (context: QueryContext) =
