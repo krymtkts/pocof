@@ -59,6 +59,10 @@ type SelectPocofCommand() =
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
 
+    [<Parameter>]
+    [<ValidateNotNullOrEmpty>]
+    member val WordDelimiters = Pocof.defaultWordDelimiters
+
     abstract member Invoke: 'a seq -> string seq
 
     default __.Invoke(input: 'a seq) =
