@@ -39,4 +39,4 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --all-projects
+          args: --all-projects --org=krymtkts
