@@ -61,7 +61,7 @@ type SelectPocofCommand() =
 
     [<Parameter>]
     [<ValidateNotNullOrEmpty>]
-    member val WordDelimiters = Pocof.defaultWordDelimiters
+    member val WordDelimiters = Pocof.defaultWordDelimiters with get, set
 
     abstract member Invoke: 'a seq -> string seq
 
