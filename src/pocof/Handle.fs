@@ -21,7 +21,6 @@ module Handle =
 
     let private moveCursor
         (cursor: int)
-        (limit: int)
         (mode: InputMode)
         (state: InternalState)
         (pos: Position)
@@ -31,16 +30,15 @@ module Handle =
             QueryState.moveCursor state.QueryState cursor |> QueryState.setInputMode mode
 
         state
-        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> limit)
+        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> qs.Cursor)
         |> InternalState.updateQueryState qs,
         pos,
         context
 
-    let private moveCursorBackwardWith = moveCursor -1 0
+    let private moveCursorBackwardWith = moveCursor -1
     let private backwardChar = moveCursorBackwardWith InputMode.Input
 
-    let private moveCursorForwardWith (mode: InputMode) (state: InternalState) =
-        moveCursor 1 <| String.length state.QueryState.Query <| mode <| state
+    let private moveCursorForwardWith (mode: InputMode) (state: InternalState) = moveCursor 1 mode state
 
     let private forwardChar = moveCursorForwardWith InputMode.Input
 
@@ -77,7 +75,7 @@ module Handle =
         let _, i =
             findBackwardWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
 
-        moveCursor -i 0 InputMode.Input state
+        moveCursor -i InputMode.Input state
 
     let private findForwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
         if String.length query < cursor then
@@ -91,7 +89,7 @@ module Handle =
         let _, i =
             findForwardWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
 
-        moveCursor i <| String.length state.QueryState.Query <| InputMode.Input <| state
+        moveCursor i InputMode.Input state
 
     let private setCursor
         (cursor: int)
@@ -104,7 +102,7 @@ module Handle =
             QueryState.setCursor state.QueryState cursor |> QueryState.setInputMode mode
 
         state
-        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> cursor)
+        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> qs.Cursor)
         |> InternalState.updateQueryState qs,
         pos,
         context
