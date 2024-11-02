@@ -44,10 +44,10 @@ module Handle =
 
     let private forwardChar = moveCursorForwardWith InputMode.Input
 
-    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" // TODO: lift to Cmdlet Option.
+    let defaultWordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" // TODO: lift to Cmdlet Option.
 
     let private isWordDelimiter (c: char) =
-        Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
+        Char.IsWhiteSpace c || defaultWordDelimiters.IndexOf(c) >= 0
 
     [<TailCall>]
     let rec private findCursorOfChar (predicate: char -> bool) (str: char list) (cursor: int) =
