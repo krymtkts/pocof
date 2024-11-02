@@ -69,12 +69,6 @@ module Handle =
             // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
             findWordCursor wordDelimiters str 0 ||> findWordDelimiterCursor wordDelimiters
 
-    let private backwardWord (state: InternalState) =
-        let _, i =
-            findBackwardWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
-
-        moveCursor -i InputMode.Input state
-
     let private findForwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
         if String.length query < cursor then
             List.Empty, 0
@@ -83,12 +77,16 @@ module Handle =
             // NOTE: emulate the behavior of the forward-word function in the PSReadLine.
             findWordDelimiterCursor wordDelimiters str 0 ||> findWordCursor wordDelimiters
 
-    let private forwardWord (state: InternalState) =
-        let _, i =
-            findForwardWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
+    let private wordAction (findWordCursor) (converter) (state: InternalState) =
+        let i =
+            findWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
+            |> snd
+            |> converter
 
         moveCursor i InputMode.Input state
 
+    let private backwardWord = wordAction findBackwardWordCursor (~-)
+    let private forwardWord = wordAction findForwardWordCursor id
     let private setCursor = updateCursor QueryState.setCursor
     let private beginningOfLine = setCursor 0 InputMode.Input
 
