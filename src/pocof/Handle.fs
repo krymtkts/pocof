@@ -19,15 +19,16 @@ module Handle =
 
         state, pos, context |> QueryContext.prepareQuery state
 
-    let private moveCursor
+
+    let private updateCursor
+        (update: QueryState -> int -> QueryState)
         (cursor: int)
         (mode: InputMode)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
         =
-        let qs =
-            QueryState.moveCursor state.QueryState cursor |> QueryState.setInputMode mode
+        let qs = update state.QueryState cursor |> QueryState.setInputMode mode
 
         state
         |> InternalState.refreshIfTrue (state.QueryState.Cursor <> qs.Cursor)
@@ -35,6 +36,7 @@ module Handle =
         pos,
         context
 
+    let private moveCursor = updateCursor QueryState.moveCursor
     let private moveCursorBackwardWith = moveCursor -1
     let private backwardChar = moveCursorBackwardWith InputMode.Input
 
@@ -91,22 +93,7 @@ module Handle =
 
         moveCursor i InputMode.Input state
 
-    let private setCursor
-        (cursor: int)
-        (mode: InputMode)
-        (state: InternalState)
-        (pos: Position)
-        (context: QueryContext)
-        =
-        let qs =
-            QueryState.setCursor state.QueryState cursor |> QueryState.setInputMode mode
-
-        state
-        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> qs.Cursor)
-        |> InternalState.updateQueryState qs,
-        pos,
-        context
-
+    let private setCursor = updateCursor QueryState.setCursor
     let private beginningOfLine = setCursor 0 InputMode.Input
 
     let private endOfLine (state: InternalState) =
