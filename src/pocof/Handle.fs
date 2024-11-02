@@ -56,10 +56,10 @@ module Handle =
                 str, cursor
 
     let private findWordCursor wordDelimiters =
-        findCursorOfChar <| isWordDelimiter wordDelimiters
+        isWordDelimiter wordDelimiters |> findCursorOfChar
 
     let rec private findWordDelimiterCursor wordDelimiters =
-        findCursorOfChar (isWordDelimiter wordDelimiters >> not)
+        isWordDelimiter wordDelimiters >> not |> findCursorOfChar
 
     let private findBackwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
         if String.length query < cursor then
