@@ -223,3 +223,28 @@ module SelectPocofCommand =
 
         cmdlet.InvokeForTest()
         runtime.Output |> shouldEqual [ "a" ]
+
+    [<Fact>]
+    let ``can set properties.`` () =
+        let runtime = new Mock.CommandRuntime()
+        let cmdlet = SelectPocofCommandForTest()
+
+        cmdlet.CommandRuntime <- runtime
+        cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+        cmdlet.Query <- "a"
+        cmdlet.Matcher <- "Match"
+        cmdlet.Operator <- "Or"
+        cmdlet.CaseSensitive <- true
+        cmdlet.InvertQuery <- true
+        cmdlet.NonInteractive <- true
+        cmdlet.SuppressProperties <- true
+        cmdlet.Unique <- true
+        cmdlet.Prompt <- ">"
+        cmdlet.Layout <- "TopDown"
+
+        cmdlet.Keymaps <-
+            let k = new Hashtable()
+            k.Add("Escape", "Finish")
+            k
+
+        cmdlet.WordDelimiters <- "_"

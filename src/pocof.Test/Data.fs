@@ -189,6 +189,7 @@ module initConfig =
               NotInteractive = true
               SuppressProperties = true
               Prompt = "prompt"
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
               Layout = "TopDown"
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
               Properties = [ "name"; "attributes" ]
@@ -217,6 +218,7 @@ module initConfig =
               Properties = [ "name"; "attributes" ]
               PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
               Prompt = "prompt"
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
               FilteredCount = 10
               ConsoleWidth = 60
               Refresh = Refresh.Required },
@@ -235,6 +237,7 @@ module initConfig =
                   NotInteractive = false
                   SuppressProperties = false
                   Prompt = "prompt"
+                  WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
                   Layout = "TopDown"
                   Keymaps = Map []
                   Properties = []
@@ -256,6 +259,7 @@ module initConfig =
                   NotInteractive = false
                   SuppressProperties = false
                   Prompt = "prompt"
+                  WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
                   Layout = "TopDown"
                   Keymaps = Map []
                   Properties = []
@@ -278,6 +282,7 @@ module initConfig =
                   NotInteractive = false
                   SuppressProperties = false
                   Prompt = "prompt"
+                  WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
                   Layout = "LeftToRight"
                   Keymaps = Map []
                   Properties = []

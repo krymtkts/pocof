@@ -59,6 +59,10 @@ type SelectPocofCommand() =
     [<Parameter>]
     member val Keymaps: Hashtable = null with get, set
 
+    [<Parameter>]
+    [<ValidateNotNullOrEmpty>]
+    member val WordDelimiters = Pocof.defaultWordDelimiters with get, set
+
     abstract member Invoke: 'a seq -> string seq
 
     default __.Invoke(input: 'a seq) =
@@ -115,6 +119,7 @@ type SelectPocofCommand() =
                   NotInteractive = __.NonInteractive.IsPresent
                   SuppressProperties = __.SuppressProperties.IsPresent
                   Prompt = __.Prompt
+                  WordDelimiters = __.WordDelimiters
                   Layout = __.Layout
                   Keymaps = keymaps
                   Properties = properties.GetProperties()
