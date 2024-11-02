@@ -451,6 +451,7 @@ module Data =
           Properties: Generic.IReadOnlyCollection<string>
           PropertyMap: Generic.IReadOnlyDictionary<string, string>
           Prompt: string
+          WordDelimiters: string
           FilteredCount: int
           ConsoleWidth: int
           Refresh: Refresh }
@@ -542,6 +543,7 @@ module Data =
           NotInteractive: bool
           SuppressProperties: bool
           Prompt: string
+          WordDelimiters: string
           Layout: string
           Keymaps: Map<KeyPattern, Action>
           Properties: Generic.IReadOnlyCollection<string>
@@ -571,6 +573,7 @@ module Data =
               Properties = p.Properties
               PropertyMap = p.PropertiesMap
               Prompt = p.Prompt
+              WordDelimiters = p.WordDelimiters
               FilteredCount = p.EntryCount
               ConsoleWidth = p.ConsoleWidth
               Refresh = Refresh.Required }

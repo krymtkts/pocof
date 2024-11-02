@@ -119,6 +119,7 @@ type SelectPocofCommand() =
                   NotInteractive = __.NonInteractive.IsPresent
                   SuppressProperties = __.SuppressProperties.IsPresent
                   Prompt = __.Prompt
+                  WordDelimiters = __.WordDelimiters
                   Layout = __.Layout
                   Keymaps = keymaps
                   Properties = properties.GetProperties()

@@ -145,6 +145,29 @@ module ``Buff writeScreen`` =
     open System.Collections
     open System.Management.Automation
 
+    let state: InternalState =
+        { QueryState =
+            { Query = "foo"
+              Cursor = 3
+              WindowBeginningCursor = 0
+              WindowWidth = 0
+              InputMode = InputMode.Input }
+          QueryCondition =
+            { Matcher = Matcher.Match
+              Operator = Operator.And
+              CaseSensitive = true
+              Invert = false }
+          PropertySearch = PropertySearch.NoSearch
+          Notification = ""
+          SuppressProperties = false
+          Properties = []
+          PropertyMap = Map []
+          Prompt = "query"
+          WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+          FilteredCount = 0
+          ConsoleWidth = 0
+          Refresh = Refresh.Required }
+
     let getRenderedScreen rui state layout =
         // NOTE: avoid cleanup of buff to check screen.
         let buff = new Buff(rui, (fun _ -> Seq.empty), layout)
@@ -155,28 +178,8 @@ module ``Buff writeScreen`` =
     let ``should render top down.`` () =
         let rui = new MockRawUI()
 
-        let state: InternalState =
-            { QueryState =
-                { Query = "foo"
-                  Cursor = 3
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Match
-                  Operator = Operator.And
-                  CaseSensitive = true
-                  Invert = false }
-              PropertySearch = PropertySearch.NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              PropertyMap = Map []
-              Prompt = "query"
-              FilteredCount = 0
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
-            |> InternalState.updateWindowWidth
+        let state =
+            { state with ConsoleWidth = rui.width } |> InternalState.updateWindowWidth
 
         let rui = getRenderedScreen rui state Layout.TopDown
 
@@ -193,28 +196,8 @@ module ``Buff writeScreen`` =
         (rui :> IRawUI).GetCursorPosition()
         |> (fun (x, y) -> (rui :> IRawUI).SetCursorPosition <| x / 2 <| y / 2 + 1)
 
-        let state: InternalState =
-            { QueryState =
-                { Query = "foo"
-                  Cursor = 3
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Match
-                  Operator = Operator.And
-                  CaseSensitive = true
-                  Invert = false }
-              PropertySearch = PropertySearch.NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              PropertyMap = Map []
-              Prompt = "query"
-              FilteredCount = 0
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
-            |> InternalState.updateWindowWidth
+        let state =
+            { state with ConsoleWidth = rui.width } |> InternalState.updateWindowWidth
 
         let rui = getRenderedScreen rui state Layout.TopDownHalf
 
@@ -230,27 +213,21 @@ module ``Buff writeScreen`` =
     let ``should render bottom up.`` () =
         let rui = new MockRawUI()
 
-        let state: InternalState =
-            { QueryState =
-                { Query = "hello*world*"
-                  Cursor = 12
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Like
-                  Operator = Operator.Or
-                  CaseSensitive = false
-                  Invert = true }
-              PropertySearch = PropertySearch.NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              PropertyMap = Map []
-              Prompt = "prompt"
-              FilteredCount = 0
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
+        let state =
+            { state with
+                QueryState =
+                    { Query = "hello*world*"
+                      Cursor = 12
+                      WindowBeginningCursor = 0
+                      WindowWidth = 0
+                      InputMode = InputMode.Input }
+                QueryCondition =
+                    { Matcher = Matcher.Like
+                      Operator = Operator.Or
+                      CaseSensitive = false
+                      Invert = true }
+                Prompt = "prompt"
+                ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
 
         let rui = getRenderedScreen rui state Layout.BottomUp
@@ -267,26 +244,16 @@ module ``Buff writeScreen`` =
         let rui = new MockRawUI()
 
         let state: InternalState =
-            { QueryState =
-                { Query = "hello*world*"
-                  Cursor = 12
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Like
-                  Operator = Operator.Or
-                  CaseSensitive = false
-                  Invert = true }
-              PropertySearch = PropertySearch.NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              PropertyMap = Map []
-              Prompt = "prompt"
-              FilteredCount = 0
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
+            { state with
+                InternalState.QueryState.Query = "hello*world*"
+                InternalState.QueryState.Cursor = 12
+                QueryCondition =
+                    { Matcher = Matcher.Like
+                      Operator = Operator.Or
+                      CaseSensitive = false
+                      Invert = true }
+                Prompt = "prompt"
+                ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
 
         let rui = getRenderedScreen rui state Layout.BottomUpHalf
@@ -303,26 +270,12 @@ module ``Buff writeScreen`` =
         let rui = new MockRawUI(80, 30)
 
         let state: InternalState =
-            { QueryState =
-                { Query = @"\"
-                  Cursor = 1
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Match
-                  Operator = Operator.And
-                  CaseSensitive = false
-                  Invert = false }
-              PropertySearch = PropertySearch.NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              PropertyMap = Map []
-              Prompt = "prompt"
-              FilteredCount = 0
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
+            { state with
+                InternalState.QueryState.Query = @"\"
+                InternalState.QueryState.Cursor = 1
+                InternalState.QueryCondition.CaseSensitive = false
+                Prompt = "prompt"
+                ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
             |> Pocof.Query.InternalState.prepareNotification
 
@@ -340,30 +293,18 @@ module ``Buff writeScreen`` =
     let ``should render property suggestions.`` () =
         let rui = new MockRawUI(80, 30)
         use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
-
         let props = [ 1..20 ] |> List.map (fun i -> $"Name%02d{i}")
 
         let state: InternalState =
-            { QueryState =
-                { Query = @":"
-                  Cursor = 1
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Match
-                  Operator = Operator.And
-                  CaseSensitive = false
-                  Invert = false }
-              PropertySearch = PropertySearch.Search("")
-              Notification = ""
-              SuppressProperties = false
-              Properties = props
-              PropertyMap = props |> List.map (fun s -> (s.ToLower(), s)) |> Map
-              Prompt = "prompt"
-              FilteredCount = 0
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
+            { state with
+                InternalState.QueryState.Query = @":"
+                InternalState.QueryState.Cursor = 1
+                InternalState.QueryCondition.CaseSensitive = false
+                PropertySearch = PropertySearch.Search("")
+                Properties = props
+                PropertyMap = props |> List.map (fun s -> (s.ToLower(), s)) |> Map
+                Prompt = "prompt"
+                ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
             |> Pocof.Query.InternalState.prepareNotification
 
@@ -384,26 +325,12 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
 
         let state: InternalState =
-            { QueryState =
-                { Query = @":unknown"
-                  Cursor = 8
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Match
-                  Operator = Operator.And
-                  CaseSensitive = false
-                  Invert = false }
-              PropertySearch = PropertySearch.NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              PropertyMap = Map []
-              Prompt = "prompt"
-              FilteredCount = 0
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
+            { state with
+                InternalState.QueryState.Query = @":unknown"
+                InternalState.QueryState.Cursor = 8
+                InternalState.QueryCondition.CaseSensitive = false
+                Prompt = "prompt"
+                ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
 
         buff.WriteScreen Layout.TopDown state PSeq.empty <| Error "Property not found"
@@ -431,26 +358,13 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, formatTableOutString, Layout.TopDown)
 
         let state: InternalState =
-            { QueryState =
-                { Query = ""
-                  Cursor = 0
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Match
-                  Operator = Operator.And
-                  CaseSensitive = false
-                  Invert = false }
-              PropertySearch = PropertySearch.NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              PropertyMap = Map []
-              Prompt = "prompt"
-              FilteredCount = 10
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
+            { state with
+                InternalState.QueryState.Query = ""
+                InternalState.QueryState.Cursor = 0
+                InternalState.QueryCondition.CaseSensitive = false
+                Prompt = "prompt"
+                FilteredCount = 10
+                ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
 
         let entries =
@@ -480,26 +394,13 @@ module ``Buff writeScreen`` =
         use buff = new Buff(rui, formatTableOutString, Layout.TopDown)
 
         let state: InternalState =
-            { QueryState =
-                { Query = ""
-                  Cursor = 0
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Match
-                  Operator = Operator.And
-                  CaseSensitive = false
-                  Invert = false }
-              PropertySearch = PropertySearch.NoSearch
-              Notification = ""
-              SuppressProperties = false
-              Properties = []
-              PropertyMap = Map []
-              Prompt = "prompt"
-              FilteredCount = 100
-              ConsoleWidth = rui.width
-              Refresh = Refresh.Required }
+            { state with
+                InternalState.QueryState.Query = ""
+                InternalState.QueryState.Cursor = 0
+                InternalState.QueryCondition.CaseSensitive = false
+                Prompt = "prompt"
+                FilteredCount = 100
+                ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
 
         let entries =
@@ -525,27 +426,16 @@ module ``Buff writeScreen`` =
         let getRenderedScreen query cursor beginning =
             let rui = new MockRawUI(50, 25)
             // NOTE: avoid cleanup of buff to check screen.
-            let state: InternalState =
-                { QueryState =
-                    { Query = query
-                      Cursor = cursor
-                      WindowBeginningCursor = beginning
-                      WindowWidth = 30
-                      InputMode = InputMode.Input }
-                  QueryCondition =
-                    { Matcher = Matcher.Match
-                      Operator = Operator.And
-                      CaseSensitive = false
-                      Invert = false }
-                  PropertySearch = PropertySearch.NoSearch
-                  Notification = ""
-                  SuppressProperties = false
-                  Properties = []
-                  PropertyMap = Map []
-                  Prompt = "query"
-                  FilteredCount = 0
-                  ConsoleWidth = rui.width
-                  Refresh = Refresh.Required }
+            let state =
+                { state with
+                    QueryState =
+                        { Query = query
+                          Cursor = cursor
+                          WindowBeginningCursor = beginning
+                          WindowWidth = 30
+                          InputMode = InputMode.Input }
+                    InternalState.QueryCondition.CaseSensitive = false
+                    ConsoleWidth = rui.width }
 
             getRenderedScreen rui state Layout.TopDown
 
@@ -656,27 +546,16 @@ module ``Buff writeScreen`` =
         let getRenderedScreen query cursor beginning inputMode =
             let rui = new MockRawUI(50, 25)
             // NOTE: avoid cleanup of buff to check screen.
-            let state: InternalState =
-                { QueryState =
-                    { Query = query
-                      Cursor = cursor
-                      WindowBeginningCursor = beginning
-                      WindowWidth = 30
-                      InputMode = inputMode }
-                  QueryCondition =
-                    { Matcher = Matcher.Match
-                      Operator = Operator.And
-                      CaseSensitive = false
-                      Invert = false }
-                  PropertySearch = PropertySearch.NoSearch
-                  Notification = ""
-                  SuppressProperties = false
-                  Properties = []
-                  PropertyMap = Map []
-                  Prompt = "query"
-                  FilteredCount = 0
-                  ConsoleWidth = rui.width
-                  Refresh = Refresh.Required }
+            let state =
+                { state with
+                    QueryState =
+                        { Query = query
+                          Cursor = cursor
+                          WindowBeginningCursor = beginning
+                          WindowWidth = 30
+                          InputMode = inputMode }
+                    InternalState.QueryCondition.CaseSensitive = false
+                    ConsoleWidth = rui.width }
 
             getRenderedScreen rui state Layout.TopDown
 
