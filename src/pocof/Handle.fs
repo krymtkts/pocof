@@ -134,7 +134,7 @@ module Handle =
                     | Direction.Forward -> QueryState.deleteQuery state.QueryState
                     <| size
 
-                let s =
+                let state =
                     state
                     |> InternalState.refreshIfTrue (
                         state.QueryState.Query <> qs.Query || state.QueryState.Cursor <> qs.Cursor
@@ -142,7 +142,7 @@ module Handle =
                     |> InternalState.updateQueryState qs
                     |> InternalState.prepareNotification
 
-                s, pos, context |> QueryContext.prepareQuery s
+                state, pos, context |> QueryContext.prepareQuery state
 
     let private deleteBackwardChar = removeChar Direction.Backward 1
     let private deleteForwardChar = removeChar Direction.Forward 1
@@ -201,9 +201,7 @@ module Handle =
             | InputMode.Input -> (state, pos, context)
             | InputMode.Select c ->
                 let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
-                let state, pos, context = setCursor selection InputMode.Input state pos context
-                let mode = QueryState.getQuerySelection -selection state.QueryState
-                setCursor 0 mode state pos context
+                setCursor selection InputMode.Input state pos context
 
         removeChar Direction.Backward state.QueryState.Cursor state pos context
 
@@ -215,9 +213,7 @@ module Handle =
             | InputMode.Input -> (state, pos, context, state.QueryState.Cursor)
             | InputMode.Select c ->
                 let beginning = min state.QueryState.Cursor <| state.QueryState.Cursor - c
-                let state, pos, context = setCursor queryLength InputMode.Input state pos context
-                let mode = QueryState.getQuerySelection -(queryLength - beginning) state.QueryState
-                let state, pos, context = setCursor beginning mode state pos context
+                let state, pos, context = setCursor beginning InputMode.Input state pos context
                 state, pos, context, beginning
 
         removeChar Direction.Forward (queryLength - beginning) state pos context
