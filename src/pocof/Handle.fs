@@ -241,23 +241,18 @@ module Handle =
         <| QueryState.getQuerySelection 1 state.QueryState
         <| state
 
-    let private selectBackwardWord (state: InternalState) =
-        let _, i =
-            findBackwardWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
+    let private selectWord findCursor operator converter (state: InternalState) =
+        let i =
+            findCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
+            |> snd
 
         setCursor
-        <| state.QueryState.Cursor - i
-        <| QueryState.getQuerySelection -i state.QueryState
+        <| operator state.QueryState.Cursor i
+        <| QueryState.getQuerySelection (converter i) state.QueryState
         <| state
 
-    let private selectForwardWord (state: InternalState) =
-        let _, i =
-            findForwardWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
-
-        setCursor
-        <| state.QueryState.Cursor + i
-        <| QueryState.getQuerySelection i state.QueryState
-        <| state
+    let private selectBackwardWord = selectWord findBackwardWordCursor (-) (~-)
+    let private selectForwardWord = selectWord findForwardWordCursor (+) id
 
     let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
         setCursor 0
