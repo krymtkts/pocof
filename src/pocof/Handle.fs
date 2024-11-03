@@ -147,53 +147,66 @@ module Handle =
     let private deleteBackwardChar = removeChar Direction.Backward 1
     let private deleteForwardChar = removeChar Direction.Forward 1
 
-    let private deleteBackwardWord (state: InternalState) (pos: Position) (context: QueryContext) =
-        let _, i =
-            findBackwardWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
+    let private expandSelection
+        getSelection
+        selection
+        wordCursor
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        let mode = getSelection selection wordCursor |> InputMode.Select
 
-        let state, pos, context, i =
+        let state =
+            InternalState.updateQueryState
+            <| QueryState.setInputMode mode state.QueryState
+            <| state
+
+        state, pos, context, 0 // NOTE: 4th return value is not used.
+
+    let private calculateRemovalSize
+        op
+        selection
+        wordCursor
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        let cursor = state.QueryState.Cursor - selection
+        let state, pos, context = setCursor cursor InputMode.Input state pos context
+        state, pos, context, op wordCursor selection
+
+    let private deleteWord
+        findCursor
+        direction
+        handlePositive
+        handleNegative
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        let wordCursor =
+            findCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
+            |> snd
+
+        let state, pos, context, size =
             match state.QueryState.InputMode with
-            | InputMode.Input -> (state, pos, context, i)
-            | InputMode.Select c ->
-                if c > 0 then
-                    let mode = max c i |> InputMode.Select
+            | InputMode.Input -> (state, pos, context, wordCursor)
+            | InputMode.Select selection ->
+                let handle = if selection > 0 then handlePositive else handleNegative
+                handle selection wordCursor state pos context
 
-                    let state =
-                        InternalState.updateQueryState
-                        <| QueryState.setInputMode mode state.QueryState
-                        <| state
+        removeChar direction size state pos context
 
-                    state, pos, context, i // TODO: i has no meaning when the selection is not empty.
-                else
-                    let selection = state.QueryState.Cursor - c
-                    let state, pos, context = setCursor selection InputMode.Input state pos context
-                    state, pos, context, i - c
+    let private deleteBackwardWord =
+        deleteWord findBackwardWordCursor Direction.Backward
+        <| expandSelection max
+        <| calculateRemovalSize (-)
 
-        removeChar Direction.Backward i state pos context
-
-    let private deleteForwardWord (state: InternalState) (pos: Position) (context: QueryContext) =
-        let _, i =
-            findForwardWordCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
-
-        let state, pos, context, i =
-            match state.QueryState.InputMode with
-            | InputMode.Input -> (state, pos, context, i)
-            | InputMode.Select c ->
-                if c < 0 then
-                    let mode = min c -i |> InputMode.Select
-
-                    let state =
-                        InternalState.updateQueryState
-                        <| QueryState.setInputMode mode state.QueryState
-                        <| state
-
-                    state, pos, context, i // TODO: i has no meaning when the selection is not empty.
-                else
-                    let selection = state.QueryState.Cursor - c
-                    let state, pos, context = setCursor selection InputMode.Input state pos context
-                    state, pos, context, i + c
-
-        removeChar Direction.Forward i state pos context
+    let private deleteForwardWord =
+        deleteWord findForwardWordCursor Direction.Forward
+        <| calculateRemovalSize (+)
+        <| expandSelection (fun x y -> min x -y)
 
     let private deleteBackwardInput (state: InternalState) (pos: Position) (context: QueryContext) =
         let state, pos, context =
