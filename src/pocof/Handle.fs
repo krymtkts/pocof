@@ -101,6 +101,40 @@ module Handle =
         | Backward
         | Forward
 
+    let private removeSelection (state: InternalState) (pos: Position) (context: QueryContext) =
+        let qs = QueryState.deleteSelection state.QueryState
+
+        let state =
+            state
+            |> InternalState.refresh
+            |> InternalState.updateQueryState qs
+            |> InternalState.prepareNotification
+
+        state, pos, context |> QueryContext.prepareQuery state
+
+    let private removeChars
+        (removeQuery: QueryState -> int -> QueryState)
+        (limit: int)
+        (size: int)
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        match state.QueryState.Cursor with
+        | x when x = limit -> InternalState.noRefresh state, pos, context
+        | _ ->
+            let qs = removeQuery state.QueryState size
+
+            let state =
+                state
+                |> InternalState.refreshIfTrue (
+                    state.QueryState.Query <> qs.Query || state.QueryState.Cursor <> qs.Cursor
+                )
+                |> InternalState.updateQueryState qs
+                |> InternalState.prepareNotification
+
+            state, pos, context |> QueryContext.prepareQuery state
+
     let private removeChar
         (direction: Direction)
         (size: int)
@@ -109,40 +143,14 @@ module Handle =
         (context: QueryContext)
         =
         match state.QueryState.InputMode with
-        | InputMode.Select _ ->
-            let qs = QueryState.deleteSelection state.QueryState
-
-            let state =
-                state
-                |> InternalState.refresh
-                |> InternalState.updateQueryState qs
-                |> InternalState.prepareNotification
-
-            state, pos, context |> QueryContext.prepareQuery state
+        | InputMode.Select _ -> removeSelection state pos context
         | _ ->
-            let limit =
+            let removeQuery, limit =
                 match direction with
-                | Direction.Backward -> 0
-                | Direction.Forward -> String.length state.QueryState.Query
+                | Direction.Backward -> QueryState.backspaceQuery, 0
+                | Direction.Forward -> QueryState.deleteQuery, String.length state.QueryState.Query
 
-            match state.QueryState.Cursor with
-            | x when x = limit -> InternalState.noRefresh state, pos, context
-            | _ ->
-                let qs =
-                    match direction with
-                    | Direction.Backward -> QueryState.backspaceQuery state.QueryState
-                    | Direction.Forward -> QueryState.deleteQuery state.QueryState
-                    <| size
-
-                let state =
-                    state
-                    |> InternalState.refreshIfTrue (
-                        state.QueryState.Query <> qs.Query || state.QueryState.Cursor <> qs.Cursor
-                    )
-                    |> InternalState.updateQueryState qs
-                    |> InternalState.prepareNotification
-
-                state, pos, context |> QueryContext.prepareQuery state
+            removeChars removeQuery limit size state pos context
 
     let private deleteBackwardChar = removeChar Direction.Backward 1
     let private deleteForwardChar = removeChar Direction.Forward 1
