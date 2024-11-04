@@ -61,21 +61,19 @@ module Handle =
     let rec private findWordDelimiterCursor wordDelimiters =
         isWordDelimiter wordDelimiters >> not |> findCursorOfChar
 
-    let private findBackwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
+    let private findWordCursorWith substring findA findB (wordDelimiters: string) (query: string) (cursor: int) =
         if String.length query < cursor then
             List.Empty, 0
         else
-            let str = query.Substring(0, cursor) |> Seq.rev |> List.ofSeq
+            let str = substring cursor query |> List.ofSeq
             // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
-            findWordCursor wordDelimiters str 0 ||> findWordDelimiterCursor wordDelimiters
+            findA wordDelimiters str 0 ||> findB wordDelimiters
 
-    let private findForwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
-        if String.length query < cursor then
-            List.Empty, 0
-        else
-            let str = query.Substring(cursor) |> List.ofSeq
-            // NOTE: emulate the behavior of the forward-word function in the PSReadLine.
-            findWordDelimiterCursor wordDelimiters str 0 ||> findWordCursor wordDelimiters
+    let private findBackwardWordCursor =
+        findWordCursorWith (fun i s -> String.substringTo i s |> Seq.rev) findWordCursor findWordDelimiterCursor
+
+    let private findForwardWordCursor =
+        findWordCursorWith String.substringFrom findWordDelimiterCursor findWordCursor
 
     let private wordAction (findWordCursor) (converter) (state: InternalState) =
         let i =
