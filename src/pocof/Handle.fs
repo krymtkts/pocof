@@ -139,7 +139,7 @@ module Handle =
 
             state, pos, context |> QueryContext.prepareQuery state
 
-    let private removeChar
+    let private removeCharsWithInputMode
         (direction: Direction)
         (size: int)
         (state: InternalState)
@@ -150,14 +150,8 @@ module Handle =
         | InputMode.Select _ -> removeSelection state pos context
         | _ -> removeChars direction size state pos context
 
-    let private deleteBackwardChar = removeChar Direction.Backward 1
-    let private deleteForwardChar = removeChar Direction.Forward 1
-
-    let private (|Input|SelectForward|SelectBackward|) (x: InputMode) =
-        match x with
-        | InputMode.Input -> Input
-        | InputMode.Select x when x > 0 -> SelectBackward x
-        | InputMode.Select x -> SelectForward x
+    let private deleteBackwardChar = removeCharsWithInputMode Direction.Backward 1
+    let private deleteForwardChar = removeCharsWithInputMode Direction.Forward 1
 
     let private expandSelection
         (getSelection: int -> int -> int)
@@ -226,7 +220,7 @@ module Handle =
                 let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
                 setCursor selection InputMode.Input state pos context
 
-        removeChar Direction.Backward state.QueryState.Cursor state pos context
+        removeCharsWithInputMode Direction.Backward state.QueryState.Cursor state pos context
 
     let private deleteForwardInput (state: InternalState) (pos: Position) (context: QueryContext) =
         let queryLength = String.length state.QueryState.Query
@@ -239,7 +233,7 @@ module Handle =
                 let state, pos, context = setCursor beginning InputMode.Input state pos context
                 state, pos, context, beginning
 
-        removeChar Direction.Forward (queryLength - beginning) state pos context
+        removeCharsWithInputMode Direction.Forward (queryLength - beginning) state pos context
 
     let private selectBackwardChar (state: InternalState) =
         moveCursorBackwardWith

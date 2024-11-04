@@ -295,8 +295,14 @@ module Data =
     [<NoComparison>]
     type InputMode =
         | Input
-        // TODO: positive number is the number of selected characters before the cursor. negative number is the number of selected characters after the cursor. it's complicated.
+        // Note: positive number is the backward selection from the cursor. negative number is the forward selection from the cursor.
         | Select of count: int
+
+    let (|Input|SelectForward|SelectBackward|) (x: InputMode) =
+        match x with
+        | InputMode.Input -> Input
+        | InputMode.Select x when x > 0 -> SelectBackward x
+        | InputMode.Select x -> SelectForward x
 
     [<NoComparison>]
     type QueryState =
