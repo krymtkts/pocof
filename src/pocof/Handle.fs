@@ -61,21 +61,19 @@ module Handle =
     let rec private findWordDelimiterCursor wordDelimiters =
         isWordDelimiter wordDelimiters >> not |> findCursorOfChar
 
-    let private findBackwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
+    let private findWordCursorWith substring findA findB (wordDelimiters: string) (query: string) (cursor: int) =
         if String.length query < cursor then
             List.Empty, 0
         else
-            let str = query.Substring(0, cursor) |> Seq.rev |> List.ofSeq
+            let str = substring cursor query |> List.ofSeq
             // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
-            findWordCursor wordDelimiters str 0 ||> findWordDelimiterCursor wordDelimiters
+            findA wordDelimiters str 0 ||> findB wordDelimiters
 
-    let private findForwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
-        if String.length query < cursor then
-            List.Empty, 0
-        else
-            let str = query.Substring(cursor) |> List.ofSeq
-            // NOTE: emulate the behavior of the forward-word function in the PSReadLine.
-            findWordDelimiterCursor wordDelimiters str 0 ||> findWordCursor wordDelimiters
+    let private findBackwardWordCursor =
+        findWordCursorWith (fun i s -> s |> String.upToIndex i |> Seq.rev) findWordCursor findWordDelimiterCursor
+
+    let private findForwardWordCursor =
+        findWordCursorWith String.fromIndex findWordDelimiterCursor findWordCursor
 
     let private wordAction (findWordCursor) (converter) (state: InternalState) =
         let i =
@@ -101,7 +99,45 @@ module Handle =
         | Backward
         | Forward
 
-    let private removeChar
+    let private removeSelection (state: InternalState) (pos: Position) (context: QueryContext) =
+        let qs = QueryState.deleteSelection state.QueryState
+
+        let state =
+            state
+            |> InternalState.refresh
+            |> InternalState.updateQueryState qs
+            |> InternalState.prepareNotification
+
+        state, pos, context |> QueryContext.prepareQuery state
+
+    let private removeChars
+        (direction: Direction)
+        (size: int)
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        =
+        let removeQuery, limit =
+            match direction with
+            | Direction.Backward -> QueryState.backspaceQuery, 0
+            | Direction.Forward -> QueryState.deleteQuery, String.length state.QueryState.Query
+
+        match state.QueryState.Cursor with
+        | x when x = limit -> InternalState.noRefresh state, pos, context
+        | _ ->
+            let qs = removeQuery state.QueryState size
+
+            let state =
+                state
+                |> InternalState.refreshIfTrue (
+                    state.QueryState.Query <> qs.Query || state.QueryState.Cursor <> qs.Cursor
+                )
+                |> InternalState.updateQueryState qs
+                |> InternalState.prepareNotification
+
+            state, pos, context |> QueryContext.prepareQuery state
+
+    let private removeCharsWithInputMode
         (direction: Direction)
         (size: int)
         (state: InternalState)
@@ -109,48 +145,17 @@ module Handle =
         (context: QueryContext)
         =
         match state.QueryState.InputMode with
-        | InputMode.Select _ ->
-            let qs = QueryState.deleteSelection state.QueryState
+        | InputMode.Select _ -> removeSelection state pos context
+        | _ -> removeChars direction size state pos context
 
-            let state =
-                state
-                |> InternalState.refresh
-                |> InternalState.updateQueryState qs
-                |> InternalState.prepareNotification
-
-            state, pos, context |> QueryContext.prepareQuery state
-        | _ ->
-            let limit =
-                match direction with
-                | Direction.Backward -> 0
-                | Direction.Forward -> String.length state.QueryState.Query
-
-            match state.QueryState.Cursor with
-            | x when x = limit -> InternalState.noRefresh state, pos, context
-            | _ ->
-                let qs =
-                    match direction with
-                    | Direction.Backward -> QueryState.backspaceQuery state.QueryState
-                    | Direction.Forward -> QueryState.deleteQuery state.QueryState
-                    <| size
-
-                let state =
-                    state
-                    |> InternalState.refreshIfTrue (
-                        state.QueryState.Query <> qs.Query || state.QueryState.Cursor <> qs.Cursor
-                    )
-                    |> InternalState.updateQueryState qs
-                    |> InternalState.prepareNotification
-
-                state, pos, context |> QueryContext.prepareQuery state
-
-    let private deleteBackwardChar = removeChar Direction.Backward 1
-    let private deleteForwardChar = removeChar Direction.Forward 1
+    let private deleteBackwardChar = removeCharsWithInputMode Direction.Backward 1
+    let private deleteForwardChar = removeCharsWithInputMode Direction.Forward 1
 
     let private expandSelection
-        getSelection
-        selection
-        wordCursor
+        (getSelection: int -> int -> int)
+        _ // NOTE: to match the signature of the calculateRemovalSize function.
+        (selection: int)
+        (wordCursor: int)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
@@ -162,25 +167,26 @@ module Handle =
             <| QueryState.setInputMode mode state.QueryState
             <| state
 
-        state, pos, context, 0 // NOTE: 4th return value is not used.
+        removeSelection state pos context
 
     let private calculateRemovalSize
-        op
-        selection
-        wordCursor
+        (op: int -> int -> int)
+        (direction: Direction)
+        (selection: int)
+        (wordCursor: int)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
         =
         let cursor = state.QueryState.Cursor - selection
         let state, pos, context = setCursor cursor InputMode.Input state pos context
-        state, pos, context, op wordCursor selection
+        removeChars direction (op wordCursor selection) state pos context
 
     let private deleteWord
         findCursor
         direction
-        handlePositive
-        handleNegative
+        handleBackwardSelection
+        handleForwardSelection
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
@@ -189,14 +195,10 @@ module Handle =
             findCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
             |> snd
 
-        let state, pos, context, size =
-            match state.QueryState.InputMode with
-            | InputMode.Input -> (state, pos, context, wordCursor)
-            | InputMode.Select selection ->
-                let handle = if selection > 0 then handlePositive else handleNegative
-                handle selection wordCursor state pos context
-
-        removeChar direction size state pos context
+        match state.QueryState.InputMode with
+        | Input -> removeChars direction wordCursor state pos context
+        | SelectBackward selection -> handleBackwardSelection direction selection wordCursor state pos context
+        | SelectForward selection -> handleForwardSelection direction selection wordCursor state pos context
 
     let private deleteBackwardWord =
         deleteWord findBackwardWordCursor Direction.Backward
@@ -216,7 +218,7 @@ module Handle =
                 let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
                 setCursor selection InputMode.Input state pos context
 
-        removeChar Direction.Backward state.QueryState.Cursor state pos context
+        removeCharsWithInputMode Direction.Backward state.QueryState.Cursor state pos context
 
     let private deleteForwardInput (state: InternalState) (pos: Position) (context: QueryContext) =
         let queryLength = String.length state.QueryState.Query
@@ -229,7 +231,7 @@ module Handle =
                 let state, pos, context = setCursor beginning InputMode.Input state pos context
                 state, pos, context, beginning
 
-        removeChar Direction.Forward (queryLength - beginning) state pos context
+        removeCharsWithInputMode Direction.Forward (queryLength - beginning) state pos context
 
     let private selectBackwardChar (state: InternalState) =
         moveCursorBackwardWith
@@ -332,14 +334,14 @@ module Handle =
         let tailHead = String.split " " tail |> Seq.head
 
         match rest = tailHead with
-        | true -> Some(tail.Substring(String.length tailHead))
+        | true -> tail |> String.fromIndex (String.length tailHead) |> Some
         | _ -> None
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = state.QueryState.Cursor - String.length keyword
-            let head = state.QueryState.Query.Substring(0, basePosition)
-            let tail = state.QueryState.Query.Substring(state.QueryState.Cursor)
+            let head = state.QueryState.Query |> String.upToIndex basePosition
+            let tail = state.QueryState.Query |> String.fromIndex state.QueryState.Cursor
 
             match candidate with
             | AlreadyCompleted keyword tail rest -> basePosition, head, rest

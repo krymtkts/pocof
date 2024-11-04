@@ -136,7 +136,7 @@ module Screen =
             | 1 -> q
             | x ->
                 let l = l + (x + Math.Sign(x)) / 2
-                let q = q.Substring(0, l)
+                let q = q |> String.upToIndex l
                 getQuery w q l
 
         let selectRange (queryState: Data.QueryState) (q: string) =
@@ -162,10 +162,11 @@ module Screen =
         let info (state: Data.InternalState) =
             let q =
                 let q =
-                    state.QueryState.Query.Substring(state.QueryState.WindowBeginningCursor)
+                    state.QueryState.Query
+                    |> String.fromIndex state.QueryState.WindowBeginningCursor
                     |> function
                         | x when String.length x > state.QueryState.WindowWidth ->
-                            x.Substring(0, state.QueryState.WindowWidth)
+                            x |> String.upToIndex state.QueryState.WindowWidth
                         | x -> x
 
                 let l =
@@ -281,7 +282,7 @@ module Screen =
                            match String.length suggestion, rui.GetWindowWidth() with
                            | Ascending(x, _) -> x
 
-                       suggestion.Substring(0, length)
+                       suggestion |> String.upToIndex length
                    | Error(e) -> note + e
                | _ -> note + state.Notification
 
@@ -304,7 +305,7 @@ module Screen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetLengthInBufferCells(information.Substring(0, getCursorPosition state))
+            <| rui.GetLengthInBufferCells(information |> String.upToIndex (getCursorPosition state))
             <| baseLine
 
         member __.GetConsoleWidth = rui.GetWindowWidth
