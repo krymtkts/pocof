@@ -113,13 +113,17 @@ module Handle =
         state, pos, context |> QueryContext.prepareQuery state
 
     let private removeChars
-        (removeQuery: QueryState -> int -> QueryState)
-        (limit: int)
+        (direction: Direction)
         (size: int)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
         =
+        let removeQuery, limit =
+            match direction with
+            | Direction.Backward -> QueryState.backspaceQuery, 0
+            | Direction.Forward -> QueryState.deleteQuery, String.length state.QueryState.Query
+
         match state.QueryState.Cursor with
         | x when x = limit -> InternalState.noRefresh state, pos, context
         | _ ->
@@ -144,21 +148,22 @@ module Handle =
         =
         match state.QueryState.InputMode with
         | InputMode.Select _ -> removeSelection state pos context
-        | _ ->
-            let removeQuery, limit =
-                match direction with
-                | Direction.Backward -> QueryState.backspaceQuery, 0
-                | Direction.Forward -> QueryState.deleteQuery, String.length state.QueryState.Query
-
-            removeChars removeQuery limit size state pos context
+        | _ -> removeChars direction size state pos context
 
     let private deleteBackwardChar = removeChar Direction.Backward 1
     let private deleteForwardChar = removeChar Direction.Forward 1
 
+    let private (|Input|SelectForward|SelectBackward|) (x: InputMode) =
+        match x with
+        | InputMode.Input -> Input
+        | InputMode.Select x when x > 0 -> SelectBackward x
+        | InputMode.Select x -> SelectForward x
+
     let private expandSelection
-        getSelection
-        selection
-        wordCursor
+        (getSelection: int -> int -> int)
+        _ // NOTE: to match the signature of the calculateRemovalSize function.
+        (selection: int)
+        (wordCursor: int)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
@@ -170,25 +175,26 @@ module Handle =
             <| QueryState.setInputMode mode state.QueryState
             <| state
 
-        state, pos, context, 0 // NOTE: 4th return value is not used.
+        removeSelection state pos context
 
     let private calculateRemovalSize
-        op
-        selection
-        wordCursor
+        (op: int -> int -> int)
+        (direction: Direction)
+        (selection: int)
+        (wordCursor: int)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
         =
         let cursor = state.QueryState.Cursor - selection
         let state, pos, context = setCursor cursor InputMode.Input state pos context
-        state, pos, context, op wordCursor selection
+        removeChars direction (op wordCursor selection) state pos context
 
     let private deleteWord
         findCursor
         direction
-        handlePositive
-        handleNegative
+        handleBackwardSelection
+        handleForwardSelection
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
@@ -197,14 +203,10 @@ module Handle =
             findCursor state.WordDelimiters state.QueryState.Query state.QueryState.Cursor
             |> snd
 
-        let state, pos, context, size =
-            match state.QueryState.InputMode with
-            | InputMode.Input -> (state, pos, context, wordCursor)
-            | InputMode.Select selection ->
-                let handle = if selection > 0 then handlePositive else handleNegative
-                handle selection wordCursor state pos context
-
-        removeChar direction size state pos context
+        match state.QueryState.InputMode with
+        | Input -> removeChars direction wordCursor state pos context
+        | SelectBackward selection -> handleBackwardSelection direction selection wordCursor state pos context
+        | SelectForward selection -> handleForwardSelection direction selection wordCursor state pos context
 
     let private deleteBackwardWord =
         deleteWord findBackwardWordCursor Direction.Backward
