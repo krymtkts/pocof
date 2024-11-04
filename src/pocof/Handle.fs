@@ -70,10 +70,10 @@ module Handle =
             findA wordDelimiters str 0 ||> findB wordDelimiters
 
     let private findBackwardWordCursor =
-        findWordCursorWith (fun i s -> String.substringTo i s |> Seq.rev) findWordCursor findWordDelimiterCursor
+        findWordCursorWith (fun i s -> s |> String.upToIndex i |> Seq.rev) findWordCursor findWordDelimiterCursor
 
     let private findForwardWordCursor =
-        findWordCursorWith String.substringFrom findWordDelimiterCursor findWordCursor
+        findWordCursorWith String.fromIndex findWordDelimiterCursor findWordCursor
 
     let private wordAction (findWordCursor) (converter) (state: InternalState) =
         let i =
@@ -334,14 +334,14 @@ module Handle =
         let tailHead = String.split " " tail |> Seq.head
 
         match rest = tailHead with
-        | true -> Some(tail.Substring(String.length tailHead))
+        | true -> tail |> String.fromIndex (String.length tailHead) |> Some
         | _ -> None
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = state.QueryState.Cursor - String.length keyword
-            let head = state.QueryState.Query.Substring(0, basePosition)
-            let tail = state.QueryState.Query.Substring(state.QueryState.Cursor)
+            let head = state.QueryState.Query |> String.upToIndex basePosition
+            let tail = state.QueryState.Query |> String.fromIndex state.QueryState.Cursor
 
             match candidate with
             | AlreadyCompleted keyword tail rest -> basePosition, head, rest

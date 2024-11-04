@@ -93,7 +93,7 @@ module Mock =
                     __.screen
                     |> List.mapi (fun i ss ->
                         match i with
-                        | ii when ii = y -> ss.Substring(0, x) + s
+                        | ii when ii = y -> ss |> String.upToIndex x |> (+) s
                         | _ ->
                             let l = (__ :> IRawUI).GetLengthInBufferCells ss
 

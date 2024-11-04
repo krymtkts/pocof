@@ -63,8 +63,8 @@ module LanguageExtension =
         let equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
         let trim (s: string) = s.Trim()
         let replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
-        let substringFrom (index: int) (s: string) = s.Substring(index)
-        let substringTo (index: int) (s: string) = s.Substring(0, index)
+        let fromIndex (index: int) (s: string) = s.Substring(index)
+        let upToIndex (index: int) (s: string) = s.Substring(0, index)
 
     let
 #if !DEBUG
@@ -182,7 +182,7 @@ module Data =
 
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
-        | true -> Some <| s.Substring(p.Length)
+        | true -> s |> String.fromIndex (String.length p) |> Some
         | _ -> None
 
     [<RequireQualifiedAccess>]
@@ -394,7 +394,7 @@ module Data =
                     InputMode = InputMode.Input }
 
         let getCurrentProperty (state: QueryState) =
-            let s = state.Query.Substring(0, state.Cursor) |> String.split " " |> Seq.last
+            let s = state.Query |> String.upToIndex state.Cursor |> String.split " " |> Seq.last
 
 #if DEBUG
             Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
