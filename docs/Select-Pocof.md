@@ -325,6 +325,22 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -WordDelimiters
+
+Specifies the characters that delimit words for word-based cursor movement, selection or deletion functions.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: ;:,.[]{}()/\\|!?^&*-=+'\"–—―
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
