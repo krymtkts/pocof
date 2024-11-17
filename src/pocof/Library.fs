@@ -21,9 +21,11 @@ type SelectPocofCommand() =
     let mutable waitResult: Pocof.Termination -> obj seq = fun (_) -> Seq.empty
 
     [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
+    [<ValidateNotNull>]
     member val InputObject: PSObject[] = [||] with get, set
 
     [<Parameter>]
+    [<ValidateNotNull>]
     member val Query = String.Empty with get, set
 
     [<Parameter>]
@@ -50,6 +52,7 @@ type SelectPocofCommand() =
     member val Unique: SwitchParameter = SwitchParameter false with get, set
 
     [<Parameter>]
+    [<ValidateNotNull>]
     member val Prompt = "query" with get, set
 
     [<Parameter>]
