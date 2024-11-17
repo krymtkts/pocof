@@ -18,10 +18,10 @@ Describe 'pocof' {
     $PocofShould = {
         $InputObject | Select-Pocof @Params | ForEach-Object {
             $p = if ($Expected) {
-                @{BeExactly = $true; ExpectedValue = $Expected }
+                @{ BeExactly = $true; ExpectedValue = $Expected }
             }
             else {
-                @{BeNullOrEmpty = $true }
+                @{ BeNullOrEmpty = $true }
             }
             $_ | Should @p
         }
@@ -39,7 +39,7 @@ Describe 'pocof' {
             @{ Layout = 'BottomUpHalf' }
         ) {
             It "Given Layout '<Layout>', '<Expected>' should be returned." -TestCases @(
-                @{Params = $BaseParam + $_ }
+                @{ Params = $BaseParam + $_ }
             ) {
                 $InputObject | Select-Pocof @Params -ErrorAction SilentlyContinue | Should -BeExactly -ExpectedValue $Expected
             }
@@ -55,9 +55,9 @@ Describe 'pocof' {
             @{ Matcher = 'EQ' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = 'Hello,world'; Params = $BaseParam + $_ }
-                @{Expected = 'Hello,world'; Params = @{InvertQuery = $true } + $BaseParam + $_ }
-                @{Expected = 'Hello,world'; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+                @{ Expected = 'Hello,world'; Params = $BaseParam + $_ }
+                @{ Expected = 'Hello,world'; Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{ Expected = 'Hello,world'; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
             }
@@ -68,9 +68,9 @@ Describe 'pocof' {
             @{ Matcher = 'EQ'; Query = 'hello,world' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = 'Hello,world' ; Params = $BaseParam + $_ }
-                @{Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
-                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+                @{ Expected = 'Hello,world' ; Params = $BaseParam + $_ }
+                @{ Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{ Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) $PocofShould
         }
         Context 'In <Matcher> mode with composite query "and" (default)' -ForEach @(
@@ -79,9 +79,9 @@ Describe 'pocof' {
             @{ Matcher = 'EQ'; Query = 'hello,world Hello,world' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = 'Hello,world' ; Params = $BaseParam + $_ }
-                @{Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
-                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+                @{ Expected = 'Hello,world' ; Params = $BaseParam + $_ }
+                @{ Expected = $null; Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{ Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) $PocofShould
         }
         Context 'In <Matcher> mode with composite query "or"' -ForEach @(
@@ -90,19 +90,19 @@ Describe 'pocof' {
             @{ Matcher = 'EQ'; Query = 'hello,world hello,universe' ; Operator = 'or' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = 'Hello,world' ; Params = $BaseParam + $_ }
-                @{Expected = 'Hello,world'; Params = @{InvertQuery = $true } + $BaseParam + $_ }
-                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+                @{ Expected = 'Hello,world' ; Params = $BaseParam + $_ }
+                @{ Expected = 'Hello,world'; Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{ Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) $PocofShould
         }
         It 'Given PSCustomObject, should be returned without any mutation.' -TestCases @(
-            @{InputObject = @([PSCustomObject]@{Name = 'McCall' }); Params = $BaseParam }
+            @{ InputObject = @([PSCustomObject]@{Name = 'McCall' }); Params = $BaseParam }
         ) {
             $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $InputObject
         }
         It "Given '<InputObject>', it can be filtered to '<Expected>' with `Select-Object -First 1`." -TestCases @(
-            @{InputObject = 1..1; Expected = 1 ; Params = $BaseParam }
-            @{InputObject = 1..100; Expected = 1; Params = $BaseParam }
+            @{ InputObject = 1..1; Expected = 1 ; Params = $BaseParam }
+            @{ InputObject = 1..100; Expected = 1; Params = $BaseParam }
         ) {
             $InputObject | Select-Pocof @Params | Select-Object -First 1 | ForEach-Object {
                 $_ | Should -BeExactly -ExpectedValue $Expected
@@ -112,32 +112,32 @@ Describe 'pocof' {
             @{ Operator = 'or' }
         ) {
             It "Given '<InputObject>', it keeps order as '<Expected>'." -TestCases @(
-                @{InputObject = [ordered]@{a = 1; b = 2; c = 3 }; Expected = @(
+                @{ InputObject = [ordered]@{a = 1; b = 2; c = 3 }; Expected = @(
                         [Collections.DictionaryEntry]::new('a', 1),
                         [Collections.DictionaryEntry]::new('b', 2),
                         [Collections.DictionaryEntry]::new('c', 3)) ; Params = $BaseParam + $_
                 }
-                @{InputObject = 1..20; Expected = 1..20 ; Params = $BaseParam }
+                @{ InputObject = 1..20; Expected = 1..20 ; Params = $BaseParam }
             ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
-                $tmp = @{InputObject = $InputObject } + $Params
+                $tmp = @{ InputObject = $InputObject } + $Params
                 Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
             }
             It "Given '<InputObject>', it can be filtered to '<Expected>'." -TestCases @(
-                @{InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
+                @{ InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
                         [Collections.DictionaryEntry]::new('a', 1),
                         [Collections.DictionaryEntry]::new('d', 'a1')) ; Params = $BaseParam + $_ + @{Query = '1' }
                 }
-                @{InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
+                @{ InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
                         [Collections.DictionaryEntry]::new('d', 'a1')) ; Params = $BaseParam + $_ + @{Query = 'a1' }
                 }
-                @{InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
+                @{ InputObject = [ordered]@{a = 1; b = 2; c = 3; d = 'a1' }; Expected = @(
                         [Collections.DictionaryEntry]::new('a', 1)) ; Params = $BaseParam + $_ + @{Query = ':key a' }
                 }
-                @{InputObject = [ordered]@{}; Expected = @() ; Params = $BaseParam + $_ }
+                @{ InputObject = [ordered]@{}; Expected = @() ; Params = $BaseParam + $_ }
             ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
-                $tmp = @{InputObject = $InputObject } + $Params
+                $tmp = @{ InputObject = $InputObject } + $Params
                 # for testing direct passing to InputObject.
                 Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
             }
@@ -156,7 +156,7 @@ Describe 'pocof' {
                 [System.Threading.Thread]::CurrentThread.CurrentCulture = $global:culture
             }
             It "Given '<InputObject>', it keeps order as '<Expected>'." -TestCases @(
-                @{InputObject = 1..12 | ForEach-Object {
+                @{ InputObject = 1..12 | ForEach-Object {
                         Get-Date ('2024-{0:D2}-01' -f $_)
                     }; Expected = @(
                         Get-Date '2024-01-01'
@@ -171,8 +171,8 @@ Describe 'pocof' {
             @{ Unique = $true }
         ) {
             It "Given '<InputObject>', it exclude duplications as '<Expected>'." -TestCases @(
-                @{InputObject = (1..10) + (1..20); Expected = 1..20 ; Params = $BaseParam + $_ }
-                @{InputObject = @(
+                @{ InputObject = (1..10) + (1..20); Expected = 1..20 ; Params = $BaseParam + $_ }
+                @{ InputObject = @(
                         [ordered]@{a = 1; b = 2; c = 3 }
                         [ordered]@{b = 2; c = 3; d = 4 }
                     )
@@ -186,7 +186,7 @@ Describe 'pocof' {
                 }
             ) {
                 $InputObject | Select-Pocof @Params | Should -BeExactly -ExpectedValue $Expected
-                $tmp = @{InputObject = $InputObject } + $Params
+                $tmp = @{ InputObject = $InputObject } + $Params
                 Select-Pocof @tmp | Should -BeExactly -ExpectedValue $Expected
             }
         }
@@ -203,9 +203,9 @@ Describe 'pocof' {
             @{ Matcher = 'EQ'; Query = ':namE osaka' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = @($InputObject[0]); Params = $BaseParam + $_ }
-                @{Expected = @($InputObject[1]); Params = @{InvertQuery = $true } + $BaseParam + $_ }
-                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+                @{ Expected = @($InputObject[0]); Params = $BaseParam + $_ }
+                @{ Expected = @($InputObject[1]); Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{ Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) $PocofShould
         }
 
@@ -218,9 +218,9 @@ Describe 'pocof' {
             @{ Matcher = 'EQ'; Query = ':city tokyo  :namE osaka' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = @($InputObject[0]); Params = $BaseParam + $_ }
-                @{Expected = @($InputObject[1]); Params = @{InvertQuery = $true } + $BaseParam + $_ }
-                @{Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
+                @{ Expected = @($InputObject[0]); Params = $BaseParam + $_ }
+                @{ Expected = @($InputObject[1]); Params = @{InvertQuery = $true } + $BaseParam + $_ }
+                @{ Expected = $null; Params = @{CaseSensitive = $true } + $BaseParam + $_ }
             ) $PocofShould
         }
     }
@@ -233,7 +233,7 @@ Describe 'pocof' {
             @{ Matcher = 'EQ'; Query = '99999' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = @(99999); Params = $BaseParam + $_ }
+                @{ Expected = @(99999); Params = $BaseParam + $_ }
             ) $PocofShould
         }
     }
@@ -247,7 +247,7 @@ Describe 'pocof' {
             @{ Matcher = 'EQ'; Query = ':key 99999' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = @([Collections.DictionaryEntry]::new(99999, 99999)); Params = $BaseParam + $_ }
+                @{ Expected = @([Collections.DictionaryEntry]::new(99999, 99999)); Params = $BaseParam + $_ }
             ) $PocofShould
         }
     }
@@ -261,7 +261,7 @@ Describe 'pocof' {
             @{ Matcher = 'EQ'; Query = ':name 99999' }
         ) {
             It "Given a '<InputObject>', '<Expected>' should be returned." -TestCases @(
-                @{Expected = @($InputObject[-2]); Params = $BaseParam + $_ }
+                @{ Expected = @($InputObject[-2]); Params = $BaseParam + $_ }
             ) $PocofShould
         }
     }
