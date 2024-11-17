@@ -265,4 +265,62 @@ Describe 'pocof' {
             ) $PocofShould
         }
     }
+
+    Context 'Checking Select-Pocof options' {
+        $PocofShouldPass = {
+            It "Should pass the check for <Name>=`$null" -TestCases @(
+                @{ Params = @{ NonInteractive = $true; $Name = $null } }
+            ) {
+                { Select-Pocof @Params } | Should @Expected
+            }
+        }
+        $NullValidationMessage = "Cannot validate argument on parameter '*'. The argument is null"
+        $ExpectedMessageForStringParameter = "$NullValidationMessage. Provide a valid value for the argument, and then try running the command again."
+        $ExpectedMessageForNonEmptyStringParameter = "$NullValidationMessage or empty. Provide an argument that is not null or empty, and then try the command again."
+        $ExpectedMessageForValidateSetParameter = "$NullValidationMessage, empty, or an element of the argument collection contains a null value. Supply a collection that does not contain any null values and then try the command again."
+        $ExpectedMessageForSwitchParameter = '*'
+
+        Context 'For string options' -ForEach @(
+            @{ Expected = @{ Throw = $true; Not = $false; ExpectedMessage = $ExpectedMessageForStringParameter } }
+        ) {
+            Context '<Name>' -ForEach @(
+                @{ Name = 'InputObject' }
+                @{ Name = 'Query' }
+                @{ Name = 'Prompt' }
+            ) $PocofShouldPass
+        }
+
+        Context 'For non-empty string options' -ForEach @(
+            @{ Name = 'WordDelimiters'; Expected = @{ Throw = $true; Not = $false; ExpectedMessage = $ExpectedMessageForNonEmptyStringParameter } }
+        ) $PocofShouldPass
+
+        Context 'For validate set options' -ForEach @(
+            @{ Expected = @{ Throw = $true; Not = $false; ExpectedMessage = $ExpectedMessageForValidateSetParameter } }
+        ) {
+            Context '<Name>' -ForEach @(
+                @{ Name = 'Matcher' }
+                @{ Name = 'Operator' }
+                @{ Name = 'Layout' }
+            ) $PocofShouldPass
+        }
+
+        Context 'For switch options' -ForEach @(
+            @{ Expected = @{ Throw = $true; Not = $true; ExpectedMessage = $ExpectedMessageForSwitchParameter } }
+        ) {
+            Context '<Name>' -ForEach @(
+                @{ Name = 'CaseSensitive' }
+                @{ Name = 'InvertQuery' }
+                @{ Name = 'SuppressProperties' }
+                @{ Name = 'Unique' }
+            ) $PocofShouldPass
+        }
+
+        Context 'For NonInteractive options' {
+            It "Shouldn't fail with <Name>=`$null" -TestCases @(
+                @{ Params = @{ NonInteractive = $null }; Name = 'NonInteractive' }
+            ) {
+                { Select-Pocof @Params } | Should -Not -Throw $ExpectedMessageForSwitchParameter
+            }
+        }
+    }
 }
