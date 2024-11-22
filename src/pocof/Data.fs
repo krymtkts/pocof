@@ -77,10 +77,7 @@ module LanguageExtension =
 
     let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
 
-    let (|Negative|_|) (value: int) =
-        match value with
-        | x when x < 0 -> Some()
-        | _ -> None
+    let (|Negative|_|) (value: int) = value < 0
 
     let (|Natural|_|) (value: int) =
         match value with
