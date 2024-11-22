@@ -33,10 +33,11 @@ Task Clean {
 }
 
 Task Lint {
-    dotnet fsharplint lint "${ModuleName}.sln"
-    if (-not $?) {
-        throw 'dotnet fsharplint failed.'
-    }
+    # TODO: not work with .NET 9 because of the error: "Lint failed to parse files. Failed with: Aborted type check.'
+    # dotnet fsharplint lint "${ModuleName}.sln"
+    # if (-not $?) {
+    #     throw 'dotnet fsharplint failed.'
+    # }
     dotnet fantomas ./src --check
     if (-not $?) {
         throw 'dotnet fantomas failed.'
