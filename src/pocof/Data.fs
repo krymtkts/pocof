@@ -107,7 +107,7 @@ module Operator =
 #endif
         (?=>)
             (x: 'T)
-            (prop: string)
+            (prop: string | null) // TODO: only for the testing. require to refactor.
             =
         try
             // TODO: consider using cache.
