@@ -54,6 +54,7 @@ module unwrap =
                 | Entry.Obj x -> x
                 | _ -> failwith "unreachable")
         )
+        |> Prop.collect (List.length data)
 
     type EntryDictionaryEntry =
         static member Double() =
@@ -74,6 +75,7 @@ module unwrap =
                 | Entry.Dict x -> x
                 | _ -> failwith "unreachable")
         )
+        |> Prop.collect (List.length data)
 
 module ``Action fromString`` =
     [<Fact>]
