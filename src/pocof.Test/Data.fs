@@ -5,9 +5,12 @@ open Microsoft.FSharp.Reflection
 
 open Xunit
 open FsUnitTyped
+open FsCheck.FSharp
+open FsCheck.Xunit
 
 open Pocof
 open Pocof.Data
+
 
 module LanguageExtension =
     module Option =
@@ -33,17 +36,44 @@ module unwrap =
     open System.Collections
     open System.Management.Automation
 
-    [<Fact>]
-    let ``should return "a".`` () =
-        unwrap [ Entry.Obj(PSObject.AsPSObject "a") ]
-        |> List.ofSeq
-        |> shouldEqual [ PSObject.AsPSObject "a" ]
+    type EntryPSObject =
+        static member Double() =
+            ArbMap.defaults
+            |> ArbMap.generate<string>
+            |> Gen.map (PSObject.AsPSObject >> Entry.Obj)
+            |> Arb.fromGen
 
-    [<Fact>]
-    let ``should return dictionary.`` () =
-        unwrap [ Entry.Dict(DictionaryEntry("Jane", "Doe")) ]
+    [<Property(Arbitrary = [| typeof<EntryPSObject> |])>]
+    let ``should return PSObject sequence.`` (data: Entry list) =
+        data
+        |> unwrap
         |> List.ofSeq
-        |> shouldEqual [ DictionaryEntry("Jane", "Doe") ]
+        |> shouldEqual (
+            data
+            |> List.map (function
+                | Entry.Obj x -> x
+                | _ -> failwith "unreachable")
+        )
+
+    type EntryDictionaryEntry =
+        static member Double() =
+            ArbMap.defaults
+            |> ArbMap.generate<string>
+            |> Gen.two
+            |> Gen.map (DictionaryEntry >> Entry.Dict)
+            |> Arb.fromGen
+
+    [<Property(Arbitrary = [| typeof<EntryDictionaryEntry> |])>]
+    let ``should return DictionaryEntry sequence.`` (data: Entry list) =
+        data
+        |> unwrap
+        |> List.ofSeq
+        |> shouldEqual (
+            data
+            |> List.map (function
+                | Entry.Dict x -> x
+                | _ -> failwith "unreachable")
+        )
 
 module ``Action fromString`` =
     [<Fact>]
