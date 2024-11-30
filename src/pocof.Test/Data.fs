@@ -5,9 +5,12 @@ open Microsoft.FSharp.Reflection
 
 open Xunit
 open FsUnitTyped
+open FsCheck.FSharp
+open FsCheck.Xunit
 
 open Pocof
 open Pocof.Data
+
 
 module LanguageExtension =
     module Option =
@@ -33,17 +36,78 @@ module unwrap =
     open System.Collections
     open System.Management.Automation
 
-    [<Fact>]
-    let ``should return "a".`` () =
-        unwrap [ Entry.Obj(PSObject.AsPSObject "a") ]
-        |> List.ofSeq
-        |> shouldEqual [ PSObject.AsPSObject "a" ]
+    let psObjectGen =
+        ArbMap.defaults
+        |> ArbMap.generate<string>
+        |> Gen.map (PSObject.AsPSObject >> Entry.Obj)
 
-    [<Fact>]
-    let ``should return dictionary.`` () =
-        unwrap [ Entry.Dict(DictionaryEntry("Jane", "Doe")) ]
+    let dictionaryEntryGen =
+        ArbMap.defaults
+        |> ArbMap.generate<string>
+        |> Gen.two
+        |> Gen.map (DictionaryEntry >> Entry.Dict)
+
+    type EntryPSObject =
+        static member Double() = psObjectGen |> Arb.fromGen
+
+    [<Property(Arbitrary = [| typeof<EntryPSObject> |], EndSize = 1000)>]
+    let ``should return PSObject sequence.`` (data: Entry list) =
+        data
+        |> unwrap
         |> List.ofSeq
-        |> shouldEqual [ DictionaryEntry("Jane", "Doe") ]
+        |> shouldEqual (
+            data
+            |> List.map (function
+                | Entry.Obj x -> x
+                | _ -> failwith "Dict is unreachable")
+        )
+        |> Prop.collect (List.length data)
+
+    type EntryDictionaryEntry =
+        static member Double() = dictionaryEntryGen |> Arb.fromGen
+
+    [<Property(Arbitrary = [| typeof<EntryDictionaryEntry> |], EndSize = 1000)>]
+    let ``should return DictionaryEntry sequence.`` (data: Entry list) =
+        data
+        |> unwrap
+        |> List.ofSeq
+        |> shouldEqual (
+            data
+            |> List.map (function
+                | Entry.Dict x -> x
+                | _ -> failwith "Obj is unreachable")
+        )
+        |> Prop.collect (List.length data)
+
+    type MixedEntry =
+        static member Generate() =
+            Gen.oneof [ psObjectGen; dictionaryEntryGen ] |> Gen.listOf |> Arb.fromGen
+
+    [<Property(Arbitrary = [| typeof<MixedEntry> |], EndSize = 1000)>]
+    let ``should return mixed sequence.`` (data: Entry list) =
+        data
+        |> unwrap
+        |> List.ofSeq
+        |> shouldEqual (
+            data
+            |> List.map (function
+                | Entry.Obj x -> x
+                | Entry.Dict x -> x)
+        )
+        |> Prop.collect (
+            List.length data,
+            // TODO: use .Is* after bumping to F# 9.
+            data
+            |> List.filter (function
+                | Entry.Obj _ -> true
+                | _ -> false)
+            |> List.length,
+            data
+            |> List.filter (function
+                | Entry.Dict _ -> true
+                | _ -> false)
+            |> List.length
+        )
 
 module ``Action fromString`` =
     [<Fact>]
