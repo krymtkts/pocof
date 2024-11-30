@@ -96,7 +96,7 @@ module unwrap =
         )
         |> Prop.collect (
             List.length data,
-            // TODO: why cannot use .Is* ?
+            // TODO: use .Is* after bumping to F# 9.
             data
             |> List.filter (function
                 | Entry.Obj _ -> true
