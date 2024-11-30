@@ -59,7 +59,7 @@ module unwrap =
             data
             |> List.map (function
                 | Entry.Obj x -> x
-                | _ -> failwith "unreachable")
+                | _ -> failwith "Dict is unreachable")
         )
         |> Prop.collect (List.length data)
 
@@ -75,7 +75,7 @@ module unwrap =
             data
             |> List.map (function
                 | Entry.Dict x -> x
-                | _ -> failwith "unreachable")
+                | _ -> failwith "Obj is unreachable")
         )
         |> Prop.collect (List.length data)
 
