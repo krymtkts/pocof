@@ -110,13 +110,26 @@ module unwrap =
         )
 
 module ``Action fromString`` =
-    [<Fact>]
-    let ``should return Error Unknown.`` () =
-        Action.fromString "XXX" |> shouldEqual (Error "Unknown Action 'XXX'.")
+    type UnknownAction() =
+        static let actions =
+            FSharpType.GetUnionCases(typeof<Action>)
+            |> Seq.filter (fun a -> a.Name <> "AddQuery")
+            |> Seq.map _.Name
+            |> Set.ofSeq
 
-    [<Fact>]
-    let ``should return Error when AddQuery.`` () =
-        Action.fromString "AddQuery" |> shouldEqual (Error "Unknown Action 'AddQuery'.")
+        static member Generate() =
+            Gen.frequency
+                [ (1, Gen.constant "AddQuery")
+                  (9, ArbMap.defaults |> ArbMap.generate<string>) ]
+            |> Arb.fromGen
+            |> Arb.filter (fun x -> Set.contains x actions |> not)
+
+    [<Property(Arbitrary = [| typeof<UnknownAction> |])>]
+    let ``should return unknown action error.`` (data: string) =
+        data
+        |> Action.fromString
+        |> shouldEqual (Error $"Unknown Action '{data}'.")
+        |> Prop.collect data
 
     [<Fact>]
     let ``should return known actions excluding AddQuery.`` () =
