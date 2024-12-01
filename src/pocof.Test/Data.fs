@@ -48,7 +48,7 @@ module unwrap =
         |> Gen.map (DictionaryEntry >> Entry.Dict)
 
     type EntryPSObject =
-        static member Double() = psObjectGen |> Arb.fromGen
+        static member Generate() = psObjectGen |> Arb.fromGen
 
     [<Property(Arbitrary = [| typeof<EntryPSObject> |], EndSize = 1000)>]
     let ``should return PSObject sequence.`` (data: Entry list) =
@@ -64,7 +64,7 @@ module unwrap =
         |> Prop.collect (List.length data)
 
     type EntryDictionaryEntry =
-        static member Double() = dictionaryEntryGen |> Arb.fromGen
+        static member Generate() = dictionaryEntryGen |> Arb.fromGen
 
     [<Property(Arbitrary = [| typeof<EntryDictionaryEntry> |], EndSize = 1000)>]
     let ``should return DictionaryEntry sequence.`` (data: Entry list) =
