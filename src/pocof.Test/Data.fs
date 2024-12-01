@@ -110,13 +110,13 @@ module unwrap =
         )
 
 module ``Action fromString`` =
-    type UnknownAction() =
-        static let actions =
-            FSharpType.GetUnionCases(typeof<Action>)
-            |> Seq.filter (fun a -> a.Name <> "AddQuery")
-            |> Seq.map _.Name
-            |> Set.ofSeq
+    let actions =
+        FSharpType.GetUnionCases(typeof<Action>)
+        |> Seq.filter (fun a -> a.Name <> "AddQuery")
+        |> Seq.map _.Name
+        |> Set.ofSeq
 
+    type UnknownAction() =
         static member Generate() =
             Gen.frequency
                 [ (1, Gen.constant "AddQuery")
@@ -131,14 +131,25 @@ module ``Action fromString`` =
         |> shouldEqual (Error $"Unknown Action '{data}'.")
         |> Prop.collect data
 
-    [<Fact>]
-    let ``should return known actions excluding AddQuery.`` () =
-        FSharpType.GetUnionCases(typeof<Action>)
-        |> Seq.filter (fun a -> a.Name <> "AddQuery")
-        |> Seq.iter (fun a ->
-            [ a.Name; String.lower a.Name; String.upper a.Name ]
-            |> List.map Action.fromString
-            |> List.iter (shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
+    type KnownAction() =
+        static member Generate() =
+            let a =
+                FSharpType.GetUnionCases(typeof<Action>)
+                |> Seq.filter (fun a -> a.Name <> "AddQuery")
+                |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name ])
+
+            a |> Gen.elements |> Arb.fromGen
+
+    [<Property(Arbitrary = [| typeof<KnownAction> |])>]
+    let ``should return known actions excluding AddQuery.`` (data: string) =
+        let a =
+            FSharpType.GetUnionCases(typeof<Action>)
+            |> Seq.find (fun a -> a.Name.Equals(data, StringComparison.InvariantCultureIgnoreCase))
+
+        data
+        |> Action.fromString
+        |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))
+        |> Prop.collect data
 
 module fromString =
     let ``Error Unknown.``<'a> (fromString: string -> 'a) =
