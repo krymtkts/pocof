@@ -131,12 +131,24 @@ module ``Action fromString`` =
         |> shouldEqual (Error $"Unknown Action '{data}'.")
         |> Prop.collect data
 
+    let randomCase (s: string) =
+        let random = Random()
+
+        s
+        |> Seq.map (fun c ->
+            if random.Next(2) = 0 then
+                Char.ToLower(c)
+            else
+                Char.ToUpper(c))
+        |> Seq.toArray
+        |> String
+
     type KnownAction() =
         static member Generate() =
             let a =
                 FSharpType.GetUnionCases(typeof<Action>)
                 |> Seq.filter (fun a -> a.Name <> "AddQuery")
-                |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name ])
+                |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name; randomCase a.Name ])
 
             a |> Gen.elements |> Arb.fromGen
 
