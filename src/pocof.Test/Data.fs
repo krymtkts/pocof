@@ -120,7 +120,7 @@ module ``Action fromString`` =
         static member Generate() =
             Gen.frequency
                 [ (1, Gen.constant "AddQuery")
-                  (9, ArbMap.defaults |> ArbMap.generate<string>) ]
+                  (99, ArbMap.defaults |> ArbMap.generate<string>) ]
             |> Arb.fromGen
             |> Arb.filter (fun x -> Set.contains x actions |> not)
 
