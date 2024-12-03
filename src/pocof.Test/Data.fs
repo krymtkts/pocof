@@ -109,6 +109,18 @@ module unwrap =
             |> List.length
         )
 
+let randomCase (s: string) =
+    let random = Random()
+
+    s
+    |> Seq.map (fun c ->
+        if random.Next(2) = 0 then
+            Char.ToLower(c)
+        else
+            Char.ToUpper(c))
+    |> Seq.toArray
+    |> String
+
 module ``Action fromString`` =
     let actions =
         FSharpType.GetUnionCases(typeof<Action>)
@@ -131,18 +143,6 @@ module ``Action fromString`` =
         |> shouldEqual (Error $"Unknown Action '{data}'.")
         |> Prop.collect data
 
-    let randomCase (s: string) =
-        let random = Random()
-
-        s
-        |> Seq.map (fun c ->
-            if random.Next(2) = 0 then
-                Char.ToLower(c)
-            else
-                Char.ToUpper(c))
-        |> Seq.toArray
-        |> String
-
     type KnownAction() =
         static member Generate() =
             let a =
@@ -164,8 +164,12 @@ module ``Action fromString`` =
         |> Prop.collect data
 
 module fromString =
-    let ``Error Unknown.``<'a> (fromString: string -> 'a) =
-        shouldFail (fun () -> fromString "Unknown" |> ignore)
+    let values<'U> =
+        FSharpType.GetUnionCases(typeof<'U>)
+        |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name; randomCase a.Name ])
+
+    let ``should fail.``<'a> (fromString: string -> 'a) value =
+        shouldFail (fun () -> fromString value |> ignore)
 
     let ``known matchers.``<'a> (fromString: string -> 'a) =
         FSharpType.GetUnionCases(typeof<'a>)
@@ -174,28 +178,37 @@ module fromString =
             |> List.map fromString
             |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
 
+    type ExcludeGen<'U>() =
+        static member Generate() =
+            let matchers = values<'U> |> Set.ofSeq
+
+            ArbMap.defaults
+            |> ArbMap.generate<string>
+            |> Arb.fromGen
+            |> Arb.filter (matchers.Contains >> not)
+
     module ``of Matcher`` =
-        [<Fact>]
-        let ``should return Error Unknown.`` () =
-            ``Error Unknown.``<Matcher> Matcher.fromString
+        [<Property(Arbitrary = [| typeof<ExcludeGen<Matcher>> |])>]
+        let ``should fail when unknown value.`` (data: string) =
+            data |> ``should fail.``<Matcher> Matcher.fromString
 
         [<Fact>]
         let ``should return known matchers.`` () =
             ``known matchers.``<Matcher> Matcher.fromString
 
     module ``of Operator`` =
-        [<Fact>]
-        let ``should return Error Unknown.`` () =
-            ``Error Unknown.``<Operator> Operator.fromString
+        [<Property(Arbitrary = [| typeof<ExcludeGen<Operator>> |])>]
+        let ``should fail when unknown value.`` (data: string) =
+            data |> ``should fail.``<Operator> Operator.fromString
 
         [<Fact>]
         let ``should return known matchers.`` () =
             ``known matchers.``<Operator> Operator.fromString
 
     module ``of Layout`` =
-        [<Fact>]
-        let ``should return Error Unknown.`` () =
-            ``Error Unknown.``<Layout> Layout.fromString
+        [<Property(Arbitrary = [| typeof<ExcludeGen<Layout>> |])>]
+        let ``should fail when unknown value.`` (data: string) =
+            data |> ``should fail.``<Layout> Layout.fromString
 
         [<Fact>]
         let ``should return known matchers.`` () =
