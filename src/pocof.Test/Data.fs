@@ -121,6 +121,10 @@ let randomCase (s: string) =
     |> Seq.toArray
     |> String
 
+let values<'U> =
+    FSharpType.GetUnionCases(typeof<'U>)
+    |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name; randomCase a.Name ])
+
 module ``Action fromString`` =
     let actions =
         FSharpType.GetUnionCases(typeof<Action>)
@@ -164,10 +168,6 @@ module ``Action fromString`` =
         |> Prop.collect data
 
 module fromString =
-    let values<'U> =
-        FSharpType.GetUnionCases(typeof<'U>)
-        |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name; randomCase a.Name ])
-
     let ``should fail.``<'a> (fromString: string -> 'a) value =
         shouldFail (fun () -> fromString value |> ignore)
 
