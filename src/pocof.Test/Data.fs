@@ -2,6 +2,7 @@ module PocofTest.Data
 
 open System
 open Microsoft.FSharp.Reflection
+open System.Collections.Generic
 
 open Xunit
 open FsUnitTyped
@@ -121,18 +122,17 @@ let randomCase (s: string) =
     |> Seq.toArray
     |> String
 
-let values<'U> =
-    FSharpType.GetUnionCases(typeof<'U>)
-    |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name; randomCase a.Name ])
+let duNames<'U> = FSharpType.GetUnionCases(typeof<'U>) |> Seq.map _.Name
+
+let randomCases (name: string) =
+    [ name; String.lower name; String.upper name; randomCase name ]
+
+let toIgnoreCaseSet (x: string seq) =
+    HashSet(x, StringComparer.InvariantCultureIgnoreCase)
 
 module ``Action fromString`` =
-    open System.Collections.Generic
-
-    let actions =
-        FSharpType.GetUnionCases(typeof<Action>)
-        |> Seq.filter (fun a -> a.Name <> "AddQuery")
-        |> Seq.map _.Name
-        |> (fun x -> HashSet(x, StringComparer.InvariantCultureIgnoreCase))
+    let actionsNames = duNames<Action> |> Seq.filter ((<>) "AddQuery")
+    let actionsNameSet = actionsNames |> toIgnoreCaseSet
 
     type UnknownAction() =
         static member Generate() =
@@ -140,7 +140,7 @@ module ``Action fromString`` =
                 [ (1, Gen.constant "AddQuery")
                   (99, ArbMap.defaults |> ArbMap.generate<string>) ]
             |> Arb.fromGen
-            |> Arb.filter (actions.Contains >> not)
+            |> Arb.filter (actionsNameSet.Contains >> not)
 
     [<Property(Arbitrary = [| typeof<UnknownAction> |])>]
     let ``should return unknown action error.`` (data: string) =
@@ -151,12 +151,7 @@ module ``Action fromString`` =
 
     type KnownAction() =
         static member Generate() =
-            let a =
-                FSharpType.GetUnionCases(typeof<Action>)
-                |> Seq.filter (fun a -> a.Name <> "AddQuery")
-                |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name; randomCase a.Name ])
-
-            a |> Gen.elements |> Arb.fromGen
+            actionsNames |> Seq.collect randomCases |> Gen.elements |> Arb.fromGen
 
     [<Property(Arbitrary = [| typeof<KnownAction> |])>]
     let ``should return known actions excluding AddQuery.`` (data: string) =
@@ -176,13 +171,14 @@ module fromString =
     let ``known matchers.``<'a> (fromString: string -> 'a) =
         FSharpType.GetUnionCases(typeof<'a>)
         |> Seq.iter (fun (a: UnionCaseInfo) ->
-            [ a.Name; String.lower a.Name; String.upper a.Name ]
+            a.Name
+            |> randomCases
             |> List.map fromString
             |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
 
     type ExcludeGen<'U>() =
         static member Generate() =
-            let matchers = values<'U> |> Set.ofSeq
+            let matchers = duNames<'U> |> toIgnoreCaseSet
 
             ArbMap.defaults
             |> ArbMap.generate<string>
