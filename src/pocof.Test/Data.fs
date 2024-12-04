@@ -126,11 +126,13 @@ let values<'U> =
     |> Seq.collect (fun a -> [ a.Name; String.lower a.Name; String.upper a.Name; randomCase a.Name ])
 
 module ``Action fromString`` =
+    open System.Collections.Generic
+
     let actions =
         FSharpType.GetUnionCases(typeof<Action>)
         |> Seq.filter (fun a -> a.Name <> "AddQuery")
         |> Seq.map _.Name
-        |> Set.ofSeq
+        |> (fun x -> HashSet(x, StringComparer.InvariantCultureIgnoreCase))
 
     type UnknownAction() =
         static member Generate() =
@@ -138,7 +140,7 @@ module ``Action fromString`` =
                 [ (1, Gen.constant "AddQuery")
                   (99, ArbMap.defaults |> ArbMap.generate<string>) ]
             |> Arb.fromGen
-            |> Arb.filter (fun x -> Set.contains x actions |> not)
+            |> Arb.filter (actions.Contains >> not)
 
     [<Property(Arbitrary = [| typeof<UnknownAction> |])>]
     let ``should return unknown action error.`` (data: string) =
