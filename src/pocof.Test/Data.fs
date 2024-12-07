@@ -137,8 +137,8 @@ module ``Action fromString`` =
     type UnknownAction() =
         static member Generate() =
             Gen.frequency
-                [ (1, Gen.constant "AddQuery")
-                  (99, ArbMap.defaults |> ArbMap.generate<string>) ]
+                [ (1, Gen.elements <| randomCases "AddQuery")
+                  (9, ArbMap.defaults |> ArbMap.generate<string>) ]
             |> Arb.fromGen
             |> Arb.filter (actionsNameSet.Contains >> not)
 
