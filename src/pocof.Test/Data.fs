@@ -130,17 +130,29 @@ let randomCases (name: string) =
 let toIgnoreCaseSet (x: string seq) =
     HashSet(x, StringComparer.InvariantCultureIgnoreCase)
 
+let generateStringExclude (exclude: string seq) =
+    let excludeSet = exclude |> toIgnoreCaseSet
+
+    ArbMap.defaults
+    |> ArbMap.generate<string>
+    |> Gen.filter (excludeSet.Contains >> not)
+
+let generateStringFromDU<'DU> (exclude: string seq) =
+    let excludeSet = exclude |> toIgnoreCaseSet
+
+    ArbMap.defaults
+    |> ArbMap.generate<string>
+    |> Gen.filter (excludeSet.Contains >> not)
+
 module ``Action fromString`` =
     let actionsNames = duNames<Action> |> Seq.filter ((<>) "AddQuery")
-    let actionsNameSet = actionsNames |> toIgnoreCaseSet
 
     type UnknownAction() =
         static member Generate() =
             Gen.frequency
-                [ (1, Gen.elements <| randomCases "AddQuery")
-                  (9, ArbMap.defaults |> ArbMap.generate<string>) ]
+                [ (1, randomCases "AddQuery" |> Gen.elements)
+                  (9, actionsNames |> generateStringExclude) ]
             |> Arb.fromGen
-            |> Arb.filter (actionsNameSet.Contains >> not)
 
     [<Property(Arbitrary = [| typeof<UnknownAction> |])>]
     let ``should return unknown action error.`` (data: string) =
@@ -178,12 +190,7 @@ module fromString =
 
     type ExcludeGen<'U>() =
         static member Generate() =
-            let matchers = duNames<'U> |> toIgnoreCaseSet
-
-            ArbMap.defaults
-            |> ArbMap.generate<string>
-            |> Arb.fromGen
-            |> Arb.filter (matchers.Contains >> not)
+            generateStringExclude duNames<'U> |> Arb.fromGen
 
     module ``of Matcher`` =
         [<Property(Arbitrary = [| typeof<ExcludeGen<Matcher>> |])>]
