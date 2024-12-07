@@ -20,11 +20,11 @@ type SelectPocofCommand() =
     let mutable renderPeriodic: unit -> unit = fun () -> ()
     let mutable waitResult: Pocof.Termination -> obj seq = fun (_) -> Seq.empty
 
-    [<Parameter(Position = 0, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
+    [<Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     [<ValidateNotNull>]
     member val InputObject: PSObject[] = [||] with get, set
 
-    [<Parameter>]
+    [<Parameter(Position = 0)>]
     [<ValidateNotNull>]
     member val Query = String.Empty with get, set
 
