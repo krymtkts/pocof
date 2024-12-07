@@ -137,12 +137,17 @@ let generateStringExclude (exclude: string seq) =
     |> ArbMap.generate<string>
     |> Gen.filter (excludeSet.Contains >> not)
 
-let generateStringFromDU<'DU> (exclude: string seq) =
+let generateStringFromDu<'DU> (exclude: string seq) =
     let excludeSet = exclude |> toIgnoreCaseSet
 
     ArbMap.defaults
     |> ArbMap.generate<string>
     |> Gen.filter (excludeSet.Contains >> not)
+
+let findDu<'DU> (name: string) =
+    FSharpType.GetUnionCases(typeof<'DU>)
+    |> Seq.find (fun a -> a.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+    |> fun x -> (FSharpValue.MakeUnion(x, [||]) :?> 'DU)
 
 module ``Action fromString`` =
     let actionsNames = duNames<Action> |> Seq.filter ((<>) "AddQuery")
@@ -167,57 +172,52 @@ module ``Action fromString`` =
 
     [<Property(Arbitrary = [| typeof<KnownAction> |])>]
     let ``should return known actions excluding AddQuery.`` (data: string) =
-        let a =
-            FSharpType.GetUnionCases(typeof<Action>)
-            |> Seq.find (fun a -> a.Name.Equals(data, StringComparison.InvariantCultureIgnoreCase))
-
         data
         |> Action.fromString
-        |> shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))
+        |> shouldEqual (data |> findDu<Action> |> Ok)
         |> Prop.collect data
 
 module fromString =
-    let ``should fail.``<'a> (fromString: string -> 'a) value =
+    let ``should fail.``<'DU> (fromString: string -> 'DU) value =
         shouldFail (fun () -> fromString value |> ignore)
 
-    let ``known matchers.``<'a> (fromString: string -> 'a) =
-        FSharpType.GetUnionCases(typeof<'a>)
-        |> Seq.iter (fun (a: UnionCaseInfo) ->
-            a.Name
-            |> randomCases
-            |> List.map fromString
-            |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
+    let ``known matchers.``<'DU> (fromString: string -> 'DU) (data: string) =
+        data |> fromString |> shouldEqual (data |> findDu<'DU>)
 
-    type ExcludeGen<'U>() =
+    type InvalidDuName<'DU>() =
         static member Generate() =
-            generateStringExclude duNames<'U> |> Arb.fromGen
+            duNames<'DU> |> generateStringExclude |> Arb.fromGen
+
+    type ValidDuName<'DU>() =
+        static member Generate() =
+            duNames<'DU> |> Seq.collect randomCases |> Gen.elements |> Arb.fromGen
 
     module ``of Matcher`` =
-        [<Property(Arbitrary = [| typeof<ExcludeGen<Matcher>> |])>]
+        [<Property(Arbitrary = [| typeof<InvalidDuName<Matcher>> |])>]
         let ``should fail when unknown value.`` (data: string) =
-            data |> ``should fail.``<Matcher> Matcher.fromString
+            data |> ``should fail.`` Matcher.fromString
 
-        [<Fact>]
-        let ``should return known matchers.`` () =
-            ``known matchers.``<Matcher> Matcher.fromString
+        [<Property(Arbitrary = [| typeof<ValidDuName<Matcher>> |])>]
+        let ``should return known matchers.`` (data: string) =
+            data |> ``known matchers.`` Matcher.fromString |> Prop.collect data
 
     module ``of Operator`` =
-        [<Property(Arbitrary = [| typeof<ExcludeGen<Operator>> |])>]
+        [<Property(Arbitrary = [| typeof<InvalidDuName<Operator>> |])>]
         let ``should fail when unknown value.`` (data: string) =
-            data |> ``should fail.``<Operator> Operator.fromString
+            data |> ``should fail.`` Operator.fromString
 
-        [<Fact>]
-        let ``should return known matchers.`` () =
-            ``known matchers.``<Operator> Operator.fromString
+        [<Property(Arbitrary = [| typeof<ValidDuName<Operator>> |])>]
+        let ``should return known matchers.`` (data: string) =
+            data |> ``known matchers.`` Operator.fromString |> Prop.collect data
 
     module ``of Layout`` =
-        [<Property(Arbitrary = [| typeof<ExcludeGen<Layout>> |])>]
+        [<Property(Arbitrary = [| typeof<InvalidDuName<Layout>> |])>]
         let ``should fail when unknown value.`` (data: string) =
-            data |> ``should fail.``<Layout> Layout.fromString
+            data |> ``should fail.`` Layout.fromString
 
-        [<Fact>]
-        let ``should return known matchers.`` () =
-            ``known matchers.``<Layout> Layout.fromString
+        [<Property(Arbitrary = [| typeof<ValidDuName<Layout>> |])>]
+        let ``should return known matchers.`` (data: string) =
+            data |> ``known matchers.`` Layout.fromString |> Prop.collect data
 
 module ``QueryState toString`` =
     let queryState (m: Matcher) (o: Operator) : QueryCondition =
