@@ -220,80 +220,31 @@ module fromString =
             data |> ``known matchers.`` Layout.fromString |> Prop.collect data
 
 module ``QueryState toString`` =
-    let queryState (m: Matcher) (o: Operator) : QueryCondition =
-        { Matcher = m
-          Operator = o
-          CaseSensitive = false
-          Invert = false }
+    type QueryConditionGen() =
+        static member Generate() =
+            Gen.map4
+                (fun m o c i ->
+                    { Matcher = m
+                      Operator = o
+                      CaseSensitive = c
+                      Invert = i })
+                (ArbMap.generate<Matcher> ArbMap.defaults)
+                (ArbMap.generate<Operator> ArbMap.defaults)
+                (ArbMap.generate<bool> ArbMap.defaults)
+                (ArbMap.generate<bool> ArbMap.defaults)
+            |> Arb.fromGen
 
-    let caseSensitive (s: QueryCondition) = { s with CaseSensitive = true }
-    let invert (s: QueryCondition) = { s with Invert = true }
+    [<Property(Arbitrary = [| typeof<QueryConditionGen> |])>]
+    let ``should return correct format.`` (data: QueryCondition) =
+        let c = if data.CaseSensitive then "c" else ""
 
-    [<Fact>]
-    let ``should return eq and`` () =
-        let actual = queryState Matcher.Eq Operator.And
-        string actual |> shouldEqual "eq and"
+        let m =
+            match data.Matcher with
+            | Matcher.Eq -> if data.Invert then "ne" else "eq"
+            | Matcher.Like -> $"""{if data.Invert then "not" else ""}like"""
+            | Matcher.Match -> $"""{if data.Invert then "not" else ""}match"""
 
-    [<Fact>]
-    let ``should return cne or`` () =
-        let actual = queryState Matcher.Eq Operator.Or |> caseSensitive |> invert
-
-        string actual |> shouldEqual "cne or"
-
-    [<Fact>]
-    let ``should return ceq and`` () =
-        let actual = queryState Matcher.Eq Operator.And |> caseSensitive
-
-        string actual |> shouldEqual "ceq and"
-
-    [<Fact>]
-    let ``should return ne or`` () =
-        let actual = queryState Matcher.Eq Operator.Or |> invert
-        string actual |> shouldEqual "ne or"
-
-    [<Fact>]
-    let ``should return like and`` () =
-        let actual = queryState Matcher.Like Operator.And
-        string actual |> shouldEqual "like and"
-
-    [<Fact>]
-    let ``should return clike and`` () =
-        let actual = queryState Matcher.Like Operator.And |> caseSensitive
-
-        string actual |> shouldEqual "clike and"
-
-    [<Fact>]
-    let ``should return notlike and`` () =
-        let actual = queryState Matcher.Like Operator.And |> invert
-        string actual |> shouldEqual "notlike and"
-
-    [<Fact>]
-    let ``should return cnotlike and`` () =
-        let actual = queryState Matcher.Like Operator.And |> caseSensitive |> invert
-
-        string actual |> shouldEqual "cnotlike and"
-
-    [<Fact>]
-    let ``should return cnotmatch or`` () =
-        let actual = queryState Matcher.Match Operator.Or |> caseSensitive |> invert
-
-        string actual |> shouldEqual "cnotmatch or"
-
-    [<Fact>]
-    let ``should return notmatch or`` () =
-        let actual = queryState Matcher.Match Operator.Or |> invert
-        string actual |> shouldEqual "notmatch or"
-
-    [<Fact>]
-    let ``should return cmatch or`` () =
-        let actual = queryState Matcher.Match Operator.Or |> caseSensitive
-
-        string actual |> shouldEqual "cmatch or"
-
-    [<Fact>]
-    let ``should return match or`` () =
-        let actual = queryState Matcher.Match Operator.Or
-        string actual |> shouldEqual "match or"
+        data |> string |> shouldEqual $"{c}{m} {data.Operator}" |> Prop.collect data
 
 module initConfig =
     [<Fact>]
