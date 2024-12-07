@@ -2,6 +2,7 @@ module PocofTest.Data
 
 open System
 open Microsoft.FSharp.Reflection
+open System.Collections.Generic
 
 open Xunit
 open FsUnitTyped
@@ -48,7 +49,7 @@ module unwrap =
         |> Gen.map (DictionaryEntry >> Entry.Dict)
 
     type EntryPSObject =
-        static member Double() = psObjectGen |> Arb.fromGen
+        static member Generate() = psObjectGen |> Arb.fromGen
 
     [<Property(Arbitrary = [| typeof<EntryPSObject> |], EndSize = 1000)>]
     let ``should return PSObject sequence.`` (data: Entry list) =
@@ -64,7 +65,7 @@ module unwrap =
         |> Prop.collect (List.length data)
 
     type EntryDictionaryEntry =
-        static member Double() = dictionaryEntryGen |> Arb.fromGen
+        static member Generate() = dictionaryEntryGen |> Arb.fromGen
 
     [<Property(Arbitrary = [| typeof<EntryDictionaryEntry> |], EndSize = 1000)>]
     let ``should return DictionaryEntry sequence.`` (data: Entry list) =
@@ -109,137 +110,141 @@ module unwrap =
             |> List.length
         )
 
+let randomCase (s: string) =
+    let random = Random()
+
+    s
+    |> Seq.map (fun c ->
+        if random.Next(2) = 0 then
+            Char.ToLower(c)
+        else
+            Char.ToUpper(c))
+    |> Seq.toArray
+    |> String
+
+let duNames<'U> = FSharpType.GetUnionCases(typeof<'U>) |> Seq.map _.Name
+
+let randomCases (name: string) =
+    [ name; String.lower name; String.upper name; randomCase name ]
+
+let toIgnoreCaseSet (x: string seq) =
+    HashSet(x, StringComparer.InvariantCultureIgnoreCase)
+
+let generateStringExclude (exclude: string seq) =
+    let excludeSet = exclude |> toIgnoreCaseSet
+
+    ArbMap.defaults
+    |> ArbMap.generate<string>
+    |> Gen.filter (excludeSet.Contains >> not)
+
+let generateStringFromDu<'DU> (exclude: string seq) =
+    let excludeSet = exclude |> toIgnoreCaseSet
+
+    ArbMap.defaults
+    |> ArbMap.generate<string>
+    |> Gen.filter (excludeSet.Contains >> not)
+
+let findDu<'DU> (name: string) =
+    FSharpType.GetUnionCases(typeof<'DU>)
+    |> Seq.find (fun a -> a.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+    |> fun x -> (FSharpValue.MakeUnion(x, [||]) :?> 'DU)
+
 module ``Action fromString`` =
-    [<Fact>]
-    let ``should return Error Unknown.`` () =
-        Action.fromString "XXX" |> shouldEqual (Error "Unknown Action 'XXX'.")
+    let actionsNames = duNames<Action> |> Seq.filter ((<>) "AddQuery")
 
-    [<Fact>]
-    let ``should return Error when AddQuery.`` () =
-        Action.fromString "AddQuery" |> shouldEqual (Error "Unknown Action 'AddQuery'.")
+    type UnknownAction() =
+        static member Generate() =
+            Gen.frequency
+                [ (1, randomCases "AddQuery" |> Gen.elements)
+                  (9, actionsNames |> generateStringExclude) ]
+            |> Arb.fromGen
 
-    [<Fact>]
-    let ``should return known actions excluding AddQuery.`` () =
-        FSharpType.GetUnionCases(typeof<Action>)
-        |> Seq.filter (fun a -> a.Name <> "AddQuery")
-        |> Seq.iter (fun a ->
-            [ a.Name; String.lower a.Name; String.upper a.Name ]
-            |> List.map Action.fromString
-            |> List.iter (shouldEqual (Ok(FSharpValue.MakeUnion(a, [||]) :?> Action))))
+    [<Property(Arbitrary = [| typeof<UnknownAction> |])>]
+    let ``should return unknown action error.`` (data: string) =
+        data
+        |> Action.fromString
+        |> shouldEqual (Error $"Unknown Action '{data}'.")
+        |> Prop.collect data
+
+    type KnownAction() =
+        static member Generate() =
+            actionsNames |> Seq.collect randomCases |> Gen.elements |> Arb.fromGen
+
+    [<Property(Arbitrary = [| typeof<KnownAction> |])>]
+    let ``should return known actions excluding AddQuery.`` (data: string) =
+        data
+        |> Action.fromString
+        |> shouldEqual (data |> findDu<Action> |> Ok)
+        |> Prop.collect data
 
 module fromString =
-    let ``Error Unknown.``<'a> (fromString: string -> 'a) =
-        shouldFail (fun () -> fromString "Unknown" |> ignore)
+    let ``should fail.``<'DU> (fromString: string -> 'DU) value =
+        shouldFail (fun () -> fromString value |> ignore)
 
-    let ``known matchers.``<'a> (fromString: string -> 'a) =
-        FSharpType.GetUnionCases(typeof<'a>)
-        |> Seq.iter (fun (a: UnionCaseInfo) ->
-            [ a.Name; String.lower a.Name; String.upper a.Name ]
-            |> List.map fromString
-            |> List.iter (shouldEqual (FSharpValue.MakeUnion(a, [||]) :?> 'a)))
+    let ``known matchers.``<'DU> (fromString: string -> 'DU) (data: string) =
+        data |> fromString |> shouldEqual (data |> findDu<'DU>)
+
+    type InvalidDuName<'DU>() =
+        static member Generate() =
+            duNames<'DU> |> generateStringExclude |> Arb.fromGen
+
+    type ValidDuName<'DU>() =
+        static member Generate() =
+            duNames<'DU> |> Seq.collect randomCases |> Gen.elements |> Arb.fromGen
 
     module ``of Matcher`` =
-        [<Fact>]
-        let ``should return Error Unknown.`` () =
-            ``Error Unknown.``<Matcher> Matcher.fromString
+        [<Property(Arbitrary = [| typeof<InvalidDuName<Matcher>> |])>]
+        let ``should fail when unknown value.`` (data: string) =
+            data |> ``should fail.`` Matcher.fromString
 
-        [<Fact>]
-        let ``should return known matchers.`` () =
-            ``known matchers.``<Matcher> Matcher.fromString
+        [<Property(Arbitrary = [| typeof<ValidDuName<Matcher>> |])>]
+        let ``should return known matchers.`` (data: string) =
+            data |> ``known matchers.`` Matcher.fromString |> Prop.collect data
 
     module ``of Operator`` =
-        [<Fact>]
-        let ``should return Error Unknown.`` () =
-            ``Error Unknown.``<Operator> Operator.fromString
+        [<Property(Arbitrary = [| typeof<InvalidDuName<Operator>> |])>]
+        let ``should fail when unknown value.`` (data: string) =
+            data |> ``should fail.`` Operator.fromString
 
-        [<Fact>]
-        let ``should return known matchers.`` () =
-            ``known matchers.``<Operator> Operator.fromString
+        [<Property(Arbitrary = [| typeof<ValidDuName<Operator>> |])>]
+        let ``should return known matchers.`` (data: string) =
+            data |> ``known matchers.`` Operator.fromString |> Prop.collect data
 
     module ``of Layout`` =
-        [<Fact>]
-        let ``should return Error Unknown.`` () =
-            ``Error Unknown.``<Layout> Layout.fromString
+        [<Property(Arbitrary = [| typeof<InvalidDuName<Layout>> |])>]
+        let ``should fail when unknown value.`` (data: string) =
+            data |> ``should fail.`` Layout.fromString
 
-        [<Fact>]
-        let ``should return known matchers.`` () =
-            ``known matchers.``<Layout> Layout.fromString
+        [<Property(Arbitrary = [| typeof<ValidDuName<Layout>> |])>]
+        let ``should return known matchers.`` (data: string) =
+            data |> ``known matchers.`` Layout.fromString |> Prop.collect data
 
 module ``QueryState toString`` =
-    let queryState (m: Matcher) (o: Operator) : QueryCondition =
-        { Matcher = m
-          Operator = o
-          CaseSensitive = false
-          Invert = false }
+    type QueryConditionGen() =
+        static member Generate() =
+            Gen.map4
+                (fun m o c i ->
+                    { Matcher = m
+                      Operator = o
+                      CaseSensitive = c
+                      Invert = i })
+                (ArbMap.generate<Matcher> ArbMap.defaults)
+                (ArbMap.generate<Operator> ArbMap.defaults)
+                (ArbMap.generate<bool> ArbMap.defaults)
+                (ArbMap.generate<bool> ArbMap.defaults)
+            |> Arb.fromGen
 
-    let caseSensitive (s: QueryCondition) = { s with CaseSensitive = true }
-    let invert (s: QueryCondition) = { s with Invert = true }
+    [<Property(Arbitrary = [| typeof<QueryConditionGen> |])>]
+    let ``should return correct format.`` (data: QueryCondition) =
+        let c = if data.CaseSensitive then "c" else ""
 
-    [<Fact>]
-    let ``should return eq and`` () =
-        let actual = queryState Matcher.Eq Operator.And
-        string actual |> shouldEqual "eq and"
+        let m =
+            match data.Matcher with
+            | Matcher.Eq -> if data.Invert then "ne" else "eq"
+            | Matcher.Like -> $"""{if data.Invert then "not" else ""}like"""
+            | Matcher.Match -> $"""{if data.Invert then "not" else ""}match"""
 
-    [<Fact>]
-    let ``should return cne or`` () =
-        let actual = queryState Matcher.Eq Operator.Or |> caseSensitive |> invert
-
-        string actual |> shouldEqual "cne or"
-
-    [<Fact>]
-    let ``should return ceq and`` () =
-        let actual = queryState Matcher.Eq Operator.And |> caseSensitive
-
-        string actual |> shouldEqual "ceq and"
-
-    [<Fact>]
-    let ``should return ne or`` () =
-        let actual = queryState Matcher.Eq Operator.Or |> invert
-        string actual |> shouldEqual "ne or"
-
-    [<Fact>]
-    let ``should return like and`` () =
-        let actual = queryState Matcher.Like Operator.And
-        string actual |> shouldEqual "like and"
-
-    [<Fact>]
-    let ``should return clike and`` () =
-        let actual = queryState Matcher.Like Operator.And |> caseSensitive
-
-        string actual |> shouldEqual "clike and"
-
-    [<Fact>]
-    let ``should return notlike and`` () =
-        let actual = queryState Matcher.Like Operator.And |> invert
-        string actual |> shouldEqual "notlike and"
-
-    [<Fact>]
-    let ``should return cnotlike and`` () =
-        let actual = queryState Matcher.Like Operator.And |> caseSensitive |> invert
-
-        string actual |> shouldEqual "cnotlike and"
-
-    [<Fact>]
-    let ``should return cnotmatch or`` () =
-        let actual = queryState Matcher.Match Operator.Or |> caseSensitive |> invert
-
-        string actual |> shouldEqual "cnotmatch or"
-
-    [<Fact>]
-    let ``should return notmatch or`` () =
-        let actual = queryState Matcher.Match Operator.Or |> invert
-        string actual |> shouldEqual "notmatch or"
-
-    [<Fact>]
-    let ``should return cmatch or`` () =
-        let actual = queryState Matcher.Match Operator.Or |> caseSensitive
-
-        string actual |> shouldEqual "cmatch or"
-
-    [<Fact>]
-    let ``should return match or`` () =
-        let actual = queryState Matcher.Match Operator.Or
-        string actual |> shouldEqual "match or"
+        data |> string |> shouldEqual $"{c}{m} {data.Operator}" |> Prop.collect data
 
 module initConfig =
     [<Fact>]
