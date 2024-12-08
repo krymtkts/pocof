@@ -90,7 +90,7 @@
     # ModuleList = @()
 
     # List of all files packaged with this module
-    FileList = @('pocof.dll', 'pocof.dll-Help.xml')
+    FileList = @('pocof.dll', 'pocof-Help.xml')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData = @{
