@@ -449,25 +449,13 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### Markdig.Syntax.Inlines.CodeInline
-
 ### `System.Management.Automation.PSObject[]`
-
-{{ Fill in the Description }}
-
-### System.Management.Automation.PSObject
 
 {{ Fill in the Description }}
 
 ## OUTPUTS
 
-### Markdig.Syntax.Inlines.CodeInline
-
 ### `System.Management.Automation.PSObject`
-
-{{ Fill in the Description }}
-
-### System.Management.Automation.PSObject
 
 {{ Fill in the Description }}
 
