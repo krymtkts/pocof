@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <None Include="pocof.psd1" Pack="true" CopyToOutputDirectory="Always" />
-    <None Include="pocof.dll-Help.xml" Pack="true" CopyToOutputDirectory="Always" />
+    <None Include="pocof-Help.xml" Pack="true" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>

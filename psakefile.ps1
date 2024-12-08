@@ -32,6 +32,21 @@ Task Clean {
     ) | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitkeep
 }
 
+function Get-ValidMarkdownCommentHelp {
+    if (Get-Command Measure-PlatyPSMarkdown -ErrorAction SilentlyContinue) {
+        $help = Measure-PlatyPSMarkdown .\docs\$ModuleName\*.md | Where-Object Filetype -Match CommandHelp
+        $validations = $help.FilePath | Test-MarkdownCommandHelp -DetailView
+        if (-not $validations.IsValid) {
+            $validations.Messages | Where-Object { $_ -notlike 'PASS:*' } | Write-Error
+            throw 'Invalid markdown help files.'
+        }
+        $help
+    }
+    else {
+        Write-Warning 'PlatyPS is not installed.'
+    }
+}
+
 Task Lint {
     dotnet fsharplint lint "${ModuleName}.sln"
     if (-not $?) {
@@ -49,6 +64,7 @@ Task Lint {
     if ($warn) {
         throw 'Invoke-ScriptAnalyzer for pocof.Tests.ps1 failed.'
     }
+    Get-ValidMarkdownCommentHelp | Out-Null
 }
 
 Task Build -Depends Clean {
@@ -124,10 +140,9 @@ Task Test -Depends Import {
 }
 
 Task ExternalHelp -Depends Import {
-    if (-not (Test-Path ./docs)) {
-        New-MarkdownHelp -Module pocof -OutputFolder ./docs
-    }
-    New-ExternalHelp docs -OutputPath $ModuleSrcPath -Force
+    $help = Get-ValidMarkdownCommentHelp
+    $help.FilePath | Update-MarkdownCommandHelp -NoBackup
+    $help.FilePath | Import-MarkdownCommandHelp | Export-MamlCommandHelp -OutputFolder ./src/ -Force | Out-Null
 }
 
 Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll, ExternalHelp {
