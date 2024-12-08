@@ -449,13 +449,13 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### `System.Management.Automation.PSObject[]`
+### System.Management.Automation.PSObject
 
 {{ Fill in the Description }}
 
 ## OUTPUTS
 
-### `System.Management.Automation.PSObject`
+### System.Management.Automation.PSObject
 
 {{ Fill in the Description }}
 

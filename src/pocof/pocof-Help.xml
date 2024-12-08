@@ -443,7 +443,7 @@ The property name in the query starts with `:` followed by a space, and then the
     <command:inputTypes>
       <command:inputType>
         <dev:type>
-          <dev:name>Markdig.Syntax.Inlines.CodeInline</dev:name>
+          <dev:name>System.Management.Automation.PSObject</dev:name>
         </dev:type>
         <maml:description>
           <maml:para>{{ Fill in the Description }}</maml:para>
@@ -453,7 +453,7 @@ The property name in the query starts with `:` followed by a space, and then the
     <command:returnValues>
       <command:returnValue>
         <dev:type>
-          <dev:name>Markdig.Syntax.Inlines.CodeInline</dev:name>
+          <dev:name>System.Management.Automation.PSObject</dev:name>
         </dev:type>
         <maml:description>
           <maml:para>{{ Fill in the Description }}</maml:para>
