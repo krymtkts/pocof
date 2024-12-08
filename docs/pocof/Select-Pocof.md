@@ -1,8 +1,10 @@
----
+﻿---
+document type: cmdlet
 external help file: pocof-Help.xml
+HelpUri: https://github.com/krymtkts/pocof/blob/main/docs/Select-Pocof.md
 Module Name: pocof
-online version: https://github.com/krymtkts/pocof/blob/main/docs/Select-Pocof.md
-schema: 2.0.0
+ms.date: 12-08-2024
+PlatyPS schema version: 2024-05-01
 ---
 
 # Select-Pocof
@@ -13,11 +15,24 @@ Selects objects from a collection based on interactive query.
 
 ## SYNTAX
 
-```plaintext
-Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>] [-Operator <String>]
- [-CaseSensitive] [-InvertQuery] [-NonInteractive] [-SuppressProperties] [-Prompt <String>] [-Layout <String>]
- [-Keymaps <Hashtable>] [<CommonParameters>]
+### Default (Default)
+
 ```
+Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>]
+ [-Operator <String>] [-CaseSensitive] [-InvertQuery] [-NonInteractive] [-SuppressProperties]
+ [-Prompt <String>] [-Layout <String>] [-Keymaps <Hashtable>] [<CommonParameters>]
+```
+
+### __AllParameterSets
+
+```
+Select-Pocof [[-InputObject] <psobject[]>] [-Query <string>] [-Matcher <string>]
+ [-Operator <string>] [-CaseSensitive] [-InvertQuery] [-NonInteractive] [-SuppressProperties]
+ [-Unique] [-Prompt <string>] [-Layout <string>] [-Keymaps <hashtable>] [-WordDelimiters <string>]
+ [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -79,15 +94,21 @@ Interactively filter hashtable and create new hashtable from filtered items.
 Filtering in case-sensitive.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -InputObject
@@ -95,15 +116,43 @@ Accept wildcard characters: False
 Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.
 
 ```yaml
-Type: PSObject[]
-Parameter Sets: (All)
-Aliases:
+Type: System.Management.Automation.PSObject[]
+DefaultValue: None
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: false
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: 0
-Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
+### -InvertQuery
+
+Enabling `InvertQuery` will invert the filtering output.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Keymaps
@@ -142,15 +191,21 @@ Default keymaps are following.
 ```
 
 ```yaml
-Type: Hashtable
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Collections.Hashtable
+DefaultValue: None
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Layout
@@ -158,16 +213,105 @@ Accept wildcard characters: False
 Select the layout: TopDown, TopDownHalf, BottomUp or BottomUpHalf.
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-Accepted values: TopDown, TopDownHalf, BottomUp, BottomUpHalf
+Type: System.String
+DefaultValue: TopDown
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues:
+- TopDown
+- TopDownHalf
+- BottomUp
+- BottomUpHalf
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: TopDown
-Accept pipeline input: False
-Accept wildcard characters: False
+### -Matcher
+
+Select the matching mode. You can use `Match`, `Like` or `Eq`.
+
+- `Match` provides regular expression matching
+- `Like` provides wildcard matching
+- `Eq` provides exact matching
+
+```yaml
+Type: System.String
+DefaultValue: Match
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues:
+- Match
+- Like
+- Eq
+HelpMessage: ''
+```
+
+### -NonInteractive
+
+Enabling `NonInteractive` starts the application in non-interactive mode.
+Mainly used for testing purposes.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Operator
+
+Select the logical operator to use when specifying query strings.
+You can use `And` or `Or`.
+
+- `And` provides logical "And" to multi query generated from splitting query by whitespace
+- `Or` provides logical "Or" to multi query generated from splitting query by whitespace
+
+```yaml
+Type: System.String
+DefaultValue: And
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues:
+- And
+- Or
+HelpMessage: ''
 ```
 
 ### -Prompt
@@ -175,15 +319,21 @@ Accept wildcard characters: False
 Specifies the prompt that appears before the query input space.
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: query
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.String
+DefaultValue: query
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Query
@@ -205,90 +355,21 @@ You can also combine normal filtering with property queries.
 `Value1 Value2 :PropertyName Value3`
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -InvertQuery
-
-Enabling `InvertQuery` will invert the filtering output.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Matcher
-
-Select the matching mode. You can use `Match`, `Like` or `Eq`.
-
-- `Match` provides regular expression matching
-- `Like` provides wildcard matching
-- `Eq` provides exact matching
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-Accepted values: Match, Like, Eq
-
-Required: False
-Position: Named
-Default value: Match
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -NonInteractive
-
-Enabling `NonInteractive` starts the application in non-interactive mode.
-Mainly used for testing purposes.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Operator
-
-Select the logical operator to use when specifying query strings.
-You can use `And` or `Or`.
-
-- `And` provides logical "And" to multi query generated from splitting query by whitespace
-- `Or` provides logical "Or" to multi query generated from splitting query by whitespace
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-Accepted values: And, Or
-
-Required: False
-Position: Named
-Default value: And
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.String
+DefaultValue: None
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -SuppressProperties
@@ -296,15 +377,21 @@ Accept wildcard characters: False
 Enabling `SuppressProperties` will disable the display of properties under the query input.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Unique
@@ -314,15 +401,21 @@ Enabling `Unique` will exclude duplicates in `InputObject`.
 `Unique` uses the `Equals` and `GetHashCode` methods of `InputObject` to check for equality.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WordDelimiters
@@ -330,28 +423,53 @@ Accept wildcard characters: False
 Specifies the characters that delimit words for word-based cursor movement, selection or deletion functions.
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: ;:,.[]{}()/\\|!?^&*-=+'\"–—―
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.String
+DefaultValue: ;:,.[]{}()/\\|!?^&*-=+'\"–—―
+SupportsWildcards: false
+ParameterValue: []
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
+### Markdig.Syntax.Inlines.CodeInline
+
 ### `System.Management.Automation.PSObject[]`
+
+{{ Fill in the Description }}
+
+### System.Management.Automation.PSObject
+
+{{ Fill in the Description }}
 
 ## OUTPUTS
 
+### Markdig.Syntax.Inlines.CodeInline
+
 ### `System.Management.Automation.PSObject`
+
+{{ Fill in the Description }}
+
+### System.Management.Automation.PSObject
+
+{{ Fill in the Description }}
 
 ## NOTES
 
@@ -360,3 +478,6 @@ Includes the following aliases for `Select-Pocof`
 - `pocof`
 
 ## RELATED LINKS
+
+{{ Fill in the related links here }}
+
