@@ -124,10 +124,14 @@ Task Test -Depends Import {
 }
 
 Task ExternalHelp -Depends Import {
-    if (-not (Test-Path ./docs)) {
-        New-MarkdownHelp -Module pocof -OutputFolder ./docs
+    $help = Measure-PlatyPSMarkdown .\docs\$ModuleName\*.md | Where-Object Filetype -Match CommandHelp
+    $validations = $help.FilePath | Test-MarkdownCommandHelp -DetailView
+    if (-not $validations.IsValid) {
+        $validations.Messages | Where-Object { $_ -notlike 'PASS:*' } | Write-Error
+        throw 'Invalid markdown help files.'
     }
-    New-ExternalHelp docs -OutputPath $ModuleSrcPath -Force
+    $help.FilePath | Update-MarkdownCommandHelp -NoBackup
+    $help.FilePath | Import-MarkdownCommandHelp | Export-MamlCommandHelp -OutputFolder ./src/
 }
 
 Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll, ExternalHelp {
