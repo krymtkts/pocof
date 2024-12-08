@@ -363,9 +363,14 @@ module stopUpstreamCommandsException =
     type MockException(o: obj) =
         inherit Exception()
 
+    type MockCmdlet() =
+        inherit PSCmdlet()
+
     [<Fact>]
     let ``should return the exception instance.`` () =
-        let actual = Pocof.stopUpstreamCommandsException typeof<MockException> null
+        let actual =
+            Pocof.stopUpstreamCommandsException typeof<MockException> (new MockCmdlet())
+
         actual.GetType() |> shouldEqual typeof<MockException>
 
 module renderOnce =
@@ -707,7 +712,7 @@ module buildProperties =
         let expected = [ "a"; "b"; "c" ]
         let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
         let o = new PSObject()
-        props.Add(o.BaseObject.GetType().FullName, [ "a"; "b"; "c" ])
+        props.Add((nullArgCheck "str" (o.BaseObject.GetType().FullName)), [ "a"; "b"; "c" ])
 
         let inputObject =
             let o = new PSObject()
