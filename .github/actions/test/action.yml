@@ -23,6 +23,7 @@ runs:
       run: |
         Set-PSResourceRepository PSGallery -Trusted
         Install-PSResource Psake,Pester,PSScriptAnalyzer -Quiet -Reinstall -Scope CurrentUser
+        Install-PSResource Microsoft.PowerShell.PlatyPS -Prerelease -Quiet -Reinstall -Scope CurrentUser
     - name: Install modules from PSGallery (powershell)
       shell: ${{ inputs.shell }}
       if: inputs.shell == 'powershell'
