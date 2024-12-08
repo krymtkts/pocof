@@ -131,7 +131,7 @@ Task ExternalHelp -Depends Import {
         throw 'Invalid markdown help files.'
     }
     $help.FilePath | Update-MarkdownCommandHelp -NoBackup
-    $help.FilePath | Import-MarkdownCommandHelp | Export-MamlCommandHelp -OutputFolder ./src/
+    $help.FilePath | Import-MarkdownCommandHelp | Export-MamlCommandHelp -OutputFolder ./src/ -Force | Out-Null
 }
 
 Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll, ExternalHelp {
