@@ -25,7 +25,7 @@ Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>]
  [-Prompt <String>] [-Layout <String>] [-Keymaps <Hashtable>] [<CommonParameters>]
 ```
 
-### __AllParameterSets
+### \_\_AllParameterSets
 
 ```
 Select-Pocof [[-InputObject] <psobject[]>] [-Query <string>] [-Matcher <string>]
@@ -102,15 +102,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -InputObject
@@ -124,15 +124,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 0
-  IsRequired: false
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: true
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: 0
+    IsRequired: false
+    ValueFromPipeline: true
+    ValueFromPipelineByPropertyName: true
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -InvertQuery
@@ -146,15 +146,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -Keymaps
@@ -197,15 +197,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -Layout
@@ -219,19 +219,19 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues:
-- TopDown
-- TopDownHalf
-- BottomUp
-- BottomUpHalf
-HelpMessage: ''
+  - TopDown
+  - TopDownHalf
+  - BottomUp
+  - BottomUpHalf
+HelpMessage: ""
 ```
 
 ### -Matcher
@@ -249,18 +249,18 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues:
-- Match
-- Like
-- Eq
-HelpMessage: ''
+  - Match
+  - Like
+  - Eq
+HelpMessage: ""
 ```
 
 ### -NonInteractive
@@ -275,15 +275,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -Operator
@@ -301,17 +301,17 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues:
-- And
-- Or
-HelpMessage: ''
+  - And
+  - Or
+HelpMessage: ""
 ```
 
 ### -Prompt
@@ -325,15 +325,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -Query
@@ -361,15 +361,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -SuppressProperties
@@ -383,15 +383,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -Unique
@@ -407,15 +407,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### -WordDelimiters
@@ -429,15 +429,15 @@ SupportsWildcards: false
 ParameterValue: []
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
+  - Name: (All)
+    Position: Named
+    IsRequired: false
+    ValueFromPipeline: false
+    ValueFromPipelineByPropertyName: false
+    ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
-HelpMessage: ''
+HelpMessage: ""
 ```
 
 ### CommonParameters
@@ -468,4 +468,3 @@ Includes the following aliases for `Select-Pocof`
 ## RELATED LINKS
 
 {{ Fill in the related links here }}
-
