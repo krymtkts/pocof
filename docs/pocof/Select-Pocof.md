@@ -160,7 +160,6 @@ HelpMessage: ''
 Specifies the custom key bindings. Custom keymaps overrides default keymaps.
 Default keymaps are following.
 
-```md
 | Action                   | Keybinding             | Note                 |
 | ------------------------ | ---------------------- | -------------------- |
 | Cancel                   | `Escape`               |                      |
@@ -188,7 +187,6 @@ Default keymaps are following.
 | ScrollPageUp             | `PageUp`               | Not implemented yet. |
 | ScrollPageDown           | `PageDown`             | Not implemented yet. |
 | CompleteProperty         | `Tab`                  |                      |
-```
 
 ```yaml
 Type: System.Collections.Hashtable
