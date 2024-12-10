@@ -60,7 +60,7 @@ type SelectPocofCommand() =
     member val Layout = string Pocof.Layout.TopDown with get, set
 
     [<Parameter>]
-    member val Keymaps: Hashtable = null with get, set
+    member val Keymaps: Hashtable | null = null with get, set
 
     [<Parameter>]
     [<ValidateNotNullOrEmpty>]

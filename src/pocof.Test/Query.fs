@@ -68,7 +68,7 @@ module operator =
     [<Fact>]
     let ``?-> should return None when null.`` () =
         let o = "a" |> PSObject.AsPSObject
-        o ?-> null |> shouldEqual None
+        o ?-> "" |> shouldEqual None
 
 module props =
     [<Fact>]

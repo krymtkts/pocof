@@ -108,7 +108,7 @@ module Keys =
             { Data.KeyPattern.Modifier = 0
               Data.KeyPattern.Key = ConsoleKey.NoName }
 
-    let convertKeymaps (h: Hashtable) =
+    let convertKeymaps (h: Hashtable | null) =
         match h with
         | null -> defaultKeymap |> Ok
         | x ->
