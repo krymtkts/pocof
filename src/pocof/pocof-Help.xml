@@ -45,8 +45,7 @@
           <maml:description>
             <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.
 Default keymaps are following.</maml:para>
-            <maml:para>```md
-| Action                   | Keybinding             | Note                 |
+            <maml:para>| Action                   | Keybinding             | Note                 |
 | ------------------------ | ---------------------- | -------------------- |
 | Cancel                   | `Escape`               |                      |
 | Cancel                   | `Ctrl` + `C`           |                      |
@@ -72,8 +71,7 @@ Default keymaps are following.</maml:para>
 | SelectLineDown           | `DownArrow`            | Not implemented yet. |
 | ScrollPageUp             | `PageUp`               | Not implemented yet. |
 | ScrollPageDown           | `PageDown`             | Not implemented yet. |
-| CompleteProperty         | `Tab`                  |                      |
-```</maml:para>
+| CompleteProperty         | `Tab`                  |                      |</maml:para>
           </maml:description>
           <command:parameterValue required="false" variableLength="true">System.Collections.Hashtable</command:parameterValue>
         </command:parameter>
@@ -186,8 +184,7 @@ The property name in the query starts with `:` followed by a space, and then the
           <maml:description>
             <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.
 Default keymaps are following.</maml:para>
-            <maml:para>```md
-| Action                   | Keybinding             | Note                 |
+            <maml:para>| Action                   | Keybinding             | Note                 |
 | ------------------------ | ---------------------- | -------------------- |
 | Cancel                   | `Escape`               |                      |
 | Cancel                   | `Ctrl` + `C`           |                      |
@@ -213,8 +210,7 @@ Default keymaps are following.</maml:para>
 | SelectLineDown           | `DownArrow`            | Not implemented yet. |
 | ScrollPageUp             | `PageUp`               | Not implemented yet. |
 | ScrollPageDown           | `PageDown`             | Not implemented yet. |
-| CompleteProperty         | `Tab`                  |                      |
-```</maml:para>
+| CompleteProperty         | `Tab`                  |                      |</maml:para>
           </maml:description>
           <command:parameterValue required="false" variableLength="true">System.Collections.Hashtable</command:parameterValue>
         </command:parameter>
@@ -327,8 +323,7 @@ The property name in the query starts with `:` followed by a space, and then the
         <maml:description>
           <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.
 Default keymaps are following.</maml:para>
-          <maml:para>```md
-| Action                   | Keybinding             | Note                 |
+          <maml:para>| Action                   | Keybinding             | Note                 |
 | ------------------------ | ---------------------- | -------------------- |
 | Cancel                   | `Escape`               |                      |
 | Cancel                   | `Ctrl` + `C`           |                      |
@@ -354,8 +349,7 @@ Default keymaps are following.</maml:para>
 | SelectLineDown           | `DownArrow`            | Not implemented yet. |
 | ScrollPageUp             | `PageUp`               | Not implemented yet. |
 | ScrollPageDown           | `PageDown`             | Not implemented yet. |
-| CompleteProperty         | `Tab`                  |                      |
-```</maml:para>
+| CompleteProperty         | `Tab`                  |                      |</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="true">System.Collections.Hashtable</command:parameterValue>
       </command:parameter>
