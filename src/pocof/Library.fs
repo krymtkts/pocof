@@ -87,9 +87,7 @@ type SelectPocofCommand() =
     abstract member GetStopUpstreamCommandsExceptionType: unit -> Type
 
     default __.GetStopUpstreamCommandsExceptionType() =
-        Assembly
-            .GetAssembly(typeof<PSCmdlet>)
-            .GetType("System.Management.Automation.StopUpstreamCommandsException")
+        Assembly.GetAssembly(typeof<PSCmdlet>).GetType("System.Management.Automation.StopUpstreamCommandsException")
 
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
