@@ -344,12 +344,7 @@ module ``Buff writeScreen`` =
         rui.screen |> shouldEqual expected
 
     let formatTableOutString ol =
-        PowerShell
-            .Create()
-            .AddCommand("Format-Table")
-            .AddParameter("InputObject", ol)
-            .AddCommand("Out-String")
-            .Invoke()
+        PowerShell.Create().AddCommand("Format-Table").AddParameter("InputObject", ol).AddCommand("Out-String").Invoke()
         |> Seq.map string
 
     [<Fact>]

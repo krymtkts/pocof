@@ -74,6 +74,9 @@ module Mock =
         let mutable errors: ErrorRecord list = List.empty
         let mutable warnings: string list = List.empty
 
+        let write obj =
+            output <- (nullArgCheck "obj" (obj.ToString())) :: output
+
         member __.Output = output
         member __.Errors = errors
         member __.Warnings = warnings
@@ -83,8 +86,11 @@ module Mock =
             member __.CurrentPSTransaction = null
             member __.WriteDebug(_) = ()
             member __.WriteError(errorRecord: ErrorRecord) = errors <- errorRecord :: errors
-            member __.WriteObject(obj: obj) = output <- obj.ToString() :: output
-            member __.WriteObject(obj: obj, _) = output <- obj.ToString() :: output
+
+            member __.WriteObject(obj: obj) = write obj
+
+            member __.WriteObject(obj: obj, _) = write obj
+
             member __.WriteProgress _ = ()
             member __.WriteProgress(_, _) = ()
             member __.WriteVerbose(_) = ()
