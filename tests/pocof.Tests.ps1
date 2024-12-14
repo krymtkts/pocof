@@ -32,6 +32,11 @@ Describe 'pocof' {
         Expected = 'Hello,world'
         BaseParam = @{NonInteractive = $true };
     } {
+        Context 'With query parameter without name' {
+            It "should return '<Expected>'." {
+                $InputObject | Select-Pocof 'h' -NonInteractive -ErrorAction SilentlyContinue | Should -BeExactly -ExpectedValue $Expected
+            }
+        }
         Context 'In <Layout> mode with empty query' -ForEach @(
             @{ Layout = 'TopDown' },
             @{ Layout = 'TopDownHalf' },

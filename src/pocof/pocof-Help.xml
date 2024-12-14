@@ -26,7 +26,7 @@
           </maml:description>
           <command:parameterValue required="false" variableLength="true">System.Management.Automation.SwitchParameter</command:parameterValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="0" aliases="none">
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
           <maml:name>InputObject</maml:name>
           <maml:description>
             <maml:para>Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.</maml:para>
@@ -117,7 +117,7 @@ You can use `And` or `Or`.</maml:para>
           </maml:description>
           <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="0" aliases="none">
           <maml:name>Query</maml:name>
           <maml:description>
             <maml:para>Specifies the initial query string.</maml:para>
@@ -165,7 +165,7 @@ The property name in the query starts with `:` followed by a space, and then the
           </maml:description>
           <command:parameterValue required="false" variableLength="true">System.Management.Automation.SwitchParameter</command:parameterValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="0" aliases="none">
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
           <maml:name>InputObject</maml:name>
           <maml:description>
             <maml:para>Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.</maml:para>
@@ -256,7 +256,7 @@ You can use `And` or `Or`.</maml:para>
           </maml:description>
           <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
+        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="0" aliases="none">
           <maml:name>Query</maml:name>
           <maml:description>
             <maml:para>Specifies the initial query string.</maml:para>
@@ -304,7 +304,7 @@ The property name in the query starts with `:` followed by a space, and then the
         </maml:description>
         <command:parameterValue required="false" variableLength="true">System.Management.Automation.SwitchParameter</command:parameterValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="0" aliases="none">
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
         <maml:name>InputObject</maml:name>
         <maml:description>
           <maml:para>Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.</maml:para>
@@ -395,7 +395,7 @@ You can use `And` or `Or`.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="0" aliases="none">
         <maml:name>Query</maml:name>
         <maml:description>
           <maml:para>Specifies the initial query string.</maml:para>
