@@ -4,7 +4,7 @@ external help file: pocof-Help.xml
 HelpUri: https://github.com/krymtkts/pocof/blob/main/docs/pocof/Select-Pocof.md
 Locale: en-US
 Module Name: pocof
-ms.date: 12-08-2024
+ms.date: 12-14-2024
 PlatyPS schema version: 2024-05-01
 title: Select-Pocof
 ---
@@ -28,7 +28,7 @@ Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>]
 ### \_\_AllParameterSets
 
 ```
-Select-Pocof [[-InputObject] <psobject[]>] [-Query <string>] [-Matcher <string>]
+Select-Pocof [[-Query] <string>] [-InputObject <psobject[]>] [-Matcher <string>]
  [-Operator <string>] [-CaseSensitive] [-InvertQuery] [-NonInteractive] [-SuppressProperties]
  [-Unique] [-Prompt <string>] [-Layout <string>] [-Keymaps <hashtable>] [-WordDelimiters <string>]
  [<CommonParameters>]
@@ -125,7 +125,7 @@ ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
-    Position: 0
+    Position: Named
     IsRequired: false
     ValueFromPipeline: true
     ValueFromPipelineByPropertyName: true
@@ -362,7 +362,7 @@ ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
-    Position: Named
+    Position: 0
     IsRequired: false
     ValueFromPipeline: false
     ValueFromPipelineByPropertyName: false
