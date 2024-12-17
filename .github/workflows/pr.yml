@@ -22,6 +22,8 @@ jobs:
             shell: pwsh
           - os: windows-latest
             shell: powershell
+      # NOTE: disable fail-fast to run tests on all platforms.
+      fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
