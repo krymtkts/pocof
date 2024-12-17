@@ -31,7 +31,7 @@ Also to add my own flavor to poco which I often use.
 
 ## Cmdlet help
 
-See [`Select-Pocof.md`](https://github.com/krymtkts/pocof/blob/main/docs/Select-Pocof.md)
+See [`Select-Pocof.md`](./docs/pocof/Select-Pocof.md)
 
 ## Disclaimer
 
