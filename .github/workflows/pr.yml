@@ -32,8 +32,9 @@ jobs:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
           shell: ${{ matrix.shell }}
       - name: Run Snyk to check for vulnerabilities
-        # snyk/actions uses Container action that is only supported on Linux.
-        if: runner.os == 'Linux'
+        # NOTE: snyk/actions uses Container action that is only supported on Linux.
+        # NOTE: skip snyk/actions when PR is from forked repository.
+        if: runner.os == 'Linux' && github.event.pull_request.head.repo.full_name == github.repository
         uses: snyk/actions/dotnet@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
