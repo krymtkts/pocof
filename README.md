@@ -1,6 +1,6 @@
 # Pocof
 
-[![PowerShell Gallrery](https://img.shields.io/powershellgallery/v/pocof)](https://www.powershellgallery.com/packages/pocof)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/pocof)](https://www.powershellgallery.com/packages/pocof)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/pocof)](https://www.powershellgallery.com/packages/pocof)
 ![Test main status](https://github.com/krymtkts/pocof/actions/workflows/main.yml/badge.svg)
 [![codecov](https://codecov.io/gh/krymtkts/pocof/graph/badge.svg?token=7HA9NC8PHT)](https://codecov.io/gh/krymtkts/pocof)
