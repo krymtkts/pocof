@@ -37,7 +37,7 @@ module Pocof =
     [<NoEquality>]
     [<Struct>]
     type RenderEvent =
-        | Render of (InternalState * Entry pseq Lazy * Result<string list, string>)
+        | Render of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
         | Quit
 
     [<NoComparison>]
@@ -110,7 +110,8 @@ module Pocof =
         | _ ->
             let results = lazy Query.run context args.Input state.PropertyMap
             let state = state |> adjustQueryWindow args.GetLengthInBufferCells
-            (state, results, Query.props state) |> RenderEvent.Render |> args.PublishEvent
+            let props = lazy Query.props state
+            (state, results, props) |> RenderEvent.Render |> args.PublishEvent
             results, state
 
     [<TailCall>]
@@ -222,7 +223,7 @@ module Pocof =
             render buff handler conf
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
-            buff.WriteScreen conf.Layout state entries.Value props
+            buff.WriteScreen conf.Layout state entries.Value props.Value
             render buff handler conf
 
     let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
@@ -247,7 +248,7 @@ module Pocof =
     [<Struct>]
     type RenderProcess =
         | Noop
-        | Rendered of (InternalState * Entry pseq Lazy * Result<string list, string>)
+        | Rendered of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
         | StopUpstreamCommands
 
     let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff) =
@@ -255,7 +256,7 @@ module Pocof =
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
-            buff.WriteScreen conf.Layout state entries.Value props
+            buff.WriteScreen conf.Layout state entries.Value props.Value
             RenderProcess.Rendered(state, entries, props)
 
     [<Sealed>]
@@ -267,17 +268,17 @@ module Pocof =
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
 
-        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string>) option =
+        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string> Lazy) option =
             None
 
-        let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string list, string>) =
+        let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string list, string> Lazy) =
             let state =
                 state
                 // NOTE: adjust the console width before writing the screen.
                 |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
                 |> adjustQueryWindow buff.GetLengthInBufferCells
 
-            buff.WriteScreen conf.Layout state result.Value props
+            buff.WriteScreen conf.Layout state result.Value props.Value
 
         let (|Cancelled|_|) =
             function

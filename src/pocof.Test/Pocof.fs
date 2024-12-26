@@ -329,17 +329,17 @@ module render =
         async {
             Thread.Sleep 100
 
-            (state, lazy PSeq.empty, Error "error")
+            (state, lazy PSeq.empty, lazy Error "error")
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
             Thread.Sleep 100
 
-            (state, lazy PSeq.empty, [ "Value" ] |> Ok)
+            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
-            (state, lazy PSeq.empty, [ "Value" ] |> Ok)
+            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
@@ -347,7 +347,7 @@ module render =
 
             Pocof.RenderEvent.Quit |> handler.Publish
 
-            (state, lazy PSeq.empty, [ "Value" ] |> Ok)
+            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
             |> Pocof.RenderEvent.Render
             |> handler.Publish
         }
@@ -401,7 +401,7 @@ module renderOnce =
 
         let handler = Pocof.RenderHandler()
 
-        (state, lazy PSeq.empty, Error "error")
+        (state, lazy PSeq.empty, lazy Error "error")
         |> Pocof.RenderEvent.Render
         |> handler.Publish
 
@@ -461,7 +461,7 @@ module Interval =
               Keymaps = Keys.defaultKeymap }
 
         let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Render(state, lazy PSeq.empty, Ok []) |> handler.Publish
+        Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
@@ -537,7 +537,7 @@ module Interval =
               Keymaps = Keys.defaultKeymap }
 
         let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Render(state, lazy PSeq.empty, Ok []) |> handler.Publish
+        Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
