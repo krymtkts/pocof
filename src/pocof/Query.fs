@@ -92,10 +92,10 @@ module Query =
         | Matcher.Match ->
             try
                 Regex(query) |> ignore
-                ""
+                None
             with e ->
-                e.Message
-        | _ -> ""
+                e.Message |> Some
+        | _ -> None
 
     let prepare (state: InternalState) =
         let queries = prepareQuery state.QueryState.Query state.QueryCondition

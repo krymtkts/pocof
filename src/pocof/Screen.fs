@@ -273,7 +273,7 @@ module Screen =
 
             __.WriteScreenLine firstLine
             <| match state.Notification with
-               | "" ->
+               | None ->
                    match props with
                    | Ok(p) ->
                        let suggestion = String.concat " " p
@@ -284,7 +284,7 @@ module Screen =
 
                        suggestion |> String.upToIndex length
                    | Error(e) -> note + e
-               | _ -> note + state.Notification
+               | Some x -> note + x
 
             let out =
                 Seq.truncate screenHeight entries

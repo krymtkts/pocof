@@ -451,7 +451,7 @@ module Data =
         { QueryState: QueryState
           QueryCondition: QueryCondition
           PropertySearch: PropertySearch
-          Notification: string
+          Notification: string option
           SuppressProperties: bool
           Properties: Generic.IReadOnlyCollection<string>
           PropertyMap: Generic.IReadOnlyDictionary<string, string>
@@ -573,7 +573,7 @@ module Data =
                   CaseSensitive = p.CaseSensitive
                   Invert = p.InvertQuery }
               PropertySearch = QueryState.getCurrentProperty qs
-              Notification = ""
+              Notification = None
               SuppressProperties = p.SuppressProperties
               Properties = p.Properties
               PropertyMap = p.PropertiesMap
