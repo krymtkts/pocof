@@ -451,13 +451,12 @@ module Data =
         { QueryState: QueryState
           QueryCondition: QueryCondition
           PropertySearch: PropertySearch
-          Notification: string
+          Notification: string option
           SuppressProperties: bool
           Properties: Generic.IReadOnlyCollection<string>
           PropertyMap: Generic.IReadOnlyDictionary<string, string>
           Prompt: string
           WordDelimiters: string
-          FilteredCount: int
           ConsoleWidth: int
           Refresh: Refresh }
 
@@ -466,19 +465,17 @@ module Data =
 
         let prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
 
-        let queryInfo (state: InternalState) =
-            $" %O{state.QueryCondition} [%d{state.FilteredCount}]"
+        let queryInfo (state: InternalState) (count: int) =
+            $" %O{state.QueryCondition} [%d{count}]"
 
         let getWindowWidth (state: InternalState) =
             let left = prompt state
-            let right = queryInfo state
 
 #if DEBUG
-            Logger.LogFile
-                [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}' right '{String.length right}'" ]
+            Logger.LogFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}'" ]
 #endif
-
-            state.ConsoleWidth - String.length left - String.length right
+            // TODO: it will decide at startup.
+            state.ConsoleWidth - String.length left
 
         let getX (state: InternalState) =
             (prompt state |> String.length) + state.QueryState.Cursor
@@ -532,9 +529,6 @@ module Data =
                 ConsoleWidth = consoleWidth }
             |> updateWindowWidth
 
-        let updateFilteredCount (count: int) (state: InternalState) =
-            { state with FilteredCount = count } |> updateWindowWidth
-
     type Position = { Y: int; Height: int }
 
     [<NoComparison>]
@@ -553,7 +547,6 @@ module Data =
           Keymaps: Map<KeyPattern, Action>
           Properties: Generic.IReadOnlyCollection<string>
           PropertiesMap: Generic.IReadOnlyDictionary<string, string>
-          EntryCount: int
           ConsoleWidth: int
           ConsoleHeight: int }
 
@@ -573,13 +566,12 @@ module Data =
                   CaseSensitive = p.CaseSensitive
                   Invert = p.InvertQuery }
               PropertySearch = QueryState.getCurrentProperty qs
-              Notification = ""
+              Notification = None
               SuppressProperties = p.SuppressProperties
               Properties = p.Properties
               PropertyMap = p.PropertiesMap
               Prompt = p.Prompt
               WordDelimiters = p.WordDelimiters
-              FilteredCount = p.EntryCount
               ConsoleWidth = p.ConsoleWidth
               Refresh = Refresh.Required }
             |> InternalState.updateWindowWidth

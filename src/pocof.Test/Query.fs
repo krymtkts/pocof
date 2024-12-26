@@ -20,13 +20,12 @@ let initState () : Data.InternalState =
           CaseSensitive = false
           Invert = false }
       PropertySearch = Data.PropertySearch.NoSearch
-      Notification = ""
+      Notification = None
       SuppressProperties = false
       Properties = [ "Name"; "Attribute"; "Length" ]
       PropertyMap = Map [ ("name", "Name"); ("attribute", "Attribute"); ("length", "Length") ]
       Prompt = "query"
       WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-      FilteredCount = 0
       ConsoleWidth = 60
       Refresh = Data.Refresh.Required }
 

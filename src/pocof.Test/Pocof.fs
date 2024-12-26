@@ -27,13 +27,12 @@ let initState () : InternalState =
           CaseSensitive = false
           Invert = false }
       PropertySearch = PropertySearch.NoSearch
-      Notification = ""
+      Notification = None
       SuppressProperties = false
       Properties = [ "Name"; "LastModified"; "Path" ]
       PropertyMap = Map [ ("name", "Name"); ("lastmodified", "LastWriteTime"); ("path", "FullName") ]
       Prompt = "query"
       WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-      FilteredCount = 0
       ConsoleWidth = 60
       Refresh = Refresh.Required }
 
@@ -330,17 +329,17 @@ module render =
         async {
             Thread.Sleep 100
 
-            (state, PSeq.empty, Error "error")
+            (state, lazy PSeq.empty, lazy Error "error")
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
             Thread.Sleep 100
 
-            (state, PSeq.empty, [ "Value" ] |> Ok)
+            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
-            (state, PSeq.empty, [ "Value" ] |> Ok)
+            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
@@ -348,7 +347,7 @@ module render =
 
             Pocof.RenderEvent.Quit |> handler.Publish
 
-            (state, PSeq.empty, [ "Value" ] |> Ok)
+            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
             |> Pocof.RenderEvent.Render
             |> handler.Publish
         }
@@ -402,7 +401,7 @@ module renderOnce =
 
         let handler = Pocof.RenderHandler()
 
-        (state, PSeq.empty, Error "error")
+        (state, lazy PSeq.empty, lazy Error "error")
         |> Pocof.RenderEvent.Render
         |> handler.Publish
 
@@ -462,7 +461,7 @@ module Interval =
               Keymaps = Keys.defaultKeymap }
 
         let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Render(state, PSeq.empty, Ok []) |> handler.Publish
+        Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false
@@ -538,7 +537,7 @@ module Interval =
               Keymaps = Keys.defaultKeymap }
 
         let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Render(state, PSeq.empty, Ok []) |> handler.Publish
+        Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
         let rui = new MockRawUI()
         let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let mutable actual = false

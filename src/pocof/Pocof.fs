@@ -37,7 +37,7 @@ module Pocof =
     [<NoEquality>]
     [<Struct>]
     type RenderEvent =
-        | Render of (InternalState * Entry pseq * Result<string list, string>)
+        | Render of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
         | Quit
 
     [<NoComparison>]
@@ -99,7 +99,7 @@ module Pocof =
 
     let query
         (args: LoopFixedArguments)
-        (results: Entry seq)
+        (results: Entry pseq Lazy)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
@@ -108,21 +108,16 @@ module Pocof =
         match state.Refresh with
         | Refresh.NotRequired -> results, state
         | _ ->
-            let results = Query.run context args.Input state.PropertyMap
-
-            let state =
-                state
-                |> InternalState.updateFilteredCount (PSeq.length results)
-                |> adjustQueryWindow args.GetLengthInBufferCells
-
-            (state, results, Query.props state) |> RenderEvent.Render |> args.PublishEvent
-
+            let results = lazy Query.run context args.Input state.PropertyMap
+            let state = state |> adjustQueryWindow args.GetLengthInBufferCells
+            let props = lazy Query.props state
+            (state, results, props) |> RenderEvent.Render |> args.PublishEvent
             results, state
 
     [<TailCall>]
     let rec private loop
         (args: LoopFixedArguments)
-        (results: Entry seq)
+        (results: Entry pseq Lazy)
         (state: InternalState)
         (pos: Position)
         (context: QueryContext)
@@ -138,7 +133,7 @@ module Pocof =
                 seq []
             | Action.Finish ->
                 args.PublishEvent RenderEvent.Quit
-                unwrap results
+                unwrap results.Value
             | action ->
                 // NOTE: update the console width before invokeAction because users can modify the console width during blocking by args.GetKey.
                 action
@@ -166,7 +161,7 @@ module Pocof =
               GetConsoleWidth = buff.GetConsoleWidth
               GetLengthInBufferCells = buff.GetLengthInBufferCells }
 
-        loop args input state pos context
+        loop args (lazy input) state pos context
 
     let interactOnce (state: InternalState) (input: Entry seq) =
 
@@ -227,8 +222,8 @@ module Pocof =
             Thread.Sleep 10
             render buff handler conf
         | RenderMessage.Received RenderEvent.Quit -> ()
-        | RenderMessage.Received(RenderEvent.Render e) ->
-            e |||> buff.WriteScreen conf.Layout
+        | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
+            buff.WriteScreen conf.Layout state entries.Value props.Value
             render buff handler conf
 
     let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
@@ -253,16 +248,16 @@ module Pocof =
     [<Struct>]
     type RenderProcess =
         | Noop
-        | Rendered of (InternalState * Entry pseq * Result<string list, string>)
+        | Rendered of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
         | StopUpstreamCommands
 
     let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff) =
         match handler.Receive() with
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
-        | RenderMessage.Received(RenderEvent.Render e) ->
-            e |||> buff.WriteScreen conf.Layout
-            RenderProcess.Rendered e
+        | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
+            buff.WriteScreen conf.Layout state entries.Value props.Value
+            RenderProcess.Rendered(state, entries, props)
 
     [<Sealed>]
     type Periodic(conf, handler, buff, cancelAction) =
@@ -272,17 +267,18 @@ module Pocof =
         let cancelAction: unit -> unit = cancelAction
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
-        let mutable latest = None
 
-        let renderAgain (state, result, props) =
+        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string> Lazy) option =
+            None
+
+        let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string list, string> Lazy) =
             let state =
                 state
                 // NOTE: adjust the console width before writing the screen.
                 |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
-                |> InternalState.updateFilteredCount (PSeq.length result)
                 |> adjustQueryWindow buff.GetLengthInBufferCells
 
-            buff.WriteScreen conf.Layout state result props
+            buff.WriteScreen conf.Layout state result.Value props.Value
 
         let (|Cancelled|_|) =
             function

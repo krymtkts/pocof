@@ -263,7 +263,6 @@ module initConfig =
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
               Properties = [ "name"; "attributes" ]
               PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ]
-              EntryCount = 10
               ConsoleWidth = 60
               ConsoleHeight = 20 }
         |> shouldEqual (
@@ -274,7 +273,7 @@ module initConfig =
                 { Query = ":name"
                   Cursor = 5
                   WindowBeginningCursor = 0
-                  WindowWidth = 60 - (String.length "prompt>") - (String.length " cnotlike and [10]")
+                  WindowWidth = 60 - (String.length "prompt>")
                   InputMode = InputMode.Input }
               QueryCondition =
                 { Matcher = Matcher.Like
@@ -282,13 +281,12 @@ module initConfig =
                   CaseSensitive = true
                   Invert = true }
               PropertySearch = PropertySearch.Search "name"
-              Notification = ""
+              Notification = None
               SuppressProperties = true
               Properties = [ "name"; "attributes" ]
               PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
               Prompt = "prompt"
               WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              FilteredCount = 10
               ConsoleWidth = 60
               Refresh = Refresh.Required },
             { Y = 0; Height = 20 }
@@ -311,7 +309,6 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
             |> ignore)
@@ -333,7 +330,6 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
 
@@ -356,7 +352,6 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
             |> ignore)

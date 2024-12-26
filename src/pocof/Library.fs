@@ -125,7 +125,6 @@ type SelectPocofCommand() =
                   Keymaps = keymaps
                   Properties = properties.GetProperties()
                   PropertiesMap = properties.GetPropertyMap()
-                  EntryCount = input.Count()
                   ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
                   ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
 

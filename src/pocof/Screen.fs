@@ -159,7 +159,7 @@ module Screen =
                 | None -> q
                 | Some(s, e) -> q.Insert(e, escapeSequenceResetInvert).Insert(s, escapeSequenceInvert)
 
-        let info (state: Data.InternalState) =
+        let getQueryString (state: Data.InternalState) =
             let q =
                 let q =
                     state.QueryState.Query
@@ -183,8 +183,22 @@ module Screen =
                 getQuery state.QueryState.WindowWidth q <| String.length q
                 |> selectRange state.QueryState
 
-            [ Data.InternalState.prompt state; q; Data.InternalState.queryInfo state ]
-            |> String.concat ""
+            Data.InternalState.prompt state + q
+
+        let getInformationString (state: Data.InternalState) (props: Result<string list, string>) (count: int) =
+            match state.Notification, props with
+            | Some e, _
+            | _, Error(e) -> note + e
+            | _, Ok(p) -> p |> String.concat " "
+            |> fun s ->
+                let info = Data.InternalState.queryInfo state count
+                let w = rui.GetWindowWidth() - (info |> String.length)
+                let ss = s |> String.length
+
+                match w - ss with
+                | Natural x -> s + (String.replicate x " ")
+                | _ -> s |> String.upToIndex w
+                + info
 
         [<TailCall>]
         let rec read (acc: ConsoleKeyInfo list) =
@@ -263,28 +277,16 @@ module Screen =
             use _ = rui.HideCursorWhileRendering()
 
             let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions layout
-            let information = info state
-            information |> __.WriteScreenLine baseLine
+            let queryString = getQueryString state
+            queryString |> __.WriteScreenLine baseLine
 
 #if DEBUG
             Logger.LogFile
                 [ $"baseLine {baseLine}, firstLine {firstLine}, toHeight {toHeight}, screenHeight {screenHeight}" ]
 #endif
 
-            __.WriteScreenLine firstLine
-            <| match state.Notification with
-               | "" ->
-                   match props with
-                   | Ok(p) ->
-                       let suggestion = String.concat " " p
-
-                       let length =
-                           match String.length suggestion, rui.GetWindowWidth() with
-                           | Ascending(x, _) -> x
-
-                       suggestion |> String.upToIndex length
-                   | Error(e) -> note + e
-               | _ -> note + state.Notification
+            getInformationString state props (PSeq.length entries)
+            |> __.WriteScreenLine firstLine
 
             let out =
                 Seq.truncate screenHeight entries
@@ -305,7 +307,7 @@ module Screen =
                    | None -> String.Empty)
 
             rui.SetCursorPosition
-            <| rui.GetLengthInBufferCells(information |> String.upToIndex (getCursorPosition state))
+            <| rui.GetLengthInBufferCells(queryString |> String.upToIndex (getCursorPosition state))
             <| baseLine
 
         member __.GetConsoleWidth = rui.GetWindowWidth
