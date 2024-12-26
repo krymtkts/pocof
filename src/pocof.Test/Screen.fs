@@ -453,10 +453,10 @@ module ``Buff writeScreen`` =
             rui.screen |> shouldEqual expected
 
         [<Fact>]
-        let ``should render head 44 of query when cursor 30.`` () =
+        let ``should render head 44 of query when cursor 44.`` () =
             let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
 
-            let rui = getRenderedScreen query 30 0
+            let rui = getRenderedScreen query 44 0
 
             let expected =
                 [ [ "query>0-------->1-------->2-------->3-------->4---"
@@ -467,10 +467,10 @@ module ``Buff writeScreen`` =
             rui.screen |> shouldEqual expected
 
         [<Fact>]
-        let ``should render mid 44 of query when cursor 45.`` () =
+        let ``should render mid 44 of query when cursor 59.`` () =
             let query = [ 0..9 ] |> List.map (sprintf "%d-------->") |> String.concat ""
 
-            let rui = getRenderedScreen query 45 15
+            let rui = getRenderedScreen query (44 + 15) 15
 
             let expected =
                 [ [ "query>---->2-------->3-------->4-------->5--------"
@@ -513,11 +513,11 @@ module ``Buff writeScreen`` =
             rui.screen |> shouldEqual expected
 
         [<Fact>]
-        let ``should render head 40 of query when cursor 30 with full-width characters.`` () =
+        let ``should render head 40 of query when cursor 39 with full-width characters.`` () =
             let query =
                 [ 0..9 ] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
 
-            let rui = getRenderedScreen query 27 0
+            let rui = getRenderedScreen query 39 0
 
             let expected =
                 [ [ "query>０------->１------->２------->３------->４--"
@@ -528,11 +528,11 @@ module ``Buff writeScreen`` =
             rui.screen |> shouldEqual expected
 
         [<Fact>]
-        let ``should render mid 40 of query when cursor 45 with full-width characters.`` () =
+        let ``should render mid 40 of query when cursor 53 with full-width characters.`` () =
             let query =
                 [ 0..9 ] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
 
-            let rui = getRenderedScreen query 40 13
+            let rui = getRenderedScreen query 53 13
 
             let expected =
                 [ [ "query>---->２------->３------->４------->５-------"
@@ -543,7 +543,7 @@ module ``Buff writeScreen`` =
             rui.screen |> shouldEqual expected
 
         [<Fact>]
-        let ``should render tail 40 of query when cursor 100 with full-width characters.`` () =
+        let ``should render tail 40 of query when cursor 90 with full-width characters.`` () =
             let query =
                 [ 0..9 ] |> List.map (intToChar >> sprintf "%s------->") |> String.concat ""
 
