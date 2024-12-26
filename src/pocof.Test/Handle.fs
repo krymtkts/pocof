@@ -1957,24 +1957,15 @@ module invokeAction =
 
     module ``with RotateMatcher`` =
         let test before after =
-            let a =
-                match before, after with
-                | Matcher.Eq, Matcher.Like -> 2
-                | Matcher.Like, Matcher.Match -> 1
-                | Matcher.Match, Matcher.Eq -> -3
-                | _ -> failwith "invalid case in RotateMatcher test."
-
             let stateBefore =
                 { state with
                     InternalState.QueryCondition.Matcher = before }
-                |> InternalState.updateWindowWidth
 
             let state, context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
-                    InternalState.QueryCondition.Matcher = after
-                    InternalState.QueryState.WindowWidth = state.QueryState.WindowWidth - a }
+                    InternalState.QueryCondition.Matcher = after }
 
             testStateAndContext Action.RotateMatcher stateBefore context stateAfter
         // TODO: test a3
@@ -1990,23 +1981,15 @@ module invokeAction =
 
     module ``with RotateOperator`` =
         let test before after =
-            let a =
-                match before, after with
-                | Operator.Or, Operator.And -> 1
-                | Operator.And, Operator.Or -> -1
-                | _ -> failwith "invalid case in RotateOperator test."
-
             let stateBefore =
                 { state with
                     InternalState.QueryCondition.Operator = before }
-                |> InternalState.updateWindowWidth
 
             let state, context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
-                    InternalState.QueryCondition.Operator = after
-                    InternalState.QueryState.WindowWidth = state.QueryState.WindowWidth - a }
+                    InternalState.QueryCondition.Operator = after }
 
             let _, _, a3 =
                 testStateAndContext Action.RotateOperator stateBefore context stateAfter
@@ -2021,22 +2004,15 @@ module invokeAction =
 
     module ``with ToggleCaseSensitive`` =
         let test before after =
-            let a =
-                match after with
-                | true -> 1
-                | _ -> -1
-
             let stateBefore =
                 { state with
                     InternalState.QueryCondition.CaseSensitive = before }
-                |> InternalState.updateWindowWidth
 
             let state, context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
-                    InternalState.QueryCondition.CaseSensitive = after
-                    InternalState.QueryState.WindowWidth = state.QueryState.WindowWidth - a }
+                    InternalState.QueryCondition.CaseSensitive = after }
 
             testStateAndContext Action.ToggleCaseSensitive stateBefore context stateAfter
         // TODO: test a3
@@ -2049,22 +2025,15 @@ module invokeAction =
 
     module ``with ToggleInvertFilter`` =
         let test before after =
-            let a =
-                match after with
-                | true -> 3
-                | _ -> -3
-
             let stateBefore =
                 { state with
                     InternalState.QueryCondition.Invert = before }
-                |> InternalState.updateWindowWidth
 
             let state, context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
-                    InternalState.QueryCondition.Invert = after
-                    InternalState.QueryState.WindowWidth = state.QueryState.WindowWidth - a }
+                    InternalState.QueryCondition.Invert = after }
 
             testStateAndContext Action.ToggleInvertFilter stateBefore context stateAfter
         // TODO: test a3
