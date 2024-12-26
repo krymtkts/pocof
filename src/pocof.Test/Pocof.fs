@@ -33,7 +33,6 @@ let initState () : InternalState =
       PropertyMap = Map [ ("name", "Name"); ("lastmodified", "LastWriteTime"); ("path", "FullName") ]
       Prompt = "query"
       WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-      FilteredCount = 0
       ConsoleWidth = 60
       Refresh = Refresh.Required }
 

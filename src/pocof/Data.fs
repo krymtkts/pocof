@@ -457,7 +457,6 @@ module Data =
           PropertyMap: Generic.IReadOnlyDictionary<string, string>
           Prompt: string
           WordDelimiters: string
-          FilteredCount: int
           ConsoleWidth: int
           Refresh: Refresh }
 
@@ -530,9 +529,6 @@ module Data =
                 ConsoleWidth = consoleWidth }
             |> updateWindowWidth
 
-        let updateFilteredCount (count: int) (state: InternalState) =
-            { state with FilteredCount = count } |> updateWindowWidth
-
     type Position = { Y: int; Height: int }
 
     [<NoComparison>]
@@ -551,7 +547,6 @@ module Data =
           Keymaps: Map<KeyPattern, Action>
           Properties: Generic.IReadOnlyCollection<string>
           PropertiesMap: Generic.IReadOnlyDictionary<string, string>
-          EntryCount: int
           ConsoleWidth: int
           ConsoleHeight: int }
 
@@ -577,7 +572,6 @@ module Data =
               PropertyMap = p.PropertiesMap
               Prompt = p.Prompt
               WordDelimiters = p.WordDelimiters
-              FilteredCount = p.EntryCount
               ConsoleWidth = p.ConsoleWidth
               Refresh = Refresh.Required }
             |> InternalState.updateWindowWidth

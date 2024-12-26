@@ -26,7 +26,6 @@ let initState () : Data.InternalState =
       PropertyMap = Map [ ("name", "Name"); ("attribute", "Attribute"); ("length", "Length") ]
       Prompt = "query"
       WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-      FilteredCount = 0
       ConsoleWidth = 60
       Refresh = Data.Refresh.Required }
 

@@ -27,7 +27,6 @@ module invokeAction =
           PropertyMap = Map []
           Prompt = "query"
           WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-          FilteredCount = 0
           ConsoleWidth = 60
           Refresh = Refresh.Required }
         |> InternalState.updateWindowWidth

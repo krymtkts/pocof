@@ -164,7 +164,6 @@ module ``Buff writeScreen`` =
           PropertyMap = Map []
           Prompt = "query"
           WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-          FilteredCount = 0
           ConsoleWidth = 0
           Refresh = Refresh.Required }
 
@@ -358,7 +357,6 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Cursor = 0
                 InternalState.QueryCondition.CaseSensitive = false
                 Prompt = "prompt"
-                FilteredCount = 10
                 ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
 
@@ -394,7 +392,6 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Cursor = 0
                 InternalState.QueryCondition.CaseSensitive = false
                 Prompt = "prompt"
-                FilteredCount = 100
                 ConsoleWidth = rui.width }
             |> InternalState.updateWindowWidth
 

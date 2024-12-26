@@ -263,7 +263,6 @@ module initConfig =
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
               Properties = [ "name"; "attributes" ]
               PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ]
-              EntryCount = 10
               ConsoleWidth = 60
               ConsoleHeight = 20 }
         |> shouldEqual (
@@ -288,7 +287,6 @@ module initConfig =
               PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
               Prompt = "prompt"
               WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              FilteredCount = 10
               ConsoleWidth = 60
               Refresh = Refresh.Required },
             { Y = 0; Height = 20 }
@@ -311,7 +309,6 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
             |> ignore)
@@ -333,7 +330,6 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
 
@@ -356,7 +352,6 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  EntryCount = 10
                   ConsoleWidth = 20
                   ConsoleHeight = 20 }
             |> ignore)
