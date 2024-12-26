@@ -466,19 +466,17 @@ module Data =
 
         let prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
 
-        let queryInfo (state: InternalState) =
-            $" %O{state.QueryCondition} [%d{state.FilteredCount}]"
+        let queryInfo (state: InternalState) (count: int) =
+            $" %O{state.QueryCondition} [%d{count}]"
 
         let getWindowWidth (state: InternalState) =
             let left = prompt state
-            let right = queryInfo state
 
 #if DEBUG
-            Logger.LogFile
-                [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}' right '{String.length right}'" ]
+            Logger.LogFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}'" ]
 #endif
-
-            state.ConsoleWidth - String.length left - String.length right
+            // TODO: it will decide at startup.
+            state.ConsoleWidth - String.length left
 
         let getX (state: InternalState) =
             (prompt state |> String.length) + state.QueryState.Cursor

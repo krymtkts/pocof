@@ -109,14 +109,8 @@ module Pocof =
         | Refresh.NotRequired -> results, state
         | _ ->
             let results = lazy Query.run context args.Input state.PropertyMap
-
-            let state =
-                state
-                // |> InternalState.updateFilteredCount (PSeq.length results.Value) // TODO: requires UI refactoring. move query info to second line.
-                |> adjustQueryWindow args.GetLengthInBufferCells
-
+            let state = state |> adjustQueryWindow args.GetLengthInBufferCells
             (state, results, Query.props state) |> RenderEvent.Render |> args.PublishEvent
-
             results, state
 
     [<TailCall>]
@@ -281,7 +275,6 @@ module Pocof =
                 state
                 // NOTE: adjust the console width before writing the screen.
                 |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
-                |> InternalState.updateFilteredCount (PSeq.length result.Value)
                 |> adjustQueryWindow buff.GetLengthInBufferCells
 
             buff.WriteScreen conf.Layout state result.Value props

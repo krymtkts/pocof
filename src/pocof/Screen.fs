@@ -183,8 +183,7 @@ module Screen =
                 getQuery state.QueryState.WindowWidth q <| String.length q
                 |> selectRange state.QueryState
 
-            [ Data.InternalState.prompt state; q; Data.InternalState.queryInfo state ]
-            |> String.concat ""
+            [ Data.InternalState.prompt state; q ] |> String.concat ""
 
         [<TailCall>]
         let rec read (acc: ConsoleKeyInfo list) =
@@ -271,20 +270,20 @@ module Screen =
                 [ $"baseLine {baseLine}, firstLine {firstLine}, toHeight {toHeight}, screenHeight {screenHeight}" ]
 #endif
 
-            __.WriteScreenLine firstLine
-            <| match state.Notification with
-               | None ->
-                   match props with
-                   | Ok(p) ->
-                       let suggestion = String.concat " " p
+            match state.Notification, props with
+            | Some e, _
+            | _, Error(e) -> note + e
+            | _, Ok(p) -> p |> String.concat " "
+            |> fun s ->
+                let info = Data.InternalState.queryInfo state <| PSeq.length entries
+                let w = rui.GetWindowWidth() - (info |> String.length)
+                let ss = s |> String.length
 
-                       let length =
-                           match String.length suggestion, rui.GetWindowWidth() with
-                           | Ascending(x, _) -> x
-
-                       suggestion |> String.upToIndex length
-                   | Error(e) -> note + e
-               | Some x -> note + x
+                match w - ss with
+                | Natural x -> s + (String.replicate x " ")
+                | _ -> s |> String.upToIndex w
+                + info
+            |> __.WriteScreenLine firstLine
 
             let out =
                 Seq.truncate screenHeight entries
