@@ -475,7 +475,7 @@ module Data =
             Logger.LogFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}'" ]
 #endif
             // TODO: it will decide at startup.
-            state.ConsoleWidth - String.length left
+            state.ConsoleWidth - String.length left - 1 // TODO: to adjust the right margin.
 
         let getX (state: InternalState) =
             (prompt state |> String.length) + state.QueryState.Cursor
