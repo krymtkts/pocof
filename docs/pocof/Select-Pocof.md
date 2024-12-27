@@ -4,7 +4,7 @@ external help file: pocof-Help.xml
 HelpUri: https://github.com/krymtkts/pocof/blob/main/docs/pocof/Select-Pocof.md
 Locale: en-US
 Module Name: pocof
-ms.date: 12-15-2024
+ms.date: 12-27-2024
 PlatyPS schema version: 2024-05-01
 title: Select-Pocof
 ---
