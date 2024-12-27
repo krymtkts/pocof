@@ -440,7 +440,7 @@ The property name in the query starts with `:` followed by a space, and then the
           <dev:name>System.Management.Automation.PSObject</dev:name>
         </dev:type>
         <maml:description>
-          <maml:para>{{ Fill in the Description }}</maml:para>
+          <maml:para />
         </maml:description>
       </command:inputType>
     </command:inputTypes>
@@ -450,7 +450,7 @@ The property name in the query starts with `:` followed by a space, and then the
           <dev:name>System.Management.Automation.PSObject</dev:name>
         </dev:type>
         <maml:description>
-          <maml:para>{{ Fill in the Description }}</maml:para>
+          <maml:para />
         </maml:description>
       </command:returnValue>
     </command:returnValues>
