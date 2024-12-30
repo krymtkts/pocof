@@ -468,15 +468,6 @@ module Data =
         let queryInfo (state: InternalState) (count: int) =
             $" %O{state.QueryCondition} [%d{count}]"
 
-        let getWindowWidth (state: InternalState) =
-            let left = prompt state
-
-#if DEBUG
-            Logger.LogFile [ $"ConsoleWidth '{state.ConsoleWidth}' left '{String.length left}'" ]
-#endif
-            // TODO: it will decide at startup.
-            state.ConsoleWidth - String.length left - 1 // TODO: to adjust the right margin.
-
         let getX (state: InternalState) =
             (prompt state |> String.length) + state.QueryState.Cursor
             - state.QueryState.WindowBeginningCursor
@@ -500,10 +491,6 @@ module Data =
             | _ -> noRefresh
             <| state
 
-        let updateWindowWidth (state: InternalState) =
-            { state with
-                InternalState.QueryState.WindowWidth = getWindowWidth state }
-
         let rotateMatcher (state: InternalState) =
             { state with
                 QueryCondition = state.QueryCondition |> QueryCondition.rotateMatcher }
@@ -526,8 +513,8 @@ module Data =
 
         let updateConsoleWidth (consoleWidth: int) (state: InternalState) =
             { state with
-                ConsoleWidth = consoleWidth }
-            |> updateWindowWidth
+                ConsoleWidth = consoleWidth
+                InternalState.QueryState.WindowWidth = prompt state |> String.length |> (+) 1 |> (-) consoleWidth }
 
     type Position = { Y: int; Height: int }
 
@@ -572,9 +559,9 @@ module Data =
               PropertyMap = p.PropertiesMap
               Prompt = p.Prompt
               WordDelimiters = p.WordDelimiters
-              ConsoleWidth = p.ConsoleWidth
+              ConsoleWidth = 0 // NOTE: adjust later.
               Refresh = Refresh.Required }
-            |> InternalState.updateWindowWidth
+            |> InternalState.updateConsoleWidth p.ConsoleWidth
 
         { Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps

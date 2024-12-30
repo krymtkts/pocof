@@ -289,34 +289,21 @@ module Handle =
             |> InternalState.rotateMatcher
             |> InternalState.refresh
             |> InternalState.prepareNotification
-            |> InternalState.updateWindowWidth
 
         state, pos, context |> QueryContext.prepareQuery state
 
     let private rotateOperator (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.rotateOperator
-            |> InternalState.refresh
-            |> InternalState.updateWindowWidth
+        let state = state |> InternalState.rotateOperator |> InternalState.refresh
 
         state, pos, context |> QueryContext.prepareQuery state |> QueryContext.prepareTest state
 
     let private toggleCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.toggleCaseSensitive
-            |> InternalState.refresh
-            |> InternalState.updateWindowWidth
+        let state = state |> InternalState.toggleCaseSensitive |> InternalState.refresh
 
         state, pos, context |> QueryContext.prepareQuery state
 
     let private toggleInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.toggleInvertFilter
-            |> InternalState.refresh
-            |> InternalState.updateWindowWidth
+        let state = state |> InternalState.toggleInvertFilter |> InternalState.refresh
 
         state, pos, context |> QueryContext.prepareQuery state
 
