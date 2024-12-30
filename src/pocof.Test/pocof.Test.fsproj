@@ -17,7 +17,6 @@
     <Compile Include="Handle.fs" />
     <Compile Include="Pocof.fs" />
     <Compile Include="Library.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
