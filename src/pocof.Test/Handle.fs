@@ -27,9 +27,9 @@ module invokeAction =
           PropertyMap = Map []
           Prompt = "query"
           WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-          ConsoleWidth = 60
+          ConsoleWidth = 0
           Refresh = Refresh.Required }
-        |> InternalState.updateWindowWidth
+        |> InternalState.updateConsoleWidth 60
 
     let position: Position = { Y = 0; Height = 20 }
 
