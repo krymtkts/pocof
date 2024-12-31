@@ -387,7 +387,7 @@ module Pocof =
         let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
 
         let propertiesMap: Concurrent.ConcurrentDictionary<string, string> =
-            Concurrent.ConcurrentDictionary()
+            Concurrent.ConcurrentDictionary(StringComparer.OrdinalIgnoreCase)
 
         member __.ContainsKey = propertiesDictionary.ContainsKey
 
@@ -396,7 +396,7 @@ module Pocof =
                 for prop in props do
                     if propertiesDictionary.TryAdd(prop, ()) then
                         prop |> properties.Enqueue
-                        propertiesMap.TryAdd(String.lower prop, prop) |> ignore
+                        propertiesMap.TryAdd(prop, prop) |> ignore
 
         member __.GetProperties() = properties
         member __.GetPropertyMap() = propertiesMap

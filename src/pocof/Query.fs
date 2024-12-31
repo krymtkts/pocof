@@ -42,7 +42,7 @@ module Query =
     [<NoEquality>]
     type QueryPart =
         | Normal of is: (string -> bool)
-        | Property of lowerCaseName: string * is: (string -> bool)
+        | Property of name: string * is: (string -> bool)
 
     [<NoComparison>]
     [<NoEquality>]
@@ -64,7 +64,7 @@ module Query =
                 <| []
             | y :: zs ->
                 match x with
-                | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y) :: acc <| zs
+                | Prefix ":" p -> parseQuery is <| QueryPart.Property(p, is y) :: acc <| zs
                 | _ -> parseQuery is <| QueryPart.Normal(is x) :: acc <| xs
 
     let private prepareTest (condition: QueryCondition) =
