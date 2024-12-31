@@ -21,9 +21,9 @@
 
   <ItemGroup>
     <PackageReference Include="FsCheck.Xunit" Version="3.0.0-rc3" />
-    <PackageReference Include="FsUnit.xUnit" Version="7.0.1" />
+    <PackageReference Include="FsUnit.xUnit" Version="6.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="xunit.v3" Version="1.0.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -34,9 +34,6 @@
     </PackageReference>
     <!-- NOTE: for creating mock PSObject -->
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.6" />
-    <!-- NOTE: for resolving FsCheck.Xunit 3.0.0-rc3 vulnerability -->
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
