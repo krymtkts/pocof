@@ -124,18 +124,6 @@ module Query =
 #if !DEBUG
         inline
 #endif
-        private tryGetPropertyName
-            (props: Generic.IReadOnlyDictionary<string, string>)
-            p
-            =
-        match props.TryGetValue p with
-        | true, n -> Some n
-        | _ -> None
-
-    let
-#if !DEBUG
-        inline
-#endif
         private getPropertyValue
             propName
             o
@@ -173,18 +161,23 @@ module Query =
         lambda |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
 
     [<TailCall>]
-    let rec private generatePredicate (op: Operator) props (acc: (Entry -> bool) list) queries =
+    let rec private generatePredicate
+        (op: Operator)
+        (props: Generic.IReadOnlyDictionary<string, string>)
+        (acc: (Entry -> bool) list)
+        queries
+        =
         match queries with
         | QueryPart.Property(p, test) :: tail ->
-            match tryGetPropertyName props p with
-            | Some(pn) ->
+            match props.TryGetValue p with
+            | true, pn ->
                 let x entry =
                     match getPropertyValue pn entry with
                     | Some(pv) -> pv.ToString() |> test
                     | None -> false
 
                 generatePredicate op props (x :: acc) tail
-            | None -> generatePredicate op props acc tail
+            | _ -> generatePredicate op props acc tail
 
         | QueryPart.Normal(test) :: tail ->
             let combination =
