@@ -187,15 +187,14 @@ module Query =
             | None -> generatePredicate op props acc tail
 
         | QueryPart.Normal(test) :: tail ->
+            let combination =
+                match op with
+                | Operator.And -> (&&)
+                | Operator.Or -> (||)
+
             let x entry =
                 match entry with
-                | Entry.Dict(dct) ->
-                    let combination =
-                        match op with
-                        | Operator.And -> (&&)
-                        | Operator.Or -> (||)
-
-                    combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
+                | Entry.Dict(dct) -> combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
                 | Entry.Obj(o) -> o.ToString() |> test
 
             generatePredicate op props (x :: acc) tail
