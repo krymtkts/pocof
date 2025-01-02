@@ -348,7 +348,9 @@ module Handle =
         | PropertySearch.NoSearch -> InternalState.noRefresh state, pos, context
         | PropertySearch.Search keyword ->
             let candidates =
-                state.Properties |> Seq.filter (String.startsWith keyword) |> List.ofSeq
+                state.Properties
+                |> Seq.filter (String.startsWithIgnoreCase keyword)
+                |> List.ofSeq
 
             match candidates |> Seq.length with
             | 0 -> InternalState.noRefresh state, pos, context

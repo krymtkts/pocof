@@ -55,6 +55,10 @@ module LanguageExtension =
         let lower (s: string) = s.ToLower()
         let upper (s: string) = s.ToUpper()
         let startsWith (value: string) (s: string) = s.StartsWith(value)
+
+        let startsWithIgnoreCase (value: string) (s: string) =
+            s.StartsWith(value, StringComparison.OrdinalIgnoreCase)
+
         let split (separator: string) (s: string) = s.Split(separator.ToCharArray())
 
         let split2 (separators: string array) (s: string) =
@@ -128,7 +132,7 @@ module Operator =
             (prop: string)
             =
         try
-            let prop = x.Properties.Item prop
+            let prop = x.Properties.Item prop // TODO: bad ?
 
             match prop with
             | null -> None
