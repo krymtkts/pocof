@@ -370,9 +370,8 @@ module Pocof =
                 | :? IDictionary as dct ->
                     match Seq.cast<DictionaryEntry> dct with
                     | s when Seq.isEmpty s -> Seq.empty
-                    | s -> s |> Seq.head |> PSObject.AsPSObject |> _.Properties
-                | _ -> input.Properties
-                |> Seq.map _.Name
+                    | s -> s |> Seq.head |> _.GetType().GetProperties() |> Seq.map _.Name
+                | _ -> input.Properties |> Seq.map _.Name
 
             (name, props) |> add
 
@@ -387,7 +386,7 @@ module Pocof =
         let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
 
         let propertiesMap: Concurrent.ConcurrentDictionary<string, string> =
-            Concurrent.ConcurrentDictionary()
+            Concurrent.ConcurrentDictionary(StringComparer.OrdinalIgnoreCase)
 
         member __.ContainsKey = propertiesDictionary.ContainsKey
 
@@ -396,7 +395,7 @@ module Pocof =
                 for prop in props do
                     if propertiesDictionary.TryAdd(prop, ()) then
                         prop |> properties.Enqueue
-                        propertiesMap.TryAdd(String.lower prop, prop) |> ignore
+                        propertiesMap.TryAdd(prop, prop) |> ignore
 
         member __.GetProperties() = properties
         member __.GetPropertyMap() = propertiesMap

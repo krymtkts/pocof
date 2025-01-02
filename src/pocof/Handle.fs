@@ -349,7 +349,7 @@ module Handle =
         | PropertySearch.Search keyword ->
             let candidates =
                 state.Properties
-                |> Seq.filter (String.lower >> String.startsWith (String.lower keyword))
+                |> Seq.filter (String.startsWithIgnoreCase keyword)
                 |> List.ofSeq
 
             match candidates |> Seq.length with

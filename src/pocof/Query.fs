@@ -42,7 +42,7 @@ module Query =
     [<NoEquality>]
     type QueryPart =
         | Normal of is: (string -> bool)
-        | Property of lowerCaseName: string * is: (string -> bool)
+        | Property of name: string * is: (string -> bool)
 
     [<NoComparison>]
     [<NoEquality>]
@@ -64,7 +64,7 @@ module Query =
                 <| []
             | y :: zs ->
                 match x with
-                | Prefix ":" p -> parseQuery is <| QueryPart.Property(String.lower p, is y) :: acc <| zs
+                | Prefix ":" p -> parseQuery is <| QueryPart.Property(p, is y) :: acc <| zs
                 | _ -> parseQuery is <| QueryPart.Normal(is x) :: acc <| xs
 
     let private prepareTest (condition: QueryCondition) =
@@ -124,18 +124,6 @@ module Query =
 #if !DEBUG
         inline
 #endif
-        private tryGetPropertyName
-            (props: Generic.IReadOnlyDictionary<string, string>)
-            p
-            =
-        match props.TryGetValue p with
-        | true, n -> Some n
-        | _ -> None
-
-    let
-#if !DEBUG
-        inline
-#endif
         private getPropertyValue
             propName
             o
@@ -173,29 +161,33 @@ module Query =
         lambda |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
 
     [<TailCall>]
-    let rec private generatePredicate (op: Operator) props (acc: (Entry -> bool) list) queries =
+    let rec private generatePredicate
+        (op: Operator)
+        (props: Generic.IReadOnlyDictionary<string, string>)
+        (acc: (Entry -> bool) list)
+        queries
+        =
         match queries with
         | QueryPart.Property(p, test) :: tail ->
-            match tryGetPropertyName props p with
-            | Some(pn) ->
+            match props.TryGetValue p with
+            | true, pn ->
                 let x entry =
                     match getPropertyValue pn entry with
                     | Some(pv) -> pv.ToString() |> test
                     | None -> false
 
                 generatePredicate op props (x :: acc) tail
-            | None -> generatePredicate op props acc tail
+            | _ -> generatePredicate op props acc tail
 
         | QueryPart.Normal(test) :: tail ->
+            let combination =
+                match op with
+                | Operator.And -> (&&)
+                | Operator.Or -> (||)
+
             let x entry =
                 match entry with
-                | Entry.Dict(dct) ->
-                    let combination =
-                        match op with
-                        | Operator.And -> (&&)
-                        | Operator.Or -> (||)
-
-                    combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
+                | Entry.Dict(dct) -> combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
                 | Entry.Obj(o) -> o.ToString() |> test
 
             generatePredicate op props (x :: acc) tail
@@ -217,9 +209,7 @@ module Query =
         match state.SuppressProperties, state.PropertySearch with
         | false, PropertySearch.Search(prefix: string)
         | false, PropertySearch.Rotate(prefix: string, _, _) ->
-            let ret =
-                state.Properties
-                |> Seq.filter (fun (s: string) -> s.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase))
+            let ret = state.Properties |> Seq.filter (String.startsWithIgnoreCase prefix)
 
             match ret |> Seq.length with
             | 0 -> Error "Property not found"

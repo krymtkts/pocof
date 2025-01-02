@@ -2173,7 +2173,7 @@ module invokeAction =
                     InternalState.QueryState.Query = ":p"
                     InternalState.QueryState.Cursor = 2
                     PropertySearch = PropertySearch.Search "p"
-                    Properties = [ "name"; "path" ] }
+                    Properties = [ "Name"; "Path" ] }
 
             let state, context = Query.prepare state
 
@@ -2182,9 +2182,9 @@ module invokeAction =
             (a1, a2)
             |> shouldEqual (
                 { state with
-                    InternalState.QueryState.Query = ":path"
+                    InternalState.QueryState.Query = ":Path"
                     InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Rotate("p", 0, [ "path" ]) },
+                    PropertySearch = PropertySearch.Rotate("p", 0, [ "Path" ]) },
                 position
             )
 

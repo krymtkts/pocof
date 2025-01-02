@@ -99,13 +99,11 @@ module props =
         |> shouldEqual (Ok [ "Name" ])
 
     [<Fact>]
-    let ``should return Ok with filtered properties when case sensitive.`` () =
-        let state =
-            caseSensitive
-                { state with
-                    PropertySearch = Data.PropertySearch.Search "Na" }
-
-        Query.props state |> shouldEqual (Ok [ "Name" ])
+    let ``should return Ok with properties filtered in a case-insensitive manner.`` () =
+        Query.props
+            { state with
+                PropertySearch = Data.PropertySearch.Search "na" }
+        |> shouldEqual (Ok [ "Name" ])
 
     [<Fact>]
     let ``should return Ok with non filtered properties when rotate.`` () =
