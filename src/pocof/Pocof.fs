@@ -370,9 +370,8 @@ module Pocof =
                 | :? IDictionary as dct ->
                     match Seq.cast<DictionaryEntry> dct with
                     | s when Seq.isEmpty s -> Seq.empty
-                    | s -> s |> Seq.head |> PSObject.AsPSObject |> _.Properties
-                | _ -> input.Properties
-                |> Seq.map _.Name
+                    | s -> s |> Seq.head |> _.GetType().GetProperties() |> Seq.map _.Name
+                | _ -> input.Properties |> Seq.map _.Name
 
             (name, props) |> add
 
