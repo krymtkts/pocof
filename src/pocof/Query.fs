@@ -211,7 +211,7 @@ module Query =
         | false, PropertySearch.Rotate(prefix: string, _, _) ->
             let ret =
                 state.Properties
-                |> Seq.filter (fun (s: string) -> s.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase))
+                |> Seq.filter _.StartsWith(prefix, StringComparison.CurrentCultureIgnoreCase)
 
             match ret |> Seq.length with
             | 0 -> Error "Property not found"
