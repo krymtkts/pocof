@@ -1,39 +1,42 @@
-﻿module pocof.Benchmark 
+﻿module pocof.Benchmark
 
-open System
-open BenchmarkDotNet
 open BenchmarkDotNet.Attributes
+open System.Management.Automation
 
-type Benchmarks () =
-    [<Params(0, 1, 15, 100)>]
-    member val public sleepTime = 0 with get, set
+open Pocof
+open Pocof.Operator
 
-    // [<GlobalSetup>]
-    // member self.GlobalSetup() =
-    //     printfn "%s" "Global Setup"
+[<MemoryDiagnoser>]
+type Benchmarks() =
+    let psObjects = seq { 1..1000000 } |> Seq.map (string >> PSObject.AsPSObject)
 
-    // [<GlobalCleanup>]
-    // member self.GlobalCleanup() =
-    //     printfn "%s" "Global Cleanup"
+    let hashtables =
+        seq { 1..1000000 }
+        |> Seq.map (fun i ->
+            let h = new OrderedHashtable()
+            h.Add("a", i)
+            h)
 
-    // [<IterationSetup>]
-    // member self.IterationSetup() =
-    //     printfn "%s" "Iteration Setup"
-    
-    // [<IterationCleanup>]
-    // member self.IterationCleanup() =
-    //     printfn "%s" "Iteration Cleanup"
+    let hashtablePsObjects = hashtables |> Seq.map PSObject.AsPSObject
 
     [<Benchmark>]
-    member this.Thread () = System.Threading.Thread.Sleep(this.sleepTime)
+    member __.buildProperties_PSObject() =
+        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+
+        psObjects
+        |> Seq.iter (Pocof.buildProperties properties.ContainsKey properties.Add)
 
     [<Benchmark>]
-    member this.Task () = System.Threading.Tasks.Task.Delay(this.sleepTime)
+    member __.buildProperties_Hashtable() =
+        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+
+        hashtablePsObjects
+        |> Seq.iter (Pocof.buildProperties properties.ContainsKey properties.Add)
 
     [<Benchmark>]
-    member this.AsyncToTask () = Async.Sleep(this.sleepTime) |> Async.StartAsTask
+    member __.dynamicLookup_PSObject() =
+        psObjects |> Seq.iter (fun o -> o ?-> "Length" |> ignore)
 
     [<Benchmark>]
-    member this.AsyncToSync () = Async.Sleep(this.sleepTime) |> Async.RunSynchronously
-
-
+    member __.dynamicLookup_Hashtable() =
+        hashtables |> Seq.iter (fun o -> o ?=> "Key" |> ignore)
