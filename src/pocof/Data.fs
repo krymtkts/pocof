@@ -110,18 +110,14 @@ module Operator =
         inline
 #endif
         (?=>)
-            (x: 'T)
-            (prop: string | null) // TODO: only for the testing. require to refactor.
+            (x: System.Collections.DictionaryEntry)
+            (prop: string)
             =
-        try
-            // TODO: consider using cache.
-            let propInfo = x.GetType().GetProperty prop
-
-            match propInfo with
-            | null -> None
-            | _ -> Some(propInfo.GetValue(x, null) :?> 'R)
-        with _ ->
-            None
+        prop
+        |> function
+            | "Key" -> Some(x.Key :?> 'R)
+            | "Value" -> Some(x.Value :?> 'R)
+            | _ -> None
 
     let
 #if !DEBUG
@@ -131,14 +127,10 @@ module Operator =
             (x: PSObject)
             (prop: string)
             =
-        try
-            let prop = x.Properties.Item prop // TODO: bad ?
-
-            match prop with
+        x.Properties[prop]
+        |> function
             | null -> None
-            | _ -> prop.Value |> Some
-        with _ ->
-            None
+            | p -> p.Value |> Some
 
 module Data =
     open System
