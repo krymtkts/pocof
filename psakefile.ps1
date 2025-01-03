@@ -99,6 +99,10 @@ Task WorkflowTest {
     act pull_request --verbose --platform ubuntu-latest=catthehacker/ubuntu:pwsh-latest
 }
 
+Task Benchmark {
+    dotnet run --project ./src/pocof.Benchmark/pocof.Benchmark.fsproj -c Release
+}
+
 Task UbuntuPwsh {
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
         throw 'docker is not installed. Read https://docs.docker.com/engine/install/ and install it.'
