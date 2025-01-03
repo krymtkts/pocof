@@ -5,6 +5,7 @@ open System.Management.Automation
 
 open Pocof
 open Pocof.Operator
+open System.Collections
 
 [<MemoryDiagnoser>]
 type Benchmarks() =
@@ -15,9 +16,15 @@ type Benchmarks() =
         |> Seq.map (fun i ->
             let h = new OrderedHashtable()
             h.Add("a", i)
-            h)
+            h |> Seq.cast<DictionaryEntry> |> Seq.head)
 
-    let hashtablePsObjects = hashtables |> Seq.map PSObject.AsPSObject
+    let hashtablePsObjects =
+        seq { 1..1000000 }
+        |> Seq.map (fun i ->
+            let h = new OrderedHashtable()
+            h.Add("a", i)
+            h)
+        |> Seq.map PSObject.AsPSObject
 
     [<Benchmark>]
     member __.buildProperties_PSObject() =
