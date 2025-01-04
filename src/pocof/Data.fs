@@ -102,43 +102,23 @@ module LanguageExtension =
 
         let empty<'T> : pseq<'T> = ParallelEnumerable.Empty<'T>()
 
-module Operator =
-    open System.Management.Automation
+    type Collections.DictionaryEntry with
+        member __.Item
+            with get (prop: string) =
+                prop
+                |> function
+                    | "Key" -> __.Key
+                    | "Value" -> __.Value
+                    | _ -> null
 
-    let
-#if !DEBUG
-        inline
-#endif
-        (?=>)
-            (x: 'T)
-            (prop: string | null) // TODO: only for the testing. require to refactor.
-            =
-        try
-            // TODO: consider using cache.
-            let propInfo = x.GetType().GetProperty prop
-
-            match propInfo with
-            | null -> None
-            | _ -> Some(propInfo.GetValue(x, null) :?> 'R)
-        with _ ->
-            None
-
-    let
-#if !DEBUG
-        inline
-#endif
-        (?->)
-            (x: PSObject)
-            (prop: string)
-            =
-        try
-            let prop = x.Properties.Item prop // TODO: bad ?
-
-            match prop with
-            | null -> None
-            | _ -> prop.Value |> Some
-        with _ ->
-            None
+    type Management.Automation.PSObject with
+        member __.Item
+            with get (prop: string) =
+                // NOTE: should check empty prop by the caller.
+                __.Properties[prop]
+                |> function
+                    | null -> null
+                    | p -> p.Value
 
 module Data =
     open System
@@ -151,6 +131,13 @@ module Data =
     type Entry =
         | Obj of o: PSObject
         | Dict of d: DictionaryEntry
+
+        member __.Item
+            with get (prop: string) =
+                __
+                |> function
+                    | Obj(o) -> o[prop]
+                    | Dict(d) -> d[prop]
 
     let unwrap (entries: Entry seq) =
         entries

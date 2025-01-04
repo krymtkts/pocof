@@ -4,7 +4,7 @@ open BenchmarkDotNet.Attributes
 open System.Management.Automation
 
 open Pocof
-open Pocof.Operator
+open System.Collections
 
 [<MemoryDiagnoser>]
 type Benchmarks() =
@@ -15,9 +15,15 @@ type Benchmarks() =
         |> Seq.map (fun i ->
             let h = new OrderedHashtable()
             h.Add("a", i)
-            h)
+            h |> Seq.cast<DictionaryEntry> |> Seq.head)
 
-    let hashtablePsObjects = hashtables |> Seq.map PSObject.AsPSObject
+    let hashtablePsObjects =
+        seq { 1..1000000 }
+        |> Seq.map (fun i ->
+            let h = new OrderedHashtable()
+            h.Add("a", i)
+            h)
+        |> Seq.map PSObject.AsPSObject
 
     [<Benchmark>]
     member __.buildProperties_PSObject() =
@@ -34,9 +40,9 @@ type Benchmarks() =
         |> Seq.iter (Pocof.buildProperties properties.ContainsKey properties.Add)
 
     [<Benchmark>]
-    member __.dynamicLookup_PSObject() =
-        psObjects |> Seq.iter (fun o -> o ?-> "Length" |> ignore)
+    member __.indexedProperty_PSObject() =
+        psObjects |> Seq.iter (fun o -> o["Length"] |> ignore)
 
     [<Benchmark>]
-    member __.dynamicLookup_Hashtable() =
-        hashtables |> Seq.iter (fun o -> o ?=> "Key" |> ignore)
+    member __.indexedProperty_Hashtable() =
+        hashtables |> Seq.iter (fun o -> o["Key"] |> ignore)

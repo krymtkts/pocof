@@ -7,7 +7,6 @@ open System.Collections
 open System.Management.Automation
 open System.Text.RegularExpressions
 
-open Operator
 open Data
 
 module Query =
@@ -120,18 +119,6 @@ module Query =
             { context with
                 QueryContext.Operator = state.QueryCondition.Operator }
 
-    let
-#if !DEBUG
-        inline
-#endif
-        private getPropertyValue
-            propName
-            o
-            =
-        match o with
-        | Entry.Dict(dct) -> dct ?=> propName
-        | Entry.Obj(o) -> o ?-> propName
-
     let private generateExpr (op: Operator) (conditions: (Entry -> bool) list) =
         let xVar = Var("x", typeof<Entry>)
         let x = xVar |> Expr.Var |> Expr.Cast<Entry>
@@ -171,10 +158,10 @@ module Query =
         | QueryPart.Property(p, test) :: tail ->
             match props.TryGetValue p with
             | true, pn ->
-                let x entry =
-                    match getPropertyValue pn entry with
-                    | Some(pv) -> pv.ToString() |> test
-                    | None -> false
+                let x (entry: Entry) =
+                    match entry[pn] with
+                    | null -> false
+                    | pv -> pv.ToString() |> test
 
                 generatePredicate op props (x :: acc) tail
             | _ -> generatePredicate op props acc tail
