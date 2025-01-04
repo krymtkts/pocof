@@ -80,11 +80,13 @@ module Screen =
             member __.Dispose() =
                 console.TreatControlCAsInput <- ctrlCAsInput
 
+    [<Literal>]
     let private note = "note>"
 
-    type WriteScreen = Data.InternalState -> Data.Entry seq -> Result<string list, string> -> unit
-
+    [<Literal>]
     let escapeSequenceInvert = "\x1b[7m"
+
+    [<Literal>]
     let escapeSequenceResetInvert = "\x1b[27m"
 
     [<Sealed>]
@@ -292,19 +294,12 @@ module Screen =
                 Seq.truncate screenHeight entries
                 |> Data.unwrap
                 |> invoke
-                |> Seq.fold
-                    (fun acc s ->
-                        // NOTE: This split lines is implemented complicated way because of netstandard2.0.
-                        s |> String.split2 [| "\r\n"; "\n" |] |> List.ofArray |> (@) acc)
-                    []
+                // NOTE: This split lines is implemented complicated way because of netstandard2.0.
+                |> Seq.collect (String.split2 [| "\r\n"; "\n" |])
 
-            seq { 0..screenHeight }
-            |> Seq.iter (fun i ->
-                __.WriteScreenLine
-                <| toHeight i
-                <| match List.tryItem i out with
-                   | Some s -> s
-                   | None -> String.Empty)
+            Seq.append out (Seq.initInfinite (fun _ -> String.Empty))
+            |> Seq.truncate (screenHeight + 1)
+            |> Seq.iteri (fun i s -> __.WriteScreenLine <| toHeight i <| s)
 
             rui.SetCursorPosition
             <| rui.GetLengthInBufferCells(queryString |> String.upToIndex (getCursorPosition state))

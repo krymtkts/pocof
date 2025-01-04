@@ -125,22 +125,24 @@ module Query =
 
         let combination =
             match op with
-            | Operator.And -> fun c acc -> (<@ c %x @>, acc, <@@ false @@>)
-            | Operator.Or -> fun c acc -> (<@ c %x @>, <@@ true @@>, acc)
+            | Operator.And -> fun c acc -> (<@ c %x @>, acc, <@ false @>)
+            | Operator.Or -> fun c acc -> (<@ c %x @>, <@ true @>, acc)
 
         let rec recBody acc conditions =
             match conditions with
             | [] -> acc
             | condition :: conditions ->
-                let acc = combination condition acc |> Expr.IfThenElse
+                let acc = combination condition acc |> Expr.IfThenElse |> Expr.Cast<bool>
                 recBody acc conditions
 
         let body =
             // NOTE: condition's order is already reversed.
             match conditions with
-            | [] -> <@@ true @@>
+            | [] -> <@ true @>
             | condition :: conditions ->
-                let term = Expr.IfThenElse(<@ condition %x @>, <@ true @>, <@ false @>)
+                let term =
+                    Expr.IfThenElse(<@ condition %x @>, <@ true @>, <@ false @>) |> Expr.Cast<bool>
+
                 recBody term conditions
 
         let lambda = Expr.Lambda(xVar, body)
