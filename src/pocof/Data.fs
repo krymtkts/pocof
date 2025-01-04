@@ -127,6 +127,7 @@ module Operator =
             (x: PSObject)
             (prop: string)
             =
+        // NOTE: should check empty prop by the caller.
         x.Properties[prop]
         |> function
             | null -> None

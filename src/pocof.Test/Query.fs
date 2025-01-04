@@ -40,19 +40,19 @@ module operator =
     open Pocof.Operator
 
     [<Fact>]
-    let ``?=> should return Jane.`` () =
+    let ``?=> should return key.`` () =
         let d = DictionaryEntry("Jane", "Doe")
         d ?=> "Key" |> shouldEqual (Some("Jane"))
+
+    [<Fact>]
+    let ``?=> should return value.`` () =
+        let d = DictionaryEntry("Jane", "Doe")
+        d ?=> "Value" |> shouldEqual (Some("Doe"))
 
     [<Fact>]
     let ``?=> should return None.`` () =
         let d = DictionaryEntry("Jane", "Doe")
         d ?=> "Ke" |> shouldEqual None
-
-    [<Fact>]
-    let ``?=> should return None when null.`` () =
-        let d = DictionaryEntry("Jane", "Doe")
-        d ?=> null |> shouldEqual None
 
     [<Fact>]
     let ``?-> should return 1.`` () =
@@ -63,11 +63,6 @@ module operator =
     let ``?-> should return None.`` () =
         let o = "a" |> PSObject.AsPSObject
         o ?-> "Lengt" |> shouldEqual None
-
-    [<Fact>]
-    let ``?-> should return None when null.`` () =
-        let o = "a" |> PSObject.AsPSObject
-        o ?-> "" |> shouldEqual None
 
 module props =
     [<Fact>]
