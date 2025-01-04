@@ -35,34 +35,35 @@ let caseSensitive (s: Data.InternalState) =
     { s with
         QueryCondition.CaseSensitive = true }
 
-module operator =
+module DictionaryEntry =
     open System.Collections
-    open Pocof.Operator
 
     [<Fact>]
-    let ``?=> should return key.`` () =
+    let ``indexed property should return key.`` () =
         let d = DictionaryEntry("Jane", "Doe")
-        d ?=> "Key" |> shouldEqual (Some("Jane"))
+        d["Key"] |> shouldEqual "Jane"
 
     [<Fact>]
-    let ``?=> should return value.`` () =
+    let ``indexed property should return value.`` () =
         let d = DictionaryEntry("Jane", "Doe")
-        d ?=> "Value" |> shouldEqual (Some("Doe"))
+        d["Value"] |> shouldEqual "Doe"
 
     [<Fact>]
-    let ``?=> should return None.`` () =
+    let ``indexed property should return None.`` () =
         let d = DictionaryEntry("Jane", "Doe")
-        d ?=> "Ke" |> shouldEqual None
+        d["Ke"] |> shouldEqual null
+
+module PSObject =
 
     [<Fact>]
-    let ``?-> should return 1.`` () =
+    let ``?->indexed property should return 1.`` () =
         let o = "a" |> PSObject.AsPSObject
-        o ?-> "Length" |> shouldEqual (Some(1))
+        o["Length"] |> shouldEqual 1
 
     [<Fact>]
-    let ``?-> should return None.`` () =
+    let ``?->indexed property should return None.`` () =
         let o = "a" |> PSObject.AsPSObject
-        o ?-> "Lengt" |> shouldEqual None
+        o["Lengt"] |> shouldEqual null
 
 module props =
     [<Fact>]
