@@ -83,9 +83,6 @@ module Screen =
     [<Literal>]
     let private note = "note>"
 
-    type WriteScreen = Data.InternalState -> Data.Entry seq -> Result<string list, string> -> unit
-
-
     [<Literal>]
     let escapeSequenceInvert = "\x1b[7m"
 
