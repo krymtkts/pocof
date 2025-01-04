@@ -452,6 +452,7 @@ module Data =
           Refresh: Refresh }
 
     module InternalState =
+        [<Literal>]
         let private anchor = ">"
 
         let prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"

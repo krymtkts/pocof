@@ -40,7 +40,9 @@ module Handle =
     let private backwardChar = moveCursorBackwardWith InputMode.Input
     let private moveCursorForwardWith (mode: InputMode) (state: InternalState) = moveCursor 1 mode state
     let private forwardChar = moveCursorForwardWith InputMode.Input
-    let defaultWordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" // TODO: lift to Cmdlet Option.
+
+    [<Literal>]
+    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" // TODO: lift to Cmdlet Option.
 
     let private isWordDelimiter (wordDelimiters: string) (c: char) =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0

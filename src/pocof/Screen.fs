@@ -80,11 +80,16 @@ module Screen =
             member __.Dispose() =
                 console.TreatControlCAsInput <- ctrlCAsInput
 
+    [<Literal>]
     let private note = "note>"
 
     type WriteScreen = Data.InternalState -> Data.Entry seq -> Result<string list, string> -> unit
 
+
+    [<Literal>]
     let escapeSequenceInvert = "\x1b[7m"
+
+    [<Literal>]
     let escapeSequenceResetInvert = "\x1b[27m"
 
     [<Sealed>]

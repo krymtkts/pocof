@@ -25,7 +25,9 @@ module Pocof =
 
     let convertKeymaps = Keys.convertKeymaps
     let initConfig = Data.initConfig
-    let defaultWordDelimiters = Handle.defaultWordDelimiters
+
+    [<Literal>]
+    let defaultWordDelimiters = Handle.wordDelimiters
 
     let initRawUI psRawUI console : unit -> Screen.IRawUI =
         fun () -> new Screen.RawUI(psRawUI, console)
