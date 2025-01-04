@@ -126,8 +126,8 @@ module Keys =
                     | (Error e, _)
                     | (_, Error e) -> Error e)
                 |> List.fold
-                    (fun (fst, snd) o ->
-                        match o with
+                    (fun (fst, snd) ->
+                        function
                         | Ok(o) -> (o :: fst, snd)
                         | Error e -> (fst, e :: snd))
                     ([], [])
