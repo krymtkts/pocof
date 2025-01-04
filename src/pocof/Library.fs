@@ -17,7 +17,7 @@ type SelectPocofCommand() =
     let properties: Pocof.PropertyStore = Pocof.PropertyStore()
     let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
-    let mutable renderPeriodic: unit -> unit = fun () -> ()
+    let mutable renderPeriodic: unit -> unit = id
     let mutable waitResult: Pocof.Termination -> obj seq = fun (_) -> Seq.empty
 
     [<Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
