@@ -28,7 +28,7 @@ module Pocof =
     let defaultWordDelimiters = Handle.defaultWordDelimiters
 
     let initRawUI psRawUI console : unit -> Screen.IRawUI =
-        fun (_: unit) -> new Screen.RawUI(psRawUI, console)
+        fun () -> new Screen.RawUI(psRawUI, console)
 
     let initConsoleInterface () : Screen.IConsoleInterface = new Screen.ConsoleInterface()
 
