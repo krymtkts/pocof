@@ -183,47 +183,6 @@ module loop =
         Seq.item 1 actual = results.[3] |> shouldEqual true
         rui.Check()
 
-// TODO: FIX IT
-// [<Fact>]
-// let ``should update QueryState.WindowWidth based on ConsoleWidth.`` () =
-//     let input = results |> List.map toObj
-
-//     let state, context = Query.prepare { state with SuppressProperties = true }
-
-//     let rui =
-//         new MockRawUI(
-//             60,
-//             30,
-//             [ MockRawUI.ConsoleKey 'a' ConsoleKey.A
-//               None
-//               MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
-//         )
-
-//     use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
-
-//     let args: Pocof.LoopFixedArguments =
-//         { Keymaps = Keys.defaultKeymap
-//           Input = input
-//           PropMap = propMap
-//           PublishEvent = publishEvent
-//           GetKey = buff.GetKey
-//           GetConsoleWidth =
-//             fun () ->
-//                 rui.width <- 80
-//                 80
-//           GetLengthInBufferCells = String.length }
-
-//     let actual = Pocof.loop args input state pos context
-//     actual |> Seq.length |> shouldEqual 1
-//     Seq.item 0 actual = results.[0] |> shouldEqual true
-
-//     let expected: string list =
-//         $"""query>a{String.replicate 60 " "} match or [1]"""
-//         :: (generateLine 80 (rui.height - 1))
-
-//     rui.screen |> shouldEqual expected
-//     rui.Check()
-
 module interact =
     [<Fact>]
     let ``should return result with NonInteractive mode.`` () =

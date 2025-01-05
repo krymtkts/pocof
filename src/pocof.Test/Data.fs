@@ -97,17 +97,8 @@ module unwrap =
         )
         |> Prop.collect (
             List.length data,
-            // TODO: use .Is* after bumping to F# 9.
-            data
-            |> List.filter (function
-                | Entry.Obj _ -> true
-                | _ -> false)
-            |> List.length,
-            data
-            |> List.filter (function
-                | Entry.Dict _ -> true
-                | _ -> false)
-            |> List.length
+            data |> List.filter _.IsObj |> List.length,
+            data |> List.filter _.IsDict |> List.length
         )
 
 let randomCase (s: string) =
