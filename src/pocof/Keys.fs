@@ -68,10 +68,6 @@ module Keys =
               (alt ConsoleKey.I, Action.ToggleInvertFilter)
 
               (ctrl ConsoleKey.Spacebar, Action.ToggleSuppressProperties)
-              (plain ConsoleKey.UpArrow, Action.SelectLineUp)
-              (plain ConsoleKey.DownArrow, Action.SelectLineDown)
-              (plain ConsoleKey.PageUp, Action.ScrollPageUp)
-              (plain ConsoleKey.PageDown, Action.ScrollPageDown)
 
               (plain ConsoleKey.Tab, Action.CompleteProperty) ]
 

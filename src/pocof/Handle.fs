@@ -42,7 +42,7 @@ module Handle =
     let private forwardChar = moveCursorForwardWith InputMode.Input
 
     [<Literal>]
-    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" // TODO: lift to Cmdlet Option.
+    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
     let private isWordDelimiter (wordDelimiters: string) (c: char) =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
@@ -401,10 +401,6 @@ module Handle =
         | Action.ToggleCaseSensitive -> toggleCaseSensitive state pos context
         | Action.ToggleInvertFilter -> toggleInvertFilter state pos context
         | Action.ToggleSuppressProperties -> toggleSuppressProperties state pos context
-        | Action.SelectLineUp
-        | Action.SelectLineDown
-        | Action.ScrollPageUp
-        | Action.ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.CompleteProperty -> completeProperty state pos context
         | Action.Cancel
         | Action.Finish -> failwithf $"unreachable action received. {action}"
