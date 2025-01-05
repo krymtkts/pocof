@@ -449,14 +449,11 @@ module Data =
         [<Literal>]
         let anchor = ">"
 
-        // TODO: it should be a property.
-        let prompt (state: InternalState) = state.Prompt
-
         let queryInfo (state: InternalState) (count: int) =
             $" %O{state.QueryCondition} [%d{count}]"
 
         let getX (state: InternalState) =
-            (prompt state |> String.length) + state.QueryState.Cursor
+            (state.Prompt |> String.length) + state.QueryState.Cursor
             - state.QueryState.WindowBeginningCursor
 
         let updateQueryState (qs: QueryState) (state: InternalState) =
@@ -501,7 +498,7 @@ module Data =
         let updateConsoleWidth (consoleWidth: int) (state: InternalState) =
             { state with
                 ConsoleWidth = consoleWidth
-                InternalState.QueryState.WindowWidth = prompt state |> String.length |> (+) 1 |> (-) consoleWidth }
+                InternalState.QueryState.WindowWidth = state.Prompt |> String.length |> (+) 1 |> (-) consoleWidth }
 
     type Position = { Y: int; Height: int }
 
