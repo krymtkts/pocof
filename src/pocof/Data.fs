@@ -455,6 +455,7 @@ module Data =
         [<Literal>]
         let private anchor = ">"
 
+        // TODO: it should be a property.
         let prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
 
         let queryInfo (state: InternalState) (count: int) =
