@@ -277,6 +277,7 @@ module initConfig =
               Properties = [ "name"; "attributes" ]
               PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
               Prompt = "prompt>"
+              PromptLength = 7
               WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
               ConsoleWidth = 60
               Refresh = Refresh.Required },

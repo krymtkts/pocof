@@ -441,6 +441,7 @@ module Data =
           Properties: Generic.IReadOnlyCollection<string>
           PropertyMap: Generic.IReadOnlyDictionary<string, string>
           Prompt: string
+          PromptLength: int
           WordDelimiters: string
           ConsoleWidth: int
           Refresh: Refresh }
@@ -529,6 +530,8 @@ module Data =
               WindowWidth = 0 // NOTE: adjust later.
               InputMode = InputMode.Input }
 
+        let prompt = p.Prompt + InternalState.anchor
+
         let s =
             { QueryState = qs
               QueryCondition =
@@ -541,7 +544,8 @@ module Data =
               SuppressProperties = p.SuppressProperties
               Properties = p.Properties
               PropertyMap = p.PropertiesMap
-              Prompt = p.Prompt + InternalState.anchor
+              Prompt = prompt
+              PromptLength = prompt |> String.length
               WordDelimiters = p.WordDelimiters
               ConsoleWidth = 0 // NOTE: adjust later.
               Refresh = Refresh.Required }

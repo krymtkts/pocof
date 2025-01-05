@@ -32,6 +32,7 @@ let initState () : InternalState =
       Properties = [ "Name"; "LastModified"; "Path" ]
       PropertyMap = Map [ ("name", "Name"); ("lastmodified", "LastWriteTime"); ("path", "FullName") ]
       Prompt = "query>"
+      PromptLength = 6
       WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
       ConsoleWidth = 60
       Refresh = Refresh.Required }
