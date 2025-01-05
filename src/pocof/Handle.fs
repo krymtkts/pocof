@@ -401,10 +401,6 @@ module Handle =
         | Action.ToggleCaseSensitive -> toggleCaseSensitive state pos context
         | Action.ToggleInvertFilter -> toggleInvertFilter state pos context
         | Action.ToggleSuppressProperties -> toggleSuppressProperties state pos context
-        | Action.SelectLineUp
-        | Action.SelectLineDown
-        | Action.ScrollPageUp
-        | Action.ScrollPageDown -> InternalState.noRefresh state, pos, context // TODO: implement it.
         | Action.CompleteProperty -> completeProperty state pos context
         | Action.Cancel
         | Action.Finish -> failwithf $"unreachable action received. {action}"

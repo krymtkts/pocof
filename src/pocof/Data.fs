@@ -209,12 +209,6 @@ module Data =
         | ToggleCaseSensitive
         | ToggleInvertFilter
         | ToggleSuppressProperties
-        // move line selection.
-        | SelectLineUp
-        | SelectLineDown
-        // scroll page.
-        | ScrollPageUp
-        | ScrollPageDown
         // property completion.
         | CompleteProperty
 

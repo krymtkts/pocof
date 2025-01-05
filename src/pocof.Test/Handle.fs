@@ -2065,22 +2065,6 @@ module invokeAction =
         [<Fact>]
         let ``should return a disabled suppress property.`` () = test true false
 
-    module ``with SelectLineUp`` =
-        [<Fact>]
-        let ``shouldn't return any difference when SelectLineUp is entered.`` () = noop Action.SelectLineUp
-
-    module ``with SelectLineDown`` =
-        [<Fact>]
-        let ``shouldn't return any difference when SelectLineDown is entered.`` () = noop Action.SelectLineDown
-
-    module ``with ScrollPageUp`` =
-        [<Fact>]
-        let ``shouldn't return any difference when ScrollPageUp is entered.`` () = noop Action.ScrollPageUp
-
-    module ``with ScrollPageDown`` =
-        [<Fact>]
-        let ``shouldn't return any difference when ScrollPageDown is entered.`` () = noop Action.ScrollPageDown
-
     module ``with CompleteProperty`` =
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with non search mode.`` () =
