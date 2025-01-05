@@ -185,7 +185,7 @@ module Screen =
                 getQuery state.QueryState.WindowWidth q <| String.length q
                 |> selectRange state.QueryState
 
-            Data.InternalState.prompt state + q
+            state.Prompt + q
 
         let getInformationString (state: Data.InternalState) (props: Result<string list, string>) (count: int) =
             match state.Notification, props with

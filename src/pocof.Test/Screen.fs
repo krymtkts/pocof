@@ -161,7 +161,8 @@ module ``Buff writeScreen`` =
           SuppressProperties = false
           Properties = []
           PropertyMap = Map []
-          Prompt = "query"
+          Prompt = "query>"
+          PromptLength = 6
           WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
           ConsoleWidth = 0
           Refresh = Refresh.Required }
@@ -222,7 +223,8 @@ module ``Buff writeScreen`` =
                       Operator = Operator.Or
                       CaseSensitive = false
                       Invert = true }
-                Prompt = "prompt" }
+                Prompt = "prompt>"
+                PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
         let rui = getRenderedScreen rui state Layout.BottomUp
@@ -249,7 +251,8 @@ module ``Buff writeScreen`` =
                       Operator = Operator.Or
                       CaseSensitive = false
                       Invert = true }
-                Prompt = "prompt" }
+                Prompt = "prompt>"
+                PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
         let rui = getRenderedScreen rui state Layout.BottomUpHalf
@@ -272,7 +275,8 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Query = @"\"
                 InternalState.QueryState.Cursor = 1
                 InternalState.QueryCondition.CaseSensitive = false
-                Prompt = "prompt" }
+                Prompt = "prompt>"
+                PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
             |> Pocof.Query.InternalState.prepareNotification
 
@@ -300,7 +304,8 @@ module ``Buff writeScreen`` =
                 PropertySearch = PropertySearch.Search("")
                 Properties = props
                 PropertyMap = props |> List.map (fun s -> (s.ToLower(), s)) |> Map
-                Prompt = "prompt" }
+                Prompt = "prompt>"
+                PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
             |> Pocof.Query.InternalState.prepareNotification
 
@@ -325,7 +330,8 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Query = @":unknown"
                 InternalState.QueryState.Cursor = 8
                 InternalState.QueryCondition.CaseSensitive = false
-                Prompt = "prompt" }
+                Prompt = "prompt>"
+                PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
         buff.WriteScreen Layout.TopDown state PSeq.empty <| Error "Property not found"
@@ -352,7 +358,8 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Query = ""
                 InternalState.QueryState.Cursor = 0
                 InternalState.QueryCondition.CaseSensitive = false
-                Prompt = "prompt" }
+                Prompt = "prompt>"
+                PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
         let entries =
@@ -386,7 +393,8 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Query = ""
                 InternalState.QueryState.Cursor = 0
                 InternalState.QueryCondition.CaseSensitive = false
-                Prompt = "prompt" }
+                Prompt = "prompt>"
+                PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
         let entries =
@@ -418,7 +426,7 @@ module ``Buff writeScreen`` =
                         { Query = query
                           Cursor = cursor
                           WindowBeginningCursor = beginning
-                          WindowWidth = 50 - (state.Prompt |> String.length) - 1
+                          WindowWidth = 50 - (state.Prompt |> String.length)
                           InputMode = InputMode.Input }
                     InternalState.QueryCondition.CaseSensitive = false
                     ConsoleWidth = rui.width }
@@ -554,7 +562,7 @@ module ``Buff writeScreen`` =
                         { Query = query
                           Cursor = cursor
                           WindowBeginningCursor = beginning
-                          WindowWidth = 50 - (state.Prompt |> String.length) - 1
+                          WindowWidth = 50 - (state.Prompt |> String.length)
                           InputMode = inputMode }
                     InternalState.QueryCondition.CaseSensitive = false
                     ConsoleWidth = rui.width }

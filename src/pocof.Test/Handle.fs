@@ -25,7 +25,8 @@ module invokeAction =
           SuppressProperties = false
           Properties = []
           PropertyMap = Map []
-          Prompt = "query"
+          Prompt = "query>"
+          PromptLength = 6
           WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
           ConsoleWidth = 0
           Refresh = Refresh.Required }
