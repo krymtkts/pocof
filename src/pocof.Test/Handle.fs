@@ -1955,6 +1955,10 @@ module invokeAction =
 
         (a1, a2, a3)
 
+    let testShouldNotChangeQueryContext (expected: QueryContext) (actual: QueryContext) =
+        actual.Queries |> shouldEqual expected.Queries
+        actual.Operator |> shouldEqual expected.Operator
+
     module ``with RotateMatcher`` =
         let test before after =
             let stateBefore =
@@ -1967,8 +1971,10 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.Matcher = after }
 
-            testStateAndContext Action.RotateMatcher stateBefore context stateAfter
-        // TODO: test a3
+            let _, _, a3 =
+                testStateAndContext Action.RotateMatcher stateBefore context stateAfter
+
+            a3 |> testShouldNotChangeQueryContext context
 
         [<Fact>]
         let ``should switch EQ to LIKE.`` () = test Matcher.Eq Matcher.Like
@@ -2014,8 +2020,10 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.CaseSensitive = after }
 
-            testStateAndContext Action.ToggleCaseSensitive stateBefore context stateAfter
-        // TODO: test a3
+            let _, _, a3 =
+                testStateAndContext Action.ToggleCaseSensitive stateBefore context stateAfter
+
+            a3 |> testShouldNotChangeQueryContext context
 
         [<Fact>]
         let ``should return a enabled case sensitive.`` () = test false true
@@ -2035,8 +2043,10 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.Invert = after }
 
-            testStateAndContext Action.ToggleInvertFilter stateBefore context stateAfter
-        // TODO: test a3
+            let _, _, a3 =
+                testStateAndContext Action.ToggleInvertFilter stateBefore context stateAfter
+
+            a3 |> testShouldNotChangeQueryContext context
 
         [<Fact>]
         let ``should return a enabled invert filter.`` () = test false true
@@ -2056,8 +2066,10 @@ module invokeAction =
                 { state with
                     InternalState.SuppressProperties = after }
 
-            testStateAndContext Action.ToggleSuppressProperties stateBefore context stateAfter
-        // TODO: test a3
+            let _, _, a3 =
+                testStateAndContext Action.ToggleSuppressProperties stateBefore context stateAfter
+
+            a3 |> testShouldNotChangeQueryContext context
 
         [<Fact>]
         let ``should return a enabled suppress property.`` () = test false true
