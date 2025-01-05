@@ -42,7 +42,7 @@ module Handle =
     let private forwardChar = moveCursorForwardWith InputMode.Input
 
     [<Literal>]
-    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" // TODO: lift to Cmdlet Option.
+    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
     let private isWordDelimiter (wordDelimiters: string) (c: char) =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0

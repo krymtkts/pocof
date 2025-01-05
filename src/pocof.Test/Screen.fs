@@ -14,7 +14,6 @@ module Mock =
     let generateLine x y =
         List.replicate y <| String.replicate x " "
 
-    // TODO: mock PSHostRawUserInterface.
     type MockRawUI =
         val caAsInput: bool
         val mutable height: int
