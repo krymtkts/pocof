@@ -447,10 +447,10 @@ module Data =
 
     module InternalState =
         [<Literal>]
-        let private anchor = ">"
+        let anchor = ">"
 
         // TODO: it should be a property.
-        let prompt (state: InternalState) = $"%s{state.Prompt}%s{anchor}"
+        let prompt (state: InternalState) = state.Prompt
 
         let queryInfo (state: InternalState) (count: int) =
             $" %O{state.QueryCondition} [%d{count}]"
@@ -544,7 +544,7 @@ module Data =
               SuppressProperties = p.SuppressProperties
               Properties = p.Properties
               PropertyMap = p.PropertiesMap
-              Prompt = p.Prompt
+              Prompt = p.Prompt + InternalState.anchor
               WordDelimiters = p.WordDelimiters
               ConsoleWidth = 0 // NOTE: adjust later.
               Refresh = Refresh.Required }
