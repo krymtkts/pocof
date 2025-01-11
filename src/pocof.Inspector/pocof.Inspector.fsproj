@@ -9,4 +9,12 @@
     <Compile Include="Library.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ObjectLayoutInspector" Version="0.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\pocof\pocof.fsproj" />
+  </ItemGroup>
+
 </Project>
