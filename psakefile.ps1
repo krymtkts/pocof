@@ -100,7 +100,11 @@ Task WorkflowTest {
 }
 
 Task Benchmark {
-    dotnet run --project ./src/pocof.Benchmark/pocof.Benchmark.fsproj -c Release
+    dotnet run --project ./src/pocof.Benchmark -c Release
+}
+
+Task MemoryLayout {
+    dotnet run --project ./src/pocof.Inspector
 }
 
 Task UbuntuPwsh {
