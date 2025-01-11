@@ -8,9 +8,7 @@ let private printLayout t =
     typeof<TypeLayout>.GetMethod("PrintLayout", [| typeof<bool> |]).MakeGenericMethod([| t |]).Invoke(null, [| true |])
     |> ignore
 
-let printMemoryLayout () =
-    printfn "Memory layout of Pocof.Data types:=============================="
-
+let private typesInData =
     [ typeof<Data.Entry>
       typeof<Data.Action>
       typeof<Data.Matcher>
@@ -25,4 +23,46 @@ let printMemoryLayout () =
       typeof<Data.QueryCondition>
       typeof<Data.InternalState>
       typeof<Data.IncomingParameters> ]
-    |> List.iter printLayout
+
+let private typesInKeys = [ typeof<Keys.Key>; typeof<Keys.KeyInfo> ]
+
+let private typesInQuery = [ typeof<Query.QueryPart>; typeof<Query.QueryContext> ]
+
+let private typesInPocof =
+    [ typeof<Pocof.LoopFixedArguments>
+      typeof<Pocof.RenderEvent>
+      typeof<Pocof.RenderMessage>
+      typeof<Pocof.RenderProcess> ]
+
+let printMemoryLayout (group: string array) =
+    match group with
+    | [||] ->
+        printfn "Memory layout of Pocof.Data types:==============================\n"
+        typesInData |> List.iter printLayout
+        printfn "Memory layout of Pocof.Keys types:==============================\n"
+        typesInKeys |> List.iter printLayout
+        printfn "Memory layout of Pocof.Query types:=============================\n"
+        typesInQuery |> List.iter printLayout
+        printfn "Memory layout of Pocof.Pocof types:=============================\n"
+        typesInPocof |> List.iter printLayout
+    | group ->
+        group
+        |> Array.iter (fun g ->
+            match g.ToLower() with
+            | "data" ->
+                printfn "Memory layout of Pocof.Data types:==============================\n"
+                typesInData |> List.iter printLayout
+
+            | "keys" ->
+                printfn "Memory layout of Pocof.Keys types:==============================\n"
+                typesInKeys |> List.iter printLayout
+
+            | "query" ->
+                printfn "Memory layout of Pocof.Query types:=============================\n"
+                typesInQuery |> List.iter printLayout
+
+            | "pocof" ->
+                printfn "Memory layout of Pocof.Pocof types:=============================\n"
+                typesInPocof |> List.iter printLayout
+
+            | _ -> printfn "Unknown group: %s\n" g)

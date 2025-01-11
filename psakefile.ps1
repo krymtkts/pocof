@@ -104,7 +104,8 @@ Task Benchmark {
 }
 
 Task MemoryLayout {
-    dotnet run --project ./src/pocof.Inspector
+    # NOTE: ex) Invoke-psake -taskList MemoryLayout -parameters @{'Group'='Pocof';}
+    dotnet run --project ./src/pocof.Inspector $Group
 }
 
 Task UbuntuPwsh {

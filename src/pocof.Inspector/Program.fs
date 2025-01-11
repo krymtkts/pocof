@@ -4,6 +4,6 @@ open Inspector
 
 module Program =
     [<EntryPoint>]
-    let main _ =
-        printMemoryLayout ()
+    let main argv =
+        printMemoryLayout argv
         0
