@@ -138,13 +138,21 @@ module Keys =
     [<NoComparison>]
     [<NoEquality>]
     [<Struct>]
-    type private KeyInfo = { Pattern: KeyPattern; KeyChar: char }
+    type
+#if !DEBUG
+        private
+#endif
+        KeyInfo = { Pattern: KeyPattern; KeyChar: char }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
     [<Struct>]
-    type private Key =
+    type
+#if !DEBUG
+        private
+#endif
+        Key =
         | Char of c: char
         | Control of key: ConsoleKey
         | Shortcut of action: Action
