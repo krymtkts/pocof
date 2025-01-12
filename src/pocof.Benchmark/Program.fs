@@ -4,5 +4,5 @@ open pocof.Benchmark
 
 [<EntryPoint>]
 let main argv =
-    BenchmarkRunner.Run<Benchmarks>() |> ignore
+    BenchmarkSwitcher.FromTypes([| typeof<Benchmarks> |]).Run(argv) |> ignore
     0 // return an integer exit code
