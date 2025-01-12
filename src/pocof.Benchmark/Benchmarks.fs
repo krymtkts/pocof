@@ -1,10 +1,11 @@
 ﻿module pocof.Benchmark
 
 open BenchmarkDotNet.Attributes
-open System.Management.Automation
 
 open Pocof
+open System
 open System.Collections
+open System.Management.Automation
 
 [<MemoryDiagnoser>]
 type Benchmarks() =
@@ -46,3 +47,33 @@ type Benchmarks() =
     [<Benchmark>]
     member __.indexedProperty_Hashtable() =
         hashtables |> Seq.iter (fun o -> o["Key"] |> ignore)
+
+[<MemoryDiagnoser>]
+type KeysBenchmarks() =
+    let keyInfoA = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
+
+    let keyInfoAaa =
+        [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+          new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+          new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
+
+    let keyInfoShortcut =
+        [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false) ]
+
+    let keyInfoControl = [ new ConsoleKeyInfo('a', ConsoleKey.A, true, true, true) ]
+
+    [<Benchmark>]
+    member __.get_Char() =
+        Keys.get Keys.defaultKeymap keyInfoA |> ignore
+
+    [<Benchmark>]
+    member __.get_Chars() =
+        Keys.get Keys.defaultKeymap keyInfoAaa |> ignore
+
+    [<Benchmark>]
+    member __.get_ShortcutKey() =
+        Keys.get Keys.defaultKeymap keyInfoShortcut |> ignore
+
+    [<Benchmark>]
+    member __.get_ControlKey() =
+        Keys.get Keys.defaultKeymap keyInfoControl |> ignore
