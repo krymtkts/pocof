@@ -2,10 +2,12 @@
 
 open BenchmarkDotNet.Attributes
 
-open Pocof
 open System
 open System.Collections
 open System.Management.Automation
+
+open Pocof
+open Pocof.Data
 
 [<MemoryDiagnoser>]
 type PocofBenchmarks() =
@@ -77,3 +79,61 @@ type KeysBenchmarks() =
     [<Benchmark>]
     member __.get_ControlKey() =
         Keys.get Keys.defaultKeymap keyInfoControl |> ignore
+
+let state, context =
+    { QueryState =
+        { Query = ""
+          Cursor = 0
+          WindowBeginningCursor = 0
+          WindowWidth = 0
+          InputMode = InputMode.Input }
+      QueryCondition =
+        { Matcher = Matcher.Match
+          Operator = Operator.Or
+          CaseSensitive = false
+          Invert = false }
+      PropertySearch = PropertySearch.NoSearch
+      Notification = None
+      SuppressProperties = false
+      Properties = []
+      PropertyMap = Map []
+      Prompt = "query>"
+      PromptLength = 6
+      WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+      ConsoleWidth = 0
+      Refresh = Refresh.Required }
+    |> InternalState.updateConsoleWidth 60
+    |> Query.prepare
+
+[<MemoryDiagnoser>]
+type HandleBenchmarks() =
+    [<Benchmark>]
+    member __.invokeAction_Noop() =
+        Action.Noop |> Handle.invokeAction state { Y = 0; Height = 20 } context
+
+    [<Benchmark>]
+    member __.invokeAction_AddQuery() =
+        Action.AddQuery "a" |> Handle.invokeAction state { Y = 0; Height = 20 } context
+
+    [<Benchmark>]
+    member __.invokeAction_BackwardChar() =
+        Action.BackwardChar |> Handle.invokeAction state { Y = 0; Height = 20 } context
+
+    [<Benchmark>]
+    member __.invokeAction_DeleteBackwardChar() =
+        Action.DeleteBackwardChar
+        |> Handle.invokeAction state { Y = 0; Height = 20 } context
+
+    [<Benchmark>]
+    member __.invokeAction_SelectBackwardChar() =
+        Action.SelectBackwardChar
+        |> Handle.invokeAction state { Y = 0; Height = 20 } context
+
+    [<Benchmark>]
+    member __.invokeAction_RotateMatcher() =
+        Action.RotateMatcher |> Handle.invokeAction state { Y = 0; Height = 20 } context
+
+    [<Benchmark>]
+    member __.invokeAction_CompleteProperty() =
+        Action.CompleteProperty
+        |> Handle.invokeAction state { Y = 0; Height = 20 } context
