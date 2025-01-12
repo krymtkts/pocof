@@ -100,7 +100,7 @@ Task WorkflowTest {
 }
 
 Task Benchmark {
-    dotnet run --project ./src/pocof.Benchmark -c Release
+    dotnet run --project ./src/pocof.Benchmark -c Release --filter $Filter
 }
 
 Task MemoryLayout {
