@@ -1,8 +1,9 @@
-﻿open System
-open BenchmarkDotNet.Running
+﻿open BenchmarkDotNet.Running
 open pocof.Benchmark
 
 [<EntryPoint>]
 let main argv =
-    BenchmarkRunner.Run<Benchmarks>() |> ignore
+    BenchmarkSwitcher.FromTypes([| typeof<PocofBenchmarks>; typeof<KeysBenchmarks> |]).Run(argv)
+    |> ignore
+
     0 // return an integer exit code
