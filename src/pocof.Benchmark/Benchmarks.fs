@@ -8,7 +8,7 @@ open System.Collections
 open System.Management.Automation
 
 [<MemoryDiagnoser>]
-type Benchmarks() =
+type PocofBenchmarks() =
     let psObjects = seq { 1..1000000 } |> Seq.map (string >> PSObject.AsPSObject)
 
     let hashtables =
