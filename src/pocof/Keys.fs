@@ -144,19 +144,6 @@ module Keys =
 #endif
         KeyInfo = { Pattern: KeyPattern; KeyChar: char }
 
-    [<RequireQualifiedAccess>]
-    [<NoComparison>]
-    [<NoEquality>]
-    [<Struct>]
-    type
-#if !DEBUG
-        private
-#endif
-        Key =
-        | Char of c: char
-        | Control of key: ConsoleKey
-        | Shortcut of action: Action
-
     let private key (k: ConsoleKeyInfo) =
         let m = k.Modifiers.GetHashCode()
 
@@ -173,21 +160,17 @@ module Keys =
         | true -> Some k.Pattern.Key
         | _ -> None
 
-    let private keyToAction (keymap: Map<KeyPattern, Action>) (key: KeyInfo) =
-        match key with
-        | ShortcutKey keymap k -> Key.Shortcut k
-        | ControlKey c -> Key.Control c
-        | _ -> Key.Char key.KeyChar
-
     let get (keymap: Map<KeyPattern, Action>) (keyInfo: ConsoleKeyInfo list) =
         keyInfo
-        |> List.map (key >> keyToAction keymap)
+        |> List.map key
         |> List.fold
-            (fun acc x ->
-                (acc, x)
-                |> function
-                    | Action.AddQuery s, Key.Char c -> string c |> (+) s |> Action.AddQuery
-                    | _, Key.Char c -> Action.AddQuery <| string c
-                    | _, Key.Shortcut a -> a
-                    | _, Key.Control _ -> Action.Noop)
+            (fun acc key ->
+                match key with
+                | ShortcutKey keymap a -> a
+                | ControlKey _ -> Action.Noop
+                | _ ->
+                    match acc with
+                    | Action.AddQuery s -> key.KeyChar |> string |> (+) s
+                    | _ -> key.KeyChar |> string
+                    |> Action.AddQuery)
             Action.Noop
