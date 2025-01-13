@@ -82,8 +82,6 @@ type KeysBenchmarks() =
 
 [<MemoryDiagnoser>]
 type HandleBenchmarks() =
-    let psObjects = seq { 1..100000 } |> Seq.map (string >> PSObject.AsPSObject)
-
     let state, context =
         { QueryState =
             { Query = ""
