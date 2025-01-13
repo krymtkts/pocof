@@ -219,8 +219,8 @@ type QueryBenchmarks() =
 
     [<Benchmark>]
     member __.run_obj_property() =
-        Query.run __.NormalContext __.Objects props
+        Query.run __.PropertyContext __.Objects props
 
     [<Benchmark>]
     member __.run_dict_property() =
-        Query.run __.NormalContext __.Dicts props
+        Query.run __.PropertyContext __.Dicts props
