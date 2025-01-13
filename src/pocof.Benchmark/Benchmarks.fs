@@ -176,6 +176,7 @@ type QueryBenchmarks() =
           Operator = Operator.And } with get, set
 
     member val objects: Entry pseq = PSeq.empty with get, set
+    member val dicts: Entry pseq = PSeq.empty with get, set
 
     [<GlobalSetup>]
     member __.GlobalSetup() =
@@ -190,5 +191,13 @@ type QueryBenchmarks() =
             |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
             |> PSeq.ofSeq
 
+        __.dicts <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (fun x -> ("key", x) |> DictionaryEntry |> Entry.Dict)
+            |> PSeq.ofSeq
+
     [<Benchmark>]
     member __.run_obj_noQuery() = Query.run __.context __.objects props
+
+    [<Benchmark>]
+    member __.run_dict_noQuery() = Query.run __.context __.dicts props
