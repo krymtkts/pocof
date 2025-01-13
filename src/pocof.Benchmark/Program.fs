@@ -4,7 +4,12 @@ open pocof.Benchmark
 [<EntryPoint>]
 let main argv =
     BenchmarkSwitcher
-        .FromTypes([| typeof<PocofBenchmarks>; typeof<KeysBenchmarks>; typeof<HandleBenchmarks> |])
+        .FromTypes(
+            [| typeof<PocofBenchmarks>
+               typeof<KeysBenchmarks>
+               typeof<HandleBenchmarks>
+               typeof<QueryBenchmarks> |]
+        )
         .Run(argv)
     |> ignore
 

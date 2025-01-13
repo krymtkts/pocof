@@ -80,33 +80,33 @@ type KeysBenchmarks() =
     member __.get_ControlKey() =
         Keys.get Keys.defaultKeymap keyInfoControl |> ignore
 
-let state, context =
-    { QueryState =
-        { Query = ""
-          Cursor = 0
-          WindowBeginningCursor = 0
-          WindowWidth = 0
-          InputMode = InputMode.Input }
-      QueryCondition =
-        { Matcher = Matcher.Match
-          Operator = Operator.Or
-          CaseSensitive = false
-          Invert = false }
-      PropertySearch = PropertySearch.NoSearch
-      Notification = None
-      SuppressProperties = false
-      Properties = []
-      PropertyMap = Map []
-      Prompt = "query>"
-      PromptLength = 6
-      WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-      ConsoleWidth = 0
-      Refresh = Refresh.Required }
-    |> InternalState.updateConsoleWidth 60
-    |> Query.prepare
-
 [<MemoryDiagnoser>]
 type HandleBenchmarks() =
+    let state, context =
+        { QueryState =
+            { Query = ""
+              Cursor = 0
+              WindowBeginningCursor = 0
+              WindowWidth = 0
+              InputMode = InputMode.Input }
+          QueryCondition =
+            { Matcher = Matcher.Match
+              Operator = Operator.Or
+              CaseSensitive = false
+              Invert = false }
+          PropertySearch = PropertySearch.NoSearch
+          Notification = None
+          SuppressProperties = false
+          Properties = []
+          PropertyMap = Map []
+          Prompt = "query>"
+          PromptLength = 6
+          WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+          ConsoleWidth = 0
+          Refresh = Refresh.Required }
+        |> InternalState.updateConsoleWidth 60
+        |> Query.prepare
+
     [<Benchmark>]
     member __.invokeAction_Noop() =
         Action.Noop |> Handle.invokeAction state { Y = 0; Height = 20 } context
@@ -137,3 +137,58 @@ type HandleBenchmarks() =
     member __.invokeAction_CompleteProperty() =
         Action.CompleteProperty
         |> Handle.invokeAction state { Y = 0; Height = 20 } context
+
+[<MemoryDiagnoser>]
+type QueryBenchmarks() =
+    let props = Map [ ("length", "Length") ]
+
+    let state =
+        { QueryState =
+            { Query = ""
+              Cursor = 0
+              WindowBeginningCursor = 0
+              WindowWidth = 0
+              InputMode = InputMode.Input }
+          QueryCondition =
+            { Matcher = Matcher.Match
+              Operator = Operator.And
+              CaseSensitive = false
+              Invert = false }
+          PropertySearch = PropertySearch.NoSearch
+          Notification = None
+          SuppressProperties = false
+          Properties = []
+          PropertyMap = Map []
+          Prompt = ""
+          PromptLength = 0
+          WordDelimiters = ""
+          ConsoleWidth = 0
+          Refresh = Refresh.NotRequired }
+
+    [<Params(10, 100, 1000)>]
+    member val EntryCount = 0 with get, set
+
+    [<Params(0, 1, 3, 5)>]
+    member val QueryCount = 0 with get, set
+
+    member val context: Query.QueryContext =
+        { Queries = []
+          Operator = Operator.And } with get, set
+
+    member val objects: Entry pseq = PSeq.empty with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        __.context <-
+            { state with
+                InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
+            |> Query.prepare
+            |> snd
+
+        __.objects <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
+            |> PSeq.ofSeq
+
+    [<Benchmark>]
+    member __.run_obj_noQuery() = Query.run __.context __.objects props
