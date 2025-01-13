@@ -175,6 +175,10 @@ type QueryBenchmarks() =
         { Queries = []
           Operator = Operator.And } with get, set
 
+    member val PropertyContext: Query.QueryContext =
+        { Queries = []
+          Operator = Operator.And } with get, set
+
     member val Objects: Entry pseq = PSeq.empty with get, set
     member val Dicts: Entry pseq = PSeq.empty with get, set
 
@@ -183,6 +187,15 @@ type QueryBenchmarks() =
         __.NormalContext <-
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
+            |> Query.prepare
+            |> snd
+
+        __.PropertyContext <-
+            { state with
+                InternalState.QueryState.Query =
+                    seq { 0 .. __.QueryCount }
+                    |> Seq.map (fun x -> $":Length {x}")
+                    |> String.concat " " }
             |> Query.prepare
             |> snd
 
@@ -202,4 +215,12 @@ type QueryBenchmarks() =
 
     [<Benchmark>]
     member __.run_dict_normal() =
+        Query.run __.NormalContext __.Dicts props
+
+    [<Benchmark>]
+    member __.run_obj_property() =
+        Query.run __.NormalContext __.Objects props
+
+    [<Benchmark>]
+    member __.run_dict_property() =
         Query.run __.NormalContext __.Dicts props
