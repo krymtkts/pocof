@@ -171,24 +171,56 @@ type QueryBenchmarks() =
     [<Params(0, 1, 3, 5)>]
     member val QueryCount = 0 with get, set
 
-    member val context: Query.QueryContext =
+    member val NormalContext: Query.QueryContext =
         { Queries = []
           Operator = Operator.And } with get, set
 
-    member val objects: Entry pseq = PSeq.empty with get, set
+    member val PropertyContext: Query.QueryContext =
+        { Queries = []
+          Operator = Operator.And } with get, set
+
+    member val Objects: Entry pseq = PSeq.empty with get, set
+    member val Dicts: Entry pseq = PSeq.empty with get, set
 
     [<GlobalSetup>]
     member __.GlobalSetup() =
-        __.context <-
+        __.NormalContext <-
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
             |> Query.prepare
             |> snd
 
-        __.objects <-
+        __.PropertyContext <-
+            { state with
+                InternalState.QueryState.Query =
+                    seq { 0 .. __.QueryCount }
+                    |> Seq.map (fun x -> $":Length {x}")
+                    |> String.concat " " }
+            |> Query.prepare
+            |> snd
+
+        __.Objects <-
             seq { 1 .. __.EntryCount }
             |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
             |> PSeq.ofSeq
 
+        __.Dicts <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (fun x -> ("key", x) |> DictionaryEntry |> Entry.Dict)
+            |> PSeq.ofSeq
+
     [<Benchmark>]
-    member __.run_obj_noQuery() = Query.run __.context __.objects props
+    member __.run_obj_normal() =
+        Query.run __.NormalContext __.Objects props
+
+    [<Benchmark>]
+    member __.run_dict_normal() =
+        Query.run __.NormalContext __.Dicts props
+
+    [<Benchmark>]
+    member __.run_obj_property() =
+        Query.run __.PropertyContext __.Objects props
+
+    [<Benchmark>]
+    member __.run_dict_property() =
+        Query.run __.PropertyContext __.Dicts props
