@@ -140,7 +140,11 @@ module Pocof =
             | action ->
                 // NOTE: update the console width before invokeAction because users can modify the console width during blocking by args.GetKey.
                 action
-                |> invokeAction args.WordDelimiters (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
+                |> invokeAction
+                    args.WordDelimiters
+                    (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth()))
+                    pos
+                    context
                 |||> loop args results
 
     let interact
@@ -220,15 +224,15 @@ module Pocof =
             items |> getLatestEvent
 
     [<TailCall>]
-    let rec render (buff: Screen.Buff) (handler: RenderHandler) (conf: InternalConfig) =
+    let rec render (buff: Screen.Buff) (handler: RenderHandler) =
         match handler.Receive() with
         | RenderMessage.None ->
             Thread.Sleep 10
-            render buff handler conf
+            render buff handler
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
-            buff.WriteScreen conf.Layout state entries.Value props.Value
-            render buff handler conf
+            buff.WriteScreen state entries.Value props.Value
+            render buff handler
 
     let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
         let stopUpstreamCommandsException =
@@ -255,17 +259,16 @@ module Pocof =
         | Rendered of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
         | StopUpstreamCommands
 
-    let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff) =
+    let renderOnce (handler: RenderHandler) (buff: Screen.Buff) =
         match handler.Receive() with
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
-            buff.WriteScreen conf.Layout state entries.Value props.Value
+            buff.WriteScreen state entries.Value props.Value
             RenderProcess.Rendered(state, entries, props)
 
     [<Sealed>]
-    type Periodic(conf, handler, buff, cancelAction) =
-        let conf: InternalConfig = conf
+    type Periodic(handler, buff, cancelAction) =
         let handler: RenderHandler = handler
         let buff: Screen.Buff = buff
         let cancelAction: unit -> unit = cancelAction
@@ -282,7 +285,7 @@ module Pocof =
                 |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
                 |> adjustQueryWindow buff.GetLengthInBufferCells
 
-            buff.WriteScreen conf.Layout state result.Value props.Value
+            buff.WriteScreen state result.Value props.Value
 
         let (|Cancelled|_|) =
             function
@@ -315,7 +318,7 @@ module Pocof =
 
         member __.Render() =
             if stopwatch.ElapsedMilliseconds >= 10 then
-                renderOnce conf handler buff
+                renderOnce handler buff
                 |> function
                     | Cancelled _ -> cancelAction ()
                     | _ -> ()
@@ -435,7 +438,7 @@ module Pocof =
                 async { return interact conf state pos buff handler.Publish <| entries () }
                 |> Async.StartAsTask
 
-            let periodic = Periodic(conf, handler, buff, cancelAction)
+            let periodic = Periodic(handler, buff, cancelAction)
             let renderPeriodic () = periodic.Render()
 
             let waitResult (term: Termination) =
@@ -443,7 +446,7 @@ module Pocof =
 
                 match term with
                 | Termination.Force -> ()
-                | _ -> render buff handler conf
+                | _ -> render buff handler
 
                 buff :> IDisposable |> _.Dispose()
                 mainTask.Result

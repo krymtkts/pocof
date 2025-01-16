@@ -271,7 +271,6 @@ module Screen =
                 basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3
 
         member __.WriteScreen
-            (layout: Data.Layout)
             (state: Data.InternalState)
             (entries: Data.Entry pseq)
             (props: Result<string list, string>)
