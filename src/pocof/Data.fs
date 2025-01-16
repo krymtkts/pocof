@@ -273,7 +273,8 @@ module Data =
     type InternalConfig =
         { Layout: Layout
           Keymaps: Map<KeyPattern, Action>
-          NotInteractive: bool }
+          NotInteractive: bool
+          WordDelimiters: string }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -442,7 +443,6 @@ module Data =
           PropertyMap: Generic.IReadOnlyDictionary<string, string>
           Prompt: string
           PromptLength: int
-          WordDelimiters: string
           ConsoleWidth: int
           Refresh: Refresh }
 
@@ -508,7 +508,6 @@ module Data =
             (properties: Generic.IReadOnlyCollection<string>)
             (propertyMap: Generic.IReadOnlyDictionary<string, string>)
             (prompt: string)
-            (wordDelimiters: string)
             (consoleWidth: int)
             =
 
@@ -523,7 +522,6 @@ module Data =
               PropertyMap = propertyMap
               Prompt = prompt
               PromptLength = prompt |> String.length
-              WordDelimiters = wordDelimiters
               ConsoleWidth = 0 // NOTE: adjust later.
               Refresh = Refresh.Required }
             |> updateConsoleWidth consoleWidth
@@ -552,7 +550,8 @@ module Data =
     let initConfig (p: IncomingParameters) =
         { Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
-          NotInteractive = p.NotInteractive },
+          NotInteractive = p.NotInteractive
+          WordDelimiters = p.WordDelimiters },
         InternalState.create
             { Query = p.Query
               Cursor = String.length p.Query
@@ -567,6 +566,5 @@ module Data =
             p.Properties
             p.PropertiesMap
             p.Prompt
-            p.WordDelimiters
             p.ConsoleWidth,
         { Y = 0; Height = p.ConsoleHeight }

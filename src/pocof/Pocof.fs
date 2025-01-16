@@ -50,7 +50,8 @@ module Pocof =
           PublishEvent: RenderEvent -> unit
           GetKey: unit -> ConsoleKeyInfo list
           GetConsoleWidth: unit -> int
-          GetLengthInBufferCells: string -> int }
+          GetLengthInBufferCells: string -> int
+          WordDelimiters: string }
 
     [<TailCall>]
     let rec private searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
@@ -139,7 +140,7 @@ module Pocof =
             | action ->
                 // NOTE: update the console width before invokeAction because users can modify the console width during blocking by args.GetKey.
                 action
-                |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
+                |> invokeAction args.WordDelimiters (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
                 |||> loop args results
 
     let interact
@@ -161,7 +162,8 @@ module Pocof =
               PublishEvent = publish
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = buff.GetLengthInBufferCells }
+              GetLengthInBufferCells = buff.GetLengthInBufferCells
+              WordDelimiters = conf.WordDelimiters }
 
         loop args (lazy input) state pos context
 
