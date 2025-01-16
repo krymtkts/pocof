@@ -169,7 +169,7 @@ module ``Buff writeScreen`` =
     let getRenderedScreen rui state layout =
         // NOTE: avoid cleanup of buff to check screen.
         let buff = new Buff(rui, (fun _ -> Seq.empty), layout)
-        buff.WriteScreen layout state PSeq.empty <| Ok []
+        buff.WriteScreen state PSeq.empty <| Ok []
         rui
 
     [<Fact>]
@@ -308,8 +308,7 @@ module ``Buff writeScreen`` =
             |> InternalState.updateConsoleWidth rui.width
             |> Pocof.Query.InternalState.prepareNotification
 
-        buff.WriteScreen Layout.TopDown state PSeq.empty
-        <| (state.Properties |> List.ofSeq |> Ok)
+        buff.WriteScreen state PSeq.empty <| (state.Properties |> List.ofSeq |> Ok)
 
         let expected =
             List.concat
@@ -333,7 +332,7 @@ module ``Buff writeScreen`` =
                 PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
-        buff.WriteScreen Layout.TopDown state PSeq.empty <| Error "Property not found"
+        buff.WriteScreen state PSeq.empty <| Error "Property not found"
 
         let expected =
             List.concat
@@ -366,7 +365,7 @@ module ``Buff writeScreen`` =
             |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
             |> PSeq.ofSeq
 
-        buff.WriteScreen Layout.TopDown state entries <| Ok []
+        buff.WriteScreen state entries <| Ok []
 
         let expected =
             List.concat
@@ -401,7 +400,7 @@ module ``Buff writeScreen`` =
             |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
             |> PSeq.ofSeq
 
-        buff.WriteScreen Layout.TopDown state entries <| Ok []
+        buff.WriteScreen state entries <| Ok []
 
         let expected =
             List.concat
