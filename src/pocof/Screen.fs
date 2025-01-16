@@ -254,7 +254,7 @@ module Screen =
             | _ -> line
             |> rui.Write 0 height
 
-        member private __.CalculatePositions layout =
+        member private __.CalculatePositions =
             match layout with
             | Data.Layout.TopDown ->
                 let basePosition = 0
@@ -278,7 +278,7 @@ module Screen =
             =
             use _ = rui.HideCursorWhileRendering()
 
-            let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions layout
+            let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions
             let queryString = getQueryString state
             queryString |> __.WriteScreenLine baseLine
 
