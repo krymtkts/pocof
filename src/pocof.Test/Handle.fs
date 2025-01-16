@@ -27,12 +27,14 @@ module invokeAction =
           PropertyMap = Map []
           Prompt = "query>"
           PromptLength = 6
-          WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
           ConsoleWidth = 0
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth 60
 
     let position: Position = { Y = 0; Height = 20 }
+
+    // NOTE: for easier testing.
+    let invokeAction = Handle.invokeAction ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
     let noop action =
         let state, context = Query.prepare state

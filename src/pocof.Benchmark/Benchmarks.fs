@@ -101,42 +101,47 @@ type HandleBenchmarks() =
           PropertyMap = Map []
           Prompt = "query>"
           PromptLength = 6
-          WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
           ConsoleWidth = 0
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth 60
         |> Query.prepare
 
+    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+
     [<Benchmark>]
     member __.invokeAction_Noop() =
-        Action.Noop |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.Noop
+        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
 
     [<Benchmark>]
     member __.invokeAction_AddQuery() =
-        Action.AddQuery "a" |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.AddQuery "a"
+        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
 
     [<Benchmark>]
     member __.invokeAction_BackwardChar() =
-        Action.BackwardChar |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.BackwardChar
+        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
 
     [<Benchmark>]
     member __.invokeAction_DeleteBackwardChar() =
         Action.DeleteBackwardChar
-        |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
 
     [<Benchmark>]
     member __.invokeAction_SelectBackwardChar() =
         Action.SelectBackwardChar
-        |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
 
     [<Benchmark>]
     member __.invokeAction_RotateMatcher() =
-        Action.RotateMatcher |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.RotateMatcher
+        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
 
     [<Benchmark>]
     member __.invokeAction_CompleteProperty() =
         Action.CompleteProperty
-        |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
@@ -161,7 +166,6 @@ type QueryBenchmarks() =
           PropertyMap = Map []
           Prompt = ""
           PromptLength = 0
-          WordDelimiters = ""
           ConsoleWidth = 0
           Refresh = Refresh.NotRequired }
 

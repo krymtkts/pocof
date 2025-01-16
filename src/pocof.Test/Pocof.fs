@@ -33,7 +33,6 @@ let initState () : InternalState =
       PropertyMap = Map [ ("name", "Name"); ("lastmodified", "LastWriteTime"); ("path", "FullName") ]
       Prompt = "query>"
       PromptLength = 6
-      WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
       ConsoleWidth = 60
       Refresh = Refresh.Required }
 
@@ -109,7 +108,8 @@ module loop =
         let config: InternalConfig =
             { NotInteractive = true
               Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
@@ -125,7 +125,8 @@ module loop =
         let config: InternalConfig =
             { NotInteractive = true
               Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
@@ -148,7 +149,8 @@ module loop =
         let config: InternalConfig =
             { NotInteractive = true
               Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
@@ -174,7 +176,8 @@ module loop =
         let config: InternalConfig =
             { NotInteractive = true
               Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
         let actual = Pocof.interact config state pos buff publishEvent input
@@ -190,7 +193,8 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = true
               Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -211,7 +215,8 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -233,7 +238,8 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUp
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -254,7 +260,8 @@ module interact =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
@@ -282,7 +289,8 @@ module render =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
 
@@ -338,7 +346,8 @@ module renderOnce =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
 
@@ -357,7 +366,8 @@ module renderOnce =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
 
@@ -380,7 +390,8 @@ module renderOnce =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
 
@@ -398,7 +409,8 @@ module Interval =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Quit |> handler.Publish
@@ -418,7 +430,8 @@ module Interval =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
@@ -438,7 +451,8 @@ module Interval =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
@@ -456,7 +470,8 @@ module Interval =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
@@ -475,7 +490,8 @@ module Interval =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
@@ -494,7 +510,8 @@ module Interval =
         let config: InternalConfig =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap }
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
 
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
