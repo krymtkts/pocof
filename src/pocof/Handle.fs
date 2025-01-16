@@ -9,9 +9,7 @@ module Handle =
     type QueryContext = Query.QueryContext
 
     let private addQuery (state: InternalState) (pos: Position) (context: QueryContext) (query: string) =
-        let qs =
-            QueryState.deleteSelection state.QueryState
-            |> QueryState.addQuery query
+        let qs = QueryState.deleteSelection state.QueryState |> QueryState.addQuery query
 
         let state =
             state
@@ -29,9 +27,7 @@ module Handle =
         (pos: Position)
         (context: QueryContext)
         =
-        let qs =
-            update state.QueryState cursor
-            |> QueryState.setInputMode mode
+        let qs = update state.QueryState cursor |> QueryState.setInputMode mode
 
         state
         |> InternalState.refreshIfTrue (state.QueryState.Cursor <> qs.Cursor)
@@ -49,8 +45,7 @@ module Handle =
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
     let private isWordDelimiter (wordDelimiters: string) (c: char) =
-        Char.IsWhiteSpace c
-        || wordDelimiters.IndexOf(c) >= 0
+        Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
     [<TailCall>]
     let rec private findCursorOfChar (predicate: char -> bool) (str: char list) (cursor: int) =
@@ -66,9 +61,7 @@ module Handle =
         isWordDelimiter wordDelimiters |> findCursorOfChar
 
     let rec private findWordDelimiterCursor wordDelimiters =
-        isWordDelimiter wordDelimiters
-        >> not
-        |> findCursorOfChar
+        isWordDelimiter wordDelimiters >> not |> findCursorOfChar
 
     let private findWordCursorWith substring findA findB (wordDelimiters: string) (query: string) (cursor: int) =
         if String.length query < cursor then
@@ -76,8 +69,7 @@ module Handle =
         else
             let str = substring cursor query |> List.ofSeq
             // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
-            findA wordDelimiters str 0
-            ||> findB wordDelimiters
+            findA wordDelimiters str 0 ||> findB wordDelimiters
 
     let private findBackwardWordCursor =
         findWordCursorWith (fun i s -> s |> String.upToIndex i |> Seq.rev) findWordCursor findWordDelimiterCursor
@@ -103,10 +95,7 @@ module Handle =
     let private beginningOfLine = setCursor 0 InputMode.Input
 
     let private endOfLine (state: InternalState) =
-        setCursor
-        <| String.length state.QueryState.Query
-        <| InputMode.Input
-        <| state
+        setCursor <| String.length state.QueryState.Query <| InputMode.Input <| state
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -147,8 +136,7 @@ module Handle =
             let state =
                 state
                 |> InternalState.refreshIfTrue (
-                    state.QueryState.Query <> qs.Query
-                    || state.QueryState.Cursor <> qs.Cursor
+                    state.QueryState.Query <> qs.Query || state.QueryState.Cursor <> qs.Cursor
                 )
                 |> InternalState.updateQueryState qs
                 |> InternalState.prepareNotification
@@ -178,9 +166,7 @@ module Handle =
         (pos: Position)
         (context: QueryContext)
         =
-        let mode =
-            getSelection selection wordCursor
-            |> InputMode.Select
+        let mode = getSelection selection wordCursor |> InputMode.Select
 
         let state =
             InternalState.updateQueryState
@@ -233,9 +219,7 @@ module Handle =
             match state.QueryState.InputMode with
             | InputMode.Input -> (state, pos, context)
             | InputMode.Select c ->
-                let selection =
-                    max state.QueryState.Cursor
-                    <| state.QueryState.Cursor - c
+                let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
 
                 setCursor selection InputMode.Input state pos context
 
@@ -248,9 +232,7 @@ module Handle =
             match state.QueryState.InputMode with
             | InputMode.Input -> (state, pos, context, state.QueryState.Cursor)
             | InputMode.Select c ->
-                let beginning =
-                    min state.QueryState.Cursor
-                    <| state.QueryState.Cursor - c
+                let beginning = min state.QueryState.Cursor <| state.QueryState.Cursor - c
 
                 let state, pos, context = setCursor beginning InputMode.Input state pos context
                 state, pos, context, beginning
@@ -289,9 +271,7 @@ module Handle =
         <| context
 
     let private selectToEndOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
-        let s =
-            String.length state.QueryState.Query
-            - state.QueryState.Cursor
+        let s = String.length state.QueryState.Query - state.QueryState.Cursor
 
         setCursor
         <| String.length state.QueryState.Query
@@ -308,11 +288,7 @@ module Handle =
             <| InputMode.Select s
             <| QueryState.setCursor state.QueryState s
 
-        state
-        |> InternalState.refresh
-        |> InternalState.updateQueryState qs,
-        pos,
-        context
+        state |> InternalState.refresh |> InternalState.updateQueryState qs, pos, context
 
     let private rotateMatcher (state: InternalState) (pos: Position) (context: QueryContext) =
         let state =
@@ -324,38 +300,22 @@ module Handle =
         state, pos, context |> QueryContext.prepareQuery state
 
     let private rotateOperator (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.rotateOperator
-            |> InternalState.refresh
+        let state = state |> InternalState.rotateOperator |> InternalState.refresh
 
-        state,
-        pos,
-        context
-        |> QueryContext.prepareQuery state
-        |> QueryContext.prepareTest state
+        state, pos, context |> QueryContext.prepareQuery state |> QueryContext.prepareTest state
 
     let private toggleCaseSensitive (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.toggleCaseSensitive
-            |> InternalState.refresh
+        let state = state |> InternalState.toggleCaseSensitive |> InternalState.refresh
 
         state, pos, context |> QueryContext.prepareQuery state
 
     let private toggleInvertFilter (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.toggleInvertFilter
-            |> InternalState.refresh
+        let state = state |> InternalState.toggleInvertFilter |> InternalState.refresh
 
         state, pos, context |> QueryContext.prepareQuery state
 
     let private toggleSuppressProperties (state: InternalState) (pos: Position) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.toggleSuppressProperties
-            |> InternalState.refresh
+        let state = state |> InternalState.toggleSuppressProperties |> InternalState.refresh
 
         state, pos, context
 
@@ -368,23 +328,16 @@ module Handle =
         let tailHead = String.split " " tail |> Seq.head
 
         match rest = tailHead with
-        | true ->
-            tail
-            |> String.fromIndex (String.length tailHead)
-            |> Some
+        | true -> tail |> String.fromIndex (String.length tailHead) |> Some
         | _ -> None
 
     let private completeProperty (state: InternalState) (pos: Position) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = state.QueryState.Cursor - String.length keyword
 
-            let head =
-                state.QueryState.Query
-                |> String.upToIndex basePosition
+            let head = state.QueryState.Query |> String.upToIndex basePosition
 
-            let tail =
-                state.QueryState.Query
-                |> String.fromIndex state.QueryState.Cursor
+            let tail = state.QueryState.Query |> String.fromIndex state.QueryState.Cursor
 
             match candidate with
             | AlreadyCompleted keyword tail rest -> basePosition, head, rest
@@ -417,7 +370,7 @@ module Handle =
                 Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
                 buildValues head candidate tail keyword 0 candidates basePosition
-        | PropertySearch.Rotate (keyword, i, candidates) ->
+        | PropertySearch.Rotate(keyword, i, candidates) ->
             let cur = candidates |> Seq.item i
             let i = (i + 1) % Seq.length candidates
             let next = candidates |> Seq.item i
