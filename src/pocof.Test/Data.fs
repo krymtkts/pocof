@@ -260,7 +260,8 @@ module initConfig =
             { Layout = Layout.TopDown
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
               NotInteractive = true
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" },
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = "prompt>" },
             { QueryState =
                 { Query = ":name"
                   Cursor = 5
@@ -277,7 +278,6 @@ module initConfig =
               SuppressProperties = true
               Properties = [ "name"; "attributes" ]
               PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
-              Prompt = "prompt>"
               PromptLength = 7
               ConsoleWidth = 60
               Refresh = Refresh.Required },

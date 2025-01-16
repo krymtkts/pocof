@@ -25,8 +25,7 @@ module invokeAction =
           SuppressProperties = false
           Properties = []
           PropertyMap = Map []
-          Prompt = "query>"
-          PromptLength = 6
+          PromptLength = 6 // "query>"
           ConsoleWidth = 0
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth 60

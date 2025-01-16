@@ -161,14 +161,16 @@ module ``Buff writeScreen`` =
           SuppressProperties = false
           Properties = []
           PropertyMap = Map []
-          Prompt = "query>"
-          PromptLength = 6
+          PromptLength = 6 // "query>"
           ConsoleWidth = 0
           Refresh = Refresh.Required }
 
-    let getRenderedScreen rui state layout =
+    let ``query>`` = "query>"
+    let ``prompt>`` = "prompt>"
+
+    let getRenderedScreen rui state layout prompt =
         // NOTE: avoid cleanup of buff to check screen.
-        let buff = new Buff(rui, (fun _ -> Seq.empty), layout)
+        let buff = new Buff(rui, (fun _ -> Seq.empty), layout, prompt)
         buff.WriteScreen state PSeq.empty <| Ok []
         rui
 
@@ -176,7 +178,7 @@ module ``Buff writeScreen`` =
     let ``should render top down.`` () =
         let rui = new MockRawUI()
         let state = state |> InternalState.updateConsoleWidth rui.width
-        let rui = getRenderedScreen rui state Layout.TopDown
+        let rui = getRenderedScreen rui state Layout.TopDown ``query>``
 
         let expected =
             [ [ "query>foo                                         "
@@ -194,7 +196,7 @@ module ``Buff writeScreen`` =
         |> (fun (x, y) -> (rui :> IRawUI).SetCursorPosition <| x / 2 <| y / 2 + 1)
 
         let state = state |> InternalState.updateConsoleWidth rui.width
-        let rui = getRenderedScreen rui state Layout.TopDownHalf
+        let rui = getRenderedScreen rui state Layout.TopDownHalf ``query>``
 
         let expected =
             [ generateLine rui.width (rui.height / 2)
@@ -222,11 +224,10 @@ module ``Buff writeScreen`` =
                       Operator = Operator.Or
                       CaseSensitive = false
                       Invert = true }
-                Prompt = "prompt>"
-                PromptLength = 7 }
+                PromptLength = 7 } // "prompt>"
             |> InternalState.updateConsoleWidth rui.width
 
-        let rui = getRenderedScreen rui state Layout.BottomUp
+        let rui = getRenderedScreen rui state Layout.BottomUp ``prompt>``
 
         let expected =
             [ [ "prompt>hello*world*                               "
@@ -250,11 +251,10 @@ module ``Buff writeScreen`` =
                       Operator = Operator.Or
                       CaseSensitive = false
                       Invert = true }
-                Prompt = "prompt>"
-                PromptLength = 7 }
+                PromptLength = 7 } // "prompt>"
             |> InternalState.updateConsoleWidth rui.width
 
-        let rui = getRenderedScreen rui state Layout.BottomUpHalf
+        let rui = getRenderedScreen rui state Layout.BottomUpHalf ``prompt>``
 
         let expected =
             [ [ "prompt>hello*world*                               "
@@ -274,12 +274,11 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Query = @"\"
                 InternalState.QueryState.Cursor = 1
                 InternalState.QueryCondition.CaseSensitive = false
-                Prompt = "prompt>"
-                PromptLength = 7 }
+                PromptLength = 7 } // "prompt>"
             |> InternalState.updateConsoleWidth rui.width
             |> Pocof.Query.InternalState.prepareNotification
 
-        let rui = getRenderedScreen rui state Layout.TopDown
+        let rui = getRenderedScreen rui state Layout.TopDown ``prompt>``
 
         let expected =
             List.concat
@@ -292,7 +291,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render property suggestions.`` () =
         let rui = new MockRawUI(80, 30)
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
         let props = [ 1..20 ] |> List.map (fun i -> $"Name%02d{i}")
 
         let state: InternalState =
@@ -303,7 +302,6 @@ module ``Buff writeScreen`` =
                 PropertySearch = PropertySearch.Search("")
                 Properties = props
                 PropertyMap = props |> List.map (fun s -> (s.ToLower(), s)) |> Map
-                Prompt = "prompt>"
                 PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
             |> Pocof.Query.InternalState.prepareNotification
@@ -321,14 +319,13 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render props notification.`` () =
         let rui = new MockRawUI(80, 30)
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
 
         let state: InternalState =
             { state with
                 InternalState.QueryState.Query = @":unknown"
                 InternalState.QueryState.Cursor = 8
                 InternalState.QueryCondition.CaseSensitive = false
-                Prompt = "prompt>"
                 PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
@@ -349,14 +346,13 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render entries under y.`` () =
         let rui = new MockRawUI(60, 30)
-        use buff = new Buff(rui, formatTableOutString, Layout.TopDown)
+        use buff = new Buff(rui, formatTableOutString, Layout.TopDown, ``prompt>``)
 
         let state: InternalState =
             { state with
                 InternalState.QueryState.Query = ""
                 InternalState.QueryState.Cursor = 0
                 InternalState.QueryCondition.CaseSensitive = false
-                Prompt = "prompt>"
                 PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
@@ -384,14 +380,13 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render entries over y.`` () =
         let rui = new MockRawUI(60, 30)
-        use buff = new Buff(rui, formatTableOutString, Layout.TopDown)
+        use buff = new Buff(rui, formatTableOutString, Layout.TopDown, ``prompt>``)
 
         let state: InternalState =
             { state with
                 InternalState.QueryState.Query = ""
                 InternalState.QueryState.Cursor = 0
                 InternalState.QueryCondition.CaseSensitive = false
-                Prompt = "prompt>"
                 PromptLength = 7 }
             |> InternalState.updateConsoleWidth rui.width
 
@@ -424,12 +419,12 @@ module ``Buff writeScreen`` =
                         { Query = query
                           Cursor = cursor
                           WindowBeginningCursor = beginning
-                          WindowWidth = 50 - (state.Prompt |> String.length)
+                          WindowWidth = 50 - (``query>`` |> String.length)
                           InputMode = InputMode.Input }
                     InternalState.QueryCondition.CaseSensitive = false
                     ConsoleWidth = rui.width }
 
-            getRenderedScreen rui state Layout.TopDown
+            getRenderedScreen rui state Layout.TopDown "query>"
 
         [<Fact>]
         let ``should render head 44 of query when cursor 0.`` () =
@@ -560,12 +555,12 @@ module ``Buff writeScreen`` =
                         { Query = query
                           Cursor = cursor
                           WindowBeginningCursor = beginning
-                          WindowWidth = 50 - (state.Prompt |> String.length)
+                          WindowWidth = 50 - (``query>`` |> String.length)
                           InputMode = inputMode }
                     InternalState.QueryCondition.CaseSensitive = false
                     ConsoleWidth = rui.width }
 
-            getRenderedScreen rui state Layout.TopDown
+            getRenderedScreen rui state Layout.TopDown "query>"
 
         [<Fact>]
         let ``should render query without selection.`` () =
@@ -711,13 +706,13 @@ module ``Buff getConsoleWidth`` =
     [<Fact>]
     let ``should render top down.`` () =
         let rui = new MockRawUI(60, 30)
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, "prompt>")
         buff.GetConsoleWidth() |> shouldEqual 60
 
 module ``Buff getKey`` =
     [<Fact>]
     let ``should render top down.`` () =
         let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, "prompt>")
         let expected = [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ]
         buff.GetKey() |> shouldEqual expected

@@ -31,11 +31,11 @@ let initState () : InternalState =
       SuppressProperties = false
       Properties = [ "Name"; "LastModified"; "Path" ]
       PropertyMap = Map [ ("name", "Name"); ("lastmodified", "LastWriteTime"); ("path", "FullName") ]
-      Prompt = "query>"
-      PromptLength = 6
+      PromptLength = 6 // "query>"
       ConsoleWidth = 60
       Refresh = Refresh.Required }
 
+let prompt = "query>"
 let state = initState ()
 let publishEvent _ = ()
 
@@ -60,7 +60,7 @@ module calculateWindowBeginningCursor =
               InputMode = InputMode.Input }
 
         let rui = new MockRawUI()
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
 
         let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -76,7 +76,7 @@ module calculateWindowBeginningCursor =
               InputMode = InputMode.Input }
 
         let rui = new MockRawUI()
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
 
         let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -92,7 +92,7 @@ module calculateWindowBeginningCursor =
               InputMode = InputMode.Input }
 
         let rui = new MockRawUI()
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown)
+        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
 
         let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
@@ -109,9 +109,10 @@ module loop =
             { NotInteractive = true
               Layout = Layout.TopDown
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 5
         actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
@@ -126,9 +127,10 @@ module loop =
             { NotInteractive = true
               Layout = Layout.TopDown
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 0
         rui.Check()
@@ -150,9 +152,10 @@ module loop =
             { NotInteractive = true
               Layout = Layout.TopDown
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.interact config state pos buff publishEvent input
         actual |> Seq.length |> shouldEqual 5
         actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
@@ -177,9 +180,10 @@ module loop =
             { NotInteractive = true
               Layout = Layout.TopDown
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 2
@@ -194,13 +198,14 @@ module interact =
             { NotInteractive = true
               Layout = Layout.TopDown
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -216,13 +221,14 @@ module interact =
             { NotInteractive = false
               Layout = Layout.TopDown
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -239,13 +245,14 @@ module interact =
             { NotInteractive = false
               Layout = Layout.BottomUp
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -261,13 +268,14 @@ module interact =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let input = results |> List.map toObj
         let pos = { Y = 0; Height = 0 }
         let rui = new MockRawUI()
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.interact config state pos buff publishEvent input
 
         actual |> Seq.length |> shouldEqual 5
@@ -290,7 +298,8 @@ module render =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
 
@@ -322,7 +331,7 @@ module render =
         |> Async.Start
 
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.render buff handler
         actual |> shouldEqual ()
 
@@ -347,12 +356,13 @@ module renderOnce =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
 
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.renderOnce handler buff
 
         actual
@@ -367,7 +377,8 @@ module renderOnce =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
 
@@ -376,7 +387,7 @@ module renderOnce =
         |> handler.Publish
 
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.renderOnce handler buff
 
         actual
@@ -391,13 +402,14 @@ module renderOnce =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
 
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let actual = Pocof.renderOnce handler buff
         actual |> shouldEqual Pocof.RenderProcess.StopUpstreamCommands
 
@@ -410,12 +422,13 @@ module Interval =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Quit |> handler.Publish
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let mutable actual = false
 
         let periodic = Pocof.Periodic(handler, buff, (fun _ -> actual <- true))
@@ -431,12 +444,13 @@ module Interval =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let mutable actual = false
 
         let periodic = Pocof.Periodic(handler, buff, (fun _ -> actual <- true))
@@ -452,11 +466,12 @@ module Interval =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let mutable actual = false
 
         let periodic = Pocof.Periodic(handler, buff, (fun _ -> actual <- true))
@@ -471,11 +486,12 @@ module Interval =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let mutable actual = false
 
         let periodic = Pocof.Periodic(handler, buff, (fun _ -> actual <- true))
@@ -491,11 +507,12 @@ module Interval =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let mutable actual = false
 
         let periodic = Pocof.Periodic(handler, buff, (fun _ -> actual <- true))
@@ -511,12 +528,13 @@ module Interval =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―" }
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt }
 
         let handler = Pocof.RenderHandler()
         Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
         let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout
+        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         let mutable actual = false
 
         let periodic = Pocof.Periodic(handler, buff, (fun _ -> actual <- true))
