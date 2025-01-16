@@ -90,7 +90,7 @@ module Screen =
     let escapeSequenceResetInvert = "\x1b[27m"
 
     [<Sealed>]
-    type Buff(r, i, layout) =
+    type Buff(r, i, layout, prompt) =
         let rui: IRawUI = r
         let invoke: obj seq -> string seq = i
 
@@ -185,7 +185,7 @@ module Screen =
                 getQuery state.QueryState.WindowWidth q <| String.length q
                 |> selectRange state.QueryState
 
-            state.Prompt + q
+            prompt + q
 
         let getInformationString (state: Data.InternalState) (props: Result<string list, string>) (count: int) =
             match state.Notification, props with
@@ -312,5 +312,5 @@ module Screen =
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
-    let init (rui: unit -> IRawUI) (invoke: obj seq -> string seq) (layout: Data.Layout) =
-        new Buff(rui (), invoke, layout)
+    let init (rui: unit -> IRawUI) (invoke: obj seq -> string seq) (layout: Data.Layout) (prompt: string) =
+        new Buff(rui (), invoke, layout, prompt)

@@ -432,7 +432,7 @@ module Pocof =
             let waitResult (_) = interactOnce state (entries ())
             render, waitResult
         | _ ->
-            let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout
+            let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout conf.Prompt
 
             let mainTask =
                 async { return interact conf state pos buff handler.Publish <| entries () }

@@ -274,7 +274,8 @@ module Data =
         { Layout: Layout
           Keymaps: Map<KeyPattern, Action>
           NotInteractive: bool
-          WordDelimiters: string }
+          WordDelimiters: string
+          Prompt: string }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -441,15 +442,11 @@ module Data =
           SuppressProperties: bool
           Properties: Generic.IReadOnlyCollection<string>
           PropertyMap: Generic.IReadOnlyDictionary<string, string>
-          Prompt: string
           PromptLength: int
           ConsoleWidth: int
           Refresh: Refresh }
 
     module InternalState =
-        [<Literal>]
-        let private anchor = ">"
-
         let queryInfo (state: InternalState) (count: int) =
             $" %O{state.QueryCondition} [%d{count}]"
 
@@ -507,11 +504,9 @@ module Data =
             (suppressProperties: bool)
             (properties: Generic.IReadOnlyCollection<string>)
             (propertyMap: Generic.IReadOnlyDictionary<string, string>)
-            (prompt: string)
+            (prompt: int)
             (consoleWidth: int)
             =
-
-            let prompt = prompt + anchor
 
             { QueryState = queryState
               QueryCondition = queryCondition
@@ -520,8 +515,7 @@ module Data =
               SuppressProperties = suppressProperties
               Properties = properties
               PropertyMap = propertyMap
-              Prompt = prompt
-              PromptLength = prompt |> String.length
+              PromptLength = prompt
               ConsoleWidth = 0 // NOTE: adjust later.
               Refresh = Refresh.Required }
             |> updateConsoleWidth consoleWidth
@@ -547,11 +541,17 @@ module Data =
           ConsoleWidth: int
           ConsoleHeight: int }
 
+    [<Literal>]
+    let private anchor = ">"
+
     let initConfig (p: IncomingParameters) =
+        let prompt = p.Prompt + anchor
+
         { Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
           NotInteractive = p.NotInteractive
-          WordDelimiters = p.WordDelimiters },
+          WordDelimiters = p.WordDelimiters
+          Prompt = prompt },
         InternalState.create
             { Query = p.Query
               Cursor = String.length p.Query
@@ -565,6 +565,6 @@ module Data =
             p.SuppressProperties
             p.Properties
             p.PropertiesMap
-            p.Prompt
+            (prompt |> String.length)
             p.ConsoleWidth,
         { Y = 0; Height = p.ConsoleHeight }
