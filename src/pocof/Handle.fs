@@ -85,19 +85,19 @@ module Handle =
     let private findForwardWordCursor =
         findWordCursorWith String.fromIndex findWordDelimiterCursor findWordCursor
 
-    let private wordAction (wordDelimiters) (findWordCursor) (converter) (state: InternalState) =
+    let private wordAction (findWordCursor) (converter) (state: InternalState) =
         let i =
-            findWordCursor wordDelimiters state.QueryState.Query state.QueryState.Cursor
+            findWordCursor state.QueryState.Query state.QueryState.Cursor
             |> snd
             |> converter
 
         moveCursor i InputMode.Input state
 
     let private backwardWord wordDelimiters =
-        wordAction wordDelimiters findBackwardWordCursor (~-)
+        wordAction (findBackwardWordCursor wordDelimiters) (~-)
 
     let private forwardWord wordDelimiters =
-        wordAction wordDelimiters findForwardWordCursor id
+        wordAction (findForwardWordCursor wordDelimiters) id
 
     let private setCursor = updateCursor QueryState.setCursor
     let private beginningOfLine = setCursor 0 InputMode.Input
@@ -203,7 +203,6 @@ module Handle =
         removeChars direction (op wordCursor selection) state pos context
 
     let private deleteWord
-        wordDelimiters
         findCursor
         direction
         handleBackwardSelection
@@ -212,9 +211,7 @@ module Handle =
         (pos: Position)
         (context: QueryContext)
         =
-        let wordCursor =
-            findCursor wordDelimiters state.QueryState.Query state.QueryState.Cursor
-            |> snd
+        let wordCursor = findCursor state.QueryState.Query state.QueryState.Cursor |> snd
 
         match state.QueryState.InputMode with
         | Input -> removeChars direction wordCursor state pos context
@@ -222,12 +219,12 @@ module Handle =
         | SelectForward selection -> handleForwardSelection direction selection wordCursor state pos context
 
     let private deleteBackwardWord wordDelimiters =
-        deleteWord wordDelimiters findBackwardWordCursor Direction.Backward
+        deleteWord (findBackwardWordCursor wordDelimiters) Direction.Backward
         <| expandSelection max
         <| calculateRemovalSize (-)
 
     let private deleteForwardWord wordDelimiters =
-        deleteWord wordDelimiters findForwardWordCursor Direction.Forward
+        deleteWord (findForwardWordCursor wordDelimiters) Direction.Forward
         <| calculateRemovalSize (+)
         <| expandSelection (fun x y -> min x -y)
 
@@ -270,10 +267,8 @@ module Handle =
         <| QueryState.getQuerySelection 1 state.QueryState
         <| state
 
-    let private selectWord wordDelimiters findCursor operator converter (state: InternalState) =
-        let i =
-            findCursor wordDelimiters state.QueryState.Query state.QueryState.Cursor
-            |> snd
+    let private selectWord findCursor operator converter (state: InternalState) =
+        let i = findCursor state.QueryState.Query state.QueryState.Cursor |> snd
 
         setCursor
         <| operator state.QueryState.Cursor i
@@ -281,10 +276,10 @@ module Handle =
         <| state
 
     let private selectBackwardWord wordDelimiters =
-        selectWord wordDelimiters findBackwardWordCursor (-) (~-)
+        selectWord (findBackwardWordCursor wordDelimiters) (-) (~-)
 
     let private selectForwardWord wordDelimiters =
-        selectWord wordDelimiters findForwardWordCursor (+) id
+        selectWord (findForwardWordCursor wordDelimiters) (+) id
 
     let private selectToBeginningOfLine (state: InternalState) (pos: Position) (context: QueryContext) =
         setCursor 0
@@ -432,7 +427,13 @@ module Handle =
 #endif
             buildValues head next tail keyword i candidates basePosition
 
-    let invokeAction wordDelimiters (state: InternalState) (pos: Position) (context: QueryContext) (action: Action) =
+    let invokeAction
+        (wordDelimiters: string)
+        (state: InternalState)
+        (pos: Position)
+        (context: QueryContext)
+        (action: Action)
+        =
         match action with
         | Action.Noop -> InternalState.noRefresh state, pos, context
         | Action.AddQuery query -> addQuery state pos context query
