@@ -82,7 +82,7 @@ type KeysBenchmarks() =
 
 [<MemoryDiagnoser>]
 type HandleBenchmarks() =
-    let state, context =
+    let state =
         { QueryState =
             { Query = ""
               Cursor = 0
@@ -95,11 +95,11 @@ type HandleBenchmarks() =
               CaseSensitive = false
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
-          Notification = None
           SuppressProperties = false
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
-        |> Query.prepare
+
+    let context, _ = state |> Query.prepare
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
@@ -148,7 +148,6 @@ type QueryBenchmarks() =
               CaseSensitive = false
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
-          Notification = None
           SuppressProperties = false
           Refresh = Refresh.NotRequired }
 
@@ -175,7 +174,7 @@ type QueryBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
             |> Query.prepare
-            |> snd
+            |> fst
 
         __.PropertyContext <-
             { state with
@@ -184,7 +183,7 @@ type QueryBenchmarks() =
                     |> Seq.map (fun x -> $":Length {x}")
                     |> String.concat " " }
             |> Query.prepare
-            |> snd
+            |> fst
 
         __.Objects <-
             seq { 1 .. __.EntryCount }

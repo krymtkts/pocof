@@ -157,7 +157,6 @@ module ``Buff writeScreen`` =
               CaseSensitive = true
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
-          Notification = None
           SuppressProperties = false
           Refresh = Refresh.Required }
 
@@ -271,9 +270,10 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Cursor = 1
                 InternalState.QueryCondition.CaseSensitive = false }
             |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
-            |> Pocof.Query.InternalState.prepareNotification
 
-        let rui = getRenderedScreen rui state Layout.TopDown ``prompt>``
+        // NOTE: avoid cleanup of buff to check screen.
+        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
+        buff.WriteScreen state PSeq.empty <| Pocof.Query.props [] state
 
         let expected =
             List.concat
@@ -296,7 +296,6 @@ module ``Buff writeScreen`` =
                 InternalState.QueryCondition.CaseSensitive = false
                 PropertySearch = PropertySearch.Search("") }
             |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
-            |> Pocof.Query.InternalState.prepareNotification
 
         buff.WriteScreen state PSeq.empty <| (props |> List.ofSeq |> Ok)
 

@@ -21,7 +21,6 @@ module invokeAction =
               CaseSensitive = false
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
-          Notification = None
           SuppressProperties = false
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
@@ -30,7 +29,7 @@ module invokeAction =
     let invokeAction = Handle.invokeAction ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
     let noop action =
-        let state, context = Query.prepare state
+        let context, _ = Query.prepare state
 
         invokeAction [] state context action
         |> shouldEqual (
@@ -63,13 +62,13 @@ module invokeAction =
     module ``with Cancel`` =
         [<Fact>]
         let ``should fail when unimplemented action is entered.`` () =
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             shouldFail (fun () -> invokeAction [] state context Action.Cancel |> ignore)
 
     module ``with AddQuery`` =
         [<Fact>]
         let ``should return a property search state and cursor=1 when the query is colon.`` () =
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery ":")
 
             a1
@@ -89,7 +88,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery " ")
 
             a1
@@ -110,7 +109,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 4
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery "l")
 
             a1
@@ -132,7 +131,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BackwardChar
 
             a1
@@ -151,7 +150,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BackwardChar
 
             a1
@@ -174,7 +173,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BackwardChar
 
             a1
@@ -196,7 +195,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 1
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.ForwardChar
 
             a1
@@ -218,7 +217,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.ForwardChar
 
             a1
@@ -242,7 +241,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -2
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.ForwardChar
 
             a1
@@ -265,7 +264,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BackwardWord
 
             a1
@@ -283,7 +282,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 6
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BackwardWord
 
             a1
@@ -306,7 +305,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 6
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BackwardWord
 
             a1
@@ -328,7 +327,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 1
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.ForwardWord
 
             a1
@@ -350,7 +349,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 10
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.ForwardWord
 
             a1
@@ -374,7 +373,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -2
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.ForwardWord
 
             a1
@@ -396,7 +395,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BeginningOfLine
 
             a1
@@ -416,7 +415,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BeginningOfLine
 
             a1
@@ -438,7 +437,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.BeginningOfLine
 
             a1
@@ -460,7 +459,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.EndOfLine
 
             a1
@@ -480,7 +479,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.EndOfLine
 
             a1
@@ -502,7 +501,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 5
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.EndOfLine
 
             a1
@@ -524,7 +523,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 6
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
             a1
@@ -544,7 +543,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
             a1
@@ -565,7 +564,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 2
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
             a1
@@ -587,7 +586,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 3
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
             a1
@@ -609,7 +608,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardChar
 
             a1
@@ -629,7 +628,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardChar
 
             a1
@@ -650,7 +649,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 6
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardChar
 
             a1
@@ -672,7 +671,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -3
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
             a1
@@ -694,7 +693,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 6
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardWord
 
             a1
@@ -714,7 +713,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardWord
 
             a1
@@ -735,7 +734,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 2
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardWord
 
             a1
@@ -757,7 +756,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -5
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardWord
 
             a1
@@ -779,7 +778,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 1
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardWord
 
             a1
@@ -801,7 +800,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 7
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardWord
 
             a1
@@ -823,7 +822,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 6
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardWord
 
             a1
@@ -843,7 +842,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 12
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardWord
 
             a1
@@ -864,7 +863,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 2
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardWord
 
             a1
@@ -886,7 +885,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -3
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardWord
 
             a1
@@ -908,7 +907,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -7
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardWord
 
             a1
@@ -930,7 +929,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 3
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardWord
 
             a1
@@ -951,7 +950,7 @@ module invokeAction =
                     InternalState.QueryState.Query = "examplequery"
                     InternalState.QueryState.Cursor = 7 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
             a1
@@ -969,7 +968,7 @@ module invokeAction =
                     InternalState.QueryState.Query = "examplequery"
                     InternalState.QueryState.Cursor = 13 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
             a1
@@ -987,7 +986,7 @@ module invokeAction =
                     InternalState.QueryState.Query = "query"
                     InternalState.QueryState.Cursor = 0 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
             a1
@@ -1008,7 +1007,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 5
                     InternalState.QueryState.Cursor = 10 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
             a1
@@ -1028,7 +1027,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -5
                     InternalState.QueryState.Cursor = 5 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
             a1
@@ -1048,7 +1047,7 @@ module invokeAction =
                     InternalState.QueryState.Query = "examplequery"
                     InternalState.QueryState.Cursor = 7 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardInput
 
             a1
@@ -1066,7 +1065,7 @@ module invokeAction =
                     InternalState.QueryState.Query = "example"
                     InternalState.QueryState.Cursor = 7 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardInput
 
             a1
@@ -1086,7 +1085,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 5
                     InternalState.QueryState.Cursor = 7 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardInput
 
             a1
@@ -1106,7 +1105,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -5
                     InternalState.QueryState.Cursor = 2 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.DeleteForwardInput
 
             a1
@@ -1127,7 +1126,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectBackwardChar
 
             a1
@@ -1147,7 +1146,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectBackwardChar
 
             a1
@@ -1171,7 +1170,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select(-1)
                     PropertySearch = PropertySearch.Search "nam" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectBackwardChar
 
             a1
@@ -1195,7 +1194,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectForwardChar
 
             a1
@@ -1219,7 +1218,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 1
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectForwardChar
 
             a1
@@ -1241,7 +1240,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectForwardChar
 
             a1
@@ -1264,7 +1263,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectBackwardWord
 
             a1
@@ -1284,7 +1283,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectBackwardWord
 
             a1
@@ -1307,7 +1306,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select(-1)
                     PropertySearch = PropertySearch.Search "nam" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectBackwardWord
 
             a1
@@ -1329,7 +1328,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 4
                     PropertySearch = PropertySearch.Search "nam" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectBackwardWord
 
             a1
@@ -1352,7 +1351,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 1
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectBackwardWord
 
             a1
@@ -1375,7 +1374,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
             a1
@@ -1398,7 +1397,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 1
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
             a1
@@ -1420,7 +1419,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 2
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
             a1
@@ -1440,7 +1439,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 10
                     InternalState.QueryState.InputMode = InputMode.Select 10 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
             a1
@@ -1460,7 +1459,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 6
                     InternalState.QueryState.InputMode = InputMode.Select -4 }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
             a1
@@ -1482,7 +1481,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
 
             a1
@@ -1506,7 +1505,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select -1
                     PropertySearch = PropertySearch.Search "nam" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
 
             a1
@@ -1527,7 +1526,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
 
             a1
@@ -1551,7 +1550,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
 
             a1
@@ -1575,7 +1574,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Select 1
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
 
             a1
@@ -1596,7 +1595,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
 
             a1
@@ -1618,7 +1617,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 0
                     PropertySearch = PropertySearch.NoSearch }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectAll
 
             a1
@@ -1640,7 +1639,7 @@ module invokeAction =
                     InternalState.QueryState.InputMode = InputMode.Input
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectAll
 
             a1
@@ -1661,7 +1660,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.SelectAll
 
             a1
@@ -1691,7 +1690,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.Matcher = before }
 
-            let state, context = Query.prepare stateBefore
+            let context, _ = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -1716,7 +1715,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.Operator = before }
 
-            let state, context = Query.prepare stateBefore
+            let context, _ = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -1739,7 +1738,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.CaseSensitive = before }
 
-            let state, context = Query.prepare stateBefore
+            let context, _ = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -1762,7 +1761,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.Invert = before }
 
-            let state, context = Query.prepare stateBefore
+            let context, _ = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -1784,7 +1783,7 @@ module invokeAction =
                 { state with
                     InternalState.SuppressProperties = before }
 
-            let state, context = Query.prepare stateBefore
+            let context, _ = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -1803,7 +1802,7 @@ module invokeAction =
     module ``with CompleteProperty`` =
         [<Fact>]
         let ``shouldn't return any difference when a tab is entered with non search mode.`` () =
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
             a1
@@ -1820,7 +1819,7 @@ module invokeAction =
                     InternalState.QueryState.Query = ":"
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [] state context Action.CompleteProperty
 
             a1
@@ -1837,7 +1836,7 @@ module invokeAction =
                     InternalState.QueryState.Query = ":a"
                     PropertySearch = PropertySearch.Search "a" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
             a1
@@ -1855,7 +1854,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 1
                     PropertySearch = PropertySearch.Search "" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
 
             let a1, a2 =
                 invokeAction [ "first"; "second"; "third" ] state context Action.CompleteProperty
@@ -1877,7 +1876,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 2
                     PropertySearch = PropertySearch.Search "p" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "Name"; "Path" ] state context Action.CompleteProperty
 
             a1
@@ -1897,7 +1896,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 2
                     PropertySearch = PropertySearch.Search "n" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
 
             let a1, a2 =
                 invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
@@ -1919,7 +1918,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 2
                     PropertySearch = PropertySearch.Search "n" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
             a1
@@ -1939,7 +1938,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
             a1
@@ -1957,7 +1956,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Search "name" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
             a1
@@ -1975,7 +1974,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 4
                     PropertySearch = PropertySearch.Search "nam" }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
             a1
@@ -1994,7 +1993,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 5
                     PropertySearch = PropertySearch.Rotate("n", 0, [ "name"; "number" ]) }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
 
             let a1, a2 =
                 invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
@@ -2016,7 +2015,7 @@ module invokeAction =
                     InternalState.QueryState.Cursor = 7
                     PropertySearch = PropertySearch.Rotate("n", 1, [ "name"; "number" ]) }
 
-            let state, context = Query.prepare state
+            let context, _ = Query.prepare state
 
             let a1, a2 =
                 invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty

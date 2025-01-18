@@ -276,7 +276,6 @@ module initConfig =
                   CaseSensitive = true
                   Invert = true }
               PropertySearch = PropertySearch.Search "name"
-              Notification = None
               SuppressProperties = true
               Refresh = Refresh.Required }
         )

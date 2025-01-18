@@ -27,7 +27,6 @@ let initState () : InternalState =
           CaseSensitive = false
           Invert = false }
       PropertySearch = PropertySearch.NoSearch
-      Notification = None
       SuppressProperties = false
       Refresh = Refresh.Required }
 
