@@ -24,7 +24,12 @@ let private typesInData =
       typeof<Data.InternalState>
       typeof<Data.IncomingParameters> ]
 
-let private typesInKeys = [ typeof<Keys.KeyInfo> ]
+let private typesInKeys =
+#if DEBUG
+    [ typeof<Keys.KeyInfo> ]
+#else
+    []
+#endif
 
 let private typesInQuery = [ typeof<Query.QueryPart>; typeof<Query.QueryContext> ]
 
