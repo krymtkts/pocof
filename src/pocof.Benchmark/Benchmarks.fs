@@ -99,9 +99,8 @@ type HandleBenchmarks() =
           SuppressProperties = false
           Properties = []
           PropertyMap = Map []
-          PromptLength = 6 // query>
           Refresh = Refresh.Required }
-        |> InternalState.updateConsoleWidth 60
+        |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
         |> Query.prepare
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
@@ -155,7 +154,6 @@ type QueryBenchmarks() =
           SuppressProperties = false
           Properties = []
           PropertyMap = Map []
-          PromptLength = 0
           Refresh = Refresh.NotRequired }
 
     [<Params(10, 100, 1000)>]

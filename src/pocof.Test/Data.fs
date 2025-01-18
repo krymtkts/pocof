@@ -260,7 +260,8 @@ module initConfig =
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
               NotInteractive = true
               WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = "prompt>" },
+              Prompt = "prompt>"
+              PromptLength = 7 },
             { QueryState =
                 { Query = ":name"
                   Cursor = 5
@@ -277,7 +278,6 @@ module initConfig =
               SuppressProperties = true
               Properties = [ "name"; "attributes" ]
               PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
-              PromptLength = 7
               Refresh = Refresh.Required }
         )
 

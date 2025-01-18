@@ -25,9 +25,8 @@ module invokeAction =
           SuppressProperties = false
           Properties = []
           PropertyMap = Map []
-          PromptLength = 6 // "query>"
           Refresh = Refresh.Required }
-        |> InternalState.updateConsoleWidth 60
+        |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
 
     // NOTE: for easier testing.
     let invokeAction = Handle.invokeAction ";:,.[]{}()/\\|!?^&*-=+'\"–—―"

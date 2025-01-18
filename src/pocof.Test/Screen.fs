@@ -161,11 +161,12 @@ module ``Buff writeScreen`` =
           SuppressProperties = false
           Properties = []
           PropertyMap = Map []
-          PromptLength = 6 // "query>"
           Refresh = Refresh.Required }
 
     let ``query>`` = "query>"
+    let ``query>Length`` = ``query>`` |> String.length
     let ``prompt>`` = "prompt>"
+    let ``prompt>Length`` = ``prompt>`` |> String.length
 
     let getRenderedScreen rui state layout prompt =
         // NOTE: avoid cleanup of buff to check screen.
@@ -176,7 +177,7 @@ module ``Buff writeScreen`` =
     [<Fact>]
     let ``should render top down.`` () =
         let rui = new MockRawUI()
-        let state = state |> InternalState.updateConsoleWidth rui.width
+        let state = state |> InternalState.updateConsoleWidth ``query>Length`` rui.width
         let rui = getRenderedScreen rui state Layout.TopDown ``query>``
 
         let expected =
@@ -194,7 +195,7 @@ module ``Buff writeScreen`` =
         (rui :> IRawUI).GetCursorPosition()
         |> (fun (x, y) -> (rui :> IRawUI).SetCursorPosition <| x / 2 <| y / 2 + 1)
 
-        let state = state |> InternalState.updateConsoleWidth rui.width
+        let state = state |> InternalState.updateConsoleWidth ``query>Length`` rui.width
         let rui = getRenderedScreen rui state Layout.TopDownHalf ``query>``
 
         let expected =
@@ -222,9 +223,8 @@ module ``Buff writeScreen`` =
                     { Matcher = Matcher.Like
                       Operator = Operator.Or
                       CaseSensitive = false
-                      Invert = true }
-                PromptLength = 7 } // "prompt>"
-            |> InternalState.updateConsoleWidth rui.width
+                      Invert = true } }
+            |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
         let rui = getRenderedScreen rui state Layout.BottomUp ``prompt>``
 
@@ -249,9 +249,8 @@ module ``Buff writeScreen`` =
                     { Matcher = Matcher.Like
                       Operator = Operator.Or
                       CaseSensitive = false
-                      Invert = true }
-                PromptLength = 7 } // "prompt>"
-            |> InternalState.updateConsoleWidth rui.width
+                      Invert = true } }
+            |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
         let rui = getRenderedScreen rui state Layout.BottomUpHalf ``prompt>``
 
@@ -272,9 +271,8 @@ module ``Buff writeScreen`` =
             { state with
                 InternalState.QueryState.Query = @"\"
                 InternalState.QueryState.Cursor = 1
-                InternalState.QueryCondition.CaseSensitive = false
-                PromptLength = 7 } // "prompt>"
-            |> InternalState.updateConsoleWidth rui.width
+                InternalState.QueryCondition.CaseSensitive = false }
+            |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
             |> Pocof.Query.InternalState.prepareNotification
 
         let rui = getRenderedScreen rui state Layout.TopDown ``prompt>``
@@ -300,9 +298,8 @@ module ``Buff writeScreen`` =
                 InternalState.QueryCondition.CaseSensitive = false
                 PropertySearch = PropertySearch.Search("")
                 Properties = props
-                PropertyMap = props |> List.map (fun s -> (s.ToLower(), s)) |> Map
-                PromptLength = 7 }
-            |> InternalState.updateConsoleWidth rui.width
+                PropertyMap = props |> List.map (fun s -> (s.ToLower(), s)) |> Map }
+            |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
             |> Pocof.Query.InternalState.prepareNotification
 
         buff.WriteScreen state PSeq.empty <| (state.Properties |> List.ofSeq |> Ok)
@@ -324,9 +321,8 @@ module ``Buff writeScreen`` =
             { state with
                 InternalState.QueryState.Query = @":unknown"
                 InternalState.QueryState.Cursor = 8
-                InternalState.QueryCondition.CaseSensitive = false
-                PromptLength = 7 }
-            |> InternalState.updateConsoleWidth rui.width
+                InternalState.QueryCondition.CaseSensitive = false }
+            |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
         buff.WriteScreen state PSeq.empty <| Error "Property not found"
 
@@ -351,9 +347,8 @@ module ``Buff writeScreen`` =
             { state with
                 InternalState.QueryState.Query = ""
                 InternalState.QueryState.Cursor = 0
-                InternalState.QueryCondition.CaseSensitive = false
-                PromptLength = 7 }
-            |> InternalState.updateConsoleWidth rui.width
+                InternalState.QueryCondition.CaseSensitive = false }
+            |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
         let entries =
             [ 1..10 ]
@@ -385,9 +380,8 @@ module ``Buff writeScreen`` =
             { state with
                 InternalState.QueryState.Query = ""
                 InternalState.QueryState.Cursor = 0
-                InternalState.QueryCondition.CaseSensitive = false
-                PromptLength = 7 }
-            |> InternalState.updateConsoleWidth rui.width
+                InternalState.QueryCondition.CaseSensitive = false }
+            |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
         let entries =
             [ 1..100 ]

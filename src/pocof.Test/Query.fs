@@ -24,7 +24,6 @@ let initState () : Data.InternalState =
       SuppressProperties = false
       Properties = [ "Name"; "Attribute"; "Length" ]
       PropertyMap = Map [ ("name", "Name"); ("attribute", "Attribute"); ("length", "Length") ]
-      PromptLength = 6 // "query>"
       Refresh = Data.Refresh.Required }
 
 let state = initState ()
