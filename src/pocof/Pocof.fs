@@ -51,7 +51,8 @@ module Pocof =
           GetKey: unit -> ConsoleKeyInfo list
           GetConsoleWidth: unit -> int
           GetLengthInBufferCells: string -> int
-          WordDelimiters: string }
+          WordDelimiters: string
+          PromptLength: int }
 
     [<TailCall>]
     let rec private searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
@@ -134,7 +135,8 @@ module Pocof =
                 action
                 |> invokeAction
                     args.WordDelimiters
-                    (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth()))
+                    (state
+                     |> InternalState.updateConsoleWidth args.PromptLength (args.GetConsoleWidth()))
                     context
                 ||> loop args results
 
@@ -156,7 +158,8 @@ module Pocof =
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
               GetLengthInBufferCells = buff.GetLengthInBufferCells
-              WordDelimiters = conf.WordDelimiters }
+              WordDelimiters = conf.WordDelimiters
+              PromptLength = conf.PromptLength }
 
         loop args (lazy input) state context
 
@@ -257,7 +260,7 @@ module Pocof =
             RenderProcess.Rendered(state, entries, props)
 
     [<Sealed>]
-    type Periodic(handler, buff, cancelAction) =
+    type Periodic(handler, buff, cancelAction, promptLength) =
         let handler: RenderHandler = handler
         let buff: Screen.Buff = buff
         let cancelAction: unit -> unit = cancelAction
@@ -271,7 +274,7 @@ module Pocof =
             let state =
                 state
                 // NOTE: adjust the console width before writing the screen.
-                |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
+                |> InternalState.updateConsoleWidth promptLength (buff.GetConsoleWidth())
                 |> adjustQueryWindow buff.GetLengthInBufferCells
 
             buff.WriteScreen state result.Value props.Value
@@ -427,7 +430,7 @@ module Pocof =
                 async { return interact conf state buff handler.Publish <| entries () }
                 |> Async.StartAsTask
 
-            let periodic = Periodic(handler, buff, cancelAction)
+            let periodic = Periodic(handler, buff, cancelAction, conf.PromptLength)
             let renderPeriodic () = periodic.Render()
 
             let waitResult (term: Termination) =

@@ -93,8 +93,8 @@ module Screen =
     type Buff(r, i, layout, prompt) =
         let rui: IRawUI = r
         let invoke: obj seq -> string seq = i
-
         let layout: Data.Layout = layout
+        let promptLength = prompt |> String.length
 
         do
             use _ = rui.HideCursorWhileRendering()
@@ -220,7 +220,7 @@ module Screen =
             match state.QueryState.InputMode with
             | Data.InputMode.Input -> 0
             | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
-            |> (+) (Data.InternalState.getX state)
+            |> (+) (Data.InternalState.getX promptLength state)
 
         interface IDisposable with
             member __.Dispose() =
