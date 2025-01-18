@@ -25,7 +25,6 @@ let initState () : Data.InternalState =
       Properties = [ "Name"; "Attribute"; "Length" ]
       PropertyMap = Map [ ("name", "Name"); ("attribute", "Attribute"); ("length", "Length") ]
       PromptLength = 6 // "query>"
-      ConsoleWidth = 60
       Refresh = Data.Refresh.Required }
 
 let state = initState ()

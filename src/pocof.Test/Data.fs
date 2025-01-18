@@ -278,7 +278,6 @@ module initConfig =
               Properties = [ "name"; "attributes" ]
               PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
               PromptLength = 7
-              ConsoleWidth = 60
               Refresh = Refresh.Required }
         )
 

@@ -100,7 +100,6 @@ type HandleBenchmarks() =
           Properties = []
           PropertyMap = Map []
           PromptLength = 6 // query>
-          ConsoleWidth = 0
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth 60
         |> Query.prepare
@@ -157,7 +156,6 @@ type QueryBenchmarks() =
           Properties = []
           PropertyMap = Map []
           PromptLength = 0
-          ConsoleWidth = 0
           Refresh = Refresh.NotRequired }
 
     [<Params(10, 100, 1000)>]

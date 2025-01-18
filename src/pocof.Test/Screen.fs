@@ -162,7 +162,6 @@ module ``Buff writeScreen`` =
           Properties = []
           PropertyMap = Map []
           PromptLength = 6 // "query>"
-          ConsoleWidth = 0
           Refresh = Refresh.Required }
 
     let ``query>`` = "query>"
@@ -421,8 +420,7 @@ module ``Buff writeScreen`` =
                           WindowBeginningCursor = beginning
                           WindowWidth = 50 - (``query>`` |> String.length)
                           InputMode = InputMode.Input }
-                    InternalState.QueryCondition.CaseSensitive = false
-                    ConsoleWidth = rui.width }
+                    InternalState.QueryCondition.CaseSensitive = false }
 
             getRenderedScreen rui state Layout.TopDown "query>"
 
@@ -557,8 +555,7 @@ module ``Buff writeScreen`` =
                           WindowBeginningCursor = beginning
                           WindowWidth = 50 - (``query>`` |> String.length)
                           InputMode = inputMode }
-                    InternalState.QueryCondition.CaseSensitive = false
-                    ConsoleWidth = rui.width }
+                    InternalState.QueryCondition.CaseSensitive = false }
 
             getRenderedScreen rui state Layout.TopDown "query>"
 

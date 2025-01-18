@@ -32,7 +32,6 @@ let initState () : InternalState =
       Properties = [ "Name"; "LastModified"; "Path" ]
       PropertyMap = Map [ ("name", "Name"); ("lastmodified", "LastWriteTime"); ("path", "FullName") ]
       PromptLength = 6 // "query>"
-      ConsoleWidth = 60
       Refresh = Refresh.Required }
 
 let prompt = "query>"
