@@ -125,8 +125,7 @@ type SelectPocofCommand() =
                   Keymaps = keymaps
                   Properties = properties.GetProperties()
                   PropertiesMap = properties.GetPropertyMap()
-                  ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
-                  ConsoleHeight = __.PSHost().UI.RawUI.WindowSize.Height }
+                  ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width }
 
         renderPeriodic <- r
         waitResult <- w

@@ -520,8 +520,6 @@ module Data =
               Refresh = Refresh.Required }
             |> updateConsoleWidth consoleWidth
 
-    type Position = { Y: int; Height: int }
-
     [<NoComparison>]
     [<NoEquality>]
     type IncomingParameters =
@@ -538,8 +536,7 @@ module Data =
           Keymaps: Map<KeyPattern, Action>
           Properties: Generic.IReadOnlyCollection<string>
           PropertiesMap: Generic.IReadOnlyDictionary<string, string>
-          ConsoleWidth: int
-          ConsoleHeight: int }
+          ConsoleWidth: int }
 
     [<Literal>]
     let private anchor = ">"
@@ -566,5 +563,4 @@ module Data =
             p.Properties
             p.PropertiesMap
             (prompt |> String.length)
-            p.ConsoleWidth,
-        { Y = 0; Height = p.ConsoleHeight }
+            p.ConsoleWidth

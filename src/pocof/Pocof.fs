@@ -100,14 +100,7 @@ module Pocof =
             InternalState.QueryState.WindowBeginningCursor =
                 calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
 
-    let query
-        (args: LoopFixedArguments)
-        (results: Entry pseq Lazy)
-        (state: InternalState)
-        (pos: Position)
-        (context: QueryContext)
-        =
-
+    let query (args: LoopFixedArguments) (results: Entry pseq Lazy) (state: InternalState) (context: QueryContext) =
         match state.Refresh with
         | Refresh.NotRequired -> results, state
         | _ ->
@@ -122,11 +115,10 @@ module Pocof =
         (args: LoopFixedArguments)
         (results: Entry pseq Lazy)
         (state: InternalState)
-        (pos: Position)
         (context: QueryContext)
         =
 
-        let results, state = query args results state pos context
+        let results, state = query args results state context
 
         args.GetKey()
         |> Keys.get args.Keymaps
@@ -143,16 +135,13 @@ module Pocof =
                 |> invokeAction
                     args.WordDelimiters
                     (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth()))
-                    pos
                     context
-                |||> loop args results
+                ||> loop args results
 
     let interact
         (conf: InternalConfig)
         (state: InternalState)
-        (pos: Position)
         (buff: Screen.Buff)
-        // (buff: Screen.Buff option)
         (publish: RenderEvent -> unit)
         (input: Entry seq)
         =
@@ -169,7 +158,7 @@ module Pocof =
               GetLengthInBufferCells = buff.GetLengthInBufferCells
               WordDelimiters = conf.WordDelimiters }
 
-        loop args (lazy input) state pos context
+        loop args (lazy input) state context
 
     let interactOnce (state: InternalState) (input: Entry seq) =
 
@@ -424,7 +413,7 @@ module Pocof =
         (entries: unit -> seq<Entry>)
         (p: IncomingParameters)
         =
-        let conf, state, pos = initConfig p
+        let conf, state = initConfig p
 
         match conf.NotInteractive with
         | true ->
@@ -435,7 +424,7 @@ module Pocof =
             let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout conf.Prompt
 
             let mainTask =
-                async { return interact conf state pos buff handler.Publish <| entries () }
+                async { return interact conf state buff handler.Publish <| entries () }
                 |> Async.StartAsTask
 
             let periodic = Periodic(handler, buff, cancelAction)
