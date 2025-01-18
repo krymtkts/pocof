@@ -109,38 +109,31 @@ type HandleBenchmarks() =
 
     [<Benchmark>]
     member __.invokeAction_Noop() =
-        Action.Noop
-        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
+        Action.Noop |> Handle.invokeAction wordDelimiters state context
 
     [<Benchmark>]
     member __.invokeAction_AddQuery() =
-        Action.AddQuery "a"
-        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
+        Action.AddQuery "a" |> Handle.invokeAction wordDelimiters state context
 
     [<Benchmark>]
     member __.invokeAction_BackwardChar() =
-        Action.BackwardChar
-        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
+        Action.BackwardChar |> Handle.invokeAction wordDelimiters state context
 
     [<Benchmark>]
     member __.invokeAction_DeleteBackwardChar() =
-        Action.DeleteBackwardChar
-        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
+        Action.DeleteBackwardChar |> Handle.invokeAction wordDelimiters state context
 
     [<Benchmark>]
     member __.invokeAction_SelectBackwardChar() =
-        Action.SelectBackwardChar
-        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
+        Action.SelectBackwardChar |> Handle.invokeAction wordDelimiters state context
 
     [<Benchmark>]
     member __.invokeAction_RotateMatcher() =
-        Action.RotateMatcher
-        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
+        Action.RotateMatcher |> Handle.invokeAction wordDelimiters state context
 
     [<Benchmark>]
     member __.invokeAction_CompleteProperty() =
-        Action.CompleteProperty
-        |> Handle.invokeAction wordDelimiters state { Y = 0; Height = 20 } context
+        Action.CompleteProperty |> Handle.invokeAction wordDelimiters state context
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
