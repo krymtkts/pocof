@@ -100,15 +100,13 @@ module Query =
         let queries = prepareQuery state.QueryState.Query state.QueryCondition
         let notification = prepareNotification state.QueryState.Query state.QueryCondition
 
-        { state with
-            Notification = notification },
         { Queries = queries
-          Operator = state.QueryCondition.Operator }
+          Operator = state.QueryCondition.Operator },
+        notification
 
     module InternalState =
         let prepareNotification state =
-            { state with
-                Notification = prepareNotification state.QueryState.Query state.QueryCondition }
+            prepareNotification state.QueryState.Query state.QueryCondition
 
     module QueryContext =
         let prepareQuery state context =
@@ -194,13 +192,17 @@ module Query =
 
             entries |> PSeq.filter predicate
 
-    let props (state: InternalState) =
-        match state.SuppressProperties, state.PropertySearch with
-        | false, PropertySearch.Search(prefix: string)
-        | false, PropertySearch.Rotate(prefix: string, _, _) ->
-            let ret = state.Properties |> Seq.filter (String.startsWithIgnoreCase prefix)
+    let props (properties: string seq) (state: InternalState) =
+        InternalState.prepareNotification state
+        |> function
+            | Some message -> Error message
+            | _ ->
+                match state.SuppressProperties, state.PropertySearch with
+                | false, PropertySearch.Search(prefix: string)
+                | false, PropertySearch.Rotate(prefix: string, _, _) ->
+                    let ret = properties |> Seq.filter (String.startsWithIgnoreCase prefix)
 
-            match ret |> Seq.length with
-            | 0 -> Error "Property not found"
-            | _ -> ret |> List.ofSeq |> Ok
-        | _ -> Ok []
+                    match ret |> Seq.length with
+                    | 0 -> Error "Property not found"
+                    | _ -> ret |> List.ofSeq |> Ok
+                | _ -> Ok []

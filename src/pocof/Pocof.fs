@@ -50,7 +50,11 @@ module Pocof =
           PublishEvent: RenderEvent -> unit
           GetKey: unit -> ConsoleKeyInfo list
           GetConsoleWidth: unit -> int
-          GetLengthInBufferCells: string -> int }
+          GetLengthInBufferCells: string -> int
+          WordDelimiters: string
+          PromptLength: int
+          Properties: Generic.IReadOnlyCollection<string>
+          PropertiesMap: Generic.IReadOnlyDictionary<string, string> }
 
     [<TailCall>]
     let rec private searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
@@ -99,20 +103,13 @@ module Pocof =
             InternalState.QueryState.WindowBeginningCursor =
                 calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
 
-    let query
-        (args: LoopFixedArguments)
-        (results: Entry pseq Lazy)
-        (state: InternalState)
-        (pos: Position)
-        (context: QueryContext)
-        =
-
+    let query (args: LoopFixedArguments) (results: Entry pseq Lazy) (state: InternalState) (context: QueryContext) =
         match state.Refresh with
         | Refresh.NotRequired -> results, state
         | _ ->
-            let results = lazy Query.run context args.Input state.PropertyMap
+            let results = lazy Query.run context args.Input args.PropertiesMap
             let state = state |> adjustQueryWindow args.GetLengthInBufferCells
-            let props = lazy Query.props state
+            let props = lazy Query.props args.Properties state
             (state, results, props) |> RenderEvent.Render |> args.PublishEvent
             results, state
 
@@ -121,11 +118,10 @@ module Pocof =
         (args: LoopFixedArguments)
         (results: Entry pseq Lazy)
         (state: InternalState)
-        (pos: Position)
         (context: QueryContext)
         =
 
-        let results, state = query args results state pos context
+        let results, state = query args results state context
 
         args.GetKey()
         |> Keys.get args.Keymaps
@@ -139,20 +135,23 @@ module Pocof =
             | action ->
                 // NOTE: update the console width before invokeAction because users can modify the console width during blocking by args.GetKey.
                 action
-                |> invokeAction (state |> InternalState.updateConsoleWidth (args.GetConsoleWidth())) pos context
-                |||> loop args results
+                |> invokeAction
+                    args.WordDelimiters
+                    args.Properties
+                    (state
+                     |> InternalState.updateConsoleWidth args.PromptLength (args.GetConsoleWidth()))
+                    context
+                ||> loop args results
 
     let interact
         (conf: InternalConfig)
         (state: InternalState)
-        (pos: Position)
         (buff: Screen.Buff)
-        // (buff: Screen.Buff option)
         (publish: RenderEvent -> unit)
         (input: Entry seq)
         =
 
-        let state, context = Query.prepare state
+        let context, _ = Query.prepare state
         let input = input |> PSeq.ofSeq
 
         let args =
@@ -161,16 +160,20 @@ module Pocof =
               PublishEvent = publish
               GetKey = buff.GetKey
               GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = buff.GetLengthInBufferCells }
+              GetLengthInBufferCells = buff.GetLengthInBufferCells
+              WordDelimiters = conf.WordDelimiters
+              PromptLength = conf.PromptLength
+              Properties = conf.Properties
+              PropertiesMap = conf.PropertiesMap }
 
-        loop args (lazy input) state pos context
+        loop args (lazy input) state context
 
-    let interactOnce (state: InternalState) (input: Entry seq) =
+    let interactOnce (conf: InternalConfig) (state: InternalState) (input: Entry seq) =
 
-        let state, context = Query.prepare state
+        let context, _ = Query.prepare state
         let input = input |> PSeq.ofSeq
 
-        Query.run context input state.PropertyMap |> unwrap
+        Query.run context input conf.PropertiesMap |> unwrap
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -218,15 +221,15 @@ module Pocof =
             items |> getLatestEvent
 
     [<TailCall>]
-    let rec render (buff: Screen.Buff) (handler: RenderHandler) (conf: InternalConfig) =
+    let rec render (buff: Screen.Buff) (handler: RenderHandler) =
         match handler.Receive() with
         | RenderMessage.None ->
             Thread.Sleep 10
-            render buff handler conf
+            render buff handler
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
-            buff.WriteScreen conf.Layout state entries.Value props.Value
-            render buff handler conf
+            buff.WriteScreen state entries.Value props.Value
+            render buff handler
 
     let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
         let stopUpstreamCommandsException =
@@ -253,17 +256,16 @@ module Pocof =
         | Rendered of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
         | StopUpstreamCommands
 
-    let renderOnce (conf: InternalConfig) (handler: RenderHandler) (buff: Screen.Buff) =
+    let renderOnce (handler: RenderHandler) (buff: Screen.Buff) =
         match handler.Receive() with
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
-            buff.WriteScreen conf.Layout state entries.Value props.Value
+            buff.WriteScreen state entries.Value props.Value
             RenderProcess.Rendered(state, entries, props)
 
     [<Sealed>]
-    type Periodic(conf, handler, buff, cancelAction) =
-        let conf: InternalConfig = conf
+    type Periodic(handler, buff, cancelAction, promptLength) =
         let handler: RenderHandler = handler
         let buff: Screen.Buff = buff
         let cancelAction: unit -> unit = cancelAction
@@ -277,10 +279,10 @@ module Pocof =
             let state =
                 state
                 // NOTE: adjust the console width before writing the screen.
-                |> InternalState.updateConsoleWidth (buff.GetConsoleWidth())
+                |> InternalState.updateConsoleWidth promptLength (buff.GetConsoleWidth())
                 |> adjustQueryWindow buff.GetLengthInBufferCells
 
-            buff.WriteScreen conf.Layout state result.Value props.Value
+            buff.WriteScreen state result.Value props.Value
 
         let (|Cancelled|_|) =
             function
@@ -313,7 +315,7 @@ module Pocof =
 
         member __.Render() =
             if stopwatch.ElapsedMilliseconds >= 10 then
-                renderOnce conf handler buff
+                renderOnce handler buff
                 |> function
                     | Cancelled _ -> cancelAction ()
                     | _ -> ()
@@ -419,21 +421,21 @@ module Pocof =
         (entries: unit -> seq<Entry>)
         (p: IncomingParameters)
         =
-        let conf, state, pos = initConfig p
+        let conf, state = initConfig p
 
         match conf.NotInteractive with
         | true ->
             let render () = ()
-            let waitResult (_) = interactOnce state (entries ())
+            let waitResult (_) = interactOnce conf state (entries ())
             render, waitResult
         | _ ->
-            let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout
+            let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout conf.Prompt
 
             let mainTask =
-                async { return interact conf state pos buff handler.Publish <| entries () }
+                async { return interact conf state buff handler.Publish <| entries () }
                 |> Async.StartAsTask
 
-            let periodic = Periodic(conf, handler, buff, cancelAction)
+            let periodic = Periodic(handler, buff, cancelAction, conf.PromptLength)
             let renderPeriodic () = periodic.Render()
 
             let waitResult (term: Termination) =
@@ -441,7 +443,7 @@ module Pocof =
 
                 match term with
                 | Termination.Force -> ()
-                | _ -> render buff handler conf
+                | _ -> render buff handler
 
                 buff :> IDisposable |> _.Dispose()
                 mainTask.Result

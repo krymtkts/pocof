@@ -90,11 +90,11 @@ module Screen =
     let escapeSequenceResetInvert = "\x1b[27m"
 
     [<Sealed>]
-    type Buff(r, i, layout) =
+    type Buff(r, i, layout, prompt) =
         let rui: IRawUI = r
         let invoke: obj seq -> string seq = i
-
         let layout: Data.Layout = layout
+        let promptLength = prompt |> String.length
 
         do
             use _ = rui.HideCursorWhileRendering()
@@ -185,13 +185,12 @@ module Screen =
                 getQuery state.QueryState.WindowWidth q <| String.length q
                 |> selectRange state.QueryState
 
-            state.Prompt + q
+            prompt + q
 
         let getInformationString (state: Data.InternalState) (props: Result<string list, string>) (count: int) =
-            match state.Notification, props with
-            | Some e, _
-            | _, Error(e) -> note + e
-            | _, Ok(p) -> p |> String.concat " "
+            match props with
+            | Error(e) -> note + e
+            | Ok(p) -> p |> String.concat " "
             |> fun s ->
                 let info = Data.InternalState.queryInfo state count
                 let w = rui.GetWindowWidth() - (info |> String.length)
@@ -220,7 +219,7 @@ module Screen =
             match state.QueryState.InputMode with
             | Data.InputMode.Input -> 0
             | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
-            |> (+) (Data.InternalState.getX state)
+            |> (+) (Data.InternalState.getX promptLength state)
 
         interface IDisposable with
             member __.Dispose() =
@@ -254,7 +253,7 @@ module Screen =
             | _ -> line
             |> rui.Write 0 height
 
-        member private __.CalculatePositions layout =
+        member private __.CalculatePositions =
             match layout with
             | Data.Layout.TopDown ->
                 let basePosition = 0
@@ -271,14 +270,13 @@ module Screen =
                 basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3
 
         member __.WriteScreen
-            (layout: Data.Layout)
             (state: Data.InternalState)
             (entries: Data.Entry pseq)
             (props: Result<string list, string>)
             =
             use _ = rui.HideCursorWhileRendering()
 
-            let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions layout
+            let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions
             let queryString = getQueryString state
             queryString |> __.WriteScreenLine baseLine
 
@@ -313,5 +311,5 @@ module Screen =
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
-    let init (rui: unit -> IRawUI) (invoke: obj seq -> string seq) (layout: Data.Layout) =
-        new Buff(rui (), invoke, layout)
+    let init (rui: unit -> IRawUI) (invoke: obj seq -> string seq) (layout: Data.Layout) (prompt: string) =
+        new Buff(rui (), invoke, layout, prompt)

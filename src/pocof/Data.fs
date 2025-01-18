@@ -273,7 +273,12 @@ module Data =
     type InternalConfig =
         { Layout: Layout
           Keymaps: Map<KeyPattern, Action>
-          NotInteractive: bool }
+          NotInteractive: bool
+          WordDelimiters: string
+          Prompt: string
+          PromptLength: int
+          Properties: Generic.IReadOnlyCollection<string>
+          PropertiesMap: Generic.IReadOnlyDictionary<string, string> }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -436,26 +441,15 @@ module Data =
         { QueryState: QueryState
           QueryCondition: QueryCondition
           PropertySearch: PropertySearch
-          Notification: string option
           SuppressProperties: bool
-          Properties: Generic.IReadOnlyCollection<string>
-          PropertyMap: Generic.IReadOnlyDictionary<string, string>
-          Prompt: string
-          PromptLength: int
-          WordDelimiters: string
-          ConsoleWidth: int
           Refresh: Refresh }
 
     module InternalState =
-        [<Literal>]
-        let private anchor = ">"
-
         let queryInfo (state: InternalState) (count: int) =
             $" %O{state.QueryCondition} [%d{count}]"
 
-        let getX (state: InternalState) =
-            state.PromptLength + state.QueryState.Cursor
-            - state.QueryState.WindowBeginningCursor
+        let getX promptLength (state: InternalState) =
+            promptLength + state.QueryState.Cursor - state.QueryState.WindowBeginningCursor
 
         let updateQueryState (qs: QueryState) (state: InternalState) =
             { state with
@@ -496,39 +490,24 @@ module Data =
             { state with
                 SuppressProperties = not state.SuppressProperties }
 
-        let updateConsoleWidth (consoleWidth: int) (state: InternalState) =
+        let updateConsoleWidth (promptLength: int) (consoleWidth: int) (state: InternalState) =
             { state with
-                ConsoleWidth = consoleWidth
-                InternalState.QueryState.WindowWidth = state.PromptLength |> (+) 1 |> (-) consoleWidth }
+                InternalState.QueryState.WindowWidth = promptLength |> (+) 1 |> (-) consoleWidth }
 
         let create
             (queryState: QueryState)
             (queryCondition: QueryCondition)
             (suppressProperties: bool)
-            (properties: Generic.IReadOnlyCollection<string>)
-            (propertyMap: Generic.IReadOnlyDictionary<string, string>)
-            (prompt: string)
-            (wordDelimiters: string)
+            (prompt: int)
             (consoleWidth: int)
             =
-
-            let prompt = prompt + anchor
 
             { QueryState = queryState
               QueryCondition = queryCondition
               PropertySearch = QueryState.getCurrentProperty queryState
-              Notification = None
               SuppressProperties = suppressProperties
-              Properties = properties
-              PropertyMap = propertyMap
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              WordDelimiters = wordDelimiters
-              ConsoleWidth = 0 // NOTE: adjust later.
               Refresh = Refresh.Required }
-            |> updateConsoleWidth consoleWidth
-
-    type Position = { Y: int; Height: int }
+            |> updateConsoleWidth prompt consoleWidth
 
     [<NoComparison>]
     [<NoEquality>]
@@ -546,13 +525,23 @@ module Data =
           Keymaps: Map<KeyPattern, Action>
           Properties: Generic.IReadOnlyCollection<string>
           PropertiesMap: Generic.IReadOnlyDictionary<string, string>
-          ConsoleWidth: int
-          ConsoleHeight: int }
+          ConsoleWidth: int }
 
-    let initConfig (p: IncomingParameters) =
+    [<Literal>]
+    let private anchor = ">"
+
+    let initConfig (p: IncomingParameters) : InternalConfig * InternalState =
+        let prompt = p.Prompt + anchor
+        let promptLength = prompt |> String.length
+
         { Layout = Layout.fromString p.Layout
           Keymaps = p.Keymaps
-          NotInteractive = p.NotInteractive },
+          NotInteractive = p.NotInteractive
+          WordDelimiters = p.WordDelimiters
+          Prompt = prompt
+          PromptLength = promptLength
+          Properties = p.Properties
+          PropertiesMap = p.PropertiesMap },
         InternalState.create
             { Query = p.Query
               Cursor = String.length p.Query
@@ -564,9 +553,5 @@ module Data =
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
             p.SuppressProperties
-            p.Properties
-            p.PropertiesMap
-            p.Prompt
-            p.WordDelimiters
-            p.ConsoleWidth,
-        { Y = 0; Height = p.ConsoleHeight }
+            promptLength
+            p.ConsoleWidth

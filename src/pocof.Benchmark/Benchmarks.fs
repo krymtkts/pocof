@@ -82,7 +82,7 @@ type KeysBenchmarks() =
 
 [<MemoryDiagnoser>]
 type HandleBenchmarks() =
-    let state, context =
+    let state =
         { QueryState =
             { Query = ""
               Cursor = 0
@@ -95,48 +95,41 @@ type HandleBenchmarks() =
               CaseSensitive = false
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
-          Notification = None
           SuppressProperties = false
-          Properties = []
-          PropertyMap = Map []
-          Prompt = "query>"
-          PromptLength = 6
-          WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-          ConsoleWidth = 0
           Refresh = Refresh.Required }
-        |> InternalState.updateConsoleWidth 60
-        |> Query.prepare
+        |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
+
+    let context, _ = state |> Query.prepare
+
+    let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
     [<Benchmark>]
     member __.invokeAction_Noop() =
-        Action.Noop |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.Noop |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_AddQuery() =
-        Action.AddQuery "a" |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.AddQuery "a" |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_BackwardChar() =
-        Action.BackwardChar |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.BackwardChar |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_DeleteBackwardChar() =
-        Action.DeleteBackwardChar
-        |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.DeleteBackwardChar |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_SelectBackwardChar() =
-        Action.SelectBackwardChar
-        |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.SelectBackwardChar |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_RotateMatcher() =
-        Action.RotateMatcher |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.RotateMatcher |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_CompleteProperty() =
-        Action.CompleteProperty
-        |> Handle.invokeAction state { Y = 0; Height = 20 } context
+        Action.CompleteProperty |> Handle.invokeAction wordDelimiters [] state context
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
@@ -155,14 +148,7 @@ type QueryBenchmarks() =
               CaseSensitive = false
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
-          Notification = None
           SuppressProperties = false
-          Properties = []
-          PropertyMap = Map []
-          Prompt = ""
-          PromptLength = 0
-          WordDelimiters = ""
-          ConsoleWidth = 0
           Refresh = Refresh.NotRequired }
 
     [<Params(10, 100, 1000)>]
@@ -188,7 +174,7 @@ type QueryBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
             |> Query.prepare
-            |> snd
+            |> fst
 
         __.PropertyContext <-
             { state with
@@ -197,7 +183,7 @@ type QueryBenchmarks() =
                     |> Seq.map (fun x -> $":Length {x}")
                     |> String.concat " " }
             |> Query.prepare
-            |> snd
+            |> fst
 
         __.Objects <-
             seq { 1 .. __.EntryCount }

@@ -254,12 +254,16 @@ module initConfig =
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
               Properties = [ "name"; "attributes" ]
               PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ]
-              ConsoleWidth = 60
-              ConsoleHeight = 20 }
+              ConsoleWidth = 60 }
         |> shouldEqual (
             { Layout = Layout.TopDown
               Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
-              NotInteractive = true },
+              NotInteractive = true
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = "prompt>"
+              PromptLength = 7
+              Properties = [ "name"; "attributes" ]
+              PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ] },
             { QueryState =
                 { Query = ":name"
                   Cursor = 5
@@ -272,16 +276,8 @@ module initConfig =
                   CaseSensitive = true
                   Invert = true }
               PropertySearch = PropertySearch.Search "name"
-              Notification = None
               SuppressProperties = true
-              Properties = [ "name"; "attributes" ]
-              PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
-              Prompt = "prompt>"
-              PromptLength = 7
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              ConsoleWidth = 60
-              Refresh = Refresh.Required },
-            { Y = 0; Height = 20 }
+              Refresh = Refresh.Required }
         )
 
     [<Fact>]
@@ -301,8 +297,7 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  ConsoleWidth = 20
-                  ConsoleHeight = 20 }
+                  ConsoleWidth = 20 }
             |> ignore)
 
     [<Fact>]
@@ -322,8 +317,7 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  ConsoleWidth = 20
-                  ConsoleHeight = 20 }
+                  ConsoleWidth = 20 }
 
             |> ignore)
 
@@ -344,8 +338,7 @@ module initConfig =
                   Keymaps = Map []
                   Properties = []
                   PropertiesMap = Map []
-                  ConsoleWidth = 20
-                  ConsoleHeight = 20 }
+                  ConsoleWidth = 20 }
             |> ignore)
 
 module QueryState =
