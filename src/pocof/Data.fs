@@ -443,7 +443,6 @@ module Data =
           Properties: Generic.IReadOnlyCollection<string>
           PropertyMap: Generic.IReadOnlyDictionary<string, string>
           PromptLength: int
-          ConsoleWidth: int
           Refresh: Refresh }
 
     module InternalState =
@@ -495,7 +494,6 @@ module Data =
 
         let updateConsoleWidth (consoleWidth: int) (state: InternalState) =
             { state with
-                ConsoleWidth = consoleWidth
                 InternalState.QueryState.WindowWidth = state.PromptLength |> (+) 1 |> (-) consoleWidth }
 
         let create
@@ -516,7 +514,6 @@ module Data =
               Properties = properties
               PropertyMap = propertyMap
               PromptLength = prompt
-              ConsoleWidth = 0 // NOTE: adjust later.
               Refresh = Refresh.Required }
             |> updateConsoleWidth consoleWidth
 
