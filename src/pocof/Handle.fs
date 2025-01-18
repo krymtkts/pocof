@@ -11,11 +11,7 @@ module Handle =
     let private addQuery (state: InternalState) (context: QueryContext) (query: string) =
         let qs = QueryState.deleteSelection state.QueryState |> QueryState.addQuery query
 
-        let state =
-            state
-            |> InternalState.updateQueryState qs
-            |> InternalState.refresh
-            |> InternalState.prepareNotification
+        let state = state |> InternalState.updateQueryState qs |> InternalState.refresh
 
         state, context |> QueryContext.prepareQuery state
 
@@ -106,11 +102,7 @@ module Handle =
     let private removeSelection (state: InternalState) (context: QueryContext) =
         let qs = QueryState.deleteSelection state.QueryState
 
-        let state =
-            state
-            |> InternalState.refresh
-            |> InternalState.updateQueryState qs
-            |> InternalState.prepareNotification
+        let state = state |> InternalState.refresh |> InternalState.updateQueryState qs
 
         state, context |> QueryContext.prepareQuery state
 
@@ -131,7 +123,6 @@ module Handle =
                     state.QueryState.Query <> qs.Query || state.QueryState.Cursor <> qs.Cursor
                 )
                 |> InternalState.updateQueryState qs
-                |> InternalState.prepareNotification
 
             state, context |> QueryContext.prepareQuery state
 
@@ -277,11 +268,7 @@ module Handle =
         state |> InternalState.refresh |> InternalState.updateQueryState qs, context
 
     let private rotateMatcher (state: InternalState) (context: QueryContext) =
-        let state =
-            state
-            |> InternalState.rotateMatcher
-            |> InternalState.refresh
-            |> InternalState.prepareNotification
+        let state = state |> InternalState.rotateMatcher |> InternalState.refresh
 
         state, context |> QueryContext.prepareQuery state
 

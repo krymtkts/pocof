@@ -188,10 +188,9 @@ module Screen =
             prompt + q
 
         let getInformationString (state: Data.InternalState) (props: Result<string list, string>) (count: int) =
-            match state.Notification, props with
-            | Some e, _
-            | _, Error(e) -> note + e
-            | _, Ok(p) -> p |> String.concat " "
+            match props with
+            | Error(e) -> note + e
+            | Ok(p) -> p |> String.concat " "
             |> fun s ->
                 let info = Data.InternalState.queryInfo state count
                 let w = rui.GetWindowWidth() - (info |> String.length)

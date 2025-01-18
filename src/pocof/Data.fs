@@ -441,7 +441,6 @@ module Data =
         { QueryState: QueryState
           QueryCondition: QueryCondition
           PropertySearch: PropertySearch
-          Notification: string option
           SuppressProperties: bool
           Refresh: Refresh }
 
@@ -506,7 +505,6 @@ module Data =
             { QueryState = queryState
               QueryCondition = queryCondition
               PropertySearch = QueryState.getCurrentProperty queryState
-              Notification = None
               SuppressProperties = suppressProperties
               Refresh = Refresh.Required }
             |> updateConsoleWidth prompt consoleWidth
