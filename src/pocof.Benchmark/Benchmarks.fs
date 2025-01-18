@@ -97,8 +97,6 @@ type HandleBenchmarks() =
           PropertySearch = PropertySearch.NoSearch
           Notification = None
           SuppressProperties = false
-          Properties = []
-          PropertyMap = Map []
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
         |> Query.prepare
@@ -107,31 +105,31 @@ type HandleBenchmarks() =
 
     [<Benchmark>]
     member __.invokeAction_Noop() =
-        Action.Noop |> Handle.invokeAction wordDelimiters state context
+        Action.Noop |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_AddQuery() =
-        Action.AddQuery "a" |> Handle.invokeAction wordDelimiters state context
+        Action.AddQuery "a" |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_BackwardChar() =
-        Action.BackwardChar |> Handle.invokeAction wordDelimiters state context
+        Action.BackwardChar |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_DeleteBackwardChar() =
-        Action.DeleteBackwardChar |> Handle.invokeAction wordDelimiters state context
+        Action.DeleteBackwardChar |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_SelectBackwardChar() =
-        Action.SelectBackwardChar |> Handle.invokeAction wordDelimiters state context
+        Action.SelectBackwardChar |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_RotateMatcher() =
-        Action.RotateMatcher |> Handle.invokeAction wordDelimiters state context
+        Action.RotateMatcher |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
     member __.invokeAction_CompleteProperty() =
-        Action.CompleteProperty |> Handle.invokeAction wordDelimiters state context
+        Action.CompleteProperty |> Handle.invokeAction wordDelimiters [] state context
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
@@ -152,8 +150,6 @@ type QueryBenchmarks() =
           PropertySearch = PropertySearch.NoSearch
           Notification = None
           SuppressProperties = false
-          Properties = []
-          PropertyMap = Map []
           Refresh = Refresh.NotRequired }
 
     [<Params(10, 100, 1000)>]

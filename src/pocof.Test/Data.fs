@@ -261,7 +261,9 @@ module initConfig =
               NotInteractive = true
               WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
               Prompt = "prompt>"
-              PromptLength = 7 },
+              PromptLength = 7
+              Properties = [ "name"; "attributes" ]
+              PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ] },
             { QueryState =
                 { Query = ":name"
                   Cursor = 5
@@ -276,8 +278,6 @@ module initConfig =
               PropertySearch = PropertySearch.Search "name"
               Notification = None
               SuppressProperties = true
-              Properties = [ "name"; "attributes" ]
-              PropertyMap = Map [ ("name", "name"); ("attributes", "attributes") ]
               Refresh = Refresh.Required }
         )
 

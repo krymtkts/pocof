@@ -22,11 +22,10 @@ let initState () : Data.InternalState =
       PropertySearch = Data.PropertySearch.NoSearch
       Notification = None
       SuppressProperties = false
-      Properties = [ "Name"; "Attribute"; "Length" ]
-      PropertyMap = Map [ ("name", "Name"); ("attribute", "Attribute"); ("length", "Length") ]
       Refresh = Data.Refresh.Required }
 
 let state = initState ()
+let properties = [ "Name"; "Attribute"; "Length" ]
 
 let caseSensitive (s: Data.InternalState) =
     { s with
@@ -66,6 +65,7 @@ module props =
     [<Fact>]
     let ``should return OK with empty list.`` () =
         Query.props
+            properties
             { state with
                 PropertySearch = Data.PropertySearch.NoSearch }
         |> shouldEqual (Ok [])
@@ -73,6 +73,7 @@ module props =
     [<Fact>]
     let ``should return Error with 'Property not found'.`` () =
         Query.props
+            properties
             { state with
                 PropertySearch = Data.PropertySearch.Search "No" }
         |> shouldEqual (Error "Property not found")
@@ -80,6 +81,7 @@ module props =
     [<Fact>]
     let ``should return Ok with non filtered properties.`` () =
         Query.props
+            properties
             { state with
                 PropertySearch = Data.PropertySearch.Search "" }
         |> shouldEqual (Ok [ "Name"; "Attribute"; "Length" ])
@@ -87,6 +89,7 @@ module props =
     [<Fact>]
     let ``should return Ok with filtered properties.`` () =
         Query.props
+            properties
             { state with
                 PropertySearch = Data.PropertySearch.Search "Na" }
         |> shouldEqual (Ok [ "Name" ])
@@ -94,6 +97,7 @@ module props =
     [<Fact>]
     let ``should return Ok with properties filtered in a case-insensitive manner.`` () =
         Query.props
+            properties
             { state with
                 PropertySearch = Data.PropertySearch.Search "na" }
         |> shouldEqual (Ok [ "Name" ])
@@ -101,6 +105,7 @@ module props =
     [<Fact>]
     let ``should return Ok with non filtered properties when rotate.`` () =
         Query.props
+            properties
             { state with
                 PropertySearch = Data.PropertySearch.Rotate("", 0, [ "Name" ]) }
         |> shouldEqual (Ok [ "Name"; "Attribute"; "Length" ])
@@ -108,6 +113,7 @@ module props =
     [<Fact>]
     let ``should return Ok with filtered properties when rotate.`` () =
         Query.props
+            properties
             { state with
                 PropertySearch = Data.PropertySearch.Rotate("Na", 0, [ "Name" ]) }
         |> shouldEqual (Ok [ "Name" ])

@@ -159,8 +159,6 @@ module ``Buff writeScreen`` =
           PropertySearch = PropertySearch.NoSearch
           Notification = None
           SuppressProperties = false
-          Properties = []
-          PropertyMap = Map []
           Refresh = Refresh.Required }
 
     let ``query>`` = "query>"
@@ -296,13 +294,11 @@ module ``Buff writeScreen`` =
                 InternalState.QueryState.Query = @":"
                 InternalState.QueryState.Cursor = 1
                 InternalState.QueryCondition.CaseSensitive = false
-                PropertySearch = PropertySearch.Search("")
-                Properties = props
-                PropertyMap = props |> List.map (fun s -> (s.ToLower(), s)) |> Map }
+                PropertySearch = PropertySearch.Search("") }
             |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
             |> Pocof.Query.InternalState.prepareNotification
 
-        buff.WriteScreen state PSeq.empty <| (state.Properties |> List.ofSeq |> Ok)
+        buff.WriteScreen state PSeq.empty <| (props |> List.ofSeq |> Ok)
 
         let expected =
             List.concat
