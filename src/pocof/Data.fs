@@ -276,7 +276,9 @@ module Data =
           NotInteractive: bool
           WordDelimiters: string
           Prompt: string
-          PromptLength: int }
+          PromptLength: int
+          Properties: Generic.IReadOnlyCollection<string>
+          PropertiesMap: Generic.IReadOnlyDictionary<string, string> }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -441,8 +443,6 @@ module Data =
           PropertySearch: PropertySearch
           Notification: string option
           SuppressProperties: bool
-          Properties: Generic.IReadOnlyCollection<string>
-          PropertyMap: Generic.IReadOnlyDictionary<string, string>
           Refresh: Refresh }
 
     module InternalState =
@@ -499,8 +499,6 @@ module Data =
             (queryState: QueryState)
             (queryCondition: QueryCondition)
             (suppressProperties: bool)
-            (properties: Generic.IReadOnlyCollection<string>)
-            (propertyMap: Generic.IReadOnlyDictionary<string, string>)
             (prompt: int)
             (consoleWidth: int)
             =
@@ -510,8 +508,6 @@ module Data =
               PropertySearch = QueryState.getCurrentProperty queryState
               Notification = None
               SuppressProperties = suppressProperties
-              Properties = properties
-              PropertyMap = propertyMap
               Refresh = Refresh.Required }
             |> updateConsoleWidth prompt consoleWidth
 
@@ -536,7 +532,7 @@ module Data =
     [<Literal>]
     let private anchor = ">"
 
-    let initConfig (p: IncomingParameters) =
+    let initConfig (p: IncomingParameters) : InternalConfig * InternalState =
         let prompt = p.Prompt + anchor
         let promptLength = prompt |> String.length
 
@@ -545,7 +541,9 @@ module Data =
           NotInteractive = p.NotInteractive
           WordDelimiters = p.WordDelimiters
           Prompt = prompt
-          PromptLength = promptLength },
+          PromptLength = promptLength
+          Properties = p.Properties
+          PropertiesMap = p.PropertiesMap },
         InternalState.create
             { Query = p.Query
               Cursor = String.length p.Query
@@ -557,7 +555,5 @@ module Data =
               CaseSensitive = p.CaseSensitive
               Invert = p.InvertQuery }
             p.SuppressProperties
-            p.Properties
-            p.PropertiesMap
             promptLength
             p.ConsoleWidth

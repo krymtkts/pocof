@@ -194,11 +194,11 @@ module Query =
 
             entries |> PSeq.filter predicate
 
-    let props (state: InternalState) =
+    let props (properties: string seq) (state: InternalState) =
         match state.SuppressProperties, state.PropertySearch with
         | false, PropertySearch.Search(prefix: string)
         | false, PropertySearch.Rotate(prefix: string, _, _) ->
-            let ret = state.Properties |> Seq.filter (String.startsWithIgnoreCase prefix)
+            let ret = properties |> Seq.filter (String.startsWithIgnoreCase prefix)
 
             match ret |> Seq.length with
             | 0 -> Error "Property not found"

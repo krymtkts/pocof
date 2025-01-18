@@ -52,7 +52,9 @@ module Pocof =
           GetConsoleWidth: unit -> int
           GetLengthInBufferCells: string -> int
           WordDelimiters: string
-          PromptLength: int }
+          PromptLength: int
+          Properties: Generic.IReadOnlyCollection<string>
+          PropertiesMap: Generic.IReadOnlyDictionary<string, string> }
 
     [<TailCall>]
     let rec private searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
@@ -105,9 +107,9 @@ module Pocof =
         match state.Refresh with
         | Refresh.NotRequired -> results, state
         | _ ->
-            let results = lazy Query.run context args.Input state.PropertyMap
+            let results = lazy Query.run context args.Input args.PropertiesMap
             let state = state |> adjustQueryWindow args.GetLengthInBufferCells
-            let props = lazy Query.props state
+            let props = lazy Query.props args.Properties state
             (state, results, props) |> RenderEvent.Render |> args.PublishEvent
             results, state
 
@@ -135,6 +137,7 @@ module Pocof =
                 action
                 |> invokeAction
                     args.WordDelimiters
+                    args.Properties
                     (state
                      |> InternalState.updateConsoleWidth args.PromptLength (args.GetConsoleWidth()))
                     context
@@ -159,16 +162,18 @@ module Pocof =
               GetConsoleWidth = buff.GetConsoleWidth
               GetLengthInBufferCells = buff.GetLengthInBufferCells
               WordDelimiters = conf.WordDelimiters
-              PromptLength = conf.PromptLength }
+              PromptLength = conf.PromptLength
+              Properties = conf.Properties
+              PropertiesMap = conf.PropertiesMap }
 
         loop args (lazy input) state context
 
-    let interactOnce (state: InternalState) (input: Entry seq) =
+    let interactOnce (conf: InternalConfig) (state: InternalState) (input: Entry seq) =
 
-        let state, context = Query.prepare state
+        let _, context = Query.prepare state
         let input = input |> PSeq.ofSeq
 
-        Query.run context input state.PropertyMap |> unwrap
+        Query.run context input conf.PropertiesMap |> unwrap
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -421,7 +426,7 @@ module Pocof =
         match conf.NotInteractive with
         | true ->
             let render () = ()
-            let waitResult (_) = interactOnce state (entries ())
+            let waitResult (_) = interactOnce conf state (entries ())
             render, waitResult
         | _ ->
             let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout conf.Prompt

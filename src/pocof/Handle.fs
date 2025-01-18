@@ -317,7 +317,7 @@ module Handle =
         | true -> tail |> String.fromIndex (String.length tailHead) |> Some
         | _ -> None
 
-    let private completeProperty (state: InternalState) (context: QueryContext) =
+    let private completeProperty (properties: string seq) (state: InternalState) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = state.QueryState.Cursor - String.length keyword
 
@@ -343,9 +343,7 @@ module Handle =
         | PropertySearch.NoSearch -> InternalState.noRefresh state, context
         | PropertySearch.Search keyword ->
             let candidates =
-                state.Properties
-                |> Seq.filter (String.startsWithIgnoreCase keyword)
-                |> List.ofSeq
+                properties |> Seq.filter (String.startsWithIgnoreCase keyword) |> List.ofSeq
 
             match candidates |> Seq.length with
             | 0 -> InternalState.noRefresh state, context
@@ -366,7 +364,13 @@ module Handle =
 #endif
             buildValues head next tail keyword i candidates basePosition
 
-    let invokeAction (wordDelimiters: string) (state: InternalState) (context: QueryContext) (action: Action) =
+    let invokeAction
+        (wordDelimiters: string)
+        (properties: string seq)
+        (state: InternalState)
+        (context: QueryContext)
+        (action: Action)
+        =
         match action with
         | Action.Noop -> InternalState.noRefresh state, context
         | Action.AddQuery query -> addQuery state context query
@@ -394,6 +398,6 @@ module Handle =
         | Action.ToggleCaseSensitive -> toggleCaseSensitive state context
         | Action.ToggleInvertFilter -> toggleInvertFilter state context
         | Action.ToggleSuppressProperties -> toggleSuppressProperties state context
-        | Action.CompleteProperty -> completeProperty state context
+        | Action.CompleteProperty -> completeProperty properties state context
         | Action.Cancel
         | Action.Finish -> failwithf $"unreachable action received. {action}"
