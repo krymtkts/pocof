@@ -307,13 +307,13 @@ module render =
         let handler = Pocof.RenderHandler()
 
         async {
-            Thread.Sleep 100
+            Thread.Sleep 300
 
             (state, lazy PSeq.empty, lazy Error "error")
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
-            Thread.Sleep 100
+            Thread.Sleep 300
 
             (state, lazy PSeq.empty, lazy Ok [ "Value" ])
             |> Pocof.RenderEvent.Render
@@ -323,7 +323,7 @@ module render =
             |> Pocof.RenderEvent.Render
             |> handler.Publish
 
-            Thread.Sleep 100
+            Thread.Sleep 300
 
             Pocof.RenderEvent.Quit |> handler.Publish
 
