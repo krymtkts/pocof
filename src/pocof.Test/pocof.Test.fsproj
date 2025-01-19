@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Compile Include="Data.fs" />
+    <Compile Include="Mock.fs" />
     <Compile Include="Screen.fs" />
     <Compile Include="Keys.fs" />
     <Compile Include="Query.fs" />

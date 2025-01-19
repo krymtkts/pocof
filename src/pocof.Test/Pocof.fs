@@ -8,7 +8,7 @@ open FsUnitTyped
 
 open Pocof
 open Pocof.Data
-open Screen.Mock
+open Pocof.Test
 
 let toObj x = x |> (PSObject.AsPSObject >> Entry.Obj)
 
