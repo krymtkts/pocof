@@ -1,6 +1,7 @@
 ﻿module pocof.Benchmark
 
 open BenchmarkDotNet.Attributes
+open BenchmarkDotNet.Engines
 
 open System
 open System.Collections
@@ -8,6 +9,7 @@ open System.Management.Automation
 
 open Pocof
 open Pocof.Data
+open Pocof.Test
 
 [<MemoryDiagnoser>]
 type PocofBenchmarks() =
@@ -210,3 +212,75 @@ type QueryBenchmarks() =
     [<Benchmark>]
     member __.run_dict_property() =
         Query.run __.PropertyContext __.Dicts props
+
+[<MemoryDiagnoser>]
+type PocofBenchmarks2() =
+    let prompt = ">"
+
+    let state: InternalState =
+        { QueryState =
+            { Query = "foo"
+              Cursor = 3
+              WindowBeginningCursor = 0
+              WindowWidth = 0
+              InputMode = InputMode.Input }
+          QueryCondition =
+            { Matcher = Matcher.Match
+              Operator = Operator.And
+              CaseSensitive = true
+              Invert = false }
+          PropertySearch = PropertySearch.NoSearch
+          SuppressProperties = false
+          Refresh = Refresh.Required }
+
+    let publishEvent _ = ()
+
+    let consumer = new Consumer()
+
+    [<Params(10, 100, 1000)>]
+    member val EntryCount = 0 with get, set
+
+    // [<Params(0, 1, 3, 5)>]
+    // member val QueryCount = 0 with get, set
+
+    member val Objects: Entry pseq = PSeq.empty with get, set
+    member val Dicts: Entry pseq = PSeq.empty with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        __.Objects <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
+            |> PSeq.ofSeq
+
+        __.Dicts <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (fun x -> ("key", x) |> DictionaryEntry |> Entry.Dict)
+            |> PSeq.ofSeq
+
+    [<Benchmark>]
+    member __.interact_obj() =
+        let rui =
+            new MockRawUI(
+                60,
+                30,
+                [ MockRawUI.ConsoleKey 'a' ConsoleKey.A
+                  MockRawUI.ConsoleKey ' ' ConsoleKey.Spacebar
+                  MockRawUI.ConsoleKey 'd' ConsoleKey.D
+                  None
+                  MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
+            )
+
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt
+              PromptLength = prompt |> String.length
+              Properties = []
+              PropertiesMap = Map [] }
+
+        use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+        // TODO: is Consumer.Consume the right way for this benchmark?
+        Pocof.interact config state buff publishEvent __.Objects |> consumer.Consume
