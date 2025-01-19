@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\pocof\pocof.fsproj" />
+    <ProjectReference Include="..\pocof.Test\pocof.Test.fsproj" />
   </ItemGroup>
 
 </Project>
