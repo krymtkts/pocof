@@ -292,3 +292,21 @@ type PocofBenchmarks2() =
         use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         // TODO: is Consumer.Consume the right way for this benchmark?
         Pocof.interact config state buff publishEvent __.Objects |> consumer.Consume
+
+    [<Benchmark>]
+    member __.interact_dict() =
+        let rui = new MockRawUI(60, 30, __.Keys)
+
+        let config: InternalConfig =
+            { NotInteractive = true
+              Layout = Layout.TopDown
+              Keymaps = Keys.defaultKeymap
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              Prompt = prompt
+              PromptLength = prompt |> String.length
+              Properties = []
+              PropertiesMap = Map [] }
+
+        use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+        // TODO: is Consumer.Consume the right way for this benchmark?
+        Pocof.interact config state buff publishEvent __.Dicts |> consumer.Consume
