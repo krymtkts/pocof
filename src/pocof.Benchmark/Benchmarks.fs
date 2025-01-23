@@ -240,11 +240,12 @@ type PocofBenchmarks2() =
     [<Params(10, 100, 1000)>]
     member val EntryCount = 0 with get, set
 
-    // [<Params(0, 1, 3, 5)>]
-    // member val QueryCount = 0 with get, set
+    [<Params(1, 3, 5, 7, 9)>]
+    member val QueryCount = 0 with get, set
 
     member val Objects: Entry pseq = PSeq.empty with get, set
     member val Dicts: Entry pseq = PSeq.empty with get, set
+    member val Keys: ConsoleKeyInfo option list = [] with get, set
 
     [<GlobalSetup>]
     member __.GlobalSetup() =
@@ -258,18 +259,25 @@ type PocofBenchmarks2() =
             |> Seq.map (fun x -> ("key", x) |> DictionaryEntry |> Entry.Dict)
             |> PSeq.ofSeq
 
+        __.Keys <-
+            [ __.QueryCount .. 1 ]
+            |> List.collect (fun x ->
+                [ match x with
+                  | 1
+                  | 3
+                  | 5
+                  | 7
+                  | 9 ->
+                      let c = x |> (+) 48 |> char
+                      MockRawUI.ConsoleKey c (Enum.Parse(typeof<ConsoleKey>, c.ToString()) :?> ConsoleKey)
+                  | _ -> None
+                  MockRawUI.ConsoleKey ' ' ConsoleKey.Spacebar ])
+            |> List.append [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
+            |> List.rev
+
     [<Benchmark>]
     member __.interact_obj() =
-        let rui =
-            new MockRawUI(
-                60,
-                30,
-                [ MockRawUI.ConsoleKey 'a' ConsoleKey.A
-                  MockRawUI.ConsoleKey ' ' ConsoleKey.Spacebar
-                  MockRawUI.ConsoleKey 'd' ConsoleKey.D
-                  None
-                  MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
-            )
+        let rui = new MockRawUI(60, 30, __.Keys)
 
         let config: InternalConfig =
             { NotInteractive = true
