@@ -308,3 +308,12 @@ type PocofInteractBenchmarks() =
         use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         // NOTE: use Seq.length to force strict evaluation of the sequence
         Pocof.interact config state buff publishEvent __.Dicts |> Seq.length |> ignore
+
+[<MemoryDiagnoser>]
+type DataBenchmarks() =
+    [<Benchmark>]
+    member __.Action_fromString() =
+        Action.fromString "CompleteProperty" |> ignore
+
+    [<Benchmark>]
+    member __.Operator_fromString() = Operator.fromString "And" |> ignore
