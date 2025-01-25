@@ -311,9 +311,21 @@ type PocofInteractBenchmarks() =
 
 [<MemoryDiagnoser>]
 type DataBenchmarks() =
+    let queryState =
+        { Query = ":Name foo :Value bar"
+          Cursor = 13
+          WindowBeginningCursor = 0
+          WindowWidth = 0
+          InputMode = InputMode.Input }
+
     [<Benchmark>]
     member __.Action_fromString() =
         Action.fromString "CompleteProperty" |> ignore
 
     [<Benchmark>]
     member __.Operator_fromString() = Operator.fromString "And" |> ignore
+
+
+    [<Benchmark>]
+    member __.QueryState_getCurrentProperty() =
+        QueryState.getCurrentProperty queryState |> ignore
