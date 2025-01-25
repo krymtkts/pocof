@@ -381,7 +381,8 @@ module Data =
                     InputMode = InputMode.Input }
 
         let getCurrentProperty (state: QueryState) =
-            let s = state.Query |> String.upToIndex state.Cursor |> String.split " " |> Seq.last
+            let s =
+                state.Query |> String.upToIndex state.Cursor |> String.split " " |> Array.last
 
 #if DEBUG
             Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
