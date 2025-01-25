@@ -147,8 +147,8 @@ module Data =
 
     let (|Found|_|) aType excludes name =
         FSharpType.GetUnionCases aType
-        |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
-        |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
+        |> Array.filter (fun u -> Set.contains u.Name excludes |> not)
+        |> Array.tryFind (fun u -> u.Name |> String.lower = name)
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
