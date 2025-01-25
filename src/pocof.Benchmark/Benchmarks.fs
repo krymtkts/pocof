@@ -101,9 +101,31 @@ type HandleBenchmarks() =
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
 
+    let stateForPropertySearch =
+        { state with
+            InternalState.QueryState.Query = ":Name"
+            InternalState.QueryState.Cursor = 3
+            PropertySearch = PropertySearch.Search("Na") }
+
+    let stateForPropertyRotate =
+        { state with
+            InternalState.QueryState.Query = ":Name"
+            InternalState.QueryState.Cursor = 5
+            PropertySearch =
+                PropertySearch.Rotate(
+                    "Na",
+                    0,
+                    seq {
+                        "Name"
+                        "Names"
+                    }
+                ) }
+
     let context, _ = state |> Query.prepare
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+
+    let properties = [ "Key"; "Value"; "Length"; "Name"; "Type"; "Names" ]
 
     [<Benchmark>]
     member __.invokeAction_Noop() =
@@ -130,8 +152,18 @@ type HandleBenchmarks() =
         Action.RotateMatcher |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
-    member __.invokeAction_CompleteProperty() =
+    member __.invokeAction_CompleteProperty_NoSearch() =
         Action.CompleteProperty |> Handle.invokeAction wordDelimiters [] state context
+
+    [<Benchmark>]
+    member __.invokeAction_CompleteProperty_Search() =
+        Action.CompleteProperty
+        |> Handle.invokeAction wordDelimiters properties stateForPropertySearch context
+
+    [<Benchmark>]
+    member __.invokeAction_CompleteProperty_Rotate() =
+        Action.CompleteProperty
+        |> Handle.invokeAction wordDelimiters properties stateForPropertyRotate context
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
