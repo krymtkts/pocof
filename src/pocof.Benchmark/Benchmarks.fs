@@ -214,7 +214,7 @@ type QueryBenchmarks() =
         Query.run __.PropertyContext __.Dicts props
 
 [<MemoryDiagnoser>]
-type PocofBenchmarks2() =
+type PocofInteractBenchmarks() =
     let prompt = ">"
 
     let state: InternalState =
@@ -234,8 +234,6 @@ type PocofBenchmarks2() =
           Refresh = Refresh.Required }
 
     let publishEvent _ = ()
-
-    let consumer = new Consumer()
 
     [<Params(10, 100, 1000)>]
     member val EntryCount = 0 with get, set
@@ -290,8 +288,8 @@ type PocofBenchmarks2() =
               PropertiesMap = Map [] }
 
         use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        // TODO: is Consumer.Consume the right way for this benchmark?
-        Pocof.interact config state buff publishEvent __.Objects |> consumer.Consume
+        // NOTE: use Seq.length to force strict evaluation of the sequence
+        Pocof.interact config state buff publishEvent __.Objects |> Seq.length |> ignore
 
     [<Benchmark>]
     member __.interact_dict() =
@@ -308,5 +306,5 @@ type PocofBenchmarks2() =
               PropertiesMap = Map [] }
 
         use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        // TODO: is Consumer.Consume the right way for this benchmark?
-        Pocof.interact config state buff publishEvent __.Dicts |> consumer.Consume
+        // NOTE: use Seq.length to force strict evaluation of the sequence
+        Pocof.interact config state buff publishEvent __.Dicts |> Seq.length |> ignore
