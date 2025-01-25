@@ -337,16 +337,16 @@ module Handle =
 #if DEBUG
                 Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
-                buildValues head candidate tail keyword 0 candidates basePosition
-        | PropertySearch.Rotate(keyword, i, candidates) ->
-            let cur = candidates |> Seq.item i
-            let i = (i + 1) % Seq.length candidates
-            let next = candidates |> Seq.item i
+                buildValues head candidate tail keyword 0 (candidates |> Seq.cycle) basePosition
+        | PropertySearch.Rotate(keyword, _, candidates) ->
+            let cur = candidates |> Seq.head
+            let candidates = candidates |> Seq.tail
+            let next = candidates |> Seq.head
             let basePosition, head, tail = splitQuery cur next
 #if DEBUG
             Logger.LogFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif
-            buildValues head next tail keyword i candidates basePosition
+            buildValues head next tail keyword 0 candidates basePosition
 
     let invokeAction
         (wordDelimiters: string)

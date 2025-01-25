@@ -70,6 +70,13 @@ module LanguageExtension =
         let fromIndex (index: int) (s: string) = s.Substring(index)
         let upToIndex (index: int) (s: string) = s.Substring(0, index)
 
+    module Seq =
+        let rec cycle source =
+            seq {
+                yield! source
+                yield! cycle source
+            }
+
     let
 #if !DEBUG
         inline
