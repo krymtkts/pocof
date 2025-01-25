@@ -111,7 +111,7 @@ type HandleBenchmarks() =
         { state with
             InternalState.QueryState.Query = ":Name"
             InternalState.QueryState.Cursor = 5
-            PropertySearch = PropertySearch.Rotate("Na", 0, Seq.cycle [ "Name"; "Names" ]) }
+            PropertySearch = PropertySearch.Rotate("Na", Seq.cycle [ "Name"; "Names" ]) }
 
     let context, _ = state |> Query.prepare
 

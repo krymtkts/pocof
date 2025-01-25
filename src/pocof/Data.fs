@@ -265,7 +265,7 @@ module Data =
     type PropertySearch =
         | NoSearch
         | Search of keyword: string
-        | Rotate of keyword: string * index: int * candidates: string seq
+        | Rotate of keyword: string * candidates: string seq
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]

@@ -199,7 +199,7 @@ module Query =
             | _ ->
                 match state.SuppressProperties, state.PropertySearch with
                 | false, PropertySearch.Search(prefix: string)
-                | false, PropertySearch.Rotate(prefix: string, _, _) ->
+                | false, PropertySearch.Rotate(prefix: string, _) ->
                     let ret = properties |> Seq.filter (String.startsWithIgnoreCase prefix)
 
                     match ret |> Seq.length with

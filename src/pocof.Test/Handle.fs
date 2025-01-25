@@ -1864,11 +1864,10 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual ""
-                    b |> shouldEqual 0
 
-                    c
+                    b
                     |> Seq.take 4
                     |> List.ofSeq
                     |> shouldEqual [ "first"; "second"; "third"; "first" ]
@@ -1892,10 +1891,9 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual "p"
-                    b |> shouldEqual 0
-                    c |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "Path"; "Path" ]
+                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "Path"; "Path" ]
                 | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
@@ -1918,10 +1916,9 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual "n"
-                    b |> shouldEqual 0
-                    c |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "name"; "number"; "name" ]
+                    b |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "name"; "number"; "name" ]
                 | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
@@ -1942,10 +1939,9 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual "n"
-                    b |> shouldEqual 0
-                    c |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
+                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
                 | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryPartProperty "name" "foo"
@@ -1966,10 +1962,9 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual "name"
-                    b |> shouldEqual 0
-                    c |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
+                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
                 | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
@@ -1990,10 +1985,9 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual "name"
-                    b |> shouldEqual 0
-                    c |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
+                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
                 | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryPartProperty "name" "a"
@@ -2014,10 +2008,9 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual "nam"
-                    b |> shouldEqual 0
-                    c |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
+                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
                 | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryPartProperty "name" "a"
@@ -2028,7 +2021,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryState.Query = ":name"
                     InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Rotate("n", 0, Seq.cycle [ "name"; "number" ]) }
+                    PropertySearch = PropertySearch.Rotate("n", Seq.cycle [ "name"; "number" ]) }
 
             let context, _ = Query.prepare state
 
@@ -2040,10 +2033,9 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual "n"
-                    b |> shouldEqual 0
-                    c |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "number"; "name"; "number" ]
+                    b |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "number"; "name"; "number" ]
                 | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
@@ -2054,7 +2046,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryState.Query = ":number"
                     InternalState.QueryState.Cursor = 7
-                    PropertySearch = PropertySearch.Rotate("n", 0, Seq.cycle [ "number"; "name" ]) }
+                    PropertySearch = PropertySearch.Rotate("n", Seq.cycle [ "number"; "name" ]) }
 
             let context, _ = Query.prepare state
 
@@ -2066,10 +2058,9 @@ module invokeAction =
 
             a1.PropertySearch
             |> function
-                | PropertySearch.Rotate(a, b, c) ->
+                | PropertySearch.Rotate(a, b) ->
                     a |> shouldEqual "n"
-                    b |> shouldEqual 0
-                    c |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "name"; "number"; "name" ]
+                    b |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "name"; "number"; "name" ]
                 | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
