@@ -389,7 +389,10 @@ module Data =
 
         let getCurrentProperty (state: QueryState) =
             let s =
-                state.Query |> String.upToIndex state.Cursor |> String.split " " |> Array.last
+                state.Query
+                |> String.upToIndex state.Cursor
+                |> String.split " "
+                |> (fun arr -> arr.[arr.Length - 1]) // NOTE: to avoid unreachable step in Array.last.
 
 #if DEBUG
             Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
