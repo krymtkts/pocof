@@ -298,7 +298,7 @@ module Handle =
             | "" -> candidate
             | _ -> candidate |> String.replace keyword ""
 
-        let tailHead = String.split " " tail |> Seq.head
+        let tailHead = String.split " " tail |> Array.head
 
         match rest = tailHead with
         | true -> tail |> String.fromIndex (String.length tailHead) |> Some
@@ -307,9 +307,7 @@ module Handle =
     let private completeProperty (properties: string seq) (state: InternalState) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = state.QueryState.Cursor - String.length keyword
-
             let head = state.QueryState.Query |> String.upToIndex basePosition
-
             let tail = state.QueryState.Query |> String.fromIndex state.QueryState.Cursor
 
             match candidate with
@@ -329,11 +327,10 @@ module Handle =
         match state.PropertySearch with
         | PropertySearch.NoSearch -> InternalState.noRefresh state, context
         | PropertySearch.Search keyword ->
-            let candidates =
-                properties |> Seq.filter (String.startsWithIgnoreCase keyword) |> List.ofSeq
+            let candidates = properties |> Seq.filter (String.startsWithIgnoreCase keyword)
 
-            match candidates |> Seq.length with
-            | 0 -> InternalState.noRefresh state, context
+            match candidates |> Seq.isEmpty with
+            | true -> InternalState.noRefresh state, context
             | _ ->
                 let candidate = Seq.head candidates
                 let basePosition, head, tail = splitQuery keyword candidate
