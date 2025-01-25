@@ -298,7 +298,7 @@ module Handle =
             | "" -> candidate
             | _ -> candidate |> String.replace keyword ""
 
-        let tailHead = String.split " " tail |> Seq.head
+        let tailHead = String.split " " tail |> Array.head
 
         match rest = tailHead with
         | true -> tail |> String.fromIndex (String.length tailHead) |> Some
@@ -307,21 +307,19 @@ module Handle =
     let private completeProperty (properties: string seq) (state: InternalState) (context: QueryContext) =
         let splitQuery keyword candidate =
             let basePosition = state.QueryState.Cursor - String.length keyword
-
             let head = state.QueryState.Query |> String.upToIndex basePosition
-
             let tail = state.QueryState.Query |> String.fromIndex state.QueryState.Cursor
 
             match candidate with
             | AlreadyCompleted keyword tail rest -> basePosition, head, rest
             | _ -> basePosition, head, tail
 
-        let buildValues head next tail keyword i candidates basePosition =
+        let buildValues head next tail keyword candidates basePosition =
             let state =
                 { state with
                     InternalState.QueryState.Query = $"%s{head}%s{next}%s{tail}"
                     InternalState.QueryState.Cursor = basePosition + String.length next
-                    PropertySearch = PropertySearch.Rotate(keyword, i, candidates) }
+                    PropertySearch = PropertySearch.Rotate(keyword, candidates) }
                 |> InternalState.refresh
 
             state, context |> QueryContext.prepareQuery state
@@ -329,27 +327,26 @@ module Handle =
         match state.PropertySearch with
         | PropertySearch.NoSearch -> InternalState.noRefresh state, context
         | PropertySearch.Search keyword ->
-            let candidates =
-                properties |> Seq.filter (String.startsWithIgnoreCase keyword) |> List.ofSeq
+            let candidates = properties |> Seq.filter (String.startsWithIgnoreCase keyword)
 
-            match candidates |> Seq.length with
-            | 0 -> InternalState.noRefresh state, context
+            match candidates |> Seq.isEmpty with
+            | true -> InternalState.noRefresh state, context
             | _ ->
                 let candidate = Seq.head candidates
                 let basePosition, head, tail = splitQuery keyword candidate
 #if DEBUG
                 Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
-                buildValues head candidate tail keyword 0 candidates basePosition
-        | PropertySearch.Rotate(keyword, i, candidates) ->
-            let cur = candidates |> Seq.item i
-            let i = (i + 1) % Seq.length candidates
-            let next = candidates |> Seq.item i
+                buildValues head candidate tail keyword (candidates |> Seq.cycle) basePosition
+        | PropertySearch.Rotate(keyword, candidates) ->
+            let cur = candidates |> Seq.head
+            let candidates = candidates |> Seq.tail
+            let next = candidates |> Seq.head
             let basePosition, head, tail = splitQuery cur next
 #if DEBUG
             Logger.LogFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif
-            buildValues head next tail keyword i candidates basePosition
+            buildValues head next tail keyword candidates basePosition
 
     let invokeAction
         (wordDelimiters: string)

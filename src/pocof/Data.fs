@@ -70,6 +70,13 @@ module LanguageExtension =
         let fromIndex (index: int) (s: string) = s.Substring(index)
         let upToIndex (index: int) (s: string) = s.Substring(0, index)
 
+    module Seq =
+        let rec cycle source =
+            seq {
+                yield! source
+                yield! cycle source
+            }
+
     let
 #if !DEBUG
         inline
@@ -147,8 +154,8 @@ module Data =
 
     let (|Found|_|) aType excludes name =
         FSharpType.GetUnionCases aType
-        |> Seq.filter (fun u -> Set.contains u.Name excludes |> not)
-        |> Seq.tryFind (fun u -> u.Name |> String.lower = name)
+        |> Array.filter (fun u -> Set.contains u.Name excludes |> not)
+        |> Array.tryFind (fun u -> u.Name |> String.lower = name)
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
         let name = String.lower s
@@ -258,7 +265,7 @@ module Data =
     type PropertySearch =
         | NoSearch
         | Search of keyword: string
-        | Rotate of keyword: string * index: int * candidates: string seq
+        | Rotate of keyword: string * candidates: string seq
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -381,7 +388,11 @@ module Data =
                     InputMode = InputMode.Input }
 
         let getCurrentProperty (state: QueryState) =
-            let s = state.Query |> String.upToIndex state.Cursor |> String.split " " |> Seq.last
+            let s =
+                state.Query
+                |> String.upToIndex state.Cursor
+                |> String.split " "
+                |> (fun arr -> arr.[arr.Length - 1]) // NOTE: to avoid unreachable step in Array.last.
 
 #if DEBUG
             Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]

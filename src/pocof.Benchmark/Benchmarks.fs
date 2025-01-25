@@ -101,9 +101,23 @@ type HandleBenchmarks() =
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
 
+    let stateForPropertySearch =
+        { state with
+            InternalState.QueryState.Query = ":Name"
+            InternalState.QueryState.Cursor = 3
+            PropertySearch = PropertySearch.Search("Na") }
+
+    let stateForPropertyRotate =
+        { state with
+            InternalState.QueryState.Query = ":Name"
+            InternalState.QueryState.Cursor = 5
+            PropertySearch = PropertySearch.Rotate("Na", Seq.cycle [ "Name"; "Names" ]) }
+
     let context, _ = state |> Query.prepare
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+
+    let properties = [ "Key"; "Value"; "Length"; "Name"; "Type"; "Names" ]
 
     [<Benchmark>]
     member __.invokeAction_Noop() =
@@ -130,8 +144,18 @@ type HandleBenchmarks() =
         Action.RotateMatcher |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
-    member __.invokeAction_CompleteProperty() =
+    member __.invokeAction_CompleteProperty_NoSearch() =
         Action.CompleteProperty |> Handle.invokeAction wordDelimiters [] state context
+
+    [<Benchmark>]
+    member __.invokeAction_CompleteProperty_Search() =
+        Action.CompleteProperty
+        |> Handle.invokeAction wordDelimiters properties stateForPropertySearch context
+
+    [<Benchmark>]
+    member __.invokeAction_CompleteProperty_Rotate() =
+        Action.CompleteProperty
+        |> Handle.invokeAction wordDelimiters properties stateForPropertyRotate context
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
@@ -308,3 +332,24 @@ type PocofInteractBenchmarks() =
         use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         // NOTE: use Seq.length to force strict evaluation of the sequence
         Pocof.interact config state buff publishEvent __.Dicts |> Seq.length |> ignore
+
+[<MemoryDiagnoser>]
+type DataBenchmarks() =
+    let queryState =
+        { Query = ":Name foo :Value bar"
+          Cursor = 13
+          WindowBeginningCursor = 0
+          WindowWidth = 0
+          InputMode = InputMode.Input }
+
+    [<Benchmark>]
+    member __.Action_fromString() =
+        Action.fromString "CompleteProperty" |> ignore
+
+    [<Benchmark>]
+    member __.Operator_fromString() = Operator.fromString "And" |> ignore
+
+
+    [<Benchmark>]
+    member __.QueryState_getCurrentProperty() =
+        QueryState.getCurrentProperty queryState |> ignore

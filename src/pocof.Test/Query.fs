@@ -106,7 +106,7 @@ module props =
         Query.props
             properties
             { state with
-                PropertySearch = Data.PropertySearch.Rotate("", 0, [ "Name" ]) }
+                PropertySearch = Data.PropertySearch.Rotate("", [ "Name" ]) }
         |> shouldEqual (Ok [ "Name"; "Attribute"; "Length" ])
 
     [<Fact>]
@@ -114,7 +114,7 @@ module props =
         Query.props
             properties
             { state with
-                PropertySearch = Data.PropertySearch.Rotate("Na", 0, [ "Name" ]) }
+                PropertySearch = Data.PropertySearch.Rotate("Na", [ "Name" ]) }
         |> shouldEqual (Ok [ "Name" ])
 
 module run =
