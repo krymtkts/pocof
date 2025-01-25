@@ -1859,12 +1859,16 @@ module invokeAction =
             let a1, a2 =
                 invokeAction [ "first"; "second"; "third" ] state context Action.CompleteProperty
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":first"
-                    InternalState.QueryState.Cursor = 6
-                    PropertySearch = PropertySearch.Rotate("", 0, [ "first"; "second"; "third" ]) }
+            a1.QueryState.Query |> shouldEqual ":first"
+            a1.QueryState.Cursor |> shouldEqual 6
+
+            a1.PropertySearch
+            |> function
+                | PropertySearch.Rotate(a, b, c) ->
+                    a |> shouldEqual ""
+                    b |> shouldEqual 0
+                    c |> List.ofSeq |> shouldEqual [ "first"; "second"; "third" ]
+                | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
 
@@ -1879,12 +1883,16 @@ module invokeAction =
             let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "Name"; "Path" ] state context Action.CompleteProperty
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":Path"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Rotate("p", 0, [ "Path" ]) }
+            a1.QueryState.Query |> shouldEqual ":Path"
+            a1.QueryState.Cursor |> shouldEqual 5
+
+            a1.PropertySearch
+            |> function
+                | PropertySearch.Rotate(a, b, c) ->
+                    a |> shouldEqual "p"
+                    b |> shouldEqual 0
+                    c |> List.ofSeq |> shouldEqual [ "Path" ]
+                | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
 
@@ -1901,12 +1909,16 @@ module invokeAction =
             let a1, a2 =
                 invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Rotate("n", 0, [ "name"; "number" ]) }
+            a1.QueryState.Query |> shouldEqual ":name"
+            a1.QueryState.Cursor |> shouldEqual 5
+
+            a1.PropertySearch
+            |> function
+                | PropertySearch.Rotate(a, b, c) ->
+                    a |> shouldEqual "n"
+                    b |> shouldEqual 0
+                    c |> List.ofSeq |> shouldEqual [ "name"; "number" ]
+                | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
 
@@ -1921,12 +1933,16 @@ module invokeAction =
             let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name foo"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Rotate("n", 0, [ "name" ]) }
+            a1.QueryState.Query |> shouldEqual ":name foo"
+            a1.QueryState.Cursor |> shouldEqual 5
+
+            a1.PropertySearch
+            |> function
+                | PropertySearch.Rotate(a, b, c) ->
+                    a |> shouldEqual "n"
+                    b |> shouldEqual 0
+                    c |> List.ofSeq |> shouldEqual [ "name" ]
+                | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryPartProperty "name" "foo"
 
@@ -1941,10 +1957,16 @@ module invokeAction =
             let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
-            a1
-            |> shouldEqual
-                { state with
-                    PropertySearch = PropertySearch.Rotate("name", 0, [ "name" ]) }
+            a1.QueryState.Query |> shouldEqual ":name"
+            a1.QueryState.Cursor |> shouldEqual 5
+
+            a1.PropertySearch
+            |> function
+                | PropertySearch.Rotate(a, b, c) ->
+                    a |> shouldEqual "name"
+                    b |> shouldEqual 0
+                    c |> List.ofSeq |> shouldEqual [ "name" ]
+                | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
 
@@ -1959,10 +1981,16 @@ module invokeAction =
             let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
-            a1
-            |> shouldEqual
-                { state with
-                    PropertySearch = PropertySearch.Rotate("name", 0, [ "name" ]) }
+            a1.QueryState.Query |> shouldEqual ":name a"
+            a1.QueryState.Cursor |> shouldEqual 5
+
+            a1.PropertySearch
+            |> function
+                | PropertySearch.Rotate(a, b, c) ->
+                    a |> shouldEqual "name"
+                    b |> shouldEqual 0
+                    c |> List.ofSeq |> shouldEqual [ "name" ]
+                | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryPartProperty "name" "a"
 
@@ -1977,11 +2005,16 @@ module invokeAction =
             let context, _ = Query.prepare state
             let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Rotate("nam", 0, [ "name" ]) }
+            a1.QueryState.Query |> shouldEqual ":name a"
+            a1.QueryState.Cursor |> shouldEqual 5
+
+            a1.PropertySearch
+            |> function
+                | PropertySearch.Rotate(a, b, c) ->
+                    a |> shouldEqual "nam"
+                    b |> shouldEqual 0
+                    c |> List.ofSeq |> shouldEqual [ "name" ]
+                | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryPartProperty "name" "a"
 
@@ -1998,12 +2031,16 @@ module invokeAction =
             let a1, a2 =
                 invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":number"
-                    InternalState.QueryState.Cursor = 7
-                    PropertySearch = PropertySearch.Rotate("n", 1, [ "name"; "number" ]) }
+            a1.QueryState.Query |> shouldEqual ":number"
+            a1.QueryState.Cursor |> shouldEqual 7
+
+            a1.PropertySearch
+            |> function
+                | PropertySearch.Rotate(a, b, c) ->
+                    a |> shouldEqual "n"
+                    b |> shouldEqual 1
+                    c |> List.ofSeq |> shouldEqual [ "name"; "number" ]
+                | _ -> failwith "PropertySearch should be Rotate"
 
             a2.Queries |> testQueryEnd
 
