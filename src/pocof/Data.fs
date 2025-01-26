@@ -227,6 +227,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Matcher =
         | Eq
         | Like
@@ -240,6 +241,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Operator =
         | And
         | Or
@@ -252,6 +254,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Layout =
         | TopDown
         | TopDownHalf
@@ -271,6 +274,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Refresh =
         | Required
         | NotRequired
@@ -291,6 +295,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type InputMode =
         | Input
         // Note: positive number is the backward selection from the cursor. negative number is the forward selection from the cursor.
