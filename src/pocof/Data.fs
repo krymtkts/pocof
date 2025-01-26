@@ -154,14 +154,16 @@ module Data =
 
     let (|Found|_|) aType excludes name =
         FSharpType.GetUnionCases aType
-        |> Array.filter (fun u -> Set.contains u.Name excludes |> not)
-        |> Array.tryFind (fun u -> u.Name |> String.lower = name)
+        |> (fun arr ->
+            match Set.isEmpty excludes with
+            | true -> arr
+            | _ -> arr |> Array.filter (fun u -> Set.contains u.Name excludes |> not))
+        |> Array.tryFind _.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
-        let name = String.lower s
         let aType = typeof<'a>
 
-        match name with
+        match s with
         | Found aType excludes u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| $"Unknown %s{aType.Name} '%s{s}'."
 
