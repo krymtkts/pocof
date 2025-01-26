@@ -146,10 +146,10 @@ module Data =
                     | Obj(o) -> o[prop]
                     | Dict(d) -> d[prop]
 
-    let unwrap (entries: Entry seq) =
+    let unwrap (entries: Entry seq) : obj seq =
         entries
         |> Seq.map (function
-            | Entry.Dict(dct) -> dct :> obj
+            | Entry.Dict(dct) -> dct
             | Entry.Obj(o) -> o)
 
     let (|Found|_|) aType excludes name =
