@@ -235,7 +235,10 @@ module ``QueryState toString`` =
             | Matcher.Like -> $"""{if data.Invert then "not" else ""}like"""
             | Matcher.Match -> $"""{if data.Invert then "not" else ""}match"""
 
-        data |> string |> shouldEqual $"{c}{m} {data.Operator}" |> Prop.collect data
+        data
+        |> QueryCondition.toString
+        |> shouldEqual $"{c}{m} {data.Operator}"
+        |> Prop.collect data
 
 module initConfig =
     [<Fact>]

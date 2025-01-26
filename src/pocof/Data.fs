@@ -411,21 +411,20 @@ module Data =
           CaseSensitive: bool
           Invert: bool }
 
-        override __.ToString() =
-            [ match __.CaseSensitive with
+    module QueryCondition =
+        let toString (condition: QueryCondition) =
+            [ match condition.CaseSensitive with
               | true -> "c"
               | _ -> ""
               // NOTE: use ToString to avoid extra branches when calculating coverages.
-              match __.Matcher, __.Invert with
+              match condition.Matcher, condition.Invert with
               | Matcher.Eq, true -> "ne"
               | m, true -> "not" + m.ToString()
               | m, _ -> m.ToString()
               " "
-              __.Operator.ToString() ]
+              condition.Operator.ToString() ]
             |> String.concat ""
 
-    [<NoComparison>]
-    module QueryCondition =
         let rotateMatcher (condition: QueryCondition) =
             { condition with
                 Matcher =
@@ -459,7 +458,7 @@ module Data =
 
     module InternalState =
         let queryInfo (state: InternalState) (count: int) =
-            $" %O{state.QueryCondition} [%d{count}]"
+            $" %s{state.QueryCondition |> QueryCondition.toString} [%d{count}]"
 
         let getX promptLength (state: InternalState) =
             promptLength + state.QueryState.Cursor - state.QueryState.WindowBeginningCursor
