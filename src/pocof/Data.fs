@@ -52,8 +52,6 @@ module LanguageExtension =
         let split (separator: string) (s: string) = Regex.Split(s, separator)
 
     module String =
-        let lower (s: string) = s.ToLower()
-        let upper (s: string) = s.ToUpper()
         let startsWith (value: string) (s: string) = s.StartsWith(value)
 
         let startsWithIgnoreCase (value: string) (s: string) =
@@ -233,7 +231,7 @@ module Data =
         | Like
         | Match
 
-        override __.ToString() = toString __ |> String.lower
+        override __.ToString() = toString __ |> _.ToLower()
 
     [<RequireQualifiedAccess>]
     module Matcher =
@@ -246,7 +244,7 @@ module Data =
         | And
         | Or
 
-        override __.ToString() = toString __ |> String.lower
+        override __.ToString() = toString __ |> _.ToLower()
 
     [<RequireQualifiedAccess>]
     module Operator =

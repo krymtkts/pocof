@@ -116,7 +116,7 @@ let randomCase (s: string) =
 let duNames<'U> = FSharpType.GetUnionCases(typeof<'U>) |> Seq.map _.Name
 
 let randomCases (name: string) =
-    [ name; String.lower name; String.upper name; randomCase name ]
+    [ name; name.ToLower(); name.ToUpper(); randomCase name ]
 
 let toIgnoreCaseSet (x: string seq) =
     HashSet(x, StringComparer.InvariantCultureIgnoreCase)
