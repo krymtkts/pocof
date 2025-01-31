@@ -52,8 +52,6 @@ module LanguageExtension =
         let split (separator: string) (s: string) = Regex.Split(s, separator)
 
     module String =
-        let lower (s: string) = s.ToLower()
-        let upper (s: string) = s.ToUpper()
         let startsWith (value: string) (s: string) = s.StartsWith(value)
 
         let startsWithIgnoreCase (value: string) (s: string) =
@@ -65,7 +63,6 @@ module LanguageExtension =
             s.Split(separators, StringSplitOptions.None)
 
         let equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
-        let trim (s: string) = s.Trim()
         let replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
         let fromIndex (index: int) (s: string) = s.Substring(index)
         let upToIndex (index: int) (s: string) = s.Substring(0, index)
@@ -146,22 +143,24 @@ module Data =
                     | Obj(o) -> o[prop]
                     | Dict(d) -> d[prop]
 
-    let unwrap (entries: Entry seq) =
+    let unwrap (entries: Entry seq) : obj seq =
         entries
         |> Seq.map (function
-            | Entry.Dict(dct) -> dct :> obj
+            | Entry.Dict(dct) -> dct
             | Entry.Obj(o) -> o)
 
     let (|Found|_|) aType excludes name =
         FSharpType.GetUnionCases aType
-        |> Array.filter (fun u -> Set.contains u.Name excludes |> not)
-        |> Array.tryFind (fun u -> u.Name |> String.lower = name)
+        |> (fun arr ->
+            match Set.isEmpty excludes with
+            | true -> arr
+            | _ -> arr |> Array.filter (fun u -> Set.contains u.Name excludes |> not))
+        |> Array.tryFind _.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)
 
     let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
-        let name = String.lower s
         let aType = typeof<'a>
 
-        match name with
+        match s with
         | Found aType excludes u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
         | _ -> Error <| $"Unknown %s{aType.Name} '%s{s}'."
 
@@ -225,12 +224,13 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Matcher =
         | Eq
         | Like
         | Match
 
-        override __.ToString() = toString __ |> String.lower
+        override __.ToString() = toString __ |> _.ToLower()
 
     [<RequireQualifiedAccess>]
     module Matcher =
@@ -238,11 +238,12 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Operator =
         | And
         | Or
 
-        override __.ToString() = toString __ |> String.lower
+        override __.ToString() = toString __ |> _.ToLower()
 
     [<RequireQualifiedAccess>]
     module Operator =
@@ -250,6 +251,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Layout =
         | TopDown
         | TopDownHalf
@@ -269,6 +271,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type Refresh =
         | Required
         | NotRequired
@@ -289,6 +292,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type InputMode =
         | Input
         // Note: positive number is the backward selection from the cursor. negative number is the forward selection from the cursor.
@@ -409,21 +413,20 @@ module Data =
           CaseSensitive: bool
           Invert: bool }
 
-        override __.ToString() =
-            [ match __.CaseSensitive with
+    module QueryCondition =
+        let toString (condition: QueryCondition) =
+            [ match condition.CaseSensitive with
               | true -> "c"
               | _ -> ""
               // NOTE: use ToString to avoid extra branches when calculating coverages.
-              match __.Matcher, __.Invert with
+              match condition.Matcher, condition.Invert with
               | Matcher.Eq, true -> "ne"
               | m, true -> "not" + m.ToString()
               | m, _ -> m.ToString()
               " "
-              __.Operator.ToString() ]
+              condition.Operator.ToString() ]
             |> String.concat ""
 
-    [<NoComparison>]
-    module QueryCondition =
         let rotateMatcher (condition: QueryCondition) =
             { condition with
                 Matcher =
@@ -457,7 +460,7 @@ module Data =
 
     module InternalState =
         let queryInfo (state: InternalState) (count: int) =
-            $" %O{state.QueryCondition} [%d{count}]"
+            $" %s{state.QueryCondition |> QueryCondition.toString} [%d{count}]"
 
         let getX promptLength (state: InternalState) =
             promptLength + state.QueryState.Cursor - state.QueryState.WindowBeginningCursor
