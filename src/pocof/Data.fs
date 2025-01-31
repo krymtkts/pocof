@@ -63,7 +63,6 @@ module LanguageExtension =
             s.Split(separators, StringSplitOptions.None)
 
         let equals (opt: StringComparison) (value: string) (s: string) = s.Equals(value, opt)
-        let trim (s: string) = s.Trim()
         let replace (oldValue: string) (newValue: string) (s: string) = s.Replace(oldValue, newValue)
         let fromIndex (index: int) (s: string) = s.Substring(index)
         let upToIndex (index: int) (s: string) = s.Substring(0, index)
