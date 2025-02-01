@@ -328,4 +328,13 @@ Describe 'pocof' {
             }
         }
     }
+
+    if ($PSVersionTable.Platform -eq 'Unix') {
+        Context 'Select-Pocof cmdlet with Unix' {
+            It "shouldn't raise error when accessing platform-dependent properties." {
+                { Get-ChildItem | Select-Pocof ':User a' -NonInteractive } | Should -Not -Throw '*'
+            }
+        }
+    }
+
 }

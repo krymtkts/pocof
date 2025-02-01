@@ -122,7 +122,13 @@ module LanguageExtension =
                 __.Properties[prop]
                 |> function
                     | null -> null
-                    | p -> p.Value
+                    | p ->
+                        try
+                            p.Value
+                        with _ ->
+                            // TODO: error occurs on Linux when accessing Linux-dependent properties. currently, suppress the error.
+                            // Exception getting "Size": "There is no Runspace available to run scripts in this thread. You can provide one in the DefaultRunspace property of the System.Management.Automation.Runspaces.Runspace type. The script block you attempted to invoke was: $this.UnixStat.Size"
+                            null
 
 module Data =
     open System

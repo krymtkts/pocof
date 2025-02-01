@@ -33,6 +33,27 @@ module LanguageExtension =
             // NOTE: only for coverage.
             None |> Option.dispose
 
+    module Entry =
+        open System.Management.Automation
+
+        type MockProperty() =
+            // NOTE: use a custom property inherited AdaptedProperty to call Value getter for PSObject.
+            inherit PSAdaptedProperty("Dummy", "dummy")
+
+            override __.Value
+                with get () = failwith "MockProperty.Value raises error."
+                and set (_) = ()
+
+        [<Fact>]
+        let ``shouldn't fail when accessing error-prone properties and should return None`` () =
+            // NOTE: only for coverage.
+            let a = PSObject.AsPSObject("a")
+            let p = MockProperty()
+            // NOTE: requires passing true to preValidated to skip the check for CannotAddPropertyOrMethod.
+            // https://github.com/PowerShell/PowerShell/blob/c505f4ba39111df8bd8a957f8632ff9697639f0b/src/System.Management.Automation/engine/MshMemberInfo.cs#L4598C29-L4598C30
+            a.Properties.Add(p, true)
+            a["Dummy"] |> shouldEqual None
+
 module unwrap =
     open System.Collections
     open System.Management.Automation
