@@ -77,29 +77,35 @@ module Keys =
         | _ -> None
 
     [<TailCall>]
-    let rec private processKeys (keys: string list) (result: Result<Data.KeyPattern, string>) =
-        match keys with
-        | [] -> result
-        | [ k ] ->
-            match result, toEnum<ConsoleKey> k with
-            | Ok r, Some e -> { r with Key = e } |> Ok
-            | Ok _, None -> Error $"Unsupported key '%s{k}'."
-            | Error e, None -> Error $"%s{e} Unsupported key '%s{k}'."
-            | Error _ as e, _ -> e
-            |> processKeys []
-        | m :: keys ->
-            match result, toEnum<ConsoleModifiers> m with
-            | Ok r, Some x ->
-                { r with
-                    Modifier = r.Modifier ||| x.GetHashCode() }
-                |> Ok
-            | Ok _, None -> Error $"Unsupported modifier '%s{m}'."
-            | Error e, None -> Error $"%s{e} Unsupported modifier '%s{m}'."
-            | Error _ as e, _ -> e
-            |> processKeys keys
+    let rec private processKeys (keys: string array) l i (result: Result<Data.KeyPattern, string>) =
+        if i = l then
+            result
+        else
+            let k = keys[i]
+            let i = i + 1
+
+            if i = l then
+                match result, toEnum<ConsoleKey> k with
+                | Ok r, Some e -> { r with Key = e } |> Ok
+                | Ok _, None -> Error $"Unsupported key '%s{k}'."
+                | Error e, None -> Error $"%s{e} Unsupported key '%s{k}'."
+                | Error _ as e, _ -> e
+                |> processKeys keys l i
+            else
+                match result, toEnum<ConsoleModifiers> k with
+                | Ok r, Some x ->
+                    { r with
+                        Modifier = r.Modifier ||| x.GetHashCode() }
+                    |> Ok
+                | Ok _, None -> Error $"Unsupported modifier '%s{k}'."
+                | Error e, None -> Error $"%s{e} Unsupported modifier '%s{k}'."
+                | Error _ as e, _ -> e
+                |> processKeys keys l i
 
     let toKeyPattern (s: string) =
-        s |> String.split "+" |> List.ofSeq |> processKeys
+        let keys = s |> String.split "+"
+
+        processKeys keys (Array.length keys) 0
         <| Ok
             { Data.KeyPattern.Modifier = 0
               Data.KeyPattern.Key = ConsoleKey.NoName }
@@ -129,8 +135,8 @@ module Keys =
 
             match ok, ng with
             | c, [] ->
-                let source = defaultKeymap |> Map.toList
-                List.append source c |> Map.ofSeq |> Ok
+                let source = defaultKeymap |> Map.toSeq
+                Seq.append source c |> Map.ofSeq |> Ok
             | _, e -> e |> List.rev |> String.concat "\n" |> Error
 
 
