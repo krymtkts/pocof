@@ -111,8 +111,7 @@ module Keys =
             let ok, ng =
                 x
                 |> Seq.cast<DictionaryEntry>
-                |> Seq.toList
-                |> List.map (fun e ->
+                |> Seq.map (fun e ->
                     let k = string e.Key |> toKeyPattern
                     let v = string e.Value |> Data.Action.fromString
 
@@ -121,7 +120,7 @@ module Keys =
                     | (Error e1, Error e2) -> e1 + e2 |> Error
                     | (Error e, _)
                     | (_, Error e) -> Error e)
-                |> List.fold
+                |> Seq.fold
                     (fun (fst, snd) ->
                         function
                         | Ok(o) -> (o :: fst, snd)
