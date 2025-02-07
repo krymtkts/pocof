@@ -202,7 +202,7 @@ module Query =
                 | false, PropertySearch.Rotate(prefix: string, _) ->
                     let ret = properties |> Seq.filter (String.startsWithIgnoreCase prefix)
 
-                    match ret |> Seq.length with
-                    | 0 -> Error "Property not found"
+                    match ret |> Seq.isEmpty with
+                    | true -> Error "Property not found"
                     | _ -> ret |> List.ofSeq |> Ok
                 | _ -> Ok []
