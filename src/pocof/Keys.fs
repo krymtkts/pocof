@@ -71,8 +71,8 @@ module Keys =
 
               (plain ConsoleKey.Tab, Action.CompleteProperty) ]
 
-    let consoleKeyMap = generateDictOfEnum<ConsoleKey> ()
-    let consoleModifiersMap = generateDictOfEnum<ConsoleModifiers> ()
+    let consoleKeyMap = lazy generateDictOfEnum<ConsoleKey> ()
+    let consoleModifiersMap = lazy generateDictOfEnum<ConsoleModifiers> ()
 
     [<TailCall>]
     let rec private processKeys (keys: string array) l i (result: Result<Data.KeyPattern, string>) =
@@ -83,14 +83,14 @@ module Keys =
             let i = i + 1
 
             if i = l then
-                match result, (consoleKeyMap.TryGetValue k) with
+                match result, (consoleKeyMap.Value.TryGetValue k) with
                 | Ok r, (true, e) -> { r with Key = e } |> Ok
                 | Ok _, (false, _) -> Error $"Unsupported key '%s{k}'."
                 | Error e, (false, _) -> Error $"%s{e} Unsupported key '%s{k}'."
                 | Error _ as e, _ -> e
                 |> processKeys keys l i
             else
-                match result, (consoleModifiersMap.TryGetValue k) with
+                match result, (consoleModifiersMap.Value.TryGetValue k) with
                 | Ok r, (true, x) ->
                     { r with
                         Modifier = r.Modifier ||| x.GetHashCode() }
