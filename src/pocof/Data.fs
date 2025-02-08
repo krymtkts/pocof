@@ -165,23 +165,35 @@ module Data =
                 acc)
             dict
 
-    let (|Found|_|) aType excludes name =
+    let generateArrayOfDu aType excludes =
         FSharpType.GetUnionCases aType
         |> (fun arr ->
             match Set.isEmpty excludes with
             | true -> arr
             | _ -> arr |> Array.filter (fun u -> Set.contains u.Name excludes |> not))
-        |> Array.tryFind _.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)
 
-    let private tryFromStringExcludes<'a> (excludes: Set<string>) s =
-        let aType = typeof<'a>
+    let makeUnion<'DU> (u: UnionCaseInfo) = FSharpValue.MakeUnion(u, [||]) :?> 'DU
 
-        match s with
-        | Found aType excludes u -> Ok <| (FSharpValue.MakeUnion(u, [||]) :?> 'a)
+    let generateDictOfDu<'DU> (excludes: string Set) =
+        let dict =
+            Generic.Dictionary<string, 'DU>(StringComparer.InvariantCultureIgnoreCase)
+
+        generateArrayOfDu typeof<'DU> <| excludes
+        |> Array.fold
+            (fun (acc: Generic.Dictionary<string, 'DU>) u ->
+                acc.Add(u.Name, makeUnion<'DU> u)
+                acc)
+            dict
+
+    let tryFromStringExcludes (dict: Generic.Dictionary<string, 'DU>) s =
+        let aType = typeof<'DU>
+
+        match dict.TryGetValue s with
+        | true, du -> Ok du
         | _ -> Error <| $"Unknown %s{aType.Name} '%s{s}'."
 
-    let private fromString<'a> s =
-        tryFromStringExcludes<'a> (set []) s
+    let private fromString<'DU> (dict: Generic.Dictionary<string, 'DU>) s =
+        tryFromStringExcludes dict s
         |> function
             | Ok x -> x
             | Error e -> failwith e
@@ -236,7 +248,9 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Action =
-        let fromString = tryFromStringExcludes<Action> <| set [ nameof Action.AddQuery ]
+        let fromString =
+            generateDictOfDu<Action> <| set [ nameof Action.AddQuery ]
+            |> tryFromStringExcludes
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -250,7 +264,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Matcher =
-        let fromString = fromString<Matcher>
+        let fromString = generateDictOfDu<Matcher> <| set [] |> fromString<Matcher>
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -263,7 +277,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Operator =
-        let fromString = fromString<Operator>
+        let fromString = generateDictOfDu<Operator> <| set [] |> fromString<Operator>
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -276,7 +290,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Layout =
-        let fromString = fromString<Layout>
+        let fromString = generateDictOfDu<Layout> <| set [] |> fromString<Layout>
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
