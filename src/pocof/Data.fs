@@ -160,8 +160,8 @@ module Data =
 
         Enum.GetValues(typeof<'ENUM>) :?> 'ENUM array
         |> Array.fold
-            (fun acc k ->
-                dict.Add(k.ToString(), k)
+            (fun (acc: Generic.Dictionary<string, 'ENUM>) k ->
+                acc.Add(k.ToString(), k)
                 acc)
             dict
 
