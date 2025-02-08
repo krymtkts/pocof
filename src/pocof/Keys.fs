@@ -71,10 +71,8 @@ module Keys =
 
               (plain ConsoleKey.Tab, Action.CompleteProperty) ]
 
-    let private toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
-        match Enum.TryParse<'a>(k, true) with
-        | (true, e) -> Some e
-        | _ -> None
+    let consoleKeyMap = generateDictOfEnum<ConsoleKey> ()
+    let consoleModifiersMap = generateDictOfEnum<ConsoleModifiers> ()
 
     [<TailCall>]
     let rec private processKeys (keys: string array) l i (result: Result<Data.KeyPattern, string>) =
@@ -85,20 +83,20 @@ module Keys =
             let i = i + 1
 
             if i = l then
-                match result, toEnum<ConsoleKey> k with
-                | Ok r, Some e -> { r with Key = e } |> Ok
-                | Ok _, None -> Error $"Unsupported key '%s{k}'."
-                | Error e, None -> Error $"%s{e} Unsupported key '%s{k}'."
+                match result, (consoleKeyMap.TryGetValue k) with
+                | Ok r, (true, e) -> { r with Key = e } |> Ok
+                | Ok _, (false, _) -> Error $"Unsupported key '%s{k}'."
+                | Error e, (false, _) -> Error $"%s{e} Unsupported key '%s{k}'."
                 | Error _ as e, _ -> e
                 |> processKeys keys l i
             else
-                match result, toEnum<ConsoleModifiers> k with
-                | Ok r, Some x ->
+                match result, (consoleModifiersMap.TryGetValue k) with
+                | Ok r, (true, x) ->
                     { r with
                         Modifier = r.Modifier ||| x.GetHashCode() }
                     |> Ok
-                | Ok _, None -> Error $"Unsupported modifier '%s{k}'."
-                | Error e, None -> Error $"%s{e} Unsupported modifier '%s{k}'."
+                | Ok _, (false, _) -> Error $"Unsupported modifier '%s{k}'."
+                | Error e, (false, _) -> Error $"%s{e} Unsupported modifier '%s{k}'."
                 | Error _ as e, _ -> e
                 |> processKeys keys l i
 

@@ -155,6 +155,16 @@ module Data =
             | Entry.Dict(dct) -> dct
             | Entry.Obj(o) -> o)
 
+    let generateDictOfEnum<'ENUM> () =
+        let dict = Generic.Dictionary<string, 'ENUM>(StringComparer.OrdinalIgnoreCase)
+
+        Enum.GetValues(typeof<'ENUM>) :?> 'ENUM array
+        |> Array.fold
+            (fun acc k ->
+                dict.Add(k.ToString(), k)
+                acc)
+            dict
+
     let (|Found|_|) aType excludes name =
         FSharpType.GetUnionCases aType
         |> (fun arr ->
