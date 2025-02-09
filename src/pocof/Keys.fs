@@ -71,35 +71,39 @@ module Keys =
 
               (plain ConsoleKey.Tab, Action.CompleteProperty) ]
 
-    let private toEnum<'a when 'a :> Enum and 'a: struct and 'a: (new: unit -> 'a)> (k: string) =
-        match Enum.TryParse<'a>(k, true) with
-        | (true, e) -> Some e
-        | _ -> None
+    let consoleKeyMap = lazy generateDictOfEnum<ConsoleKey> ()
+    let consoleModifiersMap = lazy generateDictOfEnum<ConsoleModifiers> ()
 
     [<TailCall>]
-    let rec private processKeys (keys: string list) (result: Result<Data.KeyPattern, string>) =
-        match keys with
-        | [] -> result
-        | [ k ] ->
-            match result, toEnum<ConsoleKey> k with
-            | Ok r, Some e -> { r with Key = e } |> Ok
-            | Ok _, None -> Error $"Unsupported key '%s{k}'."
-            | Error e, None -> Error $"%s{e} Unsupported key '%s{k}'."
-            | Error _ as e, _ -> e
-            |> processKeys []
-        | m :: keys ->
-            match result, toEnum<ConsoleModifiers> m with
-            | Ok r, Some x ->
-                { r with
-                    Modifier = r.Modifier ||| x.GetHashCode() }
-                |> Ok
-            | Ok _, None -> Error $"Unsupported modifier '%s{m}'."
-            | Error e, None -> Error $"%s{e} Unsupported modifier '%s{m}'."
-            | Error _ as e, _ -> e
-            |> processKeys keys
+    let rec private processKeys (keys: string array) l i (result: Result<Data.KeyPattern, string>) =
+        if i = l then
+            result
+        else
+            let k = keys[i]
+            let i = i + 1
+
+            if i = l then
+                match result, (consoleKeyMap.Value.TryGetValue k) with
+                | Ok r, (true, e) -> { r with Key = e } |> Ok
+                | Ok _, (false, _) -> Error $"Unsupported key '%s{k}'."
+                | Error e, (false, _) -> Error $"%s{e} Unsupported key '%s{k}'."
+                | Error _ as e, _ -> e
+                |> processKeys keys l i
+            else
+                match result, (consoleModifiersMap.Value.TryGetValue k) with
+                | Ok r, (true, x) ->
+                    { r with
+                        Modifier = r.Modifier ||| x.GetHashCode() }
+                    |> Ok
+                | Ok _, (false, _) -> Error $"Unsupported modifier '%s{k}'."
+                | Error e, (false, _) -> Error $"%s{e} Unsupported modifier '%s{k}'."
+                | Error _ as e, _ -> e
+                |> processKeys keys l i
 
     let toKeyPattern (s: string) =
-        s |> String.split "+" |> List.ofSeq |> processKeys
+        let keys = s |> String.split "+"
+
+        processKeys keys (Array.length keys) 0
         <| Ok
             { Data.KeyPattern.Modifier = 0
               Data.KeyPattern.Key = ConsoleKey.NoName }
@@ -111,8 +115,7 @@ module Keys =
             let ok, ng =
                 x
                 |> Seq.cast<DictionaryEntry>
-                |> Seq.toList
-                |> List.map (fun e ->
+                |> Seq.map (fun e ->
                     let k = string e.Key |> toKeyPattern
                     let v = string e.Value |> Data.Action.fromString
 
@@ -121,7 +124,7 @@ module Keys =
                     | (Error e1, Error e2) -> e1 + e2 |> Error
                     | (Error e, _)
                     | (_, Error e) -> Error e)
-                |> List.fold
+                |> Seq.fold
                     (fun (fst, snd) ->
                         function
                         | Ok(o) -> (o :: fst, snd)
@@ -130,8 +133,8 @@ module Keys =
 
             match ok, ng with
             | c, [] ->
-                let source = defaultKeymap |> Map.toList
-                List.append source c |> Map.ofSeq |> Ok
+                let source = defaultKeymap |> Map.toSeq
+                Seq.append source c |> Map.ofSeq |> Ok
             | _, e -> e |> List.rev |> String.concat "\n" |> Error
 
 

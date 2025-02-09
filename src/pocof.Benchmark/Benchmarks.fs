@@ -66,6 +66,19 @@ type KeysBenchmarks() =
 
     let keyInfoControl = [ new ConsoleKeyInfo('a', ConsoleKey.A, true, true, true) ]
 
+    let keymaps =
+        let h = new Hashtable()
+
+        [ ("tab", "CompleteProperty")
+          ("alt+a", "DeleteBackwardChar")
+          ("ctrl+d", "SelectBackwardChar")
+          ("ctrl+shift+e", "RotateMatcher")
+          ("control+alt+shift+x", "cancel") ]
+        |> List.map h.Add
+        |> ignore
+
+        h
+
     [<Benchmark>]
     member __.get_Char() =
         Keys.get Keys.defaultKeymap keyInfoA |> ignore
@@ -81,6 +94,9 @@ type KeysBenchmarks() =
     [<Benchmark>]
     member __.get_ControlKey() =
         Keys.get Keys.defaultKeymap keyInfoControl |> ignore
+
+    [<Benchmark>]
+    member __.convertKeymaps() = Keys.convertKeymaps keymaps |> ignore
 
 [<MemoryDiagnoser>]
 type HandleBenchmarks() =
