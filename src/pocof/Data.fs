@@ -425,8 +425,7 @@ module Data =
             let s =
                 state.Query
                 |> String.upToIndex state.Cursor
-                |> String.split " "
-                |> (fun arr -> arr.[arr.Length - 1]) // NOTE: to avoid unreachable step in Array.last.
+                |> (fun x -> String.fromIndex <| x.LastIndexOf(" ") + 1 <| x)
 
 #if DEBUG
             Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
