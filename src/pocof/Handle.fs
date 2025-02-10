@@ -42,34 +42,49 @@ module Handle =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
     [<TailCall>]
-    let rec private findCursorOfChar (predicate: char -> bool) (str: char list) (cursor: int) =
-        match str with
-        | [] -> List.Empty, cursor
-        | c :: cs ->
+    let rec private findCursorOfChar (predicate: char -> bool) (str: char array) (cursor: int) =
+        if Array.length str <= cursor then
+            Array.Empty(), cursor
+        else
+            let c = str.[cursor]
+
             if predicate c then
-                cursor + 1 |> findCursorOfChar predicate cs
+                findCursorOfChar predicate str (cursor + 1)
             else
                 str, cursor
 
-    let private findWordCursor wordDelimiters =
+    let private findWordCursor (wordDelimiters: string) =
         isWordDelimiter wordDelimiters |> findCursorOfChar
 
-    let rec private findWordDelimiterCursor wordDelimiters =
+    let rec private findWordDelimiterCursor (wordDelimiters: string) =
         isWordDelimiter wordDelimiters >> not |> findCursorOfChar
 
-    let private findWordCursorWith substring findA findB (wordDelimiters: string) (query: string) (cursor: int) =
+    let private findWordCursorWith
+        (substring: int -> string -> char array)
+        (findA: string -> char array -> int -> char array * int)
+        (findB: string -> char array -> int -> char array * int)
+        (wordDelimiters: string)
+        (query: string)
+        (cursor: int)
+        =
         if String.length query < cursor then
-            List.Empty, 0
+            Array.Empty(), 0
         else
-            let str = substring cursor query |> List.ofSeq
+            let str = substring cursor query
             // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
             findA wordDelimiters str 0 ||> findB wordDelimiters
 
     let private findBackwardWordCursor =
-        findWordCursorWith (fun i s -> s |> String.upToIndex i |> Seq.rev) findWordCursor findWordDelimiterCursor
+        findWordCursorWith
+            (fun i s -> s |> String.upToIndex i |> _.ToCharArray() |> Array.rev)
+            findWordCursor
+            findWordDelimiterCursor
 
     let private findForwardWordCursor =
-        findWordCursorWith String.fromIndex findWordDelimiterCursor findWordCursor
+        findWordCursorWith
+            (fun i s -> s |> String.fromIndex i |> _.ToCharArray())
+            findWordDelimiterCursor
+            findWordCursor
 
     let private wordAction (findWordCursor) (converter) (state: InternalState) =
         let i =
