@@ -117,6 +117,11 @@ type HandleBenchmarks() =
           Refresh = Refresh.Required }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
 
+    let stateForWord =
+        { state with
+            InternalState.QueryState.Query = ":Name foo :Value bar"
+            InternalState.QueryState.Cursor = 8 }
+
     let stateForPropertySearch =
         { state with
             InternalState.QueryState.Query = ":Name"
@@ -148,12 +153,27 @@ type HandleBenchmarks() =
         Action.BackwardChar |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
+    member __.invokeAction_BackwardWord() =
+        Action.BackwardWord
+        |> Handle.invokeAction wordDelimiters [] stateForWord context
+
+    [<Benchmark>]
     member __.invokeAction_DeleteBackwardChar() =
         Action.DeleteBackwardChar |> Handle.invokeAction wordDelimiters [] state context
 
     [<Benchmark>]
+    member __.invokeAction_DeleteBackwardWord() =
+        Action.DeleteBackwardWord
+        |> Handle.invokeAction wordDelimiters [] stateForWord context
+
+    [<Benchmark>]
     member __.invokeAction_SelectBackwardChar() =
         Action.SelectBackwardChar |> Handle.invokeAction wordDelimiters [] state context
+
+    [<Benchmark>]
+    member __.invokeAction_SelectBackwardWord() =
+        Action.SelectBackwardWord
+        |> Handle.invokeAction wordDelimiters [] stateForWord context
 
     [<Benchmark>]
     member __.invokeAction_RotateMatcher() =
