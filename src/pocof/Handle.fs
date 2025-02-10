@@ -298,7 +298,9 @@ module Handle =
             | "" -> candidate
             | _ -> candidate |> String.replace keyword ""
 
-        let tailHead = String.split " " tail |> Array.head
+        let tailHead =
+            let i = tail.IndexOf " "
+            if i = -1 then tail else String.upToIndex i tail
 
         match rest = tailHead with
         | true -> tail |> String.fromIndex (String.length tailHead) |> Some
