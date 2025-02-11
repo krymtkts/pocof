@@ -114,7 +114,7 @@ module Screen =
                     | Data.Layout.BottomUpHalf -> rui.GetCursorPosition() |> snd
                     | _ -> 0
 
-                match (y + height) - rui.GetWindowHeight() with
+                match y + height - rui.GetWindowHeight() with
                 | Negative -> y
                 | over -> y - over - 1
 
@@ -189,15 +189,15 @@ module Screen =
 
         let getInformationString (state: Data.InternalState) (props: Result<string list, string>) (count: int) =
             match props with
-            | Error(e) -> note + e
-            | Ok(p) -> p |> String.concat " "
+            | Error e -> note + e
+            | Ok p -> p |> String.concat " "
             |> fun s ->
                 let info = Data.InternalState.queryInfo state count
                 let w = rui.GetWindowWidth() - (info |> String.length)
                 let ss = s |> String.length
 
                 match w - ss with
-                | Natural x -> s + (String.replicate x " ")
+                | Natural x -> s + String.replicate x " "
                 | _ -> s |> String.upToIndex w
                 + info
 
@@ -230,9 +230,9 @@ module Screen =
                     let y = rui.GetCursorPosition() |> snd
 
                     match layout with
-                    | Data.Layout.BottomUp -> (0, 0)
-                    | Data.Layout.BottomUpHalf -> (0, y - (rui.GetWindowHeight() / 2) + 1)
-                    | _ -> (0, y)
+                    | Data.Layout.BottomUp -> 0, 0
+                    | Data.Layout.BottomUpHalf -> 0, y - rui.GetWindowHeight() / 2 + 1
+                    | _ -> 0, y
 
                 let height =
                     match layout with
@@ -248,7 +248,7 @@ module Screen =
                 pos ||> rui.SetCursorPosition
 
         member private __.WriteScreenLine (height: int) (line: string) =
-            match (rui.GetWindowWidth() - __.GetLengthInBufferCells line) with
+            match rui.GetWindowWidth() - __.GetLengthInBufferCells line with
             | Natural x -> line + String.replicate x " "
             | _ -> line
             |> rui.Write 0 height

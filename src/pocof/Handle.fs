@@ -86,7 +86,7 @@ module Handle =
             findWordDelimiterCursor
             findWordCursor
 
-    let private wordAction (findWordCursor) (converter) (state: InternalState) =
+    let private wordAction findWordCursor converter (state: InternalState) =
         let i =
             findWordCursor state.QueryState.Query state.QueryState.Cursor
             |> snd
@@ -211,7 +211,7 @@ module Handle =
     let private deleteBackwardInput (state: InternalState) (context: QueryContext) =
         let state, context =
             match state.QueryState.InputMode with
-            | InputMode.Input -> (state, context)
+            | InputMode.Input -> state, context
             | InputMode.Select c ->
                 let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
 
@@ -224,7 +224,7 @@ module Handle =
 
         let state, context, beginning =
             match state.QueryState.InputMode with
-            | InputMode.Input -> (state, context, state.QueryState.Cursor)
+            | InputMode.Input -> state, context, state.QueryState.Cursor
             | InputMode.Select c ->
                 let beginning = min state.QueryState.Cursor <| state.QueryState.Cursor - c
 

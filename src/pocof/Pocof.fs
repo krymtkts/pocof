@@ -215,7 +215,7 @@ module Pocof =
                 | 0 -> []
                 | c ->
                     let items = Array.zeroCreate<RenderEvent> c
-                    renderStack.TryPopRange(items) |> ignore
+                    renderStack.TryPopRange items |> ignore
                     items |> Array.toList
 
             items |> getLatestEvent

@@ -102,7 +102,7 @@ module Query =
         match condition.Matcher with
         | Matcher.Match ->
             try
-                Regex(query) |> ignore
+                Regex query |> ignore
                 None
             with e ->
                 e.Message |> Some

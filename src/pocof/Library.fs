@@ -92,7 +92,7 @@ type SelectPocofCommand() =
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
         | Ok k -> keymaps <- k
-        | Error e -> ArgumentException(e) |> raise
+        | Error e -> ArgumentException e |> raise
 
         input <- __.Unique.IsPresent |> Pocof.getInputStore
 

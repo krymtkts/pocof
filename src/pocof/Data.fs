@@ -146,19 +146,19 @@ module Data =
             with get (prop: string) =
                 __
                 |> function
-                    | Obj(o) -> o[prop]
-                    | Dict(d) -> d[prop]
+                    | Obj o -> o[prop]
+                    | Dict d -> d[prop]
 
     let unwrap (entries: Entry seq) : obj seq =
         entries
         |> Seq.map (function
-            | Entry.Dict(dct) -> dct
-            | Entry.Obj(o) -> o)
+            | Entry.Dict dct -> dct
+            | Entry.Obj o -> o)
 
     let generateDictOfEnum<'ENUM> () =
         let dict = Generic.Dictionary<string, 'ENUM>(StringComparer.OrdinalIgnoreCase)
 
-        Enum.GetValues(typeof<'ENUM>) :?> 'ENUM array
+        Enum.GetValues typeof<'ENUM> :?> 'ENUM array
         |> Array.fold
             (fun (acc: Generic.Dictionary<string, 'ENUM>) k ->
                 acc.Add(k.ToString(), k)
@@ -167,16 +167,15 @@ module Data =
 
     let generateArrayOfDu aType excludes =
         FSharpType.GetUnionCases aType
-        |> (fun arr ->
+        |> fun arr ->
             match Set.isEmpty excludes with
             | true -> arr
-            | _ -> arr |> Array.filter (fun u -> Set.contains u.Name excludes |> not))
+            | _ -> arr |> Array.filter (fun u -> Set.contains u.Name excludes |> not)
 
     let makeUnion<'DU> (u: UnionCaseInfo) = FSharpValue.MakeUnion(u, [||]) :?> 'DU
 
     let generateDictOfDu<'DU> (excludes: string Set) =
-        let dict =
-            Generic.Dictionary<string, 'DU>(StringComparer.InvariantCultureIgnoreCase)
+        let dict = Generic.Dictionary<string, 'DU> StringComparer.InvariantCultureIgnoreCase
 
         generateArrayOfDu typeof<'DU> <| excludes
         |> Array.fold
@@ -371,11 +370,11 @@ module Data =
         let getQuerySelection (cursor: int) (state: QueryState) =
             match state.Cursor, cursor with
             | _, 0 -> state.InputMode
-            | x, y when (x + y < 0) || (x + y > String.length state.Query) -> state.InputMode
+            | x, y when x + y < 0 || x + y > String.length state.Query -> state.InputMode
             | _ ->
                 match state.InputMode with
                 | InputMode.Input -> 0
-                | InputMode.Select(s) -> s
+                | InputMode.Select s -> s
                 |> (+) cursor
                 |> function
                     | 0 -> InputMode.Input
@@ -425,7 +424,7 @@ module Data =
             let s =
                 state.Query
                 |> String.upToIndex state.Cursor
-                |> (fun x -> String.fromIndex <| x.LastIndexOf(" ") + 1 <| x)
+                |> fun x -> String.fromIndex <| x.LastIndexOf " " + 1 <| x
 
 #if DEBUG
             Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
