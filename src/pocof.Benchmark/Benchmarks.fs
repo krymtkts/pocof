@@ -194,7 +194,7 @@ type HandleBenchmarks() =
         |> Handle.invokeAction wordDelimiters properties stateForPropertyRotate context
 
 [<MemoryDiagnoser>]
-type QueryBenchmarks() =
+type QueryRunBenchmarks() =
     let props = Map [ ("length", "Length") ]
 
     let state =
@@ -272,6 +272,35 @@ type QueryBenchmarks() =
     [<Benchmark>]
     member __.run_dict_property() =
         Query.run __.PropertyContext __.Dicts props
+
+[<MemoryDiagnoser>]
+type QueryBenchmarks() =
+    let state =
+        { QueryState =
+            { Query = ""
+              Cursor = 0
+              WindowBeginningCursor = 0
+              WindowWidth = 0
+              InputMode = InputMode.Input }
+          QueryCondition =
+            { Matcher = Matcher.Match
+              Operator = Operator.And
+              CaseSensitive = false
+              Invert = false }
+          PropertySearch = PropertySearch.NoSearch
+          SuppressProperties = false
+          Refresh = Refresh.NotRequired }
+
+    let stateForPrepareQuery =
+        { state with
+            InternalState.QueryState.Query = ":Name foo bar :Value buz" }
+
+    let contextForPrepareQuery = Query.prepare state |> fst
+
+    [<Benchmark>]
+    member __.prepareQuery() =
+        Query.QueryContext.prepareQuery stateForPrepareQuery contextForPrepareQuery
+        |> ignore
 
 [<MemoryDiagnoser>]
 type PocofInteractBenchmarks() =
