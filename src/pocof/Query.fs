@@ -135,8 +135,8 @@ module Query =
 
         let combination =
             match op with
-            | Operator.And -> fun c acc -> (<@ c %x @>, acc, <@ false @>)
-            | Operator.Or -> fun c acc -> (<@ c %x @>, <@ true @>, acc)
+            | Operator.And -> fun c acc -> <@ c %x @>, acc, <@ false @>
+            | Operator.Or -> fun c acc -> <@ c %x @>, <@ true @>, acc
 
         let rec recBody acc conditions =
             match conditions with
@@ -161,7 +161,7 @@ module Query =
 
     [<TailCall>]
     let rec private generatePredicate
-        (op: Operator)
+        (op: bool -> bool -> bool)
         (props: Generic.IReadOnlyDictionary<string, string>)
         (acc: (Entry -> bool) list)
         queries
@@ -178,19 +178,14 @@ module Query =
                 generatePredicate op props (x :: acc) tail
             | _ -> generatePredicate op props acc tail
 
-        | QueryPart.Normal(test) :: tail ->
-            let combination =
-                match op with
-                | Operator.And -> (&&)
-                | Operator.Or -> (||)
-
+        | QueryPart.Normal test :: tail ->
             let x entry =
                 match entry with
-                | Entry.Dict(dct) -> combination (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
-                | Entry.Obj(o) -> o.ToString() |> test
+                | Entry.Dict dct -> op (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
+                | Entry.Obj o -> o.ToString() |> test
 
             generatePredicate op props (x :: acc) tail
-        | [] -> generateExpr op acc
+        | [] -> acc
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
@@ -200,7 +195,14 @@ module Query =
         match context.Queries with
         | [] -> entries
         | _ ->
-            let predicate = generatePredicate context.Operator props [] context.Queries
+            let op =
+                context.Operator
+                |> function
+                    | Operator.And -> (&&)
+                    | Operator.Or -> (||)
+
+            let predicate =
+                generatePredicate op props [] context.Queries |> generateExpr context.Operator
 
             entries |> PSeq.filter predicate
 
