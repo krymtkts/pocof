@@ -50,21 +50,33 @@ module Query =
           Operator: Operator }
 
     [<TailCall>]
-    let rec private parseQuery (is: string -> string -> bool) (acc: QueryPart list) (xs: string list) =
-        match xs with
-        | [] -> acc
-        | x :: xs ->
-            match xs with
-            | [] ->
-                parseQuery is
-                <| match x with
-                   | Prefix ":" _ -> acc
-                   | _ -> QueryPart.Normal(is x) :: acc
-                <| []
-            | y :: zs ->
-                match x with
-                | Prefix ":" p -> parseQuery is <| QueryPart.Property(p, is y) :: acc <| zs
-                | _ -> parseQuery is <| QueryPart.Normal(is x) :: acc <| xs
+    let rec private parseQuery
+        (is: string -> string -> bool)
+        (acc: QueryPart list)
+        (xs: string array)
+        (l: int)
+        (i: int)
+        =
+        if l = i then
+            acc
+        else
+            let x = xs.[i]
+            let i = i + 1
+
+            let acc, i =
+                if l = i then
+                    match x with
+                    | Prefix ":" _ -> acc
+                    | _ -> QueryPart.Normal(is x) :: acc
+                    , i
+                else
+                    match x with
+                    | Prefix ":" p ->
+                        let y = xs.[i]
+                        QueryPart.Property(p, is y) :: acc, i + 1
+                    | _ -> QueryPart.Normal(is x) :: acc, i
+
+            parseQuery is acc xs l i
 
     let private prepareTest (condition: QueryCondition) =
         let is =
@@ -83,8 +95,8 @@ module Query =
         | "" -> []
         | _ ->
             let is = prepareTest condition
-
-            query |> _.Trim() |> Regex.split @"\s+" |> List.ofSeq |> parseQuery is []
+            let xs = query |> _.Trim() |> Regex.split @"\s+"
+            parseQuery is [] xs <| Array.length xs <| 0
 
     let private prepareNotification (query: string) (condition: QueryCondition) =
         match condition.Matcher with
