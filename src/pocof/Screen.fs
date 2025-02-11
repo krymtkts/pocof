@@ -4,6 +4,7 @@ module Screen =
     open System
     open System.Management.Automation.Host
     open System.Threading
+    open System.Threading.Tasks
 
     [<Interface>]
     type IConsoleInterface =
@@ -199,18 +200,18 @@ module Screen =
                 + info
 
         [<TailCall>]
-        let rec read (acc: ConsoleKeyInfo list) =
-            rui.KeyAvailable()
-            |> function
-                | true ->
+        let rec readAsync (acc: ConsoleKeyInfo list) =
+            async {
+                if rui.KeyAvailable() then
                     let acc = rui.ReadKey true :: acc
-                    read acc
-                | _ ->
+                    return! readAsync acc
+                else
                     match acc with
                     | [] ->
-                        Thread.Sleep 10
-                        read acc
-                    | _ -> List.rev acc
+                        do! Async.Sleep 10
+                        return! readAsync acc
+                    | _ -> return List.rev acc
+            }
 
         let getCursorPosition (state: Data.InternalState) =
             match state.QueryState.InputMode with
@@ -304,9 +305,7 @@ module Screen =
 
         member __.GetConsoleWidth = rui.GetWindowWidth
 
-        member __.GetKey() =
-            Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
-            |> Async.RunSynchronously
+        member __.GetKey() = readAsync [] |> Async.RunSynchronously
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
