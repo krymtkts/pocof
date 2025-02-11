@@ -187,13 +187,18 @@ module Screen =
 
             prompt + q
 
-        let getInformationString (state: Data.InternalState) (props: Result<string list, string>) (count: int) =
+        let getInformationString
+            (width: int)
+            (state: Data.InternalState)
+            (props: Result<string list, string>)
+            (count: int)
+            =
             match props with
             | Error e -> note + e
             | Ok p -> p |> String.concat " "
             |> fun s ->
                 let info = Data.InternalState.queryInfo state count
-                let w = rui.GetWindowWidth() - (info |> String.length)
+                let w = width - (info |> String.length)
                 let ss = s |> String.length
 
                 match w - ss with
@@ -247,27 +252,28 @@ module Screen =
 
                 pos ||> rui.SetCursorPosition
 
-        member private __.WriteScreenLine (height: int) (line: string) =
-            match rui.GetWindowWidth() - __.GetLengthInBufferCells line with
+        member private __.WriteScreenLine (width: int) (height: int) (line: string) =
+            match width - __.GetLengthInBufferCells line with
             | Natural x -> line + String.replicate x " "
             | _ -> line
             |> rui.Write 0 height
 
         member private __.CalculatePositions =
+            let height = rui.GetWindowHeight()
+
             match layout with
             | Data.Layout.TopDown ->
                 let basePosition = 0
-                basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() - 3
+                basePosition, basePosition + 1, (+) (basePosition + 2), height - 3
             | Data.Layout.TopDownHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
-                basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() / 2 - 3
+                basePosition, basePosition + 1, (+) (basePosition + 2), height / 2 - 3
             | Data.Layout.BottomUp ->
-                let basePosition = rui.GetWindowHeight() - 1
-                basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() - 3
+                let basePosition = height - 1
+                basePosition, basePosition - 1, (-) (basePosition - 2), height - 3
             | Data.Layout.BottomUpHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
-
-                basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3
+                basePosition, basePosition - 1, (-) (basePosition - 2), height / 2 - 3
 
         member __.WriteScreen
             (state: Data.InternalState)
@@ -275,18 +281,19 @@ module Screen =
             (props: Result<string list, string>)
             =
             use _ = rui.HideCursorWhileRendering()
+            let width = rui.GetWindowWidth()
 
             let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions
             let queryString = getQueryString state
-            queryString |> __.WriteScreenLine baseLine
+            queryString |> __.WriteScreenLine width baseLine
 
 #if DEBUG
             Logger.LogFile
                 [ $"baseLine {baseLine}, firstLine {firstLine}, toHeight {toHeight}, screenHeight {screenHeight}" ]
 #endif
 
-            getInformationString state props (PSeq.length entries)
-            |> __.WriteScreenLine firstLine
+            getInformationString width state props (PSeq.length entries)
+            |> __.WriteScreenLine width firstLine
 
             let out =
                 Seq.truncate screenHeight entries
@@ -297,7 +304,7 @@ module Screen =
 
             Seq.append out (Seq.initInfinite (fun _ -> String.Empty))
             |> Seq.truncate (screenHeight + 1)
-            |> Seq.iteri (fun i s -> __.WriteScreenLine <| toHeight i <| s)
+            |> Seq.iteri (fun i s -> __.WriteScreenLine width <| toHeight i <| s)
 
             rui.SetCursorPosition
             <| rui.GetLengthInBufferCells(queryString |> String.upToIndex (getCursorPosition state))
