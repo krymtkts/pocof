@@ -58,7 +58,7 @@ module Screen =
 
             member __.SetCursorPosition (x: int) (y: int) = rui.CursorPosition <- Coordinates(x, y)
 
-            member __.GetLengthInBufferCells(prompt: string) = rui.LengthInBufferCells(prompt)
+            member __.GetLengthInBufferCells(prompt: string) = rui.LengthInBufferCells prompt
 
             member __.GetWindowWidth() = rui.WindowSize.Width
             member __.GetWindowHeight() = rui.WindowSize.Height
@@ -137,16 +137,16 @@ module Screen =
             | 0
             | 1 -> q
             | x ->
-                let l = l + (x + Math.Sign(x)) / 2
+                let l = l + (x + Math.Sign x) / 2
                 let q = q |> String.upToIndex l
                 getQuery w q l
 
         let selectRange (queryState: Data.QueryState) (q: string) =
             match queryState.InputMode with
             | Data.InputMode.Input -> 0
-            | Data.InputMode.Select(i) -> i
+            | Data.InputMode.Select i -> i
             |> function
-                | 0 -> None
+                | 0 -> q
                 | i ->
                     let s, e =
                         let c = queryState.Cursor - queryState.WindowBeginningCursor
@@ -156,36 +156,28 @@ module Screen =
 
                     let s = max s 0
                     let e = min e <| String.length q
-                    Some(s, e)
-            |> function
-                | None -> q
-                | Some(s, e) -> q.Insert(e, escapeSequenceResetInvert).Insert(s, escapeSequenceInvert)
+                    q.Insert(e, escapeSequenceResetInvert).Insert(s, escapeSequenceInvert)
 
         let getQueryString (state: Data.InternalState) =
             let q =
-                let q =
-                    state.QueryState.Query
-                    |> String.fromIndex state.QueryState.WindowBeginningCursor
-                    |> function
-                        | x when String.length x > state.QueryState.WindowWidth ->
-                            x |> String.upToIndex state.QueryState.WindowWidth
-                        | x -> x
-
-                let l =
+                state.QueryState.Query
+                |> String.fromIndex state.QueryState.WindowBeginningCursor
+                |> function
+                    | x when String.length x > state.QueryState.WindowWidth ->
+                        x |> String.upToIndex state.QueryState.WindowWidth
+                    | x -> x
+                |> fun q ->
                     match state.QueryState.WindowWidth - String.length q with
-                    | Natural l -> l
-                    | _ -> 0
-
-                let q = q + String.replicate l " "
+                    | Natural l -> q + String.replicate l " "
+                    | _ -> q
 
 #if DEBUG
-                Logger.LogFile
-                    [ $"query '{q}' query length '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+            Logger.LogFile
+                [ $"query '{q}' query length '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
-                getQuery state.QueryState.WindowWidth q <| String.length q
-                |> selectRange state.QueryState
-
-            prompt + q
+            getQuery state.QueryState.WindowWidth q state.QueryState.WindowWidth
+            |> selectRange state.QueryState
+            |> (+) prompt
 
         let getInformationString
             (width: int)
