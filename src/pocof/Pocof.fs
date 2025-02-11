@@ -215,7 +215,7 @@ module Pocof =
                 | 0 -> []
                 | c ->
                     let items = Array.zeroCreate<RenderEvent> c
-                    renderStack.TryPopRange(items) |> ignore
+                    renderStack.TryPopRange items |> ignore
                     items |> Array.toList
 
             items |> getLatestEvent
@@ -390,7 +390,7 @@ module Pocof =
         let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
 
         let propertiesMap: Concurrent.ConcurrentDictionary<string, string> =
-            Concurrent.ConcurrentDictionary(StringComparer.OrdinalIgnoreCase)
+            Concurrent.ConcurrentDictionary StringComparer.OrdinalIgnoreCase
 
         member __.ContainsKey = propertiesDictionary.ContainsKey
 
@@ -426,7 +426,7 @@ module Pocof =
         match conf.NotInteractive with
         | true ->
             let render () = ()
-            let waitResult (_) = interactOnce conf state (entries ())
+            let waitResult _ = interactOnce conf state (entries ())
             render, waitResult
         | _ ->
             let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout conf.Prompt

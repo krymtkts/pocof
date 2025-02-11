@@ -4,6 +4,7 @@ module Screen =
     open System
     open System.Management.Automation.Host
     open System.Threading
+    open System.Threading.Tasks
 
     [<Interface>]
     type IConsoleInterface =
@@ -58,7 +59,7 @@ module Screen =
 
             member __.SetCursorPosition (x: int) (y: int) = rui.CursorPosition <- Coordinates(x, y)
 
-            member __.GetLengthInBufferCells(prompt: string) = rui.LengthInBufferCells(prompt)
+            member __.GetLengthInBufferCells(prompt: string) = rui.LengthInBufferCells prompt
 
             member __.GetWindowWidth() = rui.WindowSize.Width
             member __.GetWindowHeight() = rui.WindowSize.Height
@@ -114,7 +115,7 @@ module Screen =
                     | Data.Layout.BottomUpHalf -> rui.GetCursorPosition() |> snd
                     | _ -> 0
 
-                match (y + height) - rui.GetWindowHeight() with
+                match y + height - rui.GetWindowHeight() with
                 | Negative -> y
                 | over -> y - over - 1
 
@@ -137,16 +138,16 @@ module Screen =
             | 0
             | 1 -> q
             | x ->
-                let l = l + (x + Math.Sign(x)) / 2
+                let l = l + (x + Math.Sign x) / 2
                 let q = q |> String.upToIndex l
                 getQuery w q l
 
         let selectRange (queryState: Data.QueryState) (q: string) =
             match queryState.InputMode with
             | Data.InputMode.Input -> 0
-            | Data.InputMode.Select(i) -> i
+            | Data.InputMode.Select i -> i
             |> function
-                | 0 -> None
+                | 0 -> q
                 | i ->
                     let s, e =
                         let c = queryState.Cursor - queryState.WindowBeginningCursor
@@ -156,64 +157,61 @@ module Screen =
 
                     let s = max s 0
                     let e = min e <| String.length q
-                    Some(s, e)
-            |> function
-                | None -> q
-                | Some(s, e) -> q.Insert(e, escapeSequenceResetInvert).Insert(s, escapeSequenceInvert)
+                    q.Insert(e, escapeSequenceResetInvert).Insert(s, escapeSequenceInvert)
 
         let getQueryString (state: Data.InternalState) =
             let q =
-                let q =
-                    state.QueryState.Query
-                    |> String.fromIndex state.QueryState.WindowBeginningCursor
-                    |> function
-                        | x when String.length x > state.QueryState.WindowWidth ->
-                            x |> String.upToIndex state.QueryState.WindowWidth
-                        | x -> x
-
-                let l =
+                state.QueryState.Query
+                |> String.fromIndex state.QueryState.WindowBeginningCursor
+                |> function
+                    | x when String.length x > state.QueryState.WindowWidth ->
+                        x |> String.upToIndex state.QueryState.WindowWidth
+                    | x -> x
+                |> fun q ->
                     match state.QueryState.WindowWidth - String.length q with
-                    | Natural l -> l
-                    | _ -> 0
-
-                let q = q + String.replicate l " "
+                    | Natural l -> q + String.replicate l " "
+                    | _ -> q
 
 #if DEBUG
-                Logger.LogFile
-                    [ $"query '{q}' query length '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+            Logger.LogFile
+                [ $"query '{q}' query length '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
-                getQuery state.QueryState.WindowWidth q <| String.length q
-                |> selectRange state.QueryState
+            getQuery state.QueryState.WindowWidth q state.QueryState.WindowWidth
+            |> selectRange state.QueryState
+            |> (+) prompt
 
-            prompt + q
-
-        let getInformationString (state: Data.InternalState) (props: Result<string list, string>) (count: int) =
+        let getInformationString
+            (width: int)
+            (state: Data.InternalState)
+            (props: Result<string list, string>)
+            (count: int)
+            =
             match props with
-            | Error(e) -> note + e
-            | Ok(p) -> p |> String.concat " "
+            | Error e -> note + e
+            | Ok p -> p |> String.concat " "
             |> fun s ->
                 let info = Data.InternalState.queryInfo state count
-                let w = rui.GetWindowWidth() - (info |> String.length)
+                let w = width - (info |> String.length)
                 let ss = s |> String.length
 
                 match w - ss with
-                | Natural x -> s + (String.replicate x " ")
+                | Natural x -> s + String.replicate x " "
                 | _ -> s |> String.upToIndex w
                 + info
 
         [<TailCall>]
-        let rec read (acc: ConsoleKeyInfo list) =
-            rui.KeyAvailable()
-            |> function
-                | true ->
+        let rec readAsync (acc: ConsoleKeyInfo list) =
+            async {
+                if rui.KeyAvailable() then
                     let acc = rui.ReadKey true :: acc
-                    read acc
-                | _ ->
+                    return! readAsync acc
+                else
                     match acc with
                     | [] ->
-                        Thread.Sleep 10
-                        read acc
-                    | _ -> List.rev acc
+                        do! Async.Sleep 10
+                        return! readAsync acc
+                    | _ -> return List.rev acc
+            }
 
         let getCursorPosition (state: Data.InternalState) =
             match state.QueryState.InputMode with
@@ -230,9 +228,9 @@ module Screen =
                     let y = rui.GetCursorPosition() |> snd
 
                     match layout with
-                    | Data.Layout.BottomUp -> (0, 0)
-                    | Data.Layout.BottomUpHalf -> (0, y - (rui.GetWindowHeight() / 2) + 1)
-                    | _ -> (0, y)
+                    | Data.Layout.BottomUp -> 0, 0
+                    | Data.Layout.BottomUpHalf -> 0, y - rui.GetWindowHeight() / 2 + 1
+                    | _ -> 0, y
 
                 let height =
                     match layout with
@@ -247,27 +245,28 @@ module Screen =
 
                 pos ||> rui.SetCursorPosition
 
-        member private __.WriteScreenLine (height: int) (line: string) =
-            match (rui.GetWindowWidth() - __.GetLengthInBufferCells line) with
+        member private __.WriteScreenLine (width: int) (height: int) (line: string) =
+            match width - __.GetLengthInBufferCells line with
             | Natural x -> line + String.replicate x " "
             | _ -> line
             |> rui.Write 0 height
 
         member private __.CalculatePositions =
+            let height = rui.GetWindowHeight()
+
             match layout with
             | Data.Layout.TopDown ->
                 let basePosition = 0
-                basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() - 3
+                basePosition, basePosition + 1, (+) (basePosition + 2), height - 3
             | Data.Layout.TopDownHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
-                basePosition, basePosition + 1, (+) (basePosition + 2), rui.GetWindowHeight() / 2 - 3
+                basePosition, basePosition + 1, (+) (basePosition + 2), height / 2 - 3
             | Data.Layout.BottomUp ->
-                let basePosition = rui.GetWindowHeight() - 1
-                basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() - 3
+                let basePosition = height - 1
+                basePosition, basePosition - 1, (-) (basePosition - 2), height - 3
             | Data.Layout.BottomUpHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
-
-                basePosition, basePosition - 1, (-) (basePosition - 2), rui.GetWindowHeight() / 2 - 3
+                basePosition, basePosition - 1, (-) (basePosition - 2), height / 2 - 3
 
         member __.WriteScreen
             (state: Data.InternalState)
@@ -275,18 +274,19 @@ module Screen =
             (props: Result<string list, string>)
             =
             use _ = rui.HideCursorWhileRendering()
+            let width = rui.GetWindowWidth()
 
             let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions
             let queryString = getQueryString state
-            queryString |> __.WriteScreenLine baseLine
+            queryString |> __.WriteScreenLine width baseLine
 
 #if DEBUG
             Logger.LogFile
                 [ $"baseLine {baseLine}, firstLine {firstLine}, toHeight {toHeight}, screenHeight {screenHeight}" ]
 #endif
 
-            getInformationString state props (PSeq.length entries)
-            |> __.WriteScreenLine firstLine
+            getInformationString width state props (PSeq.length entries)
+            |> __.WriteScreenLine width firstLine
 
             let out =
                 Seq.truncate screenHeight entries
@@ -297,7 +297,7 @@ module Screen =
 
             Seq.append out (Seq.initInfinite (fun _ -> String.Empty))
             |> Seq.truncate (screenHeight + 1)
-            |> Seq.iteri (fun i s -> __.WriteScreenLine <| toHeight i <| s)
+            |> Seq.iteri (fun i s -> __.WriteScreenLine width <| toHeight i <| s)
 
             rui.SetCursorPosition
             <| rui.GetLengthInBufferCells(queryString |> String.upToIndex (getCursorPosition state))
@@ -305,9 +305,7 @@ module Screen =
 
         member __.GetConsoleWidth = rui.GetWindowWidth
 
-        member __.GetKey() =
-            Async.FromContinuations(fun (cont, _, _) -> read [] |> cont)
-            |> Async.RunSynchronously
+        member __.GetKey() = readAsync [] |> Async.RunSynchronously
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 

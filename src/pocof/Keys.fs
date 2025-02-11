@@ -36,40 +36,40 @@ module Keys =
 
     let defaultKeymap =
         Map
-            [ (plain ConsoleKey.Escape, Action.Cancel)
-              (ctrl ConsoleKey.C, Action.Cancel)
-              (plain ConsoleKey.Enter, Action.Finish)
+            [ plain ConsoleKey.Escape, Action.Cancel
+              ctrl ConsoleKey.C, Action.Cancel
+              plain ConsoleKey.Enter, Action.Finish
 
-              (plain ConsoleKey.LeftArrow, Action.BackwardChar)
-              (ctrl ConsoleKey.LeftArrow, Action.BackwardWord)
-              (plain ConsoleKey.RightArrow, Action.ForwardChar)
-              (ctrl ConsoleKey.RightArrow, Action.ForwardWord)
-              (plain ConsoleKey.Home, Action.BeginningOfLine)
-              (plain ConsoleKey.End, Action.EndOfLine)
+              plain ConsoleKey.LeftArrow, Action.BackwardChar
+              ctrl ConsoleKey.LeftArrow, Action.BackwardWord
+              plain ConsoleKey.RightArrow, Action.ForwardChar
+              ctrl ConsoleKey.RightArrow, Action.ForwardWord
+              plain ConsoleKey.Home, Action.BeginningOfLine
+              plain ConsoleKey.End, Action.EndOfLine
 
-              (plain ConsoleKey.Backspace, Action.DeleteBackwardChar)
-              (plain ConsoleKey.Delete, Action.DeleteForwardChar)
-              (ctrl ConsoleKey.Backspace, Action.DeleteBackwardWord)
-              (ctrl ConsoleKey.Delete, Action.DeleteForwardWord)
-              (ctrl ConsoleKey.Home, Action.DeleteBackwardInput)
-              (ctrl ConsoleKey.End, Action.DeleteForwardInput)
+              plain ConsoleKey.Backspace, Action.DeleteBackwardChar
+              plain ConsoleKey.Delete, Action.DeleteForwardChar
+              ctrl ConsoleKey.Backspace, Action.DeleteBackwardWord
+              ctrl ConsoleKey.Delete, Action.DeleteForwardWord
+              ctrl ConsoleKey.Home, Action.DeleteBackwardInput
+              ctrl ConsoleKey.End, Action.DeleteForwardInput
 
-              (shift ConsoleKey.LeftArrow, Action.SelectBackwardChar)
-              (shift ConsoleKey.RightArrow, Action.SelectForwardChar)
-              (ctlSft ConsoleKey.LeftArrow, Action.SelectBackwardWord)
-              (ctlSft ConsoleKey.RightArrow, Action.SelectForwardWord)
-              (shift ConsoleKey.Home, Action.SelectToBeginningOfLine)
-              (shift ConsoleKey.End, Action.SelectToEndOfLine)
-              (ctrl ConsoleKey.A, Action.SelectAll)
+              shift ConsoleKey.LeftArrow, Action.SelectBackwardChar
+              shift ConsoleKey.RightArrow, Action.SelectForwardChar
+              ctlSft ConsoleKey.LeftArrow, Action.SelectBackwardWord
+              ctlSft ConsoleKey.RightArrow, Action.SelectForwardWord
+              shift ConsoleKey.Home, Action.SelectToBeginningOfLine
+              shift ConsoleKey.End, Action.SelectToEndOfLine
+              ctrl ConsoleKey.A, Action.SelectAll
 
-              (alt ConsoleKey.R, Action.RotateMatcher)
-              (alt ConsoleKey.L, Action.RotateOperator)
-              (alt ConsoleKey.C, Action.ToggleCaseSensitive)
-              (alt ConsoleKey.I, Action.ToggleInvertFilter)
+              alt ConsoleKey.R, Action.RotateMatcher
+              alt ConsoleKey.L, Action.RotateOperator
+              alt ConsoleKey.C, Action.ToggleCaseSensitive
+              alt ConsoleKey.I, Action.ToggleInvertFilter
 
-              (ctrl ConsoleKey.Spacebar, Action.ToggleSuppressProperties)
+              ctrl ConsoleKey.Spacebar, Action.ToggleSuppressProperties
 
-              (plain ConsoleKey.Tab, Action.CompleteProperty) ]
+              plain ConsoleKey.Tab, Action.CompleteProperty ]
 
     let consoleKeyMap = lazy generateDictOfEnum<ConsoleKey> ()
     let consoleModifiersMap = lazy generateDictOfEnum<ConsoleModifiers> ()
@@ -83,14 +83,14 @@ module Keys =
             let i = i + 1
 
             if i = l then
-                match result, (consoleKeyMap.Value.TryGetValue k) with
+                match result, consoleKeyMap.Value.TryGetValue k with
                 | Ok r, (true, e) -> { r with Key = e } |> Ok
                 | Ok _, (false, _) -> Error $"Unsupported key '%s{k}'."
                 | Error e, (false, _) -> Error $"%s{e} Unsupported key '%s{k}'."
                 | Error _ as e, _ -> e
                 |> processKeys keys l i
             else
-                match result, (consoleModifiersMap.Value.TryGetValue k) with
+                match result, consoleModifiersMap.Value.TryGetValue k with
                 | Ok r, (true, x) ->
                     { r with
                         Modifier = r.Modifier ||| x.GetHashCode() }
@@ -119,16 +119,16 @@ module Keys =
                     let k = string e.Key |> toKeyPattern
                     let v = string e.Value |> Data.Action.fromString
 
-                    match (k, v) with
-                    | (Ok kv, Ok av) -> Ok(kv, av)
-                    | (Error e1, Error e2) -> e1 + e2 |> Error
-                    | (Error e, _)
-                    | (_, Error e) -> Error e)
+                    match k, v with
+                    | Ok kv, Ok av -> Ok(kv, av)
+                    | Error e1, Error e2 -> e1 + e2 |> Error
+                    | Error e, _
+                    | _, Error e -> Error e)
                 |> Seq.fold
                     (fun (fst, snd) ->
                         function
-                        | Ok(o) -> (o :: fst, snd)
-                        | Error e -> (fst, e :: snd))
+                        | Ok o -> o :: fst, snd
+                        | Error e -> fst, e :: snd)
                     ([], [])
 
             match ok, ng with

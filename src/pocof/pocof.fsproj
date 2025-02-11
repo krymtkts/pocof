@@ -7,6 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
     <!-- Disable pocof.xml generation. -->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- Disable pocof.deps.json generation. -->
