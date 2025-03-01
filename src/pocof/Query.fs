@@ -1,3 +1,5 @@
+// NOTE: to avoid nullness warning from LeafExpressionConverter.EvaluateQuotation in unreachable pass.
+#nowarn 3264
 namespace Pocof
 
 open FSharp.Linq.RuntimeHelpers
