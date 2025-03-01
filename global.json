@@ -1,6 +1,7 @@
 {
+  // TODO: pin sdk version to 9.0.103 to prevent `dotnet tool restore` failure on MacOS due to `NU3018`, `NU3037` and `NU3028`.
   "sdk": {
-    "rollForward": "latestMinor",
-    "version": "9.0.101"
+    "rollForward": "disable",
+    "version": "9.0.103"
   }
 }
