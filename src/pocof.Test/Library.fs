@@ -74,8 +74,10 @@ module Mock =
         let mutable errors: ErrorRecord list = List.empty
         let mutable warnings: string list = List.empty
 
-        let write obj =
-            output <- (nullArgCheck "obj" (obj.ToString())) :: output
+        let write (obj: obj | null) =
+            match obj with
+            | null -> failwith "null"
+            | obj -> output <- (nullArgCheck "obj" (obj.ToString())) :: output
 
         member __.Output = output
         member __.Errors = errors
