@@ -155,7 +155,7 @@ module Data =
             | Entry.Dict dct -> dct
             | Entry.Obj o -> o)
 
-    let generateDictOfEnum<'ENUM> () =
+    let generateDictOfEnum<'ENUM when 'ENUM :> Enum> () =
         let dict = Generic.Dictionary<string, 'ENUM>(StringComparer.OrdinalIgnoreCase)
 
         Enum.GetValues typeof<'ENUM> :?> 'ENUM array
