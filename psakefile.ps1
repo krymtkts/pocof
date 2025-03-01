@@ -53,7 +53,7 @@ Task Lint {
     # if (-not $?) {
     #     throw 'dotnet fsharplint failed.'
     # }
-    dotnet fantomas ./src --check
+    dotnet fantomas ./src --check --verbosity detailed
     if (-not $?) {
         throw 'dotnet fantomas failed.'
     }
