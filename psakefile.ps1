@@ -59,10 +59,12 @@ Task Lint {
     }
     $warn = Invoke-ScriptAnalyzer -Path .\psakefile.ps1 -Settings .\PSScriptAnalyzerSettings.psd1
     if ($warn) {
+        $warn
         throw 'Invoke-ScriptAnalyzer for psakefile.ps1 failed.'
     }
     $warn = Invoke-ScriptAnalyzer -Path .\tests\pocof.Tests.ps1 -Settings .\PSScriptAnalyzerSettings.psd1
     if ($warn) {
+        $warn
         throw 'Invoke-ScriptAnalyzer for pocof.Tests.ps1 failed.'
     }
     Get-ValidMarkdownCommentHelp | Out-Null

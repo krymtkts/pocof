@@ -33,7 +33,9 @@ runs:
         RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
     - name: Execute All Tests
       shell: ${{ inputs.shell }}
-      run: Invoke-Psake -taskList TestAll
+      run: |
+        Invoke-Psake -taskList TestAll
+        if (-not $psake.build_success) { exit 1 }
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       with:
