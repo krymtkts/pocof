@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/pocof.Benchmark/pocof.Benchmark.fsproj" />
+    <Project Path="src/pocof.Inspector/pocof.Inspector.fsproj" />
+    <Project Path="src/pocof.Test/pocof.Test.fsproj" />
+    <Project Path="src/pocof/pocof.fsproj" />
+  </Folder>
+</Solution>
