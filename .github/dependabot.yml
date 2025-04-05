@@ -18,7 +18,13 @@ updates:
       - "krymtkts"
   # Maintain dependencies for NuGet
   - package-ecosystem: "nuget"
-    directory: "/"
+    # NOTE: dependabot not work with root directory
+    directories:
+      - "/"
+      - "/src/pocof"
+      - "/src/pocof.Benchmark"
+      - "/src/pocof.Inspector"
+      - "/src/pocof.Test"
     schedule:
       interval: "weekly"
       day: "friday"
