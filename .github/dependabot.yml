@@ -18,7 +18,7 @@ updates:
       - "krymtkts"
   # Maintain dependencies for NuGet
   - package-ecosystem: "nuget"
-    # NOTE: dependabot not work with root directory
+    # NOTE: dependabot raise dependency_file_not_found error with root directory.
     directories:
       - "/src/pocof"
       - "/src/pocof.Benchmark"
