@@ -19,11 +19,9 @@ updates:
   # Maintain dependencies for NuGet
   - package-ecosystem: "nuget"
     # NOTE: dependabot raises dependency_file_not_found error with root directory.
+    # NOTE: directories can use glob patterns.
     directories:
-      - "/src/pocof"
-      - "/src/pocof.Benchmark"
-      - "/src/pocof.Inspector"
-      - "/src/pocof.Test"
+      - "/src/pocof*"
     schedule:
       interval: "weekly"
       day: "friday"
