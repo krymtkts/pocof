@@ -48,11 +48,6 @@ function Get-ValidMarkdownCommentHelp {
 }
 
 Task Lint {
-    # TODO: not work with .NET 9 because of the error: "Lint failed to parse files. Failed with: Aborted type check.'
-    # dotnet fsharplint lint "${ModuleName}.sln"
-    # if (-not $?) {
-    #     throw 'dotnet fsharplint failed.'
-    # }
     dotnet fantomas ./src --check --verbosity detailed
     if (-not $?) {
         throw 'dotnet fantomas failed.'
