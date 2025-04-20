@@ -4,6 +4,8 @@
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/pocof)](https://www.powershellgallery.com/packages/pocof)
 ![Test main status](https://github.com/krymtkts/pocof/actions/workflows/main.yml/badge.svg)
 [![codecov](https://codecov.io/gh/krymtkts/pocof/graph/badge.svg?token=7HA9NC8PHT)](https://codecov.io/gh/krymtkts/pocof)
+![Top Language](https://img.shields.io/github/languages/top/krymtkts/pocof?color=%23b845fc)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 An interactive pipeline filtering Cmdlet for PowerShell written in F#.
 Pocof implemented in .Net Standard 2.0, ensuring compatibility across Windows, Linux, and Mac.
