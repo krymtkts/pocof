@@ -58,11 +58,6 @@ updates:
           - "minor"
           - "patch"
     ignore:
-      - dependency-name: "dotnet-fsharplint"
-        update-types:
-          - "version-update:semver-major"
-          - "version-update:semver-minor"
-          - "version-update:semver-patch"
       # NOTE: FsUnit.xUnit 7.x depends on xUnit 3.x, however, xUnit 3.x is not yet compatible with FsCheck.
       - dependency-name: "FsUnit.xUnit"
         update-types:
