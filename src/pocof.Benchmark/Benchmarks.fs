@@ -27,8 +27,7 @@ type PocofBenchmarks() =
         |> Seq.map (fun i ->
             let h = new OrderedHashtable()
             h.Add("a", i)
-            h)
-        |> Seq.map PSObject.AsPSObject
+            h |> PSObject.AsPSObject)
 
     [<Benchmark>]
     member __.buildProperties_PSObject() =
