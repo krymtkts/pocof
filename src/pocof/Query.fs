@@ -93,11 +93,11 @@ module Query =
         | _ -> is
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
-        match query with
-        | "" -> []
-        | _ ->
+        match query |> _.Trim() with
+        | q when String.length q = 0 -> []
+        | q ->
             let is = prepareTest condition
-            let xs = query |> _.Trim() |> Regex.split @"\s+"
+            let xs = q |> Regex.split @"\s+"
             parseQuery is [] xs <| Array.length xs <| 0
 
     let private prepareNotification (query: string) (condition: QueryCondition) =

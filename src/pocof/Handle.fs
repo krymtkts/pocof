@@ -309,8 +309,8 @@ module Handle =
 
     let private (|AlreadyCompleted|_|) (keyword: string) (tail: string) (candidate: string) =
         let rest: string =
-            match keyword with
-            | "" -> candidate
+            match String.length keyword with
+            | 0 -> candidate
             | _ -> candidate |> String.replace keyword ""
 
         let tailHead =
