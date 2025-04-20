@@ -48,15 +48,20 @@ function Get-ValidMarkdownCommentHelp {
 }
 
 Task Lint {
-    # TODO: not work with .NET 9 because of the error: "Lint failed to parse files. Failed with: Aborted type check.'
-    # dotnet fsharplint lint "${ModuleName}.sln"
-    # if (-not $?) {
-    #     throw 'dotnet fsharplint failed.'
-    # }
+    # F# analysis
     dotnet fantomas ./src --check --verbosity detailed
     if (-not $?) {
         throw 'dotnet fantomas failed.'
     }
+    $analyzerPath = dotnet build $ModuleSrcPath --getProperty:PkgIonide_Analyzers
+    Get-ChildItem './src/*/*.fsproj' | ForEach-Object {
+        dotnet fsharp-analyzers --project $_ --analyzers-path $analyzerPath --report "analysis/$($_.BaseName)-report.sarif" --code-root src --exclude-files '**/obj/**/*' '**/bin/**/*'
+        if (-not $?) {
+            throw "dotnet fsharp-analyzers for $($_.BaseName) failed."
+        }
+    }
+
+    # PowerShell analysis
     $warn = Invoke-ScriptAnalyzer -Path .\psakefile.ps1 -Settings .\PSScriptAnalyzerSettings.psd1
     if ($warn) {
         $warn
