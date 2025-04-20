@@ -110,20 +110,6 @@ Task MemoryLayout {
     dotnet run --project ./src/pocof.Inspector $Group
 }
 
-Task UbuntuPwsh {
-    if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-        throw 'docker is not installed. Read https://docs.docker.com/engine/install/ and install it.'
-    }
-    docker build -t ubuntu-dotnet-pwsh .
-    if (-not $?) {
-        throw 'docker build failed.'
-    }
-    docker run --rm -it ubuntu-dotnet-pwsh
-    if (-not $?) {
-        throw 'docker run failed.'
-    }
-}
-
 Task Import -Depends Build {
     "Import $ModuleName ver$ModuleVersion"
     if ( -not ($ModuleName -and $ModuleVersion)) {
