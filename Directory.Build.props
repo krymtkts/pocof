@@ -1,0 +1,9 @@
+<Project>
+    <ItemGroup>
+        <!-- Analyzer configurations. -->
+        <PackageReference Include="Ionide.Analyzers" Version="0.14.4">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+</Project>
