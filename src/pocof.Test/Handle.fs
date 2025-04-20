@@ -1246,10 +1246,6 @@ module invokeAction =
             a1
             |> shouldEqual
                 { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    InternalState.QueryState.InputMode = InputMode.Select 5
-                    PropertySearch = PropertySearch.Search "name"
                     Refresh = Refresh.NotRequired }
 
             a2.Queries |> testQueryEnd
