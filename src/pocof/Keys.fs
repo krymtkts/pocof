@@ -153,15 +153,17 @@ module Keys =
         { KeyChar = k.KeyChar
           Pattern = { Modifier = m; Key = k.Key } }
 
+    [<return: Struct>]
     let private (|ShortcutKey|_|) (m: Map<KeyPattern, Action>) (k: KeyInfo) =
         match Map.tryFind k.Pattern m with
-        | Some v -> Some v
-        | _ -> None
+        | Some v -> ValueSome v
+        | _ -> ValueNone
 
+    [<return: Struct>]
     let private (|ControlKey|_|) (k: KeyInfo) =
         match Char.IsControl k.KeyChar with
-        | true -> Some k.Pattern.Key
-        | _ -> None
+        | true -> ValueSome k.Pattern.Key
+        | _ -> ValueNone
 
     let get (keymap: Map<KeyPattern, Action>) (keyInfo: ConsoleKeyInfo list) =
         keyInfo

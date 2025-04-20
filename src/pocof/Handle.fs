@@ -307,6 +307,7 @@ module Handle =
 
         state, context
 
+    [<return: Struct>]
     let private (|AlreadyCompleted|_|) (keyword: string) (tail: string) (candidate: string) =
         let rest: string =
             match String.length keyword with
@@ -318,8 +319,8 @@ module Handle =
             if i = -1 then tail else String.upToIndex i tail
 
         match rest = tailHead with
-        | true -> tail |> String.fromIndex (String.length tailHead) |> Some
-        | _ -> None
+        | true -> tail |> String.fromIndex (String.length tailHead) |> ValueSome
+        | _ -> ValueNone
 
     let private completeProperty (properties: string seq) (state: InternalState) (context: QueryContext) =
         let splitQuery keyword candidate =
