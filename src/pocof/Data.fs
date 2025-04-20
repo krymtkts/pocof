@@ -97,14 +97,14 @@ module LanguageExtension =
     type pseq<'T> = ParallelQuery<'T>
 
     module PSeq =
-        let ofSeq (source: seq<'T>) : pseq<'T> = source.AsParallel().AsOrdered()
+        let ofSeq (source: 'T seq) : 'T pseq = source.AsParallel().AsOrdered()
 
-        let filter predicate (source: pseq<'T>) : pseq<'T> =
+        let filter predicate (source: 'T pseq) : 'T pseq =
             ParallelEnumerable.Where(source, Func<_, _>(predicate))
 
-        let length (source: pseq<'T>) : int = ParallelEnumerable.Count(source)
+        let length (source: 'T pseq) : int = ParallelEnumerable.Count(source)
 
-        let empty<'T> : pseq<'T> = ParallelEnumerable.Empty<'T>()
+        let empty<'T> : 'T pseq = ParallelEnumerable.Empty<'T>()
 
     type Collections.DictionaryEntry with
         member __.Item

@@ -22,7 +22,7 @@ type SelectPocofCommand() =
 
     [<Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)>]
     [<ValidateNotNull>]
-    member val InputObject: PSObject[] = [||] with get, set
+    member val InputObject: PSObject array = [||] with get, set
 
     [<Parameter(Position = 0)>]
     [<ValidateNotNull>]
