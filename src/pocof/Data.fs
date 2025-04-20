@@ -87,24 +87,25 @@ module LanguageExtension =
 
     let (|Negative|_|) (value: int) = value < 0
 
+    [<return: Struct>]
     let (|Natural|_|) (value: int) =
         match value with
-        | x when x > 0 -> Some x
-        | _ -> None
+        | x when x > 0 -> ValueSome x
+        | _ -> ValueNone
 
     // NOTE: Follow the naming style of built-in types.
     // fsharplint:disable-next-line
     type pseq<'T> = ParallelQuery<'T>
 
     module PSeq =
-        let ofSeq (source: seq<'T>) : pseq<'T> = source.AsParallel().AsOrdered()
+        let ofSeq (source: 'T seq) : 'T pseq = source.AsParallel().AsOrdered()
 
-        let filter predicate (source: pseq<'T>) : pseq<'T> =
+        let filter predicate (source: 'T pseq) : 'T pseq =
             ParallelEnumerable.Where(source, Func<_, _>(predicate))
 
-        let length (source: pseq<'T>) : int = ParallelEnumerable.Count(source)
+        let length (source: 'T pseq) : int = ParallelEnumerable.Count(source)
 
-        let empty<'T> : pseq<'T> = ParallelEnumerable.Empty<'T>()
+        let empty<'T> : 'T pseq = ParallelEnumerable.Empty<'T>()
 
     type Collections.DictionaryEntry with
         member __.Item
@@ -201,10 +202,11 @@ module Data =
         match FSharpValue.GetUnionFields(x, typeof<'a>) with
         | case, _ -> case.Name
 
+    [<return: Struct>]
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
-        | true -> s |> String.fromIndex (String.length p) |> Some
-        | _ -> None
+        | true -> s |> String.fromIndex (String.length p) |> ValueSome
+        | _ -> ValueNone
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -347,12 +349,13 @@ module Data =
                 Query = state.Query.Insert(state.Cursor, query)
                 Cursor = state.Cursor + String.length query }
 
+        [<return: Struct>]
         let (|OverQuery|_|) (query: string) (cursor: int) =
             let ql = String.length query
 
             match cursor with
-            | x when x > ql -> Some ql
-            | _ -> None
+            | x when x > ql -> ValueSome ql
+            | _ -> ValueNone
 
         let moveCursor (state: QueryState) (step: int) =
             let x =

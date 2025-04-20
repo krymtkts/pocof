@@ -418,7 +418,7 @@ module Pocof =
         invoke
         cancelAction
         (handler: RenderHandler)
-        (entries: unit -> seq<Entry>)
+        (entries: unit -> Entry seq)
         (p: IncomingParameters)
         =
         let conf, state = initConfig p
