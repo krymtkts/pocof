@@ -1,4 +1,0 @@
-.github
-coverage
-docs
-**/{bin,obj,TestResults}
