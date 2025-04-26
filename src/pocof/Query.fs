@@ -163,7 +163,6 @@ module Query =
 
     [<TailCall>]
     let rec private generatePredicate
-        (op: bool -> bool -> bool)
         (props: Generic.IReadOnlyDictionary<string, string>)
         (acc: (Entry -> bool) list)
         queries
@@ -177,16 +176,17 @@ module Query =
                     | null -> false
                     | pv -> pv.ToString() |> test
 
-                generatePredicate op props (x :: acc) tail
-            | _ -> generatePredicate op props acc tail
+                generatePredicate props (x :: acc) tail
+            | _ -> generatePredicate props acc tail
 
         | QueryPart.Normal test :: tail ->
             let x entry =
                 match entry with
-                | Entry.Dict dct -> op (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
+                // NOTE: A hashtable query matches either the key or the value.
+                | Entry.Dict dct -> (||) (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
                 | Entry.Obj o -> o.ToString() |> test
 
-            generatePredicate op props (x :: acc) tail
+            generatePredicate props (x :: acc) tail
         | [] -> acc
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
@@ -204,7 +204,7 @@ module Query =
                     | Operator.Or -> (||)
 
             let predicate =
-                generatePredicate op props [] context.Queries |> generateExpr context.Operator
+                generatePredicate props [] context.Queries |> generateExpr context.Operator
 
             entries |> PSeq.filter predicate
 
