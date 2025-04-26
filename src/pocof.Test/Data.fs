@@ -12,10 +12,10 @@ open FsCheck.Xunit
 open Pocof
 open Pocof.Data
 
+open Expecto
+open Expecto.Flip
 
 module LanguageExtension =
-    open Expecto
-    open Expecto.Flip
     open System.Management.Automation
 
     module Option =
@@ -280,108 +280,119 @@ module ``QueryState toString`` =
         |> Prop.collect data
 
 module initConfig =
-    [<Fact>]
-    let ``should return tuples`` () =
-        initConfig
-            { Query = ":name"
-              Matcher = "like"
-              Operator = "and"
-              CaseSensitive = true
-              InvertQuery = true
-              NotInteractive = true
-              SuppressProperties = true
-              Prompt = "prompt"
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Layout = "TopDown"
-              Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
-              Properties = [ "name"; "attributes" ]
-              PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ]
-              ConsoleWidth = 60 }
-        |> shouldEqual (
-            { Layout = Layout.TopDown
-              Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
-              NotInteractive = true
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = "prompt>"
-              PromptLength = 7
-              Properties = [ "name"; "attributes" ]
-              PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ] },
-            { QueryState =
-                { Query = ":name"
-                  Cursor = 5
-                  WindowBeginningCursor = 0
-                  WindowWidth = 60 - (String.length "prompt>" + 1)
-                  InputMode = InputMode.Input }
-              QueryCondition =
-                { Matcher = Matcher.Like
-                  Operator = Operator.And
-                  CaseSensitive = true
-                  Invert = true }
-              PropertySearch = PropertySearch.Search "name"
-              SuppressProperties = true
-              Refresh = Refresh.Required }
-        )
+    [<Tests>]
+    let tests_initConfig =
+        testList
+            "InitConfig"
+            [
 
-    [<Fact>]
-    let ``should fail due to unknown Matcher.`` () =
-        shouldFail (fun () ->
-            initConfig
-                { Query = ""
-                  Matcher = "same"
-                  Operator = "or"
-                  CaseSensitive = false
-                  InvertQuery = false
-                  NotInteractive = false
-                  SuppressProperties = false
-                  Prompt = "prompt"
-                  WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-                  Layout = "TopDown"
-                  Keymaps = Map []
-                  Properties = []
-                  PropertiesMap = Map []
-                  ConsoleWidth = 20 }
-            |> ignore)
+              test "when valid" {
 
-    [<Fact>]
-    let ``should fail due to unknown Operator.`` () =
-        shouldFail (fun () ->
-            initConfig
-                { Query = ""
-                  Matcher = "eq"
-                  Operator = "not"
-                  CaseSensitive = false
-                  InvertQuery = false
-                  NotInteractive = false
-                  SuppressProperties = false
-                  Prompt = "prompt"
-                  WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-                  Layout = "TopDown"
-                  Keymaps = Map []
-                  Properties = []
-                  PropertiesMap = Map []
-                  ConsoleWidth = 20 }
+                  initConfig
+                      { Query = ":name"
+                        Matcher = "like"
+                        Operator = "and"
+                        CaseSensitive = true
+                        InvertQuery = true
+                        NotInteractive = true
+                        SuppressProperties = true
+                        Prompt = "prompt"
+                        WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                        Layout = "TopDown"
+                        Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
+                        Properties = [ "name"; "attributes" ]
+                        PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ]
+                        ConsoleWidth = 60 }
+                  |> Expect.equal
+                      "should return tuples"
+                      ({ Layout = Layout.TopDown
+                         Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
+                         NotInteractive = true
+                         WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                         Prompt = "prompt>"
+                         PromptLength = 7
+                         Properties = [ "name"; "attributes" ]
+                         PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ] },
+                       { QueryState =
+                           { Query = ":name"
+                             Cursor = 5
+                             WindowBeginningCursor = 0
+                             WindowWidth = 60 - (String.length "prompt>" + 1)
+                             InputMode = InputMode.Input }
+                         QueryCondition =
+                           { Matcher = Matcher.Like
+                             Operator = Operator.And
+                             CaseSensitive = true
+                             Invert = true }
+                         PropertySearch = PropertySearch.Search "name"
+                         SuppressProperties = true
+                         Refresh = Refresh.Required })
 
-            |> ignore)
+              }
 
-    [<Fact>]
-    let ``should fail due to unknown Layout.`` () =
-        shouldFail (fun () ->
-            initConfig
-                { Query = ""
-                  Matcher = "eq"
-                  Operator = "or"
-                  CaseSensitive = false
-                  InvertQuery = false
-                  NotInteractive = false
-                  SuppressProperties = false
-                  Prompt = "prompt"
-                  WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-                  Layout = "LeftToRight"
-                  Keymaps = Map []
-                  Properties = []
-                  PropertiesMap = Map []
-                  ConsoleWidth = 20 }
-            |> ignore)
+              test "when unknown Matcher" {
+                  Expect.throws "should fail" (fun () ->
+                      initConfig
+                          { Query = ""
+                            Matcher = "same"
+                            Operator = "or"
+                            CaseSensitive = false
+                            InvertQuery = false
+                            NotInteractive = false
+                            SuppressProperties = false
+                            Prompt = "prompt"
+                            WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                            Layout = "TopDown"
+                            Keymaps = Map []
+                            Properties = []
+                            PropertiesMap = Map []
+                            ConsoleWidth = 20 }
+                      |> ignore)
+
+              }
+
+              test "when unknown Operator" {
+                  Expect.throws "should fail" (fun () ->
+                      initConfig
+                          { Query = ""
+                            Matcher = "eq"
+                            Operator = "not"
+                            CaseSensitive = false
+                            InvertQuery = false
+                            NotInteractive = false
+                            SuppressProperties = false
+                            Prompt = "prompt"
+                            WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                            Layout = "TopDown"
+                            Keymaps = Map []
+                            Properties = []
+                            PropertiesMap = Map []
+                            ConsoleWidth = 20 }
+
+                      |> ignore)
+              }
+
+              test "when unknown Layout" {
+                  Expect.throws "should fail" (fun () ->
+                      initConfig
+                          { Query = ""
+                            Matcher = "eq"
+                            Operator = "or"
+                            CaseSensitive = false
+                            InvertQuery = false
+                            NotInteractive = false
+                            SuppressProperties = false
+                            Prompt = "prompt"
+                            WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                            Layout = "LeftToRight"
+                            Keymaps = Map []
+                            Properties = []
+                            PropertiesMap = Map []
+                            ConsoleWidth = 20 }
+                      |> ignore)
+              }
+
+              ]
 
 module QueryState =
     module getCurrentProperty =
