@@ -32,17 +32,15 @@ module LanguageExtension =
             "Option"
             [
 
-              test "shouldn't call Dispose if Some." {
+              test "When Some." {
                   let mock = new Option.Mock()
                   mock |> Some |> Option.dispose
-                  mock.disposed |> Expect.isTrue ""
-                  Option.dispose <| Some mock
+                  mock.disposed |> Expect.isTrue "should call Dispose"
               }
 
-              test "shouldn't call Dispose if None." {
+              test "shouldn't call Dispose when None." {
                   // NOTE: only for coverage.
                   None |> Option.dispose
-
               }
 
               ]
@@ -62,14 +60,14 @@ module LanguageExtension =
             "Entry"
             [
 
-              test "shouldn't fail when accessing error-prone properties and should return None" {
+              test "shouldn't fail when accessing error-prone properties" {
                   // NOTE: only for coverage.
                   let a = PSObject.AsPSObject("a")
                   let p = Entry.MockProperty()
                   // NOTE: requires passing true to preValidated to skip the check for CannotAddPropertyOrMethod.
                   // https://github.com/PowerShell/PowerShell/blob/c505f4ba39111df8bd8a957f8632ff9697639f0b/src/System.Management.Automation/engine/MshMemberInfo.cs#L4598C29-L4598C30
                   a.Properties.Add(p, true)
-                  a["Dummy"] |> shouldEqual None
+                  a["Dummy"] |> Expect.equal "should return None" None
               }
 
               ]
