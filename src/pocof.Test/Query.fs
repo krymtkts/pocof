@@ -346,7 +346,7 @@ module run =
 
         [<Fact>]
         let ``should return filtered entries when composite query with and operator.`` () =
-            let state = state |> query "e" |> opAnd
+            let state = state |> query "ne" |> opAnd
             let context, _ = Query.prepare state
 
             Query.run context entries props
