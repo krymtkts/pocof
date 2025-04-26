@@ -14,24 +14,37 @@ open Pocof.Data
 
 
 module LanguageExtension =
+    open Expecto
+    open Expecto.Flip
+
     module Option =
+
         type Mock() =
             member val disposed = false with get, set
 
             interface IDisposable with
                 member __.Dispose() = __.disposed <- true
 
-        [<Fact>]
-        let ``shouldn't call Dispose if Some.`` () =
-            let mock = new Mock()
-            mock |> Some |> Option.dispose
-            mock.disposed |> shouldEqual true
-            Option.dispose <| Some mock
+    [<Tests>]
+    let tests_Option =
+        testList
+            "Option"
+            [
 
-        [<Fact>]
-        let ``shouldn't call Dispose if None.`` () =
-            // NOTE: only for coverage.
-            None |> Option.dispose
+              test "shouldn't call Dispose if Some." {
+                  let mock = new Option.Mock()
+                  mock |> Some |> Option.dispose
+                  mock.disposed |> Expect.isTrue ""
+                  Option.dispose <| Some mock
+              }
+
+              test "shouldn't call Dispose if None." {
+                  // NOTE: only for coverage.
+                  None |> Option.dispose
+
+              }
+
+              ]
 
     module Entry =
         open System.Management.Automation
