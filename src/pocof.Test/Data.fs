@@ -437,13 +437,22 @@ module QueryState =
                   ]
 
     module deleteSelection =
-        [<Fact>]
-        let ``should return no change when InputMode.Input `` () =
-            let state =
-                { Query = ""
-                  Cursor = 0
-                  WindowBeginningCursor = 0
-                  WindowWidth = 0
-                  InputMode = InputMode.Input }
+        let state =
+            { Query = ""
+              Cursor = 0
+              WindowBeginningCursor = 0
+              WindowWidth = 0
+              InputMode = InputMode.Input }
 
-            QueryState.deleteSelection state |> shouldEqual state
+        [<Tests>]
+        let tests_deleteSelection =
+            testList
+                "deleteSelection"
+                [
+
+                  test "When InputMode is Input, no selection" {
+                      QueryState.deleteSelection state
+                      |> Expect.equal "should return unchanged state" state
+                  }
+
+                  ]
