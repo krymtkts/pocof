@@ -3,6 +3,9 @@ module PocofTest.Handle
 open Xunit
 open FsUnitTyped
 
+open Expecto
+open Expecto.Flip
+
 open Pocof
 open Pocof.Data
 open Pocof.Handle
@@ -30,13 +33,18 @@ module invokeAction =
 
     let noop action =
         let context, _ = Query.prepare state
+        let s, c = invokeAction [] state context action
 
-        invokeAction [] state context action
-        |> shouldEqual (
+        s
+        |> Expect.equal
+            "should return same state"
             { state with
-                Refresh = Refresh.NotRequired },
-            context
-        )
+                Refresh = Refresh.NotRequired }
+
+        c.Operator |> Expect.equal "should return same operator" context.Operator
+
+        c.Queries
+        |> Expect.hasLength "should return same queries" context.Queries.Length
 
     let testQueryEnd =
         function
@@ -55,9 +63,15 @@ module invokeAction =
             y value |> shouldEqual true
         | _ -> failwith "invalid query part property."
 
-    module ``with Noop`` =
-        [<Fact>]
-        let ``shouldn't return any difference.`` () = noop Action.Noop
+    [<Tests>]
+    let tests_Noop =
+        testList
+            "Noop"
+            [
+
+              test "When Noop" { noop Action.Noop }
+
+              ]
 
     module ``with Cancel`` =
         [<Fact>]
