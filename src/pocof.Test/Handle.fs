@@ -431,69 +431,75 @@ module invokeAction =
                   a2.Queries |> testQueryPartProperty "name" "aaa"
               } ]
 
-    module ``with BeginningOfLine`` =
-        [<Fact>]
-        let ``should return state with cursor=0.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+    [<Tests>]
+    let tests_BeginningOfLine =
+        testList
+            "BeginningOfLine"
+            [ test "When cursor=5" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.BeginningOfLine
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.BeginningOfLine
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch }
+                  a1
+                  |> Expect.equal
+                      "should return state with cursor=0."
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryEnd
+              }
 
-        [<Fact>]
-        let ``should return state with Refresh.NotRequired.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch }
+              test "When cursor=0" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.BeginningOfLine
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.BeginningOfLine
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch
-                    Refresh = Refresh.NotRequired }
+                  a1
+                  |> Expect.equal
+                      "should return state with Refresh.NotRequired."
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch
+                          Refresh = Refresh.NotRequired }
 
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryEnd
+              }
 
-        [<Fact>]
-        let ``should return state with cursor=0 and InputMode=Input.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    InternalState.QueryState.InputMode = InputMode.Select 5
-                    PropertySearch = PropertySearch.Search "name" }
+              test "When InputMode=Select and cursor=5" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          InternalState.QueryState.InputMode = InputMode.Select 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.BeginningOfLine
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.BeginningOfLine
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    InternalState.QueryState.InputMode = InputMode.Input
-                    PropertySearch = PropertySearch.NoSearch }
+                  a1
+                  |> Expect.equal
+                      "should return state with cursor=0 and InputMode=Input."
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryEnd
+              } ]
 
     module ``with EndOfLine`` =
         [<Fact>]
