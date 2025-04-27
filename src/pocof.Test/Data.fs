@@ -38,7 +38,7 @@ module LanguageExtension =
                   mock.disposed |> Expect.isTrue "should call Dispose"
               }
 
-              test "shouldn't call Dispose when None." {
+              test "When None, shouldn't call Dispose." {
                   // NOTE: only for coverage.
                   None |> Option.dispose
               }
@@ -60,7 +60,7 @@ module LanguageExtension =
             "Entry"
             [
 
-              test "shouldn't fail when accessing error-prone properties" {
+              test "When accessing error-prone properties, shouldn't fail" {
                   // NOTE: only for coverage.
                   let a = PSObject.AsPSObject("a")
                   let p = Entry.MockProperty()
@@ -286,7 +286,7 @@ module initConfig =
             "InitConfig"
             [
 
-              test "when valid" {
+              test "When valid config is provided" {
 
                   initConfig
                       { Query = ":name"
@@ -330,7 +330,7 @@ module initConfig =
 
               }
 
-              test "when unknown Matcher" {
+              test "When unknown Matcher is provided" {
                   Expect.throws "should fail" (fun () ->
                       initConfig
                           { Query = ""
@@ -351,7 +351,7 @@ module initConfig =
 
               }
 
-              test "when unknown Operator" {
+              test "When unknown Operator is provided" {
                   Expect.throws "should fail" (fun () ->
                       initConfig
                           { Query = ""
@@ -372,7 +372,7 @@ module initConfig =
                       |> ignore)
               }
 
-              test "when unknown Layout" {
+              test "When unknown Layout is provided" {
                   Expect.throws "should fail" (fun () ->
                       initConfig
                           { Query = ""
