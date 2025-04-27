@@ -73,11 +73,18 @@ module invokeAction =
 
               ]
 
-    module ``with Cancel`` =
-        [<Fact>]
-        let ``should fail when unimplemented action is entered.`` () =
-            let context, _ = Query.prepare state
-            shouldFail (fun () -> invokeAction [] state context Action.Cancel |> ignore)
+    [<Tests>]
+    let tests_Cancel =
+        testList
+            "Cancel"
+            [
+
+              test "When Cancel" {
+                  let context, _ = Query.prepare state
+                  Expect.throws "should fail" (fun () -> invokeAction [] state context Action.Cancel |> ignore)
+              }
+
+              ]
 
     module ``with AddQuery`` =
         [<Fact>]
