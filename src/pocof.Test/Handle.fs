@@ -1066,102 +1066,114 @@ module invokeAction =
 
               ]
 
-    module ``with KillBeginningOfLine`` =
-        [<Fact>]
-        let ``should remove all characters before the specified.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = "examplequery"
-                    InternalState.QueryState.Cursor = 7 }
+    [<Tests>]
+    let tests_KillBeginningOfLine =
+        testList
+            "KillBeginningOfLine"
+            [
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
+              test "When cursor=7" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = "examplequery"
+                          InternalState.QueryState.Cursor = 7 }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = "query"
-                    InternalState.QueryState.Cursor = 0 }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
-            a2.Queries |> testQueryPartNormal "query"
+                  a1
+                  |> Expect.equal
+                      "should remove all characters before the specified"
+                      { state with
+                          InternalState.QueryState.Query = "query"
+                          InternalState.QueryState.Cursor = 0 }
 
-        [<Fact>]
-        let ``should remove all characters when the cursor is over the query length.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = "examplequery"
-                    InternalState.QueryState.Cursor = 13 }
+                  a2.Queries |> testQueryPartNormal "query"
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
+              test "When cursor=13" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = "examplequery"
+                          InternalState.QueryState.Cursor = 13 }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ""
-                    InternalState.QueryState.Cursor = 0 }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should remove all characters when the cursor is over the query length"
+                      { state with
+                          InternalState.QueryState.Query = ""
+                          InternalState.QueryState.Cursor = 0 }
 
-        [<Fact>]
-        let ``should not change state if the cursor is at the begin of line.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = "query"
-                    InternalState.QueryState.Cursor = 0 }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
+              test "When the cursor is at the begin of line" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = "query"
+                          InternalState.QueryState.Cursor = 0 }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = "query"
-                    InternalState.QueryState.Cursor = 0
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
-                    Refresh = Refresh.NotRequired }
+                  a1
+                  |> Expect.equal
+                      "should not change state"
+                      { state with
+                          InternalState.QueryState.Query = "query"
+                          InternalState.QueryState.Cursor = 0
 
-            a2.Queries |> testQueryPartNormal "query"
+                          Refresh = Refresh.NotRequired }
 
-        [<Fact>]
-        let ``should remove all characters before the cursor including the selection.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = "examplequery"
-                    InternalState.QueryState.InputMode = InputMode.Select 5
-                    InternalState.QueryState.Cursor = 10 }
+                  a2.Queries |> testQueryPartNormal "query"
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
+              test "When InputMode=Select with 5 chars" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = "examplequery"
+                          InternalState.QueryState.InputMode = InputMode.Select 5
+                          InternalState.QueryState.Cursor = 10 }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = "ry"
-                    InternalState.QueryState.InputMode = InputMode.Input
-                    InternalState.QueryState.Cursor = 0 }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
-            a2.Queries |> testQueryPartNormal "ry"
+                  a1
+                  |> Expect.equal
+                      "should remove all characters before the cursor including the selection"
+                      { state with
+                          InternalState.QueryState.Query = "ry"
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          InternalState.QueryState.Cursor = 0 }
 
-        [<Fact>]
-        let ``should remove all characters before the cursor and the the selection.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = "examplequery"
-                    InternalState.QueryState.InputMode = InputMode.Select -5
-                    InternalState.QueryState.Cursor = 5 }
+                  a2.Queries |> testQueryPartNormal "ry"
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
+              test "When InputMode=Selct with forward 5 chars" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = "examplequery"
+                          InternalState.QueryState.InputMode = InputMode.Select -5
+                          InternalState.QueryState.Cursor = 5 }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = "ry"
-                    InternalState.QueryState.InputMode = InputMode.Input
-                    InternalState.QueryState.Cursor = 0 }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardInput
 
-            a2.Queries |> testQueryPartNormal "ry"
+                  a1
+                  |> Expect.equal
+                      "should remove all characters before the cursor and the the selection"
+                      { state with
+                          InternalState.QueryState.Query = "ry"
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          InternalState.QueryState.Cursor = 0 }
+
+                  a2.Queries |> testQueryPartNormal "ry"
+              }
+
+              ]
 
     module ``with KillEndOfLine`` =
         [<Fact>]
