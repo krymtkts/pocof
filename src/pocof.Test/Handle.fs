@@ -224,74 +224,75 @@ module invokeAction =
 
               ]
 
-    module ``with ForwardChar`` =
-        [<Fact>]
-        let ``should return state with cursor=2 when moving forward on ':name' with cursor=1.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 1
-                    PropertySearch = PropertySearch.Search "" }
+    [<Tests>]
+    let tests_ForwardChar =
+        testList
+            "ForwardChar"
+            [ test "When moving forward on ':name' with cursor=1" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 1
+                          PropertySearch = PropertySearch.Search "" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.ForwardChar
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.ForwardChar
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 2
-                    PropertySearch = PropertySearch.Search "n" }
+                  a1
+                  |> Expect.equal
+                      "should return state with cursor=2"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 2
+                          PropertySearch = PropertySearch.Search "n" }
 
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryEnd
+              }
 
-        [<Fact>]
-        let ``should return state with Refresh.NotRequired when moving forward on ':name' with cursor=5 and query.Length=3.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+              test "When moving forward on ':name' with cursor=5 and query.Length=3" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.ForwardChar
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.ForwardChar
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name"
-                    Refresh = Refresh.NotRequired }
+                  a1
+                  |> Expect.equal
+                      "should return state with Refresh.NotRequired"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name"
+                          Refresh = Refresh.NotRequired }
 
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryEnd
+              }
 
-        [<Fact>]
-        let ``should return state with cursor=2 and InputMode=Input when moving forward on ':name' with cursor=1 and InputMode=Select.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 1
-                    InternalState.QueryState.InputMode = InputMode.Select -2
-                    PropertySearch = PropertySearch.Search "" }
+              test "When moving forward on ':name' with cursor=1 and InputMode=Select" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 1
+                          InternalState.QueryState.InputMode = InputMode.Select -2
+                          PropertySearch = PropertySearch.Search "" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.ForwardChar
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.ForwardChar
 
-            a1
+                  a1
+                  |> Expect.equal
+                      "should return state with cursor=2 and InputMode=Input"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 2
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.Search "n" }
 
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 2
-                    InternalState.QueryState.InputMode = InputMode.Input
-                    PropertySearch = PropertySearch.Search "n" }
-
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryEnd
+              } ]
 
     module ``with BackwardWord`` =
         [<Fact>]
