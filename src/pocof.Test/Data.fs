@@ -403,34 +403,38 @@ module QueryState =
               WindowWidth = 0
               InputMode = InputMode.Input }
 
-        [<Fact>]
-        let ``should return NoSearch when no colon`` () =
-            QueryState.getCurrentProperty (qs "a" 1) |> shouldEqual PropertySearch.NoSearch
+        [<Tests>]
+        let tests_getCurrentProperty =
+            testList
+                "getCurrentProperty"
+                [
 
-        [<Fact>]
-        let ``should return Search with "a" when start with colon`` () =
-            QueryState.getCurrentProperty (qs ":a" 2)
-            |> shouldEqual (PropertySearch.Search "a")
+                  test "When no colon in query" {
+                      QueryState.getCurrentProperty (qs "a" 1)
+                      |> Expect.equal "should return PropertySearch.NoSearch" PropertySearch.NoSearch
+                  }
+                  test "When query starts with colon and cursor is at end" {
+                      QueryState.getCurrentProperty (qs ":a" 2)
+                      |> Expect.equal "should return PropertySearch.Search with 'a'" (PropertySearch.Search "a")
+                  }
+                  test "When query starts with colon and cursor is at position 1" {
+                      QueryState.getCurrentProperty (qs ":a" 1)
+                      |> Expect.equal "should return PropertySearch.Search with empty string" (PropertySearch.Search "")
+                  }
+                  test "When query starts with colon and has trailing space, cursor at 2" {
+                      QueryState.getCurrentProperty (qs ":a " 2)
+                      |> Expect.equal "should return PropertySearch.Search with 'a'" (PropertySearch.Search "a")
+                  }
+                  test "When query starts with colon and cursor is after space" {
+                      QueryState.getCurrentProperty (qs ":a " 3)
+                      |> Expect.equal "should return PropertySearch.NoSearch" (PropertySearch.NoSearch)
+                  }
+                  test "When query starts with colon and has trailing keyword, cursor at 2" {
+                      QueryState.getCurrentProperty (qs ":a a" 2)
+                      |> Expect.equal "should return PropertySearch.Search with 'a'" (PropertySearch.Search "a")
+                  }
 
-        [<Fact>]
-        let ``should return Search with "a" when start with colon and cursor position 1`` () =
-            QueryState.getCurrentProperty (qs ":a" 1)
-            |> shouldEqual (PropertySearch.Search "")
-
-        [<Fact>]
-        let ``should return Search with "a" when start with colon and trailing space`` () =
-            QueryState.getCurrentProperty (qs ":a " 2)
-            |> shouldEqual (PropertySearch.Search "a")
-
-        [<Fact>]
-        let ``should return NoSearch when start with colon and cursor position 3`` () =
-            QueryState.getCurrentProperty (qs ":a " 3)
-            |> shouldEqual (PropertySearch.NoSearch)
-
-        [<Fact>]
-        let ``should return Search with "a" when start with colon and trailing keyword `` () =
-            QueryState.getCurrentProperty (qs ":a a" 2)
-            |> shouldEqual (PropertySearch.Search "a")
+                  ]
 
     module deleteSelection =
         [<Fact>]
