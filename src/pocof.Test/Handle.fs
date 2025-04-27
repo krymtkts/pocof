@@ -86,62 +86,72 @@ module invokeAction =
 
               ]
 
-    module ``with AddQuery`` =
-        [<Fact>]
-        let ``should return a property search state and cursor=1 when the query is colon.`` () =
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery ":")
+    [<Tests>]
+    let tests_AddQuery =
+        testList
+            "AddQuery"
+            [
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":"
-                    InternalState.QueryState.Cursor = 1
-                    PropertySearch = PropertySearch.Search "" }
+              test "When the query is colon" {
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery ":")
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should return a property search state and cursor=1"
+                      { state with
+                          InternalState.QueryState.Query = ":"
+                          InternalState.QueryState.Cursor = 1
+                          PropertySearch = PropertySearch.Search "" }
 
-        [<Fact>]
-        let ``should return a non-search state and cursor=6 when the query is space.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery " ")
+              test "When the query is space" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name "
-                    InternalState.QueryState.Cursor = 6
-                    PropertySearch = PropertySearch.NoSearch }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery " ")
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should return a non-search state and cursor=6"
+                      { state with
+                          InternalState.QueryState.Query = ":name "
+                          InternalState.QueryState.Cursor = 6
+                          PropertySearch = PropertySearch.NoSearch }
 
-        [<Fact>]
-        let ``should remove the selection and add query.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    InternalState.QueryState.InputMode = InputMode.Select 4
-                    PropertySearch = PropertySearch.Search "name" }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery "l")
+              test "When the query is selected" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          InternalState.QueryState.InputMode = InputMode.Select 4
+                          PropertySearch = PropertySearch.Search "name" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":l"
-                    InternalState.QueryState.Cursor = 2
-                    InternalState.QueryState.InputMode = InputMode.Input
-                    PropertySearch = PropertySearch.Search "l" }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name" ] state context (Action.AddQuery "l")
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should remove the selection before adding query"
+                      { state with
+                          InternalState.QueryState.Query = ":l"
+                          InternalState.QueryState.Cursor = 2
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.Search "l" }
+
+                  a2.Queries |> testQueryEnd
+              }
+
+              ]
 
     module ``with BackwardChar`` =
         [<Fact>]
