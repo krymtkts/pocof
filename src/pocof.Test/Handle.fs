@@ -228,7 +228,9 @@ module invokeAction =
     let tests_ForwardChar =
         testList
             "ForwardChar"
-            [ test "When moving forward on ':name' with cursor=1" {
+            [
+
+              test "When moving forward on ':name' with cursor=1" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -292,13 +294,17 @@ module invokeAction =
                           PropertySearch = PropertySearch.Search "n" }
 
                   a2.Queries |> testQueryEnd
-              } ]
+              }
+
+              ]
 
     [<Tests>]
     let tests_BackwardWord =
         testList
             "BackwardWord"
-            [ test "When moving backward on ':name aaa ' with cursor=0" {
+            [
+
+              test "When moving backward on ':name aaa ' with cursor=0" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -359,13 +365,17 @@ module invokeAction =
                           PropertySearch = PropertySearch.Search "" }
 
                   a2.Queries |> testQueryPartProperty "name" "aaa"
-              } ]
+              }
+
+              ]
 
     [<Tests>]
     let tests_ForwardWord =
         testList
             "ForwardWord"
-            [ test "When moving forward on ':name aaa ' with cursor=1." {
+            [
+
+              test "When moving forward on ':name aaa ' with cursor=1." {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -429,13 +439,17 @@ module invokeAction =
                           PropertySearch = PropertySearch.NoSearch }
 
                   a2.Queries |> testQueryPartProperty "name" "aaa"
-              } ]
+              }
+
+              ]
 
     [<Tests>]
     let tests_BeginningOfLine =
         testList
             "BeginningOfLine"
-            [ test "When cursor=5" {
+            [
+
+              test "When cursor=5" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -499,7 +513,9 @@ module invokeAction =
                           PropertySearch = PropertySearch.NoSearch }
 
                   a2.Queries |> testQueryEnd
-              } ]
+              }
+
+              ]
 
     module ``with EndOfLine`` =
         [<Fact>]
