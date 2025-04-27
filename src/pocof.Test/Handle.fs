@@ -589,90 +589,101 @@ module invokeAction =
 
               ]
 
-    module ``with DeleteBackwardChar`` =
-        [<Fact>]
-        let ``should remove the character to the left of cursor, making state.Query one character shorter.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name "
-                    InternalState.QueryState.Cursor = 6
-                    PropertySearch = PropertySearch.NoSearch }
+    [<Tests>]
+    let tests_DeleteBackwardChar =
+        testList
+            "DeleteBackwardChar"
+            [
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
+              test "When cursor=query length" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name "
+                          InternalState.QueryState.Cursor = 6
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should remove the character to the left of cursor, making state.Query one character shorter"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-        [<Fact>]
-        let ``should not change state if the cursor is at the begin of line.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
+              test "When the cursor is at the begin of line" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch
-                    Refresh = Refresh.NotRequired }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should not change state"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch
+                          Refresh = Refresh.NotRequired }
 
-        [<Fact>]
-        let ``should correct state if the cursor is over the query length.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ""
-                    InternalState.QueryState.Cursor = 2
-                    PropertySearch = PropertySearch.NoSearch }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
+              test "When the cursor is over the query length" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ""
+                          InternalState.QueryState.Cursor = 2
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ""
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch
-                    Refresh = Refresh.Required }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should correct state"
+                      { state with
+                          InternalState.QueryState.Query = ""
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch
+                          Refresh = Refresh.Required }
 
-        [<Fact>]
-        let ``should remove the selection.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name "
-                    InternalState.QueryState.Cursor = 6
-                    InternalState.QueryState.InputMode = InputMode.Select 3
-                    PropertySearch = PropertySearch.NoSearch }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
+              test "When InputMode=Select" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name "
+                          InternalState.QueryState.Cursor = 6
+                          InternalState.QueryState.InputMode = InputMode.Select 3
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":na"
-                    InternalState.QueryState.Cursor = 3
-                    InternalState.QueryState.InputMode = InputMode.Input
-                    PropertySearch = PropertySearch.Search "na" }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should remove the selection"
+                      { state with
+                          InternalState.QueryState.Query = ":na"
+                          InternalState.QueryState.Cursor = 3
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.Search "na" }
+
+                  a2.Queries |> testQueryEnd
+              }
+
+              ]
 
     module ``with DeleteForwardChar`` =
         [<Fact>]
