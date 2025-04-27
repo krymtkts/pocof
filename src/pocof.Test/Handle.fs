@@ -691,7 +691,7 @@ module invokeAction =
             "DeleteForwardChar"
             [
 
-              test "should remove the character to the right of cursor, making state.Query one character shorter" {
+              test "When cursor=0" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name "
@@ -702,7 +702,8 @@ module invokeAction =
                   let a1, a2 = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
-                  |> shouldEqual
+                  |> Expect.equal
+                      "should remove the character to the right of cursor, making state.Query one character shorter"
                       { state with
                           InternalState.QueryState.Query = "name "
                           InternalState.QueryState.Cursor = 0
@@ -711,7 +712,7 @@ module invokeAction =
                   a2.Queries |> testQueryPartNormal "name"
               }
 
-              test "should not change state if the cursor is at the end of line" {
+              test "When cursor=5" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -722,7 +723,8 @@ module invokeAction =
                   let a1, a2 = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
-                  |> shouldEqual
+                  |> Expect.equal
+                      "should not change state if the cursor is at the end of line"
                       { state with
                           InternalState.QueryState.Query = ":name"
                           InternalState.QueryState.Cursor = 5
@@ -732,7 +734,7 @@ module invokeAction =
                   a2.Queries |> testQueryEnd
               }
 
-              test "should correct state if the cursor is over the query length" {
+              test "When cursor=6" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -743,7 +745,8 @@ module invokeAction =
                   let a1, a2 = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
-                  |> shouldEqual
+                  |> Expect.equal
+                      "should correct state if the cursor is over the query length"
                       { state with
                           InternalState.QueryState.Query = ":name"
                           InternalState.QueryState.Cursor = 5
@@ -753,7 +756,7 @@ module invokeAction =
                   a2.Queries |> testQueryEnd
               }
 
-              test "should remove the selection" {
+              test "When InputMode=Select" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name "
@@ -765,7 +768,8 @@ module invokeAction =
                   let a1, a2 = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
-                  |> shouldEqual
+                  |> Expect.equal
+                      "should remove the selection"
                       { state with
                           InternalState.QueryState.Query = ":na"
                           InternalState.QueryState.Cursor = 3
