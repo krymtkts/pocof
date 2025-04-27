@@ -59,8 +59,8 @@ module invokeAction =
     let testQueryPartProperty propertyName value =
         function
         | [ Query.QueryPart.Property(x, y) ] ->
-            x |> shouldEqual propertyName
-            y value |> shouldEqual true
+            x |> Expect.equal "property name should equal to" propertyName
+            y value |> Expect.isTrue "property query should match"
         | _ -> failwith "invalid query part property."
 
     [<Tests>]
@@ -294,68 +294,72 @@ module invokeAction =
                   a2.Queries |> testQueryEnd
               } ]
 
-    module ``with BackwardWord`` =
-        [<Fact>]
-        let ``should return state with Refresh.NotRequired when moving forward on ':name aaa ' with cursor=0.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch }
+    [<Tests>]
+    let tests_BackwardWord =
+        testList
+            "BackwardWord"
+            [ test "When moving backward on ':name aaa ' with cursor=0" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.BackwardWord
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.BackwardWord
 
-            a1
-            |> shouldEqual
-                { state with
-                    Refresh = Refresh.NotRequired }
+                  a1
+                  |> Expect.equal
+                      "should return state with Refresh.NotRequired"
+                      { state with
+                          Refresh = Refresh.NotRequired }
 
-            a2.Queries |> testQueryPartProperty "name" "aaa"
+                  a2.Queries |> testQueryPartProperty "name" "aaa"
+              }
 
-        [<Fact>]
-        let ``should return state with cursor=1 when moving forward on ':name aaa ' with cursor=6.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 6
-                    PropertySearch = PropertySearch.NoSearch }
+              test "When moving backward on ':name aaa ' with cursor=6" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 6
+                          PropertySearch = PropertySearch.NoSearch }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.BackwardWord
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.BackwardWord
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 1
-                    PropertySearch = PropertySearch.Search "" }
+                  a1
+                  |> Expect.equal
+                      "should return state with cursor=1"
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 1
+                          PropertySearch = PropertySearch.Search "" }
 
-            a2.Queries |> testQueryPartProperty "name" "aaa"
+                  a2.Queries |> testQueryPartProperty "name" "aaa"
+              }
 
-        [<Fact>]
-        let ``should return state with cursor=4 and InputMode=Input when moving forward on ':name aaa ' with cursor=5 and InputMode=Select.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 6
-                    InternalState.QueryState.InputMode = InputMode.Select 6
-                    PropertySearch = PropertySearch.NoSearch }
+              test "When moving backward on ':name aaa ' with cursor=6 and InputMode=Select" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 6
+                          InternalState.QueryState.InputMode = InputMode.Select 6
+                          PropertySearch = PropertySearch.NoSearch }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.BackwardWord
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.BackwardWord
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 1
-                    InternalState.QueryState.InputMode = InputMode.Input
-                    PropertySearch = PropertySearch.Search "" }
+                  a1
+                  |> Expect.equal
+                      "should return state with cursor=1 and InputMode=Input"
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 1
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.Search "" }
 
-            a2.Queries |> testQueryPartProperty "name" "aaa"
+                  a2.Queries |> testQueryPartProperty "name" "aaa"
+              } ]
 
     module ``with ForwardWord`` =
         [<Fact>]
