@@ -1980,7 +1980,9 @@ module invokeAction =
             [
 
               test "should return a enabled invert filter" { testInvertFilter false true }
-              test "should return a disabled invert filter" { testInvertFilter true false } ]
+              test "should return a disabled invert filter" { testInvertFilter true false }
+
+              ]
 
     [<Tests>]
     let tests_ToggleSuppressProperties =
