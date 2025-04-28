@@ -1931,8 +1931,9 @@ module invokeAction =
 
               ]
 
-    module ``with ToggleCaseSensitive`` =
-        let test before after =
+    [<Tests>]
+    let tests_ToggleCaseSensitive =
+        let testCaseSensitive before after =
             let stateBefore =
                 { state with
                     InternalState.QueryCondition.CaseSensitive = before }
@@ -1948,11 +1949,14 @@ module invokeAction =
             |> snd
             |> testShouldNotChangeQueryContext context
 
-        [<Fact>]
-        let ``should return a enabled case sensitive.`` () = test false true
+        testList
+            "ToggleCaseSensitive"
+            [
 
-        [<Fact>]
-        let ``should return a disabled case sensitive.`` () = test true false
+              test "should return a enabled case sensitive" { testCaseSensitive false true }
+              test "should return a disabled case sensitive" { testCaseSensitive true false }
+
+              ]
 
     module ``with ToggleInvertFilter`` =
         let test before after =
