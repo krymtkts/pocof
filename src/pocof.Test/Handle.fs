@@ -1982,8 +1982,9 @@ module invokeAction =
               test "should return a enabled invert filter" { testInvertFilter false true }
               test "should return a disabled invert filter" { testInvertFilter true false } ]
 
-    module ``with ToggleSuppressProperties`` =
-        let test before after =
+    [<Tests>]
+    let tests_ToggleSuppressProperties =
+        let testToggleSuppressProperties before after =
             let stateBefore =
                 { state with
                     InternalState.SuppressProperties = before }
@@ -1998,11 +1999,14 @@ module invokeAction =
             |> snd
             |> testShouldNotChangeQueryContext context
 
-        [<Fact>]
-        let ``should return a enabled suppress property.`` () = test false true
+        testList
+            "ToggleSuppressProperties"
+            [
 
-        [<Fact>]
-        let ``should return a disabled suppress property.`` () = test true false
+              test "should return a enabled suppress property" { testToggleSuppressProperties false true }
+              test "should return a disabled suppress property" { testToggleSuppressProperties true false }
+
+              ]
 
     module ``with CompleteProperty`` =
         [<Fact>]
