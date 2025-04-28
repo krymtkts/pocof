@@ -1522,112 +1522,116 @@ module invokeAction =
 
               ]
 
-    module ``with SelectForwardWord`` =
-        [<Fact>]
-        let ``should return QueryState with Cursor=1 and InputMode=Select 1 when moving forward with Cursor=0 and InputMode=Input.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch }
+    [<Tests>]
+    let tests_SelectForwardWord =
+        testList
+            "SelectForwardWord"
+            [
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectForwardWord
+              test "When moving forward with Cursor=0 and InputMode=Input." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Cursor = 1
-                    InternalState.QueryState.InputMode = InputMode.Select 1
-                    PropertySearch = PropertySearch.Search "" }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
-            a2.Queries |> testQueryPartProperty "name" "aaa"
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=1 and InputMode=Select 1 "
+                      { state with
+                          InternalState.QueryState.Cursor = 1
+                          InternalState.QueryState.InputMode = InputMode.Select 1
+                          PropertySearch = PropertySearch.Search "" }
 
-        [<Fact>]
-        let ``should return QueryState with Cursor=6 and InputMode=Select 6 when moving forward with Cursor=1 and InputMode=Select 1.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 1
-                    InternalState.QueryState.InputMode = InputMode.Select 1
-                    PropertySearch = PropertySearch.Search "" }
+                  a2.Queries |> testQueryPartProperty "name" "aaa"
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectForwardWord
+              test "When moving forward with Cursor=1 and InputMode=Select 1." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 1
+                          InternalState.QueryState.InputMode = InputMode.Select 1
+                          PropertySearch = PropertySearch.Search "" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Cursor = 6
-                    InternalState.QueryState.InputMode = InputMode.Select 6
-                    PropertySearch = PropertySearch.NoSearch }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
-            a2.Queries |> testQueryPartProperty "name" "aaa"
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=6 and InputMode=Select 6"
+                      { state with
+                          InternalState.QueryState.Cursor = 6
+                          InternalState.QueryState.InputMode = InputMode.Select 6
+                          PropertySearch = PropertySearch.NoSearch }
 
-        [<Fact>]
-        let ``should return QueryState with Cursor=6 and InputMode=Select 4 when moving forward with Cursor=2 and InputMode=Input.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 2
-                    PropertySearch = PropertySearch.Search "" }
+                  a2.Queries |> testQueryPartProperty "name" "aaa"
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectForwardWord
+              test "When moving forward with Cursor=2 and InputMode=Input." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 2
+                          PropertySearch = PropertySearch.Search "" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Cursor = 6
-                    InternalState.QueryState.InputMode = InputMode.Select 4
-                    PropertySearch = PropertySearch.NoSearch }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
-            a2.Queries |> testQueryPartProperty "name" "aaa"
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=6 and InputMode=Select 4"
+                      { state with
+                          InternalState.QueryState.Cursor = 6
+                          InternalState.QueryState.InputMode = InputMode.Select 4
+                          PropertySearch = PropertySearch.NoSearch }
 
-        [<Fact>]
-        let ``should return QueryState with no change when moving forward with Cursor=10.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 10
-                    InternalState.QueryState.InputMode = InputMode.Select 10 }
+                  a2.Queries |> testQueryPartProperty "name" "aaa"
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectForwardWord
+              test "When moving forward with Cursor=10." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 10
+                          InternalState.QueryState.InputMode = InputMode.Select 10 }
 
-            a1
-            |> shouldEqual
-                { state with
-                    Refresh = Refresh.NotRequired }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
-            a2.Queries |> testQueryPartProperty "name" "aaa"
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with no change"
+                      { state with
+                          Refresh = Refresh.NotRequired }
 
-        [<Fact>]
-        let ``should return QueryState with Cursor=10 and InputMode=Input when moving forward with Cursor=6 and InputMode=Select 4.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name aaa "
-                    InternalState.QueryState.Cursor = 6
-                    InternalState.QueryState.InputMode = InputMode.Select -4 }
+                  a2.Queries |> testQueryPartProperty "name" "aaa"
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectForwardWord
+              test "When moving forward with Cursor=6 and InputMode=Select 4." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name aaa "
+                          InternalState.QueryState.Cursor = 6
+                          InternalState.QueryState.InputMode = InputMode.Select -4 }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Cursor = 10
-                    InternalState.QueryState.InputMode = InputMode.Input }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectForwardWord
 
-            a2.Queries |> testQueryPartProperty "name" "aaa"
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=10 and InputMode=Input"
+                      { state with
+                          InternalState.QueryState.Cursor = 10
+                          InternalState.QueryState.InputMode = InputMode.Input }
+
+                  a2.Queries |> testQueryPartProperty "name" "aaa"
+              }
+
+              ]
 
     module ``with SelectToBeginningOfLine`` =
         [<Fact>]
