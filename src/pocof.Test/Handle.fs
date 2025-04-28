@@ -1706,74 +1706,80 @@ module invokeAction =
 
               ]
 
-    module ``with SelectToEndOfLine`` =
-        [<Fact>]
-        let ``should return QueryState with Cursor=5 and InputMode=Select 5 when moving tail on ':name' with Cursor=0 and InputMode=Input.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch }
+    [<Tests>]
+    let tests_SelectToEndOfLine =
+        testList
+            "SelectToEndOfLine"
+            [
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
+              test "When moving tail on ':name' with Cursor=0 and InputMode=Input" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    InternalState.QueryState.InputMode = InputMode.Select 5
-                    PropertySearch = PropertySearch.Search "name" }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=5 and InputMode=Select 5"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          InternalState.QueryState.InputMode = InputMode.Select 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-        [<Fact>]
-        let ``should return QueryState with Cursor=5 and InputMode=Select 5 when moving tail on ':name' with Cursor=1 and InputMode=Select 1.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 1
-                    InternalState.QueryState.InputMode = InputMode.Select 1
-                    PropertySearch = PropertySearch.Search "" }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
+              test "When moving tail on ':name' with Cursor=1 and InputMode=Select 1" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 1
+                          InternalState.QueryState.InputMode = InputMode.Select 1
+                          PropertySearch = PropertySearch.Search "" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    InternalState.QueryState.InputMode = InputMode.Select 5
-                    PropertySearch = PropertySearch.Search "name" }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=5 and InputMode=Select 5"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          InternalState.QueryState.InputMode = InputMode.Select 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-        [<Fact>]
-        let ``should return QueryState with no change when moving tail on ':name' with Cursor=5.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
+              test "When moving tail on ':name' with Cursor=5" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name"
-                    Refresh = Refresh.NotRequired }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectToEndOfLine
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with no change"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name"
+                          Refresh = Refresh.NotRequired }
+
+                  a2.Queries |> testQueryEnd
+              }
+
+              ]
 
     module ``with SelectAll`` =
         [<Fact>]
