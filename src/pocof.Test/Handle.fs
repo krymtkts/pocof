@@ -1904,8 +1904,9 @@ module invokeAction =
 
               ]
 
-    module ``with RotateOperator`` =
-        let test before after =
+    [<Tests>]
+    let tests_RotateOperator =
+        let testOperator before after =
             let stateBefore =
                 { state with
                     InternalState.QueryCondition.Operator = before }
@@ -1921,11 +1922,14 @@ module invokeAction =
             |> _.Queries
             |> testQueryEnd
 
-        [<Fact>]
-        let ``should switch OR to AND.`` () = test Operator.Or Operator.And
+        testList
+            "RotateOperator"
+            [
 
-        [<Fact>]
-        let ``should switch AND to OR.`` () = test Operator.And Operator.Or
+              test "should switch OR to AND" { testOperator Operator.Or Operator.And }
+              test "should switch AND to OR" { testOperator Operator.And Operator.Or }
+
+              ]
 
     module ``with ToggleCaseSensitive`` =
         let test before after =
