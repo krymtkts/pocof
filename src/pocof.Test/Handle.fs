@@ -1633,74 +1633,78 @@ module invokeAction =
 
               ]
 
-    module ``with SelectToBeginningOfLine`` =
-        [<Fact>]
-        let ``should return QueryState with Cursor=0 and InputMode=Select -5 when moving head on ':name' with Cursor=5 and InputMode=Input.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+    [<Tests>]
+    let tests_SelectToBeginningOfLine =
+        testList
+            "SelectToBeginningOfLine"
+            [
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
+              test "When moving head on ':name' with Cursor=5 and InputMode=Input" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    InternalState.QueryState.InputMode = InputMode.Select -5
-                    PropertySearch = PropertySearch.NoSearch }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=0 and InputMode=Select -5"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          InternalState.QueryState.InputMode = InputMode.Select -5
+                          PropertySearch = PropertySearch.NoSearch }
 
-        [<Fact>]
-        let ``should return QueryState with Cursor=0 and InputMode=Select -5 when moving head on ':name' with Cursor=4 and InputMode=Select -1.``
-            ()
-            =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 4
-                    InternalState.QueryState.InputMode = InputMode.Select -1
-                    PropertySearch = PropertySearch.Search "nam" }
+                  a2.Queries |> testQueryEnd
+              }
+              test "When moving head on ':name' with Cursor=4 and InputMode=Select -1" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 4
+                          InternalState.QueryState.InputMode = InputMode.Select -1
+                          PropertySearch = PropertySearch.Search "nam" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    InternalState.QueryState.InputMode = InputMode.Select -5
-                    PropertySearch = PropertySearch.NoSearch }
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=0 and InputMode=Select -5"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          InternalState.QueryState.InputMode = InputMode.Select -5
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryEnd
+              }
+              test "When moving head on ':name' with Cursor=0" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch }
 
-        [<Fact>]
-        let ``should return QueryState with no change when moving head on ':name' with Cursor=0.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectToBeginningOfLine
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with no change"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch
+                          Refresh = Refresh.NotRequired }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch
-                    Refresh = Refresh.NotRequired }
+                  a2.Queries |> testQueryEnd
+              }
 
-            a2.Queries |> testQueryEnd
+              ]
 
     module ``with SelectToEndOfLine`` =
         [<Fact>]
