@@ -375,7 +375,7 @@ module invokeAction =
             "ForwardWord"
             [
 
-              test "When moving forward on ':name aaa ' with cursor=1." {
+              test "When moving forward on ':name aaa ' with cursor=1" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -396,7 +396,7 @@ module invokeAction =
                   a2.Queries |> testQueryPartProperty "name" "aaa"
               }
 
-              test "When moving forward on ':name aaa ' with cursor=10." {
+              test "When moving forward on ':name aaa ' with cursor=10" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -418,7 +418,7 @@ module invokeAction =
                   a2.Queries |> testQueryPartProperty "name" "aaa"
               }
 
-              test "When moving forward on ':name aaa ' with cursor=1 and InputMode=Select." {
+              test "When moving forward on ':name aaa ' with cursor=1 and InputMode=Select" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -461,7 +461,7 @@ module invokeAction =
 
                   a1
                   |> Expect.equal
-                      "should return state with cursor=0."
+                      "should return state with cursor=0"
                       { state with
                           InternalState.QueryState.Query = ":name"
                           InternalState.QueryState.Cursor = 0
@@ -482,7 +482,7 @@ module invokeAction =
 
                   a1
                   |> Expect.equal
-                      "should return state with Refresh.NotRequired."
+                      "should return state with Refresh.NotRequired"
                       { state with
                           InternalState.QueryState.Query = ":name"
                           InternalState.QueryState.Cursor = 0
@@ -535,7 +535,7 @@ module invokeAction =
 
                   a1
                   |> Expect.equal
-                      "should return state with cursor=query length."
+                      "should return state with cursor=query length"
                       { state with
                           InternalState.QueryState.Query = ":name"
                           InternalState.QueryState.Cursor = 5
@@ -555,7 +555,7 @@ module invokeAction =
 
                   a1
                   |> Expect.equal
-                      "should return state with Refresh.NotRequired."
+                      "should return state with Refresh.NotRequired"
                       { state with
                           InternalState.QueryState.Query = ":name"
                           InternalState.QueryState.Cursor = 5
@@ -577,7 +577,7 @@ module invokeAction =
 
                   a1
                   |> Expect.equal
-                      "should return state with cursor=query length and InputMode=Input."
+                      "should return state with cursor=query length and InputMode=Input"
                       { state with
                           InternalState.QueryState.Query = ":name"
                           InternalState.QueryState.Cursor = 5
@@ -1270,7 +1270,7 @@ module invokeAction =
             "SelectBackwardChar"
             [
 
-              test "When moving backward on ':name' with Cursor=0." {
+              test "When moving backward on ':name' with Cursor=0" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1289,7 +1289,7 @@ module invokeAction =
                   a2.Queries |> testQueryEnd
               }
 
-              test "When moving backward on ':name' with Cursor=5 and InputMode=Input." {
+              test "When moving backward on ':name' with Cursor=5 and InputMode=Input" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1311,7 +1311,7 @@ module invokeAction =
                   a2.Queries |> testQueryEnd
               }
 
-              test "When moving backward on ':name' with Cursor=4 and InputMode=Select -1." {
+              test "When moving backward on ':name' with Cursor=4 and InputMode=Select -1" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1342,7 +1342,7 @@ module invokeAction =
             "SelectForwardChar"
             [
 
-              test "When moving forward on ':name' with Cursor=0 and InputMode=Input." {
+              test "When moving forward on ':name' with Cursor=0 and InputMode=Input" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1364,7 +1364,7 @@ module invokeAction =
                   a2.Queries |> testQueryEnd
               }
 
-              test "When moving forward on ':name' with Cursor=1 and InputMode=Select 1." {
+              test "When moving forward on ':name' with Cursor=1 and InputMode=Select 1" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1387,7 +1387,7 @@ module invokeAction =
                   a2.Queries |> testQueryEnd
               }
 
-              test "When moving forward on ':name' with Cursor=5." {
+              test "When moving forward on ':name' with Cursor=5" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1528,7 +1528,7 @@ module invokeAction =
             "SelectForwardWord"
             [
 
-              test "When moving forward with Cursor=0 and InputMode=Input." {
+              test "When moving forward with Cursor=0 and InputMode=Input" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -1549,7 +1549,7 @@ module invokeAction =
                   a2.Queries |> testQueryPartProperty "name" "aaa"
               }
 
-              test "When moving forward with Cursor=1 and InputMode=Select 1." {
+              test "When moving forward with Cursor=1 and InputMode=Select 1" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -1571,7 +1571,7 @@ module invokeAction =
                   a2.Queries |> testQueryPartProperty "name" "aaa"
               }
 
-              test "When moving forward with Cursor=2 and InputMode=Input." {
+              test "When moving forward with Cursor=2 and InputMode=Input" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -1611,7 +1611,7 @@ module invokeAction =
                   a2.Queries |> testQueryPartProperty "name" "aaa"
               }
 
-              test "When moving forward with Cursor=6 and InputMode=Select 4." {
+              test "When moving forward with Cursor=6 and InputMode=Select 4" {
                   let state =
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -1660,6 +1660,7 @@ module invokeAction =
 
                   a2.Queries |> testQueryEnd
               }
+
               test "When moving head on ':name' with Cursor=4 and InputMode=Select -1" {
                   let state =
                       { state with
@@ -1682,6 +1683,7 @@ module invokeAction =
 
                   a2.Queries |> testQueryEnd
               }
+
               test "When moving head on ':name' with Cursor=0" {
                   let state =
                       { state with
