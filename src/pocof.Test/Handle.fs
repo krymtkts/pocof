@@ -1781,70 +1781,81 @@ module invokeAction =
 
               ]
 
-    module ``with SelectAll`` =
-        [<Fact>]
-        let ``should return QueryState with Cursor=5 and InputMode=Select 5 with Cursor=0 and InputMode=Input.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 0
-                    PropertySearch = PropertySearch.NoSearch }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectAll
+    [<Tests>]
+    let tests_SelectAll =
+        testList
+            "SelectAll"
+            [
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    InternalState.QueryState.InputMode = InputMode.Select 5
-                    PropertySearch = PropertySearch.Search "name" }
+              test "When Cursor=0 and InputMode=Input" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 0
+                          PropertySearch = PropertySearch.NoSearch }
 
-            a2.Queries |> testQueryEnd
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectAll
 
-        [<Fact>]
-        let ``should return QueryState with Cursor=5 and InputMode=Select 5 with Cursor=1 and InputMode=Input.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 1
-                    InternalState.QueryState.InputMode = InputMode.Input
-                    PropertySearch = PropertySearch.Search "" }
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=5 and InputMode=Select 5"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          InternalState.QueryState.InputMode = InputMode.Select 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectAll
+                  a2.Queries |> testQueryEnd
+              }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    InternalState.QueryState.InputMode = InputMode.Select 5
-                    PropertySearch = PropertySearch.Search "name" }
+              test "When Cursor=1 and InputMode=Input" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 1
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.Search "" }
 
-            a2.Queries |> testQueryEnd
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectAll
 
-        [<Fact>]
-        let ``should return QueryState with Cursor=5 and InputMode=Select 5 with Cursor=5.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=5 and InputMode=Select 5"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          InternalState.QueryState.InputMode = InputMode.Select 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.SelectAll
+                  a2.Queries |> testQueryEnd
+              }
 
-            a1
-            |> shouldEqual
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    InternalState.QueryState.InputMode = InputMode.Select 5
-                    PropertySearch = PropertySearch.Search "name" }
+              test "When Cursor=5" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            a2.Queries |> testQueryEnd
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.SelectAll
+
+                  a1
+                  |> Expect.equal
+                      "should return QueryState with Cursor=5 and InputMode=Select 5"
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          InternalState.QueryState.InputMode = InputMode.Select 5
+                          PropertySearch = PropertySearch.Search "name" }
+
+                  a2.Queries |> testQueryEnd
+              }
+
+              ]
 
     let testStateAndContext action state context expectedState =
         let a1, a2 = invokeAction [] state context action
