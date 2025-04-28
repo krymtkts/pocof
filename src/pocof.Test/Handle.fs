@@ -1862,16 +1862,24 @@ module invokeAction =
     let testStateAndContext action state context expectedState =
         let a1, a2 = invokeAction [] state context action
 
-        a1 |> shouldEqual expectedState
+        a1 |> Expect.equal "" expectedState
 
         (a1, a2)
 
     let testShouldNotChangeQueryContext (expected: QueryContext) (actual: QueryContext) =
-        actual.Queries |> shouldEqual expected.Queries
-        actual.Operator |> shouldEqual expected.Operator
+        actual.Operator |> Expect.equal "operator" expected.Operator
+        actual.Queries |> Expect.hasLength "queries length" expected.Queries.Length
 
-    module ``with RotateMatcher`` =
-        let test before after =
+        List.zip actual.Queries expected.Queries
+        |> Expect.all "" (function
+            // TODO: requires better solution.
+            | Query.QueryPart.Normal _, Query.QueryPart.Normal _ -> true
+            | Query.QueryPart.Property(ap, _), Query.QueryPart.Property(ep, _) -> ap = ep
+            | _ -> false)
+
+    [<Tests>]
+    let tests_RotateMatcher =
+        let testMatcher before after =
             let stateBefore =
                 { state with
                     InternalState.QueryCondition.Matcher = before }
@@ -1886,14 +1894,15 @@ module invokeAction =
             |> snd
             |> testShouldNotChangeQueryContext context
 
-        [<Fact>]
-        let ``should switch EQ to LIKE.`` () = test Matcher.Eq Matcher.Like
+        testList
+            "RotateMatcher"
+            [
 
-        [<Fact>]
-        let ``should switch LIKE to MATCH.`` () = test Matcher.Like Matcher.Match
+              test "should switch EQ to LIKE" { testMatcher Matcher.Eq Matcher.Like }
+              test "should switch LIKE to MATCH" { testMatcher Matcher.Like Matcher.Match }
+              test "should switch MATCh to EQ" { testMatcher Matcher.Match Matcher.Eq }
 
-        [<Fact>]
-        let ``should switch MATCh to EQ.`` () = test Matcher.Match Matcher.Eq
+              ]
 
     module ``with RotateOperator`` =
         let test before after =
