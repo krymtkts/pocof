@@ -3,9 +3,6 @@ module PocofTest.Query
 open System.Collections
 open System.Management.Automation
 
-open Xunit
-open FsUnitTyped
-
 open Expecto
 open Expecto.Flip
 

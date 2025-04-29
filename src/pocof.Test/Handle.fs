@@ -1,8 +1,5 @@
 module PocofTest.Handle
 
-open Xunit
-open FsUnitTyped
-
 open Expecto
 open Expecto.Flip
 

@@ -4,7 +4,6 @@ open System
 open Microsoft.FSharp.Reflection
 open System.Collections.Generic
 
-open Xunit
 open FsUnitTyped
 open FsCheck.FSharp
 open FsCheck.Xunit
