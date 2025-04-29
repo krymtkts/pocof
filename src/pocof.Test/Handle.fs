@@ -2010,268 +2010,311 @@ module invokeAction =
 
               ]
 
-    module ``with CompleteProperty`` =
-        [<Fact>]
-        let ``shouldn't return any difference when a tab is entered with non search mode.`` () =
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+    [<Tests>]
+    let tests_CompleteProperty =
+        testList
+            "CompleteProperty"
+            [
 
-            a1
-            |> shouldEqual
-                { state with
-                    Refresh = Refresh.NotRequired }
+              test "when a tab is entered with non search mode." {
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "shouldn't return any difference"
+                      { state with
+                          Refresh = Refresh.NotRequired }
 
-        [<Fact>]
-        let ``shouldn't return any difference when a tab is entered with empty properties list.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":"
-                    PropertySearch = PropertySearch.Search "" }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [] state context Action.CompleteProperty
+              test "when a tab is entered with empty properties list." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":"
+                          PropertySearch = PropertySearch.Search "" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    Refresh = Refresh.NotRequired }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [] state context Action.CompleteProperty
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "shouldn't return any difference"
+                      { state with
+                          Refresh = Refresh.NotRequired }
 
-        [<Fact>]
-        let ``shouldn't return any difference when a tab is entered and found no property completion.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":a"
-                    PropertySearch = PropertySearch.Search "a" }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+              test "when a tab is entered and found no property completion." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":a"
+                          PropertySearch = PropertySearch.Search "a" }
 
-            a1
-            |> shouldEqual
-                { state with
-                    Refresh = Refresh.NotRequired }
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
-            a2.Queries |> testQueryEnd
+                  a1
+                  |> Expect.equal
+                      "shouldn't return any difference"
+                      { state with
+                          Refresh = Refresh.NotRequired }
 
-        [<Fact>]
-        let ``should return the first completion when a empty keyword.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":"
-                    InternalState.QueryState.Cursor = 1
-                    PropertySearch = PropertySearch.Search "" }
+                  a2.Queries |> testQueryEnd
+              }
 
-            let context, _ = Query.prepare state
+              test "when a empty keyword is given." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":"
+                          InternalState.QueryState.Cursor = 1
+                          PropertySearch = PropertySearch.Search "" }
 
-            let a1, a2 =
-                invokeAction [ "first"; "second"; "third" ] state context Action.CompleteProperty
+                  let context, _ = Query.prepare state
 
-            a1.QueryState.Query |> shouldEqual ":first"
-            a1.QueryState.Cursor |> shouldEqual 6
+                  let a1, a2 =
+                      invokeAction [ "first"; "second"; "third" ] state context Action.CompleteProperty
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual ""
+                  a1.QueryState.Query
+                  |> Expect.equal "should return the first completion" ":first"
 
-                    b
-                    |> Seq.take 4
-                    |> List.ofSeq
-                    |> shouldEqual [ "first"; "second"; "third"; "first" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+                  a1.QueryState.Cursor |> Expect.equal "should return the first completion" 6
 
-            a2.Queries |> testQueryEnd
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "should return the first completion" ""
 
-        [<Fact>]
-        let ``should return completion when a property is found.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":p"
-                    InternalState.QueryState.Cursor = 2
-                    PropertySearch = PropertySearch.Search "p" }
+                          b
+                          |> Seq.take 4
+                          |> List.ofSeq
+                          |> Expect.equal "should return the first completion" [ "first"; "second"; "third"; "first" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "Name"; "Path" ] state context Action.CompleteProperty
+                  a2.Queries |> testQueryEnd
+              }
 
-            a1.QueryState.Query |> shouldEqual ":Path"
-            a1.QueryState.Cursor |> shouldEqual 5
+              test "when a property is found." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":p"
+                          InternalState.QueryState.Cursor = 2
+                          PropertySearch = PropertySearch.Search "p" }
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual "p"
-                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "Path"; "Path" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "Name"; "Path" ] state context Action.CompleteProperty
+                  a1.QueryState.Query |> Expect.equal "should return completion" ":Path"
+                  a1.QueryState.Cursor |> Expect.equal "should return completion" 5
 
-            a2.Queries |> testQueryEnd
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "should return completion" "p"
 
-        [<Fact>]
-        let ``should return completion when some properties are found.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":n"
-                    InternalState.QueryState.Cursor = 2
-                    PropertySearch = PropertySearch.Search "n" }
+                          b
+                          |> Seq.take 2
+                          |> List.ofSeq
+                          |> Expect.equal "should return completion" [ "Path"; "Path" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
 
-            let context, _ = Query.prepare state
+                  a2.Queries |> testQueryEnd
+              }
 
-            let a1, a2 =
-                invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
+              test "when some properties are found." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":n"
+                          InternalState.QueryState.Cursor = 2
+                          PropertySearch = PropertySearch.Search "n" }
 
-            a1.QueryState.Query |> shouldEqual ":name"
-            a1.QueryState.Cursor |> shouldEqual 5
+                  let context, _ = Query.prepare state
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual "n"
-                    b |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "name"; "number"; "name" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+                  let a1, a2 =
+                      invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
 
-            a2.Queries |> testQueryEnd
+                  a1.QueryState.Query |> Expect.equal "should return completion" ":name"
+                  a1.QueryState.Cursor |> Expect.equal "should return completion" 5
 
-        [<Fact>]
-        let ``should insert completion to mid of query when a property is found.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":n foo"
-                    InternalState.QueryState.Cursor = 2
-                    PropertySearch = PropertySearch.Search "n" }
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "should return completion" "n"
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+                          b
+                          |> Seq.take 3
+                          |> List.ofSeq
+                          |> Expect.equal "should return completion" [ "name"; "number"; "name" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
 
-            a1.QueryState.Query |> shouldEqual ":name foo"
-            a1.QueryState.Cursor |> shouldEqual 5
+                  a2.Queries |> testQueryEnd
+              }
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual "n"
-                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+              test "when a property is found and inserted to mid of query." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":n foo"
+                          InternalState.QueryState.Cursor = 2
+                          PropertySearch = PropertySearch.Search "n" }
 
-            a2.Queries |> testQueryPartProperty "name" "foo"
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
-        [<Fact>]
-        let ``shouldn't return any difference when a property is already completed.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+                  a1.QueryState.Query
+                  |> Expect.equal "should insert completion to mid of query" ":name foo"
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+                  a1.QueryState.Cursor
+                  |> Expect.equal "should insert completion to mid of query" 5
 
-            a1.QueryState.Query |> shouldEqual ":name"
-            a1.QueryState.Cursor |> shouldEqual 5
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "should insert completion to mid of query" "n"
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual "name"
-                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+                          b
+                          |> Seq.take 2
+                          |> List.ofSeq
+                          |> Expect.equal "should insert completion to mid of query" [ "name"; "name" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
 
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryPartProperty "name" "foo"
+              }
 
-        [<Fact>]
-        let ``shouldn't return any difference when a property is already completed to mid of query.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name a"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Search "name" }
+              test "when a property is already completed." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+                  a1.QueryState.Query |> Expect.equal "shouldn't return any difference" ":name"
+                  a1.QueryState.Cursor |> Expect.equal "shouldn't return any difference" 5
 
-            a1.QueryState.Query |> shouldEqual ":name a"
-            a1.QueryState.Cursor |> shouldEqual 5
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "shouldn't return any difference" "name"
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual "name"
-                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+                          b
+                          |> Seq.take 2
+                          |> List.ofSeq
+                          |> Expect.equal "shouldn't return any difference" [ "name"; "name" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
 
-            a2.Queries |> testQueryPartProperty "name" "a"
+                  a2.Queries |> testQueryEnd
+              }
 
-        [<Fact>]
-        let ``should return current completion when a property is already completed and cursor in mid of it.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name a"
-                    InternalState.QueryState.Cursor = 4
-                    PropertySearch = PropertySearch.Search "nam" }
+              test "when a property is already completed to mid of query." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name a"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Search "name" }
 
-            let context, _ = Query.prepare state
-            let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+                  a1.QueryState.Query |> Expect.equal "shouldn't return any difference" ":name a"
+                  a1.QueryState.Cursor |> Expect.equal "shouldn't return any difference" 5
 
-            a1.QueryState.Query |> shouldEqual ":name a"
-            a1.QueryState.Cursor |> shouldEqual 5
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "shouldn't return any difference" "name"
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual "nam"
-                    b |> Seq.take 2 |> List.ofSeq |> shouldEqual [ "name"; "name" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+                          b
+                          |> Seq.take 2
+                          |> List.ofSeq
+                          |> Expect.equal "shouldn't return any difference" [ "name"; "name" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
 
-            a2.Queries |> testQueryPartProperty "name" "a"
+                  a2.Queries |> testQueryPartProperty "name" "a"
+              }
 
-        [<Fact>]
-        let ``should return next property when rotation.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":name"
-                    InternalState.QueryState.Cursor = 5
-                    PropertySearch = PropertySearch.Rotate("n", Seq.cycle [ "name"; "number" ]) }
+              test "when a property is already completed and cursor in mid of it." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name a"
+                          InternalState.QueryState.Cursor = 4
+                          PropertySearch = PropertySearch.Search "nam" }
 
-            let context, _ = Query.prepare state
+                  let context, _ = Query.prepare state
+                  let a1, a2 = invokeAction [ "name"; "path" ] state context Action.CompleteProperty
+                  a1.QueryState.Query |> Expect.equal "should return current completion" ":name a"
+                  a1.QueryState.Cursor |> Expect.equal "should return current completion" 5
 
-            let a1, a2 =
-                invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "should return current completion" "nam"
 
-            a1.QueryState.Query |> shouldEqual ":number"
-            a1.QueryState.Cursor |> shouldEqual 7
+                          b
+                          |> Seq.take 2
+                          |> List.ofSeq
+                          |> Expect.equal "should return current completion" [ "name"; "name" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual "n"
-                    b |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "number"; "name"; "number" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+                  a2.Queries |> testQueryPartProperty "name" "a"
+              }
 
-            a2.Queries |> testQueryEnd
+              test "when rotation." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":name"
+                          InternalState.QueryState.Cursor = 5
+                          PropertySearch = PropertySearch.Rotate("n", Seq.cycle [ "name"; "number" ]) }
 
-        [<Fact>]
-        let ``should return first property when next rotation not found.`` () =
-            let state =
-                { state with
-                    InternalState.QueryState.Query = ":number"
-                    InternalState.QueryState.Cursor = 7
-                    PropertySearch = PropertySearch.Rotate("n", Seq.cycle [ "number"; "name" ]) }
+                  let context, _ = Query.prepare state
 
-            let context, _ = Query.prepare state
+                  let a1, a2 =
+                      invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
 
-            let a1, a2 =
-                invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
+                  a1.QueryState.Query |> Expect.equal "should return next property" ":number"
+                  a1.QueryState.Cursor |> Expect.equal "should return next property" 7
 
-            a1.QueryState.Query |> shouldEqual ":name"
-            a1.QueryState.Cursor |> shouldEqual 5
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "should return next property" "n"
 
-            a1.PropertySearch
-            |> function
-                | PropertySearch.Rotate(a, b) ->
-                    a |> shouldEqual "n"
-                    b |> Seq.take 3 |> List.ofSeq |> shouldEqual [ "name"; "number"; "name" ]
-                | _ -> failwith "PropertySearch should be Rotate"
+                          b
+                          |> Seq.take 3
+                          |> List.ofSeq
+                          |> Expect.equal "should return next property" [ "number"; "name"; "number" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
 
-            a2.Queries |> testQueryEnd
+                  a2.Queries |> testQueryEnd
+              }
+
+              test "when next rotation not found." {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = ":number"
+                          InternalState.QueryState.Cursor = 7
+                          PropertySearch = PropertySearch.Rotate("n", Seq.cycle [ "number"; "name" ]) }
+
+                  let context, _ = Query.prepare state
+
+                  let a1, a2 =
+                      invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
+
+                  a1.QueryState.Query |> Expect.equal "should return first property" ":name"
+                  a1.QueryState.Cursor |> Expect.equal "should return first property" 5
+
+                  a1.PropertySearch
+                  |> function
+                      | PropertySearch.Rotate(a, b) ->
+                          a |> Expect.equal "should return first property" "n"
+
+                          b
+                          |> Seq.take 3
+                          |> List.ofSeq
+                          |> Expect.equal "should return first property" [ "name"; "number"; "name" ]
+                      | _ -> failwith "PropertySearch should be Rotate"
+
+                  a2.Queries |> testQueryEnd
+              }
+
+              ]
