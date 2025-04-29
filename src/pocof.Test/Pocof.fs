@@ -413,19 +413,23 @@ let tests_render =
               |> Expect.equal "should return unit (ContinueProcessing.StopUpstreamCommands)" ()
           } ]
 
-module stopUpstreamCommandsException =
-    type MockException(o: obj) =
-        inherit Exception()
+type MockException(o: obj) =
+    inherit Exception()
 
-    type MockCmdlet() =
-        inherit PSCmdlet()
+type MockCmdlet() =
+    inherit PSCmdlet()
 
-    [<Fact>]
-    let ``should return the exception instance.`` () =
-        let actual =
-            Pocof.stopUpstreamCommandsException typeof<MockException> (new MockCmdlet())
+[<Tests>]
+let tests_stopUpstreamCommandsException =
+    testList
+        "stopUpstreamCommandsException"
+        [ test "When called, should return the exception instance" {
+              let actual =
+                  Pocof.stopUpstreamCommandsException typeof<MockException> (new MockCmdlet())
 
-        actual.GetType() |> shouldEqual typeof<MockException>
+              actual.GetType()
+              |> Expect.equal "should return MockException type" typeof<MockException>
+          } ]
 
 module renderOnce =
     [<Fact>]
