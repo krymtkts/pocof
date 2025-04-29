@@ -4,8 +4,6 @@ open System
 open System.Collections
 open System.Management.Automation
 
-open Xunit
-open FsUnitTyped
 open Expecto
 open Expecto.Flip
 
@@ -17,35 +15,37 @@ let tests_toKeyPattern =
         "toKeyPattern"
         [
 
-          test "A without modifiers." {
+          test "When input is 'A' (no modifiers)" {
               Keys.toKeyPattern "A"
-              |> Expect.equal "A without modifiers." (Ok { Modifier = 0; Key = ConsoleKey.A })
+              |> Expect.equal "should return Ok with no modifiers" (Ok { Modifier = 0; Key = ConsoleKey.A })
           }
 
-          test "A with Alt." {
+          test "When input is 'alt+a'" {
               Keys.toKeyPattern "alt+a"
-              |> Expect.equal "A with Alt." (Ok { Modifier = 1; Key = ConsoleKey.A })
+              |> Expect.equal "should return Ok with Alt modifier" (Ok { Modifier = 1; Key = ConsoleKey.A })
           }
 
-          test "A with Alt and Shift." {
+          test "When input is 'Alt+Shift+A'" {
               Keys.toKeyPattern "Alt+Shift+A"
-              |> Expect.equal "A with Alt and Shift." (Ok { Modifier = 3; Key = ConsoleKey.A })
+              |> Expect.equal "should return Ok with Alt and Shift modifiers" (Ok { Modifier = 3; Key = ConsoleKey.A })
           }
 
-          test "A with Ctrl, Alt and Shift." {
+          test "When input is 'control+alt+shift+A'" {
               Keys.toKeyPattern "control+alt+shift+A"
-              |> Expect.equal "A with Ctrl, Alt and Shift." (Ok { Modifier = 7; Key = ConsoleKey.A })
+              |> Expect.equal
+                  "should return Ok with Ctrl, Alt and Shift modifiers"
+                  (Ok { Modifier = 7; Key = ConsoleKey.A })
           }
 
-          test "Error when empty." {
+          test "When input is empty string" {
               Keys.toKeyPattern ""
-              |> Expect.equal "Error when empty." (Error "Unsupported key ''.")
+              |> Expect.equal "should return Error for empty input" (Error "Unsupported key ''.")
           }
 
-          test "Error when unsupported combination." {
+          test "When input is unsupported combination" {
               Keys.toKeyPattern "cnt+alt+c+ESC"
               |> Expect.equal
-                  "Error when unsupported combination."
+                  "should return Error for unsupported combination"
                   (Error "Unsupported modifier 'cnt'. Unsupported modifier 'c'. Unsupported key 'ESC'.")
           }
 
@@ -57,21 +57,21 @@ let tests_get =
         "get"
         [
 
-          test "PocofData.AddQuery if no modifier is specified." {
+          test "When no modifier" {
               let key = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
               let actual = Keys.get Map.empty key
-              actual |> Expect.equal "PocofData.AddQuery" (Data.Action.AddQuery "a")
+              actual |> Expect.equal "should return AddQuery" (Data.Action.AddQuery "a")
           }
 
-          test "PocofData.AddQuery if symbol with shift." {
+          test "When symbol with shift" {
               let getKey = [ new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) ]
               let actual = Keys.get Map.empty getKey
 
               actual
-              |> Expect.equal "PocofData.AddQuery if symbol with shift." (Data.Action.AddQuery ":")
+              |> Expect.equal "should return AddQuery for symbol with shift" (Data.Action.AddQuery ":")
           }
 
-          test "PocofData.AddQuery multiple times." {
+          test "When multiple keys are pressed" {
               let getKey =
                   [ new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false)
                     new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
@@ -82,10 +82,10 @@ let tests_get =
               let actual = Keys.get Map.empty getKey
 
               actual
-              |> Expect.equal "PocofData.AddQuery multiple times." (Data.Action.AddQuery "paste")
+              |> Expect.equal "should return AddQuery for multiple keys" (Data.Action.AddQuery "paste")
           }
 
-          test "user-defined Action if matched." {
+          test "When user-defined Action is matched" {
               let keyMap: Map<Data.KeyPattern, Data.Action> =
                   Map
                       [ { Data.KeyPattern.Modifier = 7
@@ -97,10 +97,10 @@ let tests_get =
 
               let key = [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
               let actual = Keys.get keyMap key
-              actual |> Expect.equal "user-defined Action if matched." Data.Action.Finish
+              actual |> Expect.equal "should return user-defined Action" Data.Action.Finish
           }
 
-          test "Action if matched." {
+          test "When Action is matched (DeleteBackwardInput, Finish, Noop)" {
               let keyMap: Map<Data.KeyPattern, Data.Action> =
                   ([ { Data.KeyPattern.Modifier = 7
                        Data.KeyPattern.Key = ConsoleKey.E }
@@ -114,28 +114,28 @@ let tests_get =
                   Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Home, false, false, true) ]
 
               actual
-              |> Expect.equal "Action if matched (DeleteBackwardInput)" Data.Action.DeleteBackwardInput
+              |> Expect.equal "should return DeleteBackwardInput" Data.Action.DeleteBackwardInput
 
               let actual =
                   Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
 
-              actual |> Expect.equal "Action if matched (Finish)" Data.Action.Finish
+              actual |> Expect.equal "should return Finish" Data.Action.Finish
 
               let actual =
                   Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
 
-              actual |> Expect.equal "Action if matched (Noop)" Data.Action.Noop
+              actual |> Expect.equal "should return Noop" Data.Action.Noop
           }
 
-          test "Action if matched to no modifier key." {
+          test "When matched to no modifier key" {
               let keu = [ new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false) ]
               let actual = Keys.get Keys.defaultKeymap keu
 
               actual
-              |> Expect.equal "Action if matched to no modifier key." Data.Action.BeginningOfLine
+              |> Expect.equal "should return BeginningOfLine" Data.Action.BeginningOfLine
           }
 
-          test "PocofData.AddQuery if not match the keymap." {
+          test "When not matched in keymap" {
               let keyMap: Map<Data.KeyPattern, Data.Action> =
                   Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.Action.DeleteBackwardInput) ]
 
@@ -143,21 +143,21 @@ let tests_get =
               let actual = Keys.get keyMap key
 
               actual
-              |> Expect.equal "PocofData.AddQuery if not match the keymap." (Data.Action.AddQuery "u")
+              |> Expect.equal "should return AddQuery for unmatched key" (Data.Action.AddQuery "u")
           }
 
-          test "PocofData.None if the control character not match the keymap." {
+          test "When control character not matched in keymap" {
               let key = [ new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true) ]
               let actual = Keys.get Keys.defaultKeymap key
 
               actual
-              |> Expect.equal "PocofData.None if the control character not match the keymap." Data.Action.Noop
+              |> Expect.equal "should return Noop for unmatched control character" Data.Action.Noop
           }
 
-          test "None if not match the keymap." {
+          test "When not matched in keymap (Noop)" {
               let key = [ new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false) ]
               let actual = Keys.get Keys.defaultKeymap key
-              actual |> Expect.equal "None if not match the keymap." Data.Action.Noop
+              actual |> Expect.equal "should return Noop for unmatched key" Data.Action.Noop
           }
 
           ]
@@ -168,7 +168,7 @@ let tests_convertKeymaps =
         "convertKeymaps"
         [
 
-          test "map transformed from hashtable" {
+          test "When hashtable" {
               let h = new Hashtable()
               h.Add("control+alt+shift+x", "cancel")
               h.Add("ESCAPE", "NOOP")
@@ -183,10 +183,11 @@ let tests_convertKeymaps =
                   |||> List.foldBack2 Map.add
                   |> Ok
 
-              Keys.convertKeymaps h |> Expect.equal "map transformed from hashtable" expected
+              Keys.convertKeymaps h
+              |> Expect.equal "should return map transformed from hashtable" expected
           }
 
-          test "error if the hashtable contains invalid key or action." {
+          test "When hashtable contains invalid key or action" {
               let h = new OrderedHashtable()
               h.Add("contrl+x", "cancel")
               h.Add("alte+a", "Finissh")
@@ -202,15 +203,13 @@ let tests_convertKeymaps =
                   |> String.concat "\n"
                   |> Error
 
-              Keys.convertKeymaps h
-              |> Expect.equal "error if the hashtable contains invalid key or action." expected
+              Keys.convertKeymaps h |> Expect.equal "should return error" expected
           }
 
-          test "default map from null hashtable" {
+          test "When hashtable is null" {
               let expected = Keys.defaultKeymap |> Ok
 
-              Keys.convertKeymaps null
-              |> Expect.equal "default map from null hashtable" expected
+              Keys.convertKeymaps null |> Expect.equal "should return default map" expected
           }
 
           ]
