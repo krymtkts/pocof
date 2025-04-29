@@ -354,9 +354,10 @@ let tests_interact =
 
           ]
 
-module initScreen =
+[<Tests>]
+let tests_initScreen =
     // NOTE: covered by interact tests.
-    ()
+    testList "initScreen" []
 
 module render =
     open System.Threading
