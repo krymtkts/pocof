@@ -1,6 +1,7 @@
 module PocofTest.Pocof
 
 open System
+open System.Collections
 open System.Management.Automation
 
 open Xunit
@@ -693,45 +694,60 @@ let tests_Periodic =
 
           ]
 
-module NormalInputStore =
-    open System.Collections
 
+[<Tests>]
+let tests_NormalInputStore =
     let mapToObj x =
         x |> List.map (PSObject.AsPSObject >> Entry.Obj)
 
-    [<Fact>]
-    let ``should return the list with added Obj`` () =
-        let expected = [ 1 ] |> mapToObj
-        let input: Pocof.IInputStore = Pocof.getInputStore false
-        input.Add(1 |> PSObject.AsPSObject)
-        input.GetEntries() |> List.ofSeq |> shouldEqual expected
+    testList
+        "NormalInputStore"
+        [
 
-    [<Fact>]
-    let ``should return the list with added Obj to tail.`` () =
-        let expected = [ 0; 1 ] |> mapToObj
-        let input: Pocof.IInputStore = Pocof.getInputStore false
-        input.Add(0 |> PSObject.AsPSObject)
-        input.Add(1 |> PSObject.AsPSObject)
-        input.GetEntries() |> List.ofSeq |> shouldEqual expected
+          test "When adding one Obj, should return the list with added Obj" {
+              let expected = [ 1 ] |> mapToObj
+              let input: Pocof.IInputStore = Pocof.getInputStore false
+              input.Add(1 |> PSObject.AsPSObject)
 
-    [<Fact>]
-    let ``should return the list with added Dict`` () =
-        let expected =
-            [ DictionaryEntry("a", 1); DictionaryEntry("b", 2); DictionaryEntry("c", 3) ]
-            |> List.map Entry.Dict
+              input.GetEntries()
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added Obj" expected
+          }
+          test "When adding two Objs, should return the list with added Obj to tail" {
+              let expected = [ 0; 1 ] |> mapToObj
+              let input: Pocof.IInputStore = Pocof.getInputStore false
+              input.Add(0 |> PSObject.AsPSObject)
+              input.Add(1 |> PSObject.AsPSObject)
 
-        let input: Pocof.IInputStore = Pocof.getInputStore false
+              input.GetEntries()
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added Obj to tail" expected
+          }
+          test "When adding Dict, should return the list with added Dict" {
+              let expected =
+                  [ DictionaryEntry("a", 1); DictionaryEntry("b", 2); DictionaryEntry("c", 3) ]
+                  |> List.map Entry.Dict
 
-        let inputObject =
-            let h = new OrderedHashtable()
-            h.Add("a", 1)
-            h.Add("b", 2)
-            h.Add("c", 3)
-            h |> PSObject.AsPSObject
+              let input: Pocof.IInputStore = Pocof.getInputStore false
 
-        input.Add inputObject
-        input.GetEntries() |> List.ofSeq |> shouldEqual expected
-        input.Count() |> shouldEqual (Seq.length expected)
+              let inputObject =
+                  let h = new OrderedHashtable()
+                  h.Add("a", 1)
+                  h.Add("b", 2)
+                  h.Add("c", 3)
+                  h |> PSObject.AsPSObject
+
+              input.Add inputObject
+
+              input.GetEntries()
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added Dict" expected
+
+              input.Count()
+              |> Expect.equal "should return correct count for Dict" (Seq.length expected)
+          }
+
+          ]
 
 module UniqueInputStore =
     open System.Collections
