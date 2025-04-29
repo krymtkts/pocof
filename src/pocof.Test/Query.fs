@@ -549,30 +549,37 @@ module run =
 
               ]
 
-    module ``with a locale`` =
-        open System.Globalization
+    open System
+    open System.Globalization
 
+    [<Tests>]
+    let ``tests with a locale`` =
         let entries =
-            [ System.DateTime.Parse("2024-01-01")
-              System.DateTime.Parse("2024-01-02")
-              System.DateTime.Parse("2024-01-03")
-              System.DateTime.Parse("2024-01-04") ]
+            [ DateTime.Parse("2024-01-01")
+              DateTime.Parse("2024-01-02")
+              DateTime.Parse("2024-01-03")
+              DateTime.Parse("2024-01-04") ]
             |> List.map (PSObject.AsPSObject >> Data.Entry.Obj)
 
-        [<Fact>]
-        let ``should return filtered entries when composite query with or operator.`` () =
-            let culture = System.Threading.Thread.CurrentThread.CurrentCulture
-            let testCulture = CultureInfo.GetCultureInfo("en-US").Clone() :?> CultureInfo
-            testCulture.DateTimeFormat.ShortDatePattern <- "yyyy-MM-dd"
-            System.Threading.Thread.CurrentThread.CurrentCulture <- testCulture
+        testList
+            "with a locale"
+            [
 
-            let state = state |> query "01-04"
-            let context, _ = Query.prepare state
+              test "When composite query with or operator and locale is en-US" {
+                  let culture = Threading.Thread.CurrentThread.CurrentCulture
+                  let testCulture = CultureInfo.GetCultureInfo("en-US").Clone() :?> CultureInfo
+                  testCulture.DateTimeFormat.ShortDatePattern <- "yyyy-MM-dd"
+                  Threading.Thread.CurrentThread.CurrentCulture <- testCulture
 
-            let filtered = [ entries |> List.last ]
+                  let state = state |> query "01-04"
+                  let context, _ = Query.prepare state
+                  let filtered = [ entries |> List.last ]
 
-            Query.run context (entries |> PSeq.ofSeq) (Map [])
-            |> List.ofSeq
-            |> shouldEqual filtered
+                  Query.run context (entries |> PSeq.ofSeq) (Map [])
+                  |> List.ofSeq
+                  |> Expect.equal "should return filtered entries (locale en-US)" filtered
 
-            System.Threading.Thread.CurrentThread.CurrentCulture <- culture
+                  Threading.Thread.CurrentThread.CurrentCulture <- culture
+              }
+
+              ]
