@@ -458,7 +458,8 @@ module run =
 
               ]
 
-    module ``with a Property query`` =
+    [<Tests>]
+    let ``tests with a Property query`` =
         let getPsObj (f: string, l: string) =
             let ret = PSObject()
 
@@ -474,75 +475,79 @@ module run =
 
         let props = Map [ "fn", "Fn"; "ln", "Ln" ]
 
-        [<Fact>]
-        let ``should return filtered entries when composite query with or operator.`` () =
-            let state = state |> query ":fn a  :ln  d"
-            let context, _ = Query.prepare state
+        testList
+            "with a Property query"
+            [
 
-            let filtered = [ entries.[0]; entries.[1]; entries.[3] ]
+              test "When composite query with or operator" {
+                  let state = state |> query ":fn a  :ln  d"
+                  let context, _ = Query.prepare state
+                  let filtered = [ entries.[0]; entries.[1]; entries.[3] ]
 
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual filtered
+                  Query.run context (entries |> PSeq.ofSeq) props
+                  |> List.ofSeq
+                  |> Expect.equal "should return filtered entries (or)" filtered
+              }
 
-        [<Fact>]
-        let ``should return filtered entries when composite query with and operator.`` () =
-            let state = state |> query ":fn a :ln d" |> opAnd
-            let context, _ = Query.prepare state
-            let filtered = [ entries.[1] ]
+              test "When composite query with and operator" {
+                  let state = state |> query ":fn a :ln d" |> opAnd
+                  let context, _ = Query.prepare state
+                  let filtered = [ entries.[1] ]
 
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual filtered
+                  Query.run context (entries |> PSeq.ofSeq) props
+                  |> List.ofSeq
+                  |> Expect.equal "should return filtered entries (and)" filtered
+              }
 
-        [<Fact>]
-        let ``should return all entries when property not exists.`` () =
-            let state = state |> query ":f a"
-            let context, _ = Query.prepare state
+              test "When property not exists" {
+                  let state = state |> query ":f a"
+                  let context, _ = Query.prepare state
 
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual entries
+                  Query.run context (entries |> PSeq.ofSeq) props
+                  |> List.ofSeq
+                  |> Expect.equal "should return all entries (property not exists)" entries
+              }
 
+              test "When incomplete composite query" {
+                  let state = state |> query ":fn "
+                  let context, _ = Query.prepare state
 
-        [<Fact>]
-        let ``should return all entries when incomplete composite query.`` () =
-            let state = state |> query ":fn "
-            let context, _ = Query.prepare state
+                  Query.run context (entries |> PSeq.ofSeq) props
+                  |> List.ofSeq
+                  |> Expect.equal "should return all entries (incomplete composite query)" entries
+              }
 
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual entries
+              test "When incomplete composite query with filter" {
+                  let state = state |> query "a :fn "
+                  let context, _ = Query.prepare state
+                  let filtered = [ entries.[1]; entries.[3] ]
 
-        [<Fact>]
-        let ``should return filtered entries when incomplete composite query.`` () =
-            let state = state |> query "a :fn "
-            let context, _ = Query.prepare state
-            let filtered = [ entries.[1]; entries.[3] ]
+                  Query.run context (entries |> PSeq.ofSeq) props
+                  |> List.ofSeq
+                  |> Expect.equal "should return filtered entries (incomplete composite query with filter)" filtered
+              }
 
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual filtered
+              test "When a non-existent property query exists after a correct query" {
+                  let state = state |> query "a :f  e "
+                  let context, _ = Query.prepare state
+                  let filtered = [ entries.[1]; entries.[3] ]
 
-        [<Fact>]
-        let ``should return filtered entries when a non-existent property query exists after a correct query`` () =
-            let state = state |> query "a :f  e "
-            let context, _ = Query.prepare state
-            let filtered = [ entries.[1]; entries.[3] ]
+                  Query.run context (entries |> PSeq.ofSeq) props
+                  |> List.ofSeq
+                  |> Expect.equal "should return filtered entries (non-existent property after correct query)" filtered
+              }
 
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual filtered
+              test "When a non-existent property query exists before a correct query" {
+                  let state = state |> query ":f e a"
+                  let context, _ = Query.prepare state
+                  let filtered = [ entries.[1]; entries.[3] ]
 
-        [<Fact>]
-        let ``should return filtered entries when a non-existent property query exists before a correct query`` () =
-            let state = state |> query ":f e a"
-            let context, _ = Query.prepare state
-            let filtered = [ entries.[1]; entries.[3] ]
+                  Query.run context (entries |> PSeq.ofSeq) props
+                  |> List.ofSeq
+                  |> Expect.equal "should return filtered entries (non-existent property before correct query)" filtered
+              }
 
-            Query.run context (entries |> PSeq.ofSeq) props
-            |> List.ofSeq
-            |> shouldEqual filtered
+              ]
 
     module ``with a locale`` =
         open System.Globalization
