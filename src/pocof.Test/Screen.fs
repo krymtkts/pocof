@@ -4,9 +4,6 @@ open System
 open System.Collections
 open System.Management.Automation
 
-open Xunit
-open FsUnitTyped
-
 open Expecto
 open Expecto.Flip
 
@@ -154,7 +151,7 @@ let ``tests Buff writeScreen`` =
                   List.concat
                       [ [ @"prompt>\                                                                        "
                           @"note>Invalid pattern '\' at offset 1. Illegal \ at end of pattern. match and [0]" ]
-                        (generateLine rui.width (28)) ]
+                        generateLine rui.width 28 ]
 
               rui.screen |> Expect.equal "should render notification" expected
           }
@@ -178,7 +175,7 @@ let ``tests Buff writeScreen`` =
                   List.concat
                       [ [ @"prompt>:                                                                        "
                           @"Name01 Name02 Name03 Name04 Name05 Name06 Name07 Name08 Name09 Nam match and [0]" ]
-                        (generateLine rui.width (28)) ]
+                        generateLine rui.width 28 ]
 
               rui.screen |> Expect.equal "should render property suggestions" expected
           }
@@ -200,7 +197,7 @@ let ``tests Buff writeScreen`` =
                   List.concat
                       [ [ @"prompt>:unknown                                                                 "
                           @"note>Property not found                                            match and [0]" ]
-                        (generateLine rui.width (28)) ]
+                        generateLine rui.width 28 ]
 
               rui.screen |> Expect.equal "should render props notification" expected
           }
@@ -239,9 +236,9 @@ let ``tests Buff writeScreen`` =
                           @"                                                            "
                           @"Name                           Value                        "
                           @"----                           -----                        " ]
-                        ([ 1..10 ]
-                         |> List.map (sprintf "Number                         %-2d                           "))
-                        (generateLine rui.width (15)) ]
+                        [ 1..10 ]
+                        |> List.map (sprintf "Number                         %-2d                           ")
+                        generateLine rui.width 15 ]
 
               rui.screen |> Expect.equal "should render entries under y" expected
           }
@@ -271,8 +268,8 @@ let ``tests Buff writeScreen`` =
                           @"                                                            "
                           @"Name                           Value                        "
                           @"----                           -----                        " ]
-                        ([ 1..25 ]
-                         |> List.map (sprintf "Number                         %-2d                           ")) ]
+                        [ 1..25 ]
+                        |> List.map (sprintf "Number                         %-2d                           ") ]
 
               rui.screen |> Expect.equal "should render entries over y" expected
           }
