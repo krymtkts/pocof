@@ -359,54 +359,59 @@ let tests_initScreen =
     // NOTE: covered by interact tests.
     testList "initScreen" []
 
-module render =
-    open System.Threading
+open System.Threading
 
-    [<Fact>]
-    let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+[<Tests>]
+let tests_render =
+    testList
+        "render"
+        [ test "When handler has a quit event, should return ContinueProcessing.StopUpstreamCommands" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUpHalf
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        let handler = Pocof.RenderHandler()
+              let handler = Pocof.RenderHandler()
 
-        async {
-            Thread.Sleep 300
+              async {
+                  Thread.Sleep 300
 
-            (state, lazy PSeq.empty, lazy Error "error")
-            |> Pocof.RenderEvent.Render
-            |> handler.Publish
+                  (state, lazy PSeq.empty, lazy Error "error")
+                  |> Pocof.RenderEvent.Render
+                  |> handler.Publish
 
-            Thread.Sleep 300
+                  Thread.Sleep 300
 
-            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
-            |> Pocof.RenderEvent.Render
-            |> handler.Publish
+                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  |> Pocof.RenderEvent.Render
+                  |> handler.Publish
 
-            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
-            |> Pocof.RenderEvent.Render
-            |> handler.Publish
+                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  |> Pocof.RenderEvent.Render
+                  |> handler.Publish
 
-            Thread.Sleep 300
+                  Thread.Sleep 300
 
-            Pocof.RenderEvent.Quit |> handler.Publish
+                  Pocof.RenderEvent.Quit |> handler.Publish
 
-            (state, lazy PSeq.empty, lazy Ok [ "Value" ])
-            |> Pocof.RenderEvent.Render
-            |> handler.Publish
-        }
-        |> Async.Start
+                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  |> Pocof.RenderEvent.Render
+                  |> handler.Publish
+              }
+              |> Async.Start
 
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.render buff handler
-        actual |> shouldEqual ()
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.render buff handler
+
+              actual
+              |> Expect.equal "should return unit (ContinueProcessing.StopUpstreamCommands)" ()
+          } ]
 
 module stopUpstreamCommandsException =
     type MockException(o: obj) =
