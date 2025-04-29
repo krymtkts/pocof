@@ -597,17 +597,31 @@ let ``tests Buff writeScreen`` =
 
           ]
 
-module ``Buff getConsoleWidth`` =
-    [<Fact>]
-    let ``should render top down.`` () =
-        let rui = new MockRawUI(60, 30)
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, "prompt>")
-        buff.GetConsoleWidth() |> shouldEqual 60
+[<Tests>]
+let tests_getConsoleWidth =
+    testList
+        "Buff getConsoleWidth"
+        [
 
-module ``Buff getKey`` =
-    [<Fact>]
-    let ``should render top down.`` () =
-        let rui = new MockRawUI()
-        use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, "prompt>")
-        let expected = [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ]
-        buff.GetKey() |> shouldEqual expected
+          test "When getting console width" {
+              let rui = new MockRawUI(60, 30)
+              use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, "prompt>")
+              buff.GetConsoleWidth() |> Expect.equal "should return console width" 60
+          }
+
+          ]
+
+[<Tests>]
+let tests_getKey =
+    testList
+        "Buff getKey"
+        [
+
+          test "When getting key" {
+              let rui = new MockRawUI()
+              use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, "prompt>")
+              let expected = [ new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) ]
+              buff.GetKey() |> Expect.equal "should return key sequence" expected
+          }
+
+          ]
