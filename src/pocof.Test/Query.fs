@@ -364,7 +364,9 @@ module run =
 
               ]
 
-    module ``with a Dictionary query`` =
+
+    [<Tests>]
+    let ``tests with a Dictionary query`` =
         let props = Map []
         let mapToDict = List.map Data.Entry.Dict
 
@@ -376,73 +378,85 @@ module run =
                   DictionaryEntry("Taro", "Nanashi") ]
             |> PSeq.ofSeq
 
-        [<Fact>]
-        let ``should return filtered entries when composite query with or operator.`` () =
-            let state = state |> query "e"
-            let context, _ = Query.prepare state
+        testList
+            "with a Dictionary query"
+            [
 
-            Query.run context entries props
-            |> List.ofSeq
-            |> shouldEqual (mapToDict [ DictionaryEntry("John", "Doe"); DictionaryEntry("Jane", "Doe") ])
+              test "When composite query with or operator" {
+                  let state = state |> query "e"
+                  let context, _ = Query.prepare state
 
-        [<Fact>]
-        let ``should return filtered entries when composite query with and operator.`` () =
-            let state = state |> query "ne" |> opAnd
-            let context, _ = Query.prepare state
+                  Query.run context entries props
+                  |> List.ofSeq
+                  |> Expect.equal
+                      "should return filtered entries (or)"
+                      (mapToDict [ DictionaryEntry("John", "Doe"); DictionaryEntry("Jane", "Doe") ])
+              }
 
-            Query.run context entries props
-            |> List.ofSeq
-            |> shouldEqual (mapToDict [ DictionaryEntry("Jane", "Doe") ])
+              test "When composite query with and operator" {
+                  let state = state |> query "ne" |> opAnd
+                  let context, _ = Query.prepare state
 
-        [<Fact>]
-        let ``should return filtered entries when property query.`` () =
-            let props =
-                DictionaryEntry("Jane", "Doe")
-                |> PSObject.AsPSObject
-                |> _.Properties
-                |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
-                |> Map
+                  Query.run context entries props
+                  |> List.ofSeq
+                  |> Expect.equal "should return filtered entries (and)" (mapToDict [ DictionaryEntry("Jane", "Doe") ])
+              }
 
-            let state = state |> query ":key  ja" |> opAnd
-            let context, _ = Query.prepare state
+              test "When property query" {
+                  let props =
+                      DictionaryEntry("Jane", "Doe")
+                      |> PSObject.AsPSObject
+                      |> _.Properties
+                      |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
+                      |> Map
 
-            Query.run context entries props
-            |> List.ofSeq
-            |> shouldEqual (mapToDict [ DictionaryEntry("Jane", "Doe") ])
+                  let state = state |> query ":key  ja" |> opAnd
+                  let context, _ = Query.prepare state
 
-        [<Fact>]
-        let ``should return all entries when querying a non-existing property.`` () =
-            let props =
-                DictionaryEntry("Jane", "Doe")
-                |> PSObject.AsPSObject
-                |> _.Properties
-                |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
-                |> Map
+                  Query.run context entries props
+                  |> List.ofSeq
+                  |> Expect.equal
+                      "should return filtered entries (property query)"
+                      (mapToDict [ DictionaryEntry("Jane", "Doe") ])
+              }
 
-            let state = state |> query ":title  ja" |> opAnd
-            let context, _ = Query.prepare state
+              test "When querying a non-existing property (should return all)" {
+                  let props =
+                      DictionaryEntry("Jane", "Doe")
+                      |> PSObject.AsPSObject
+                      |> _.Properties
+                      |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
+                      |> Map
 
-            Query.run context entries props
-            |> List.ofSeq
-            |> shouldEqual (entries |> List.ofSeq)
+                  let state = state |> query ":title  ja" |> opAnd
+                  let context, _ = Query.prepare state
 
-        [<Fact>]
-        let ``should return empty when querying a non-existing property.`` () =
-            let props =
-                DictionaryEntry("Jane", "Doe")
-                |> PSObject.AsPSObject
-                |> _.Properties
-                |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
-                |> Map
+                  Query.run context entries props
+                  |> List.ofSeq
+                  |> Expect.equal "should return all entries (non-existing property)" (entries |> List.ofSeq)
+              }
 
-            let state = state |> query ":key ja" |> opAnd
+              test "When querying a non-existing property (should return empty)" {
+                  let props =
+                      DictionaryEntry("Jane", "Doe")
+                      |> PSObject.AsPSObject
+                      |> _.Properties
+                      |> Seq.map (fun p -> p.Name.ToLower(), p.Name)
+                      |> Map
 
-            let entries =
-                [ "d" ] |> List.map (PSObject.AsPSObject >> Data.Entry.Obj) |> PSeq.ofSeq
+                  let state = state |> query ":key ja" |> opAnd
 
-            let context, _ = Query.prepare state
+                  let entries =
+                      [ "d" ] |> List.map (PSObject.AsPSObject >> Data.Entry.Obj) |> PSeq.ofSeq
 
-            Query.run context entries props |> List.ofSeq |> shouldEqual (List.empty)
+                  let context, _ = Query.prepare state
+
+                  Query.run context entries props
+                  |> List.ofSeq
+                  |> Expect.equal "should return empty" []
+              }
+
+              ]
 
     module ``with a Property query`` =
         let getPsObj (f: string, l: string) =
