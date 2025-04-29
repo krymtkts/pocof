@@ -6,6 +6,9 @@ open System.Management.Automation
 open Xunit
 open FsUnitTyped
 
+open Expecto
+open Expecto.Flip
+
 open Pocof
 open Pocof.Data
 open Pocof.Test
@@ -35,11 +38,20 @@ let state = initState ()
 let publishEvent _ = ()
 let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
 
-module initConsoleInterface =
-    [<Fact>]
-    let ``should return ConsoleInterface.`` () =
-        let actual = Pocof.initConsoleInterface ()
-        actual.GetType() |> shouldEqual typeof<Screen.ConsoleInterface>
+[<Tests>]
+let tests_initConsoleInterface =
+    testList
+        "initConsoleInterface"
+        [
+
+          test "When initializing console interface" {
+              let actual = Pocof.initConsoleInterface ()
+
+              actual.GetType()
+              |> Expect.equal "should return ConsoleInterface type" typeof<Screen.ConsoleInterface>
+          }
+
+          ]
 
 module calculateWindowBeginningCursor =
     [<Fact>]
