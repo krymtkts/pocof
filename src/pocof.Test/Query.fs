@@ -74,62 +74,69 @@ let tests_PSObject =
 
           ]
 
-module props =
-    [<Fact>]
-    let ``should return OK with empty list.`` () =
-        Query.props
-            properties
-            { state with
-                PropertySearch = Data.PropertySearch.NoSearch }
-        |> shouldEqual (Ok [])
+[<Tests>]
+let tests_props =
+    testList
+        "props"
+        [
 
-    [<Fact>]
-    let ``should return Error with 'Property not found'.`` () =
-        Query.props
-            properties
-            { state with
-                PropertySearch = Data.PropertySearch.Search "No" }
-        |> shouldEqual (Error "Property not found")
+          test "When PropertySearch is NoSearch" {
+              Query.props
+                  properties
+                  { state with
+                      PropertySearch = Data.PropertySearch.NoSearch }
+              |> Expect.equal "should return Ok with empty list" (Ok [])
+          }
 
-    [<Fact>]
-    let ``should return Ok with non filtered properties.`` () =
-        Query.props
-            properties
-            { state with
-                PropertySearch = Data.PropertySearch.Search "" }
-        |> shouldEqual (Ok [ "Name"; "Attribute"; "Length" ])
+          test "When PropertySearch is Search 'No' (not found)" {
+              Query.props
+                  properties
+                  { state with
+                      PropertySearch = Data.PropertySearch.Search "No" }
+              |> Expect.equal "should return Error with 'Property not found'" (Error "Property not found")
+          }
 
-    [<Fact>]
-    let ``should return Ok with filtered properties.`` () =
-        Query.props
-            properties
-            { state with
-                PropertySearch = Data.PropertySearch.Search "Na" }
-        |> shouldEqual (Ok [ "Name" ])
+          test "When PropertySearch is Search '' (empty string)" {
+              Query.props
+                  properties
+                  { state with
+                      PropertySearch = Data.PropertySearch.Search "" }
+              |> Expect.equal "should return Ok with all properties" (Ok [ "Name"; "Attribute"; "Length" ])
+          }
 
-    [<Fact>]
-    let ``should return Ok with properties filtered in a case-insensitive manner.`` () =
-        Query.props
-            properties
-            { state with
-                PropertySearch = Data.PropertySearch.Search "na" }
-        |> shouldEqual (Ok [ "Name" ])
+          test "When PropertySearch is Search 'Na' (filtered)" {
+              Query.props
+                  properties
+                  { state with
+                      PropertySearch = Data.PropertySearch.Search "Na" }
+              |> Expect.equal "should return Ok with filtered properties" (Ok [ "Name" ])
+          }
 
-    [<Fact>]
-    let ``should return Ok with non filtered properties when rotate.`` () =
-        Query.props
-            properties
-            { state with
-                PropertySearch = Data.PropertySearch.Rotate("", [ "Name" ]) }
-        |> shouldEqual (Ok [ "Name"; "Attribute"; "Length" ])
+          test "When PropertySearch is Search 'na' (case-insensitive)" {
+              Query.props
+                  properties
+                  { state with
+                      PropertySearch = Data.PropertySearch.Search "na" }
+              |> Expect.equal "should return Ok with filtered properties (case-insensitive)" (Ok [ "Name" ])
+          }
 
-    [<Fact>]
-    let ``should return Ok with filtered properties when rotate.`` () =
-        Query.props
-            properties
-            { state with
-                PropertySearch = Data.PropertySearch.Rotate("Na", [ "Name" ]) }
-        |> shouldEqual (Ok [ "Name" ])
+          test "When PropertySearch is Rotate with empty string" {
+              Query.props
+                  properties
+                  { state with
+                      PropertySearch = Data.PropertySearch.Rotate("", [ "Name" ]) }
+              |> Expect.equal "should return Ok with all properties (rotate)" (Ok [ "Name"; "Attribute"; "Length" ])
+          }
+
+          test "When PropertySearch is Rotate with filter 'Na'" {
+              Query.props
+                  properties
+                  { state with
+                      PropertySearch = Data.PropertySearch.Rotate("Na", [ "Name" ]) }
+              |> Expect.equal "should return Ok with filtered properties (rotate)" (Ok [ "Name" ])
+          }
+
+          ]
 
 module run =
     open System.Collections
