@@ -950,25 +950,41 @@ let tests_buildProperties =
 
           ]
 
-module PropertyStore =
-    [<Fact>]
-    let ``should add values.`` () =
-        let expected = [ "a"; "b"; "c" ]
-        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-        properties.Add("a", [ "a"; "b"; "c" ])
-        properties.GetProperties() |> List.ofSeq |> shouldEqual expected
+[<Tests>]
+let tests_PropertyStore =
+    testList
+        "PropertyStore"
+        [
 
-    [<Fact>]
-    let ``shouldn't add existing name.`` () =
-        let expected = [ "a"; "b"; "c" ]
-        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-        properties.Add("a", [ "a"; "b"; "c" ])
-        properties.Add("a", [ "d"; "e"; "f" ])
-        properties.GetProperties() |> List.ofSeq |> shouldEqual expected
+          test "When adding values, should return the added values" {
+              let expected = [ "a"; "b"; "c" ]
+              let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+              properties.Add("a", [ "a"; "b"; "c" ])
 
-    [<Fact>]
-    let ``shouldn't add duplicated values.`` () =
-        let expected = [ "a"; "b"; "c" ]
-        let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-        properties.Add("a", [ "a"; "b"; "a"; "b"; "c" ])
-        properties.GetProperties() |> List.ofSeq |> shouldEqual expected
+              properties.GetProperties()
+              |> List.ofSeq
+              |> Expect.equal "should return the added values" expected
+          }
+
+          test "When adding existing name, shouldn't add new values" {
+              let expected = [ "a"; "b"; "c" ]
+              let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+              properties.Add("a", [ "a"; "b"; "c" ])
+              properties.Add("a", [ "d"; "e"; "f" ])
+
+              properties.GetProperties()
+              |> List.ofSeq
+              |> Expect.equal "should not add values for existing name" expected
+          }
+
+          test "When adding duplicated values, shouldn't add duplicates" {
+              let expected = [ "a"; "b"; "c" ]
+              let properties: Pocof.PropertyStore = Pocof.PropertyStore()
+              properties.Add("a", [ "a"; "b"; "a"; "b"; "c" ])
+
+              properties.GetProperties()
+              |> List.ofSeq
+              |> Expect.equal "should not add duplicated values" expected
+          }
+
+          ]
