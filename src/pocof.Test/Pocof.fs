@@ -514,165 +514,184 @@ let tests_renderOnce =
 
           ]
 
-module Interval =
-    open System.Threading
+[<Tests>]
+let tests_Periodic =
+    testList
+        "Periodic"
+        [
 
-    [<Fact>]
-    let ``should invoke cancel action when stopping upstream commands.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+          test "When stopping upstream commands, should invoke cancel action" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUpHalf
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Quit |> handler.Publish
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let mutable actual = false
+              let handler = Pocof.RenderHandler()
+              Pocof.RenderEvent.Quit |> handler.Publish
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let mutable actual = false
 
-        let periodic =
-            Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
+              let periodic =
+                  Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
 
-        Thread.Sleep 100
-        periodic.Render()
-        actual |> shouldEqual true
-        periodic.Stop()
+              Thread.Sleep 100
+              periodic.Render()
 
-    [<Fact>]
-    let ``shouldn't invoke cancel action if rendering completed.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              actual
+              |> Expect.equal "should invoke cancel action when stopping upstream commands" true
 
-        let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let mutable actual = false
+              periodic.Stop()
+          }
 
-        let periodic =
-            Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
+          test "When rendering completed, shouldn't invoke cancel action" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUpHalf
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        Thread.Sleep 100
-        periodic.Render()
-        actual |> shouldEqual false
-        periodic.Stop()
+              let handler = Pocof.RenderHandler()
+              Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let mutable actual = false
 
-    [<Fact>]
-    let ``shouldn't invoke anything if ElapsedMilliseconds is less than 10ms.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              let periodic =
+                  Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
 
-        let handler = Pocof.RenderHandler()
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let mutable actual = false
+              Thread.Sleep 100
+              periodic.Render()
 
-        let periodic =
-            Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
+              actual
+              |> Expect.equal "shouldn't invoke cancel action if rendering completed" false
 
-        periodic.Render()
-        actual |> shouldEqual false
-        periodic.Stop()
+              periodic.Stop()
+          }
 
-    [<Fact>]
-    let ``shouldn't invoke idling action if first time idle rendering.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+          test "When ElapsedMilliseconds is less than 10ms, shouldn't invoke anything" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUpHalf
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        let handler = Pocof.RenderHandler()
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let mutable actual = false
+              let handler = Pocof.RenderHandler()
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let mutable actual = false
 
-        let periodic =
-            Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
+              let periodic =
+                  Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
 
-        Thread.Sleep 100
-        periodic.Render()
-        actual |> shouldEqual false
-        periodic.Stop()
+              periodic.Render()
 
-    [<Fact>]
-    let ``should invoke idling action after 1 second.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              actual
+              |> Expect.equal "shouldn't invoke anything if ElapsedMilliseconds is less than 10ms" false
 
-        let handler = Pocof.RenderHandler()
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let mutable actual = false
+              periodic.Stop()
+          }
 
-        let periodic =
-            Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
+          test "When first time idle rendering, shouldn't invoke idling action" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUpHalf
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        Thread.Sleep 1000
-        periodic.Render()
-        actual |> shouldEqual false
-        periodic.Stop()
+              let handler = Pocof.RenderHandler()
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let mutable actual = false
 
-    [<Fact>]
-    let ``should invoke idling rendering action after 1 second.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"---"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              let periodic =
+                  Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
 
-        let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let mutable actual = false
+              Thread.Sleep 100
+              periodic.Render()
 
-        let periodic =
-            Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
+              actual
+              |> Expect.equal "shouldn't invoke idling action if first time idle rendering" false
 
-        Thread.Sleep 100
+              periodic.Stop()
+          }
 
-        List.replicate 12 ()
-        |> List.iter (fun _ ->
-            periodic.Render()
-            Thread.Sleep 100)
+          test "When idling for 1 second, should invoke idling action" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUpHalf
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        actual |> shouldEqual false
-        periodic.Stop()
+              let handler = Pocof.RenderHandler()
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let mutable actual = false
+
+              let periodic =
+                  Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
+
+              Thread.Sleep 1000
+              periodic.Render()
+              actual |> Expect.equal "should invoke idling action after 1 second" false
+              periodic.Stop()
+          }
+
+          test "When idling rendering for 1 second, should invoke idling rendering action" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUpHalf
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
+
+              let handler = Pocof.RenderHandler()
+              Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let mutable actual = false
+
+              let periodic =
+                  Pocof.Periodic(handler, buff, (fun _ -> actual <- true), config.PromptLength)
+
+              Thread.Sleep 100
+
+              List.replicate 12 ()
+              |> List.iter (fun _ ->
+                  periodic.Render()
+                  Thread.Sleep 100)
+
+              actual
+              |> Expect.equal "should invoke idling rendering action after 1 second" false
+
+              periodic.Stop()
+          }
+
+          ]
 
 module NormalInputStore =
     open System.Collections
