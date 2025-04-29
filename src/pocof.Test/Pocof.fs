@@ -234,94 +234,125 @@ let tests_loop =
 
           ]
 
-module interact =
-    [<Fact>]
-    let ``should return result with NonInteractive mode.`` () =
-        let config: InternalConfig =
-            { NotInteractive = true
-              Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+[<Tests>]
+let tests_interact =
+    testList
+        "interact"
+        [
 
-        let input = results |> List.map toObj
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.interact config state buff publishEvent input
-        let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+          test "When NonInteractive mode, should return result" {
+              let config: InternalConfig =
+                  { NotInteractive = true
+                    Layout = Layout.TopDown
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        actual |> Seq.length |> shouldEqual 5
-        actual |> List.ofSeq |> shouldEqual expected
-        (buff :> IDisposable).Dispose()
+              let input = results |> List.map toObj
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.interact config state buff publishEvent input
+              let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
-    [<Fact>]
-    let ``should return result when interaction finished in Interactive mode and TopDown Layout.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              actual
+              |> Seq.length
+              |> Expect.equal "should return 5 results in NonInteractive mode" 5
 
-        let input = results |> List.map toObj
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.interact config state buff publishEvent input
-        let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+              actual
+              |> List.ofSeq
+              |> Expect.equal "should match expected results in NonInteractive mode" expected
 
-        actual |> Seq.length |> shouldEqual 5
-        actual |> List.ofSeq |> shouldEqual expected
-        (buff :> IDisposable).Dispose()
+              (buff :> IDisposable).Dispose()
+          }
 
-    [<Fact>]
-    let ``should return result when interaction finished in Interactive mode and BottomUp Layout.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUp
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+          test "When interaction finished in Interactive mode and TopDown Layout, should return result" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.TopDown
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        let input = results |> List.map toObj
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.interact config state buff publishEvent input
-        let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+              let input = results |> List.map toObj
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.interact config state buff publishEvent input
+              let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
-        actual |> Seq.length |> shouldEqual 5
-        actual |> List.ofSeq |> shouldEqual expected
-        (buff :> IDisposable).Dispose()
+              actual
+              |> Seq.length
+              |> Expect.equal "should return 5 results in Interactive TopDown mode" 5
 
-    [<Fact>]
-    let ``should return result when interaction finished in Interactive mode and BottomUpHalp Layout.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              actual
+              |> List.ofSeq
+              |> Expect.equal "should match expected results in Interactive TopDown mode" expected
 
-        let input = results |> List.map toObj
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.interact config state buff publishEvent input
-        let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+              (buff :> IDisposable).Dispose()
+          }
 
-        actual |> Seq.length |> shouldEqual 5
-        actual |> List.ofSeq |> shouldEqual expected
-        (buff :> IDisposable).Dispose()
+          test "When interaction finished in Interactive mode and BottomUp Layout, should return result" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUp
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
+
+              let input = results |> List.map toObj
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.interact config state buff publishEvent input
+              let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+
+              actual
+              |> Seq.length
+              |> Expect.equal "should return 5 results in Interactive BottomUp mode" 5
+
+              actual
+              |> List.ofSeq
+              |> Expect.equal "should match expected results in Interactive BottomUp mode" expected
+
+              (buff :> IDisposable).Dispose()
+          }
+
+          test "When interaction finished in Interactive mode and BottomUpHalf Layout, should return result" {
+              let config: InternalConfig =
+                  { NotInteractive = false
+                    Layout = Layout.BottomUpHalf
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
+
+              let input = results |> List.map toObj
+              let rui = new MockRawUI()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.interact config state buff publishEvent input
+              let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+
+              actual
+              |> Seq.length
+              |> Expect.equal "should return 5 results in Interactive BottomUpHalf mode" 5
+
+              actual
+              |> List.ofSeq
+              |> Expect.equal "should match expected results in Interactive BottomUpHalf mode" expected
+
+              (buff :> IDisposable).Dispose()
+          }
+
+          ]
 
 module initScreen =
     // NOTE: covered by interact tests.
@@ -598,7 +629,7 @@ module Interval =
             { NotInteractive = false
               Layout = Layout.BottomUpHalf
               Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"---"
               Prompt = prompt
               PromptLength = prompt |> String.length
               Properties = []
