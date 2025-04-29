@@ -694,7 +694,6 @@ let tests_Periodic =
 
           ]
 
-
 [<Tests>]
 let tests_NormalInputStore =
     let mapToObj x =
@@ -847,83 +846,109 @@ let tests_UniqueInputStore =
 
           ]
 
-module buildProperties =
-    open System.Collections
+[<Tests>]
+let tests_buildProperties =
+    testList
+        "buildProperties"
+        [
 
-    [<Fact>]
-    let ``should return the list with added input properties.`` () =
-        let expected = [ "a"; "b"; "c" ]
-        let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+          test "When adding input properties, should return the list with added input properties" {
+              let expected = [ "a"; "b"; "c" ]
+              let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
 
-        let inputObject =
-            let o = new PSObject()
-            o.Properties.Add(new PSNoteProperty("a", 1))
-            o.Properties.Add(new PSNoteProperty("b", 2))
-            o.Properties.Add(new PSNoteProperty("c", 3))
-            o
+              let inputObject =
+                  let o = new PSObject()
+                  o.Properties.Add(new PSNoteProperty("a", 1))
+                  o.Properties.Add(new PSNoteProperty("b", 2))
+                  o.Properties.Add(new PSNoteProperty("c", 3))
+                  o
 
-        Pocof.buildProperties props.ContainsKey props.Add inputObject
-        props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
+              Pocof.buildProperties props.ContainsKey props.Add inputObject
 
-    [<Fact>]
-    let ``should return the list with added input properties with duplication.`` () =
-        let expected = [ "a"; "a"; "b"; "c" ]
-        let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
-        props.Add("SomeObject", [ "a" ])
+              props.Values
+              |> Seq.concat
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added input properties" expected
+          }
 
-        let inputObject =
-            let o = new PSObject()
-            o.Properties.Add(new PSNoteProperty("a", 1))
-            o.Properties.Add(new PSNoteProperty("b", 2))
-            o.Properties.Add(new PSNoteProperty("c", 3))
-            o
+          test
+              "When adding input properties with duplication, should return the list with added input properties with duplication" {
+              let expected = [ "a"; "a"; "b"; "c" ]
+              let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+              props.Add("SomeObject", [ "a" ])
 
-        Pocof.buildProperties props.ContainsKey props.Add inputObject
-        props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
+              let inputObject =
+                  let o = new PSObject()
+                  o.Properties.Add(new PSNoteProperty("a", 1))
+                  o.Properties.Add(new PSNoteProperty("b", 2))
+                  o.Properties.Add(new PSNoteProperty("c", 3))
+                  o
 
-    [<Fact>]
-    let ``should return the same list when input type already exists.`` () =
-        let expected = [ "a"; "b"; "c" ]
-        let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
-        let o = new PSObject()
-        props.Add((nullArgCheck "str" (o.BaseObject.GetType().FullName)), [ "a"; "b"; "c" ])
+              Pocof.buildProperties props.ContainsKey props.Add inputObject
 
-        let inputObject =
-            let o = new PSObject()
-            o.Properties.Add(new PSNoteProperty("aa", 1))
-            o.Properties.Add(new PSNoteProperty("bb", 2))
-            o.Properties.Add(new PSNoteProperty("cc", 3))
-            o
+              props.Values
+              |> Seq.concat
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added input properties with duplication" expected
+          }
 
-        Pocof.buildProperties props.ContainsKey props.Add inputObject
-        props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
+          test "When input type already exists, should return the same list" {
+              let expected = [ "a"; "b"; "c" ]
+              let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+              let o = new PSObject()
+              props.Add((nullArgCheck "str" (o.BaseObject.GetType().FullName)), [ "a"; "b"; "c" ])
 
-    [<Fact>]
-    let ``should return the list with added the keys of hashtable.`` () =
-        let expected = [ "Key"; "Value" ]
-        let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+              let inputObject =
+                  let o = new PSObject()
+                  o.Properties.Add(new PSNoteProperty("aa", 1))
+                  o.Properties.Add(new PSNoteProperty("bb", 2))
+                  o.Properties.Add(new PSNoteProperty("cc", 3))
+                  o
 
-        let inputObject =
-            let h = new OrderedHashtable()
-            h.Add("a", 1)
-            h.Add("b", 2)
-            h.Add("c", 3)
-            h |> PSObject.AsPSObject
+              Pocof.buildProperties props.ContainsKey props.Add inputObject
 
-        Pocof.buildProperties props.ContainsKey props.Add inputObject
-        props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
+              props.Values
+              |> Seq.concat
+              |> List.ofSeq
+              |> Expect.equal "should return the same list when input type already exists" expected
+          }
 
-    [<Fact>]
-    let ``should return the empty list when empty hashtable.`` () =
-        let expected = []
-        let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+          test "When adding hashtable, should return the list with added the keys of hashtable" {
+              let expected = [ "Key"; "Value" ]
+              let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
 
-        let inputObject =
-            let h = new OrderedHashtable()
-            h |> PSObject.AsPSObject
+              let inputObject =
+                  let h = new OrderedHashtable()
+                  h.Add("a", 1)
+                  h.Add("b", 2)
+                  h.Add("c", 3)
+                  h |> PSObject.AsPSObject
 
-        Pocof.buildProperties props.ContainsKey props.Add inputObject
-        props.Values |> Seq.concat |> List.ofSeq |> shouldEqual expected
+              Pocof.buildProperties props.ContainsKey props.Add inputObject
+
+              props.Values
+              |> Seq.concat
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added the keys of hashtable" expected
+          }
+
+          test "When adding empty hashtable, should return the empty list" {
+              let expected = []
+              let props: Generic.Dictionary<string, string seq> = Generic.Dictionary()
+
+              let inputObject =
+                  let h = new OrderedHashtable()
+                  h |> PSObject.AsPSObject
+
+              Pocof.buildProperties props.ContainsKey props.Add inputObject
+
+              props.Values
+              |> Seq.concat
+              |> List.ofSeq
+              |> Expect.equal "should return the empty list when empty hashtable" expected
+          }
+
+          ]
 
 module PropertyStore =
     [<Fact>]
