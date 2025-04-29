@@ -749,83 +749,103 @@ let tests_NormalInputStore =
 
           ]
 
-module UniqueInputStore =
-    open System.Collections
-
+[<Tests>]
+let tests_UniqueInputStore =
     let mapToObj x =
         x |> List.map (PSObject.AsPSObject >> Entry.Obj)
 
-    [<Fact>]
-    let ``should return the list with added Obj`` () =
-        let expected = [ 1 ] |> mapToObj
-        let input: Pocof.IInputStore = Pocof.getInputStore true
-        input.Add(1 |> PSObject.AsPSObject)
-        input.GetEntries() |> List.ofSeq |> shouldEqual expected
+    testList
+        "UniqueInputStore"
+        [
 
-    [<Fact>]
-    let ``should return the list with added Obj to tail.`` () =
-        let expected = [ 0; 1 ] |> mapToObj
-        let input: Pocof.IInputStore = Pocof.getInputStore true
-        input.Add(0 |> PSObject.AsPSObject)
-        input.Add(1 |> PSObject.AsPSObject)
-        input.GetEntries() |> List.ofSeq |> shouldEqual expected
+          test "When adding one Obj, should return the list with added Obj" {
+              let expected = [ 1 ] |> mapToObj
+              let input: Pocof.IInputStore = Pocof.getInputStore true
+              input.Add(1 |> PSObject.AsPSObject)
 
-    [<Fact>]
-    let ``should return the list with added Dict`` () =
-        let expected =
-            [ DictionaryEntry("a", 1); DictionaryEntry("b", 2); DictionaryEntry("c", 3) ]
-            |> List.map Entry.Dict
+              input.GetEntries()
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added Obj" expected
+          }
 
-        let input: Pocof.IInputStore = Pocof.getInputStore true
+          test "When adding two Objs, should return the list with added Obj to tail" {
+              let expected = [ 0; 1 ] |> mapToObj
+              let input: Pocof.IInputStore = Pocof.getInputStore true
+              input.Add(0 |> PSObject.AsPSObject)
+              input.Add(1 |> PSObject.AsPSObject)
 
-        let inputObject =
-            let h = new OrderedHashtable()
-            h.Add("a", 1)
-            h.Add("b", 2)
-            h.Add("c", 3)
-            h |> PSObject.AsPSObject
+              input.GetEntries()
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added Obj to tail" expected
+          }
 
-        input.Add inputObject
-        input.GetEntries() |> List.ofSeq |> shouldEqual expected
+          test "When adding Dict, should return the list with added Dict" {
+              let expected =
+                  [ DictionaryEntry("a", 1); DictionaryEntry("b", 2); DictionaryEntry("c", 3) ]
+                  |> List.map Entry.Dict
 
-    [<Fact>]
-    let ``should return the unique list.`` () =
-        let expected = [ 1; 2; 3 ] |> mapToObj
-        let input: Pocof.IInputStore = Pocof.getInputStore true
+              let input: Pocof.IInputStore = Pocof.getInputStore true
 
-        input.Add(1 |> PSObject.AsPSObject)
-        input.Add(2 |> PSObject.AsPSObject)
-        input.Add(3 |> PSObject.AsPSObject)
-        input.Add(2 |> PSObject.AsPSObject)
-        input.Add(1 |> PSObject.AsPSObject)
-        input.GetEntries() |> List.ofSeq |> shouldEqual expected
-        input.Count() |> shouldEqual (Seq.length expected)
+              let inputObject =
+                  let h = new OrderedHashtable()
+                  h.Add("a", 1)
+                  h.Add("b", 2)
+                  h.Add("c", 3)
+                  h |> PSObject.AsPSObject
 
-    [<Fact>]
-    let ``should return the unique list with Dict.`` () =
-        let expected =
-            [ DictionaryEntry("a", 1)
-              DictionaryEntry("b", 2)
-              DictionaryEntry("c", 3)
-              DictionaryEntry("b", 4) ]
-            |> List.map Entry.Dict
+              input.Add inputObject
 
-        let input: Pocof.IInputStore = Pocof.getInputStore true
+              input.GetEntries()
+              |> List.ofSeq
+              |> Expect.equal "should return the list with added Dict" expected
+          }
 
-        let h = new OrderedHashtable()
-        h.Add("a", 1)
-        h.Add("b", 2)
-        h.Add("c", 3)
-        h |> PSObject.AsPSObject |> input.Add
+          test "When adding duplicate Objs, should return the unique list" {
+              let expected = [ 1; 2; 3 ] |> mapToObj
+              let input: Pocof.IInputStore = Pocof.getInputStore true
+              input.Add(1 |> PSObject.AsPSObject)
+              input.Add(2 |> PSObject.AsPSObject)
+              input.Add(3 |> PSObject.AsPSObject)
+              input.Add(2 |> PSObject.AsPSObject)
+              input.Add(1 |> PSObject.AsPSObject)
 
-        let h = new OrderedHashtable()
-        h.Add("a", 1)
-        h.Add("b", 4)
-        h.Add("c", 3)
-        h |> PSObject.AsPSObject |> input.Add
+              input.GetEntries()
+              |> List.ofSeq
+              |> Expect.equal "should return the unique list" expected
 
-        input.GetEntries() |> List.ofSeq |> shouldEqual expected
-        input.Count() |> shouldEqual (Seq.length expected)
+              input.Count()
+              |> Expect.equal "should return correct count for unique list" (Seq.length expected)
+          }
+
+          test "When adding duplicate Dicts, should return the unique list with Dict" {
+              let expected =
+                  [ DictionaryEntry("a", 1)
+                    DictionaryEntry("b", 2)
+                    DictionaryEntry("c", 3)
+                    DictionaryEntry("b", 4) ]
+                  |> List.map Entry.Dict
+
+              let input: Pocof.IInputStore = Pocof.getInputStore true
+              let h1 = new OrderedHashtable()
+              h1.Add("a", 1)
+              h1.Add("b", 2)
+              h1.Add("c", 3)
+              h1 |> PSObject.AsPSObject |> input.Add
+              let h2 = new OrderedHashtable()
+              h2.Add("a", 1)
+              h2.Add("b", 4)
+              h2.Add("c", 3)
+              h2 |> PSObject.AsPSObject |> input.Add
+
+              input.GetEntries()
+              |> List.ofSeq
+              |> Expect.equal "should return the unique list with Dict" expected
+
+              input.Count()
+              |> Expect.equal "should return correct count for unique Dict list" (Seq.length expected)
+          }
+
+          ]
 
 module buildProperties =
     open System.Collections
