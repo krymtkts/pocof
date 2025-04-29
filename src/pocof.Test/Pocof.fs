@@ -109,113 +109,130 @@ let tests_calculateWindowBeginningCursor =
 
           ]
 
-module loop =
+[<Tests>]
+let tests_loop =
+    testList
+        "loop"
+        [
 
-    [<Fact>]
-    let ``should return result when finishing.`` () =
-        let input = results |> List.map toObj
-        let rui = new MockRawUI(60, 30, [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ])
+          test "When finishing, should return result" {
+              let input = results |> List.map toObj
+              let rui = new MockRawUI(60, 30, [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ])
 
-        let config: InternalConfig =
-            { NotInteractive = true
-              Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              let config: InternalConfig =
+                  { NotInteractive = true
+                    Layout = Layout.TopDown
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.interact config state buff publishEvent input
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.interact config state buff publishEvent input
+              actual |> Seq.length |> Expect.equal "should return 5 results when finishing" 5
 
-        actual |> Seq.length |> shouldEqual 5
-        actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
-        rui.Check()
+              actual
+              |> Seq.iteri (fun i x ->
+                  x = results.[i]
+                  |> Expect.equal (sprintf "should match result at index %d" i) true)
 
-    [<Fact>]
-    let ``shouldn't return result when canceling.`` () =
-        let input = results |> List.map toObj
-        let rui = new MockRawUI(60, 30, [], true)
+              rui.Check()
+          }
 
-        let config: InternalConfig =
-            { NotInteractive = true
-              Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+          test "When canceling, shouldn't return result" {
+              let input = results |> List.map toObj
+              let rui = new MockRawUI(60, 30, [], true)
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.interact config state buff publishEvent input
+              let config: InternalConfig =
+                  { NotInteractive = true
+                    Layout = Layout.TopDown
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        actual |> Seq.length |> shouldEqual 0
-        rui.Check()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.interact config state buff publishEvent input
+              actual |> Seq.length |> Expect.equal "should return 0 results when canceling" 0
+              rui.Check()
+          }
 
-    [<Fact>]
-    let ``should return result when finishing after noop.`` () =
-        let input = results |> List.map toObj
+          test "When finishing after noop, should return result" {
+              let input = results |> List.map toObj
 
-        let rui =
-            new MockRawUI(
-                60,
-                30,
-                [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, true, true, false) |> Some
-                  None
-                  MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
-            )
+              let rui =
+                  new MockRawUI(
+                      60,
+                      30,
+                      [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, true, true, false) |> Some
+                        None
+                        MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
+                  )
 
-        let config: InternalConfig =
-            { NotInteractive = true
-              Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              let config: InternalConfig =
+                  { NotInteractive = true
+                    Layout = Layout.TopDown
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.interact config state buff publishEvent input
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.interact config state buff publishEvent input
+              actual |> Seq.length |> Expect.equal "should return 5 results after noop" 5
 
-        actual |> Seq.length |> shouldEqual 5
-        actual |> Seq.iteri (fun i x -> x = results.[i] |> shouldEqual true)
-        rui.Check()
+              actual
+              |> Seq.iteri (fun i x ->
+                  x = results.[i]
+                  |> Expect.equal (sprintf "should match result at index %d after noop" i) true)
 
-    [<Fact>]
-    let ``should return result when finishing with filter.`` () =
-        let input = results |> List.map toObj
+              rui.Check()
+          }
 
-        let rui =
-            new MockRawUI(
-                60,
-                30,
-                [ MockRawUI.ConsoleKey 'a' ConsoleKey.A
-                  MockRawUI.ConsoleKey ' ' ConsoleKey.Spacebar
-                  MockRawUI.ConsoleKey 'd' ConsoleKey.D
-                  None
-                  MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
-            )
+          test "When finishing with filter, should return filtered result" {
+              let input = results |> List.map toObj
 
-        let config: InternalConfig =
-            { NotInteractive = true
-              Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+              let rui =
+                  new MockRawUI(
+                      60,
+                      30,
+                      [ MockRawUI.ConsoleKey 'a' ConsoleKey.A
+                        MockRawUI.ConsoleKey ' ' ConsoleKey.Spacebar
+                        MockRawUI.ConsoleKey 'd' ConsoleKey.D
+                        None
+                        MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
+                  )
 
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.interact config state buff publishEvent input
+              let config: InternalConfig =
+                  { NotInteractive = true
+                    Layout = Layout.TopDown
+                    Keymaps = Keys.defaultKeymap
+                    WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                    Prompt = prompt
+                    PromptLength = prompt |> String.length
+                    Properties = []
+                    PropertiesMap = Map [] }
 
-        actual |> Seq.length |> shouldEqual 2
-        Seq.item 0 actual = results.[0] |> shouldEqual true
-        Seq.item 1 actual = results.[3] |> shouldEqual true
-        rui.Check()
+              let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+              let actual = Pocof.interact config state buff publishEvent input
+              actual |> Seq.length |> Expect.equal "should return 2 filtered results" 2
+
+              Seq.item 0 actual = results.[0]
+              |> Expect.equal "should match filtered result 0" true
+
+              Seq.item 1 actual = results.[3]
+              |> Expect.equal "should match filtered result 1" true
+
+              rui.Check()
+          }
+
+          ]
 
 module interact =
     [<Fact>]
