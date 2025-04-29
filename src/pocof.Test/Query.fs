@@ -57,17 +57,22 @@ let tests_DictionaryEntry =
 
           ]
 
-module PSObject =
+[<Tests>]
+let tests_PSObject =
+    testList
+        "PSObject"
+        [
 
-    [<Fact>]
-    let ``?->indexed property should return 1.`` () =
-        let o = "a" |> PSObject.AsPSObject
-        o["Length"] |> shouldEqual 1
+          test "When property is 'Length'" {
+              let o = "a" |> PSObject.AsPSObject
+              o["Length"] |> Expect.equal "should return 1 for Length" 1
+          }
+          test "When property is not found" {
+              let o = "a" |> PSObject.AsPSObject
+              o["Lengt"] |> Expect.equal "should return null for not found property" null
+          }
 
-    [<Fact>]
-    let ``?->indexed property should return None.`` () =
-        let o = "a" |> PSObject.AsPSObject
-        o["Lengt"] |> shouldEqual null
+          ]
 
 module props =
     [<Fact>]
