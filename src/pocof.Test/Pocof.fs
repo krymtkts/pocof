@@ -432,77 +432,84 @@ let tests_stopUpstreamCommandsException =
           } ]
 
 module renderOnce =
-    [<Fact>]
-    let ``should return ContinueProcessing.Continue when handler is empty.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+    [<Tests>]
+    let tests =
+        testList
+            "renderOnce"
+            [ test "When handler is empty, should return ContinueProcessing.Continue" {
+                  let config: InternalConfig =
+                      { NotInteractive = false
+                        Layout = Layout.BottomUpHalf
+                        Keymaps = Keys.defaultKeymap
+                        WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                        Prompt = prompt
+                        PromptLength = prompt |> String.length
+                        Properties = []
+                        PropertiesMap = Map [] }
 
-        let handler = Pocof.RenderHandler()
+                  let handler = Pocof.RenderHandler()
+                  let rui = new MockRawUI()
+                  let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+                  let actual = Pocof.renderOnce handler buff
 
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.renderOnce handler buff
+                  actual
+                  |> function
+                      | Pocof.RenderProcess.Noop -> true
+                      | _ -> false
+                  |> Expect.equal "should return ContinueProcessing.Continue when handler is empty" true
+              }
+              test "When handler has a render event, should return ContinueProcessing.Continue" {
+                  let config: InternalConfig =
+                      { NotInteractive = false
+                        Layout = Layout.BottomUpHalf
+                        Keymaps = Keys.defaultKeymap
+                        WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                        Prompt = prompt
+                        PromptLength = prompt |> String.length
+                        Properties = []
+                        PropertiesMap = Map [] }
 
-        actual
-        |> function
-            | Pocof.RenderProcess.Noop -> true
-            | _ -> false
-        |> shouldEqual true
+                  let handler = Pocof.RenderHandler()
 
-    [<Fact>]
-    let ``should return ContinueProcessing.Continue when handler has a render event.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+                  (state, lazy PSeq.empty, lazy Error "error")
+                  |> Pocof.RenderEvent.Render
+                  |> handler.Publish
 
-        let handler = Pocof.RenderHandler()
+                  let rui = new MockRawUI()
+                  let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+                  let actual = Pocof.renderOnce handler buff
 
-        (state, lazy PSeq.empty, lazy Error "error")
-        |> Pocof.RenderEvent.Render
-        |> handler.Publish
+                  actual
+                  |> function
+                      | Pocof.RenderProcess.Rendered _ -> true
+                      | _ -> false
+                  |> Expect.equal "should return ContinueProcessing.Continue when handler has a render event" true
+              }
+              test "When handler has a quit event, should return ContinueProcessing.StopUpstreamCommands" {
+                  let config: InternalConfig =
+                      { NotInteractive = false
+                        Layout = Layout.BottomUpHalf
+                        Keymaps = Keys.defaultKeymap
+                        WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                        Prompt = prompt
+                        PromptLength = prompt |> String.length
+                        Properties = []
+                        PropertiesMap = Map [] }
 
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.renderOnce handler buff
+                  let handler = Pocof.RenderHandler()
+                  Pocof.RenderEvent.Quit |> handler.Publish
+                  let rui = new MockRawUI()
+                  let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
+                  let actual = Pocof.renderOnce handler buff
 
-        actual
-        |> function
-            | Pocof.RenderProcess.Rendered _ -> true
-            | _ -> false
-        |> shouldEqual true
-
-    [<Fact>]
-    let ``should return ContinueProcessing.StopUpstreamCommands when handler has a quit event.`` () =
-        let config: InternalConfig =
-            { NotInteractive = false
-              Layout = Layout.BottomUpHalf
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
-
-        let handler = Pocof.RenderHandler()
-        Pocof.RenderEvent.Quit |> handler.Publish
-        let rui = new MockRawUI()
-        let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-        let actual = Pocof.renderOnce handler buff
-
-        actual |> shouldEqual Pocof.RenderProcess.StopUpstreamCommands
+                  actual
+                  |> function
+                      | Pocof.RenderProcess.StopUpstreamCommands -> true
+                      | _ -> false
+                  |> Expect.equal
+                      "should return ContinueProcessing.StopUpstreamCommands when handler has a quit event"
+                      true
+              } ]
 
 module Interval =
     open System.Threading
