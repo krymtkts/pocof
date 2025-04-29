@@ -89,55 +89,79 @@ module unwrap =
     type EntryPSObject =
         static member Generate() = psObjectGen |> Arb.fromGen
 
-    [<Property(Arbitrary = [| typeof<EntryPSObject> |], EndSize = 1000)>]
-    let ``should return PSObject sequence.`` (data: Entry list) =
-        data
-        |> unwrap
-        |> List.ofSeq
-        |> shouldEqual (
-            data
-            |> List.map (function
-                | Entry.Obj x -> x
-                | _ -> failwith "Dict is unreachable")
-        )
-        |> Prop.collect (List.length data)
-
     type EntryDictionaryEntry =
         static member Generate() = dictionaryEntryGen |> Arb.fromGen
-
-    [<Property(Arbitrary = [| typeof<EntryDictionaryEntry> |], EndSize = 1000)>]
-    let ``should return DictionaryEntry sequence.`` (data: Entry list) =
-        data
-        |> unwrap
-        |> List.ofSeq
-        |> shouldEqual (
-            data
-            |> List.map (function
-                | Entry.Dict x -> x
-                | _ -> failwith "Obj is unreachable")
-        )
-        |> Prop.collect (List.length data)
 
     type MixedEntry =
         static member Generate() =
             Gen.oneof [ psObjectGen; dictionaryEntryGen ] |> Gen.listOf |> Arb.fromGen
 
-    [<Property(Arbitrary = [| typeof<MixedEntry> |], EndSize = 1000)>]
-    let ``should return mixed sequence.`` (data: Entry list) =
-        data
-        |> unwrap
-        |> List.ofSeq
-        |> shouldEqual (
-            data
-            |> List.map (function
-                | Entry.Obj x -> x
-                | Entry.Dict x -> x)
-        )
-        |> Prop.collect (
-            List.length data,
-            data |> List.filter _.IsObj |> List.length,
-            data |> List.filter _.IsDict |> List.length
-        )
+
+    [<Tests>]
+    let test_unwrap =
+        testList
+            "unwrap"
+            [
+
+              let config =
+                  { FsCheckConfig.defaultConfig with
+                      endSize = 1000
+                      arbitrary = [ typeof<EntryPSObject> ] }
+
+              testPropertyWithConfig config "When PSObject wrapped"
+              <| fun data ->
+                  data
+                  |> unwrap
+                  |> List.ofSeq
+                  |> Expect.equal
+                      "should return PSObject sequence"
+                      (data
+                       |> List.map (function
+                           | Entry.Obj x -> x
+                           | _ -> failwith "Dict is unreachable"))
+                  |> Prop.collect (List.length data)
+
+              let config =
+                  { FsCheckConfig.defaultConfig with
+                      endSize = 1000
+                      arbitrary = [ typeof<EntryDictionaryEntry> ] }
+
+              testPropertyWithConfig config "When DictionaryEntry wrapped"
+              <| fun data ->
+                  data
+                  |> unwrap
+                  |> List.ofSeq
+                  |> Expect.equal
+                      "should return DictionaryEntry sequence"
+                      (data
+                       |> List.map (function
+                           | Entry.Dict x -> x
+                           | _ -> failwith "Obj is unreachable"))
+                  |> Prop.collect (List.length data)
+
+              let config =
+                  { FsCheckConfig.defaultConfig with
+                      endSize = 1000
+                      arbitrary = [ typeof<MixedEntry> ] }
+
+              testPropertyWithConfig config "When PSObject nad DictionaryEntry wrapped"
+              <| fun data ->
+                  data
+                  |> unwrap
+                  |> List.ofSeq
+                  |> shouldEqual (
+                      data
+                      |> List.map (function
+                          | Entry.Obj x -> x
+                          | Entry.Dict x -> x)
+                  )
+                  |> Prop.collect (
+                      List.length data,
+                      data |> List.filter _.IsObj |> List.length,
+                      data |> List.filter _.IsDict |> List.length
+                  )
+
+              ]
 
 let randomCase (s: string) =
     let random = Random()
