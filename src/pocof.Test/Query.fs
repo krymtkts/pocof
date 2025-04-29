@@ -1,9 +1,13 @@
 module PocofTest.Query
 
+open System.Collections
 open System.Management.Automation
 
 open Xunit
 open FsUnitTyped
+
+open Expecto
+open Expecto.Flip
 
 open Pocof
 
@@ -30,23 +34,28 @@ let caseSensitive (s: Data.InternalState) =
     { s with
         QueryCondition.CaseSensitive = true }
 
-module DictionaryEntry =
-    open System.Collections
+[<Tests>]
+let tests_DictionaryEntry =
+    testList
+        "DictionaryEntry"
+        [
 
-    [<Fact>]
-    let ``indexed property should return key.`` () =
-        let d = DictionaryEntry("Jane", "Doe")
-        d["Key"] |> shouldEqual "Jane"
+          test "When key is 'Key'" {
+              let d = DictionaryEntry("Jane", "Doe")
+              d["Key"] |> Expect.equal "should return key" "Jane"
+          }
 
-    [<Fact>]
-    let ``indexed property should return value.`` () =
-        let d = DictionaryEntry("Jane", "Doe")
-        d["Value"] |> shouldEqual "Doe"
+          test "When key is 'Value'" {
+              let d = DictionaryEntry("Jane", "Doe")
+              d["Value"] |> Expect.equal "should return value" "Doe"
+          }
 
-    [<Fact>]
-    let ``indexed property should return None.`` () =
-        let d = DictionaryEntry("Jane", "Doe")
-        d["Ke"] |> shouldEqual null
+          test "When key is not found" {
+              let d = DictionaryEntry("Jane", "Doe")
+              d["Ke"] |> Expect.equal "should return null for not found key" null
+          }
+
+          ]
 
 module PSObject =
 
