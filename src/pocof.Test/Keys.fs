@@ -5,37 +5,50 @@ open System.Collections
 
 open Xunit
 open FsUnitTyped
+open Expecto
+open Expecto.Flip
 
 open Pocof
 
-module ``toKeyPattern should returns`` =
-    [<Fact>]
-    let ``A without modifiers.`` () =
-        Keys.toKeyPattern "A" |> shouldEqual (Ok { Modifier = 0; Key = ConsoleKey.A })
+[<Tests>]
+let tests_toKeyPattern =
+    testList
+        "toKeyPattern"
+        [
 
-    [<Fact>]
-    let ``A with Alt.`` () =
-        Keys.toKeyPattern "alt+a"
-        |> shouldEqual (Ok { Modifier = 1; Key = ConsoleKey.A })
+          test "A without modifiers." {
+              Keys.toKeyPattern "A"
+              |> Expect.equal "A without modifiers." (Ok { Modifier = 0; Key = ConsoleKey.A })
+          }
 
-    [<Fact>]
-    let ``A with Alt and Shift.`` () =
-        Keys.toKeyPattern "Alt+Shift+A"
-        |> shouldEqual (Ok { Modifier = 3; Key = ConsoleKey.A })
+          test "A with Alt." {
+              Keys.toKeyPattern "alt+a"
+              |> Expect.equal "A with Alt." (Ok { Modifier = 1; Key = ConsoleKey.A })
+          }
 
-    [<Fact>]
-    let ``A with Ctrl, Alt and Shift.`` () =
-        Keys.toKeyPattern "control+alt+shift+A"
-        |> shouldEqual (Ok { Modifier = 7; Key = ConsoleKey.A })
+          test "A with Alt and Shift." {
+              Keys.toKeyPattern "Alt+Shift+A"
+              |> Expect.equal "A with Alt and Shift." (Ok { Modifier = 3; Key = ConsoleKey.A })
+          }
 
-    [<Fact>]
-    let ``Error when empty.`` () =
-        Keys.toKeyPattern "" |> shouldEqual (Error "Unsupported key ''.")
+          test "A with Ctrl, Alt and Shift." {
+              Keys.toKeyPattern "control+alt+shift+A"
+              |> Expect.equal "A with Ctrl, Alt and Shift." (Ok { Modifier = 7; Key = ConsoleKey.A })
+          }
 
-    [<Fact>]
-    let ``Error when unsupported combination.`` () =
-        Keys.toKeyPattern "cnt+alt+c+ESC"
-        |> shouldEqual (Error "Unsupported modifier 'cnt'. Unsupported modifier 'c'. Unsupported key 'ESC'.")
+          test "Error when empty." {
+              Keys.toKeyPattern ""
+              |> Expect.equal "Error when empty." (Error "Unsupported key ''.")
+          }
+
+          test "Error when unsupported combination." {
+              Keys.toKeyPattern "cnt+alt+c+ESC"
+              |> Expect.equal
+                  "Error when unsupported combination."
+                  (Error "Unsupported modifier 'cnt'. Unsupported modifier 'c'. Unsupported key 'ESC'.")
+          }
+
+          ]
 
 module ``get should returns`` =
     [<Fact>]
