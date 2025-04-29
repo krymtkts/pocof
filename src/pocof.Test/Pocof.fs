@@ -53,51 +53,61 @@ let tests_initConsoleInterface =
 
           ]
 
-module calculateWindowBeginningCursor =
-    [<Fact>]
-    let ``should return 0.`` () =
-        let state =
-            { Query = "a"
-              Cursor = 1
-              WindowBeginningCursor = 0
-              WindowWidth = 30
-              InputMode = InputMode.Input }
+[<Tests>]
+let tests_calculateWindowBeginningCursor =
+    testList
+        "calculateWindowBeginningCursor"
+        [
 
-        let rui = new MockRawUI()
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
-        let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+          test "When query fits in window, cursor at end" {
+              let state =
+                  { Query = "a"
+                    Cursor = 1
+                    WindowBeginningCursor = 0
+                    WindowWidth = 30
+                    InputMode = InputMode.Input }
 
-        actual |> shouldEqual 0
+              let rui = new MockRawUI()
+              use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
+              let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
-    [<Fact>]
-    let ``should return 1.`` () =
-        let state =
-            { Query = String.replicate 31 "a"
-              Cursor = 31
-              WindowBeginningCursor = 0
-              WindowWidth = 30
-              InputMode = InputMode.Input }
+              actual
+              |> Expect.equal "should return 0 when query fits in window and cursor at end" 0
+          }
 
-        let rui = new MockRawUI()
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
-        let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+          test "When query overflows window, cursor at end" {
+              let state =
+                  { Query = String.replicate 31 "a"
+                    Cursor = 31
+                    WindowBeginningCursor = 0
+                    WindowWidth = 30
+                    InputMode = InputMode.Input }
 
-        actual |> shouldEqual 1
+              let rui = new MockRawUI()
+              use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
+              let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
 
-    [<Fact>]
-    let ``should return cursor value.`` () =
-        let state =
-            { Query = String.replicate 31 "a"
-              Cursor = 0
-              WindowBeginningCursor = 31
-              WindowWidth = 30
-              InputMode = InputMode.Input }
+              actual
+              |> Expect.equal "should return 1 when query overflows window and cursor at end" 1
+          }
 
-        let rui = new MockRawUI()
-        use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
-        let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+          test "When window beginning cursor is set, cursor at start" {
+              let state =
+                  { Query = String.replicate 31 "a"
+                    Cursor = 0
+                    WindowBeginningCursor = 31
+                    WindowWidth = 30
+                    InputMode = InputMode.Input }
 
-        actual |> shouldEqual 0
+              let rui = new MockRawUI()
+              use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
+              let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+
+              actual
+              |> Expect.equal "should return 0 when window beginning cursor is set and cursor at start" 0
+          }
+
+          ]
 
 module loop =
 
