@@ -2,6 +2,7 @@ module PocofTest.Keys
 
 open System
 open System.Collections
+open System.Management.Automation
 
 open Xunit
 open FsUnitTyped
@@ -161,47 +162,55 @@ let tests_get =
 
           ]
 
-module ``convertKeymaps should returns`` =
-    open System.Management.Automation
+[<Tests>]
+let tests_convertKeymaps =
+    testList
+        "convertKeymaps"
+        [
 
-    [<Fact>]
-    let ``map transformed from hashtable`` () =
-        let h = new Hashtable()
-        h.Add("control+alt+shift+x", "cancel")
-        h.Add("ESCAPE", "NOOP")
+          test "map transformed from hashtable" {
+              let h = new Hashtable()
+              h.Add("control+alt+shift+x", "cancel")
+              h.Add("ESCAPE", "NOOP")
 
-        let expected =
-            ([ ({ Modifier = 7; Key = ConsoleKey.X }: Data.KeyPattern)
-               { Modifier = 0
-                 Key = ConsoleKey.Escape } ],
-             [ Data.Action.Cancel; Data.Action.Noop ],
-             Keys.defaultKeymap)
-            |||> List.foldBack2 Map.add
-            |> Ok
+              let expected =
+                  ([ { Data.KeyPattern.Modifier = 7
+                       Data.KeyPattern.Key = ConsoleKey.X }
+                     { Data.KeyPattern.Modifier = 0
+                       Data.KeyPattern.Key = ConsoleKey.Escape } ],
+                   [ Data.Action.Cancel; Data.Action.Noop ],
+                   Keys.defaultKeymap)
+                  |||> List.foldBack2 Map.add
+                  |> Ok
 
-        Keys.convertKeymaps h |> shouldEqual expected
+              Keys.convertKeymaps h |> Expect.equal "map transformed from hashtable" expected
+          }
 
-    [<Fact>]
-    let ``error if the hashtable contains invalid key or action.`` () =
-        let h = new OrderedHashtable()
-        h.Add("contrl+x", "cancel")
-        h.Add("alte+a", "Finissh")
-        h.Add("control+alt+shift+x", "cancel")
-        h.Add("ESCAE", "NOOP")
-        h.Add("TAB", "CompleteProperties")
+          test "error if the hashtable contains invalid key or action." {
+              let h = new OrderedHashtable()
+              h.Add("contrl+x", "cancel")
+              h.Add("alte+a", "Finissh")
+              h.Add("control+alt+shift+x", "cancel")
+              h.Add("ESCAE", "NOOP")
+              h.Add("TAB", "CompleteProperties")
 
-        let expected =
-            [ "Unsupported modifier 'contrl'."
-              "Unsupported modifier 'alte'.Unknown Action 'Finissh'."
-              "Unsupported key 'ESCAE'."
-              "Unknown Action 'CompleteProperties'." ]
-            |> String.concat "\n"
-            |> Error
+              let expected =
+                  [ "Unsupported modifier 'contrl'."
+                    "Unsupported modifier 'alte'.Unknown Action 'Finissh'."
+                    "Unsupported key 'ESCAE'."
+                    "Unknown Action 'CompleteProperties'." ]
+                  |> String.concat "\n"
+                  |> Error
 
-        Keys.convertKeymaps h |> shouldEqual expected
+              Keys.convertKeymaps h
+              |> Expect.equal "error if the hashtable contains invalid key or action." expected
+          }
 
-    [<Fact>]
-    let ``default map from null hashtable`` () =
-        let expected = Keys.defaultKeymap |> Ok
+          test "default map from null hashtable" {
+              let expected = Keys.defaultKeymap |> Ok
 
-        Keys.convertKeymaps null |> shouldEqual expected
+              Keys.convertKeymaps null
+              |> Expect.equal "default map from null hashtable" expected
+          }
+
+          ]
