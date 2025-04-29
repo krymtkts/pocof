@@ -148,201 +148,221 @@ module run =
         List.collect duplicateCase s |> mapToObj
 
     let matcher m (s: Data.InternalState) = { s with QueryCondition.Matcher = m }
-
     let query q (s: Data.InternalState) = { s with QueryState.Query = q }
-
     let invert (s: Data.InternalState) = { s with QueryCondition.Invert = true }
 
     let opAnd (s: Data.InternalState) =
         { s with
             QueryCondition.Operator = Data.Operator.And }
 
-    module ``with a simple query`` =
+    [<Tests>]
+    let ``tests_run: with a simple query`` =
         let entries = genList [ "Name"; "Attribute"; "Length" ] |> PSeq.ofSeq
-
         let props = Map [ ("length", "Length") ]
 
-        [<Fact>]
-        let ``should return empty if entry list is empty.`` () =
-            let context, _ = Query.prepare state
-            Query.run context PSeq.empty props |> List.ofSeq |> shouldEqual []
+        testList
+            "run: with a simple query"
+            [
 
-        module ``of MATCH`` =
-            let state = state |> matcher Data.Matcher.Match |> query "a"
+              test "When entry list is empty" {
+                  let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.Matcher.Match
-                let context, _ = Query.prepare state
+                  Query.run context PSeq.empty props
+                  |> List.ofSeq
+                  |> Expect.equal "should return empty" []
+              }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (entries |> List.ofSeq)
+              testList
+                  "of MATCH"
+                  [
 
-            [<Fact>]
-            let ``should return all entries if query is invalid pattern.`` () =
-                let state = state |> query "+"
-                let context, _ = Query.prepare state
+                    let state = state |> matcher Data.Matcher.Match |> query "a"
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (entries |> List.ofSeq)
+                    test "When query is empty" {
+                        let state = initState () |> matcher Data.Matcher.Match
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries.`` () =
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return all entries" (entries |> List.ofSeq)
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Name"; "Attribute" ])
+                    test "When query is invalid pattern" {
+                        let state = state |> query "+"
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries when matcher is match and case sensitive.`` () =
-                let state = caseSensitive state
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return all entries" (entries |> List.ofSeq)
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (mapToObj [ "Name"; "name"; "attribute" ])
+                    test "When query is 'a' (filtered)" {
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries when matcher is match and invert result.`` () =
-                let state = invert state
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return filtered entries" (genList [ "Name"; "Attribute" ])
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Length" ])
+                    test "When matcher is match and case sensitive" {
+                        let state = caseSensitive state
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries when composite query with or operator.`` () =
-                let state = state |> query "a N"
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal
+                            "should return filtered entries (case sensitive)"
+                            (mapToObj [ "Name"; "name"; "attribute" ])
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (entries |> List.ofSeq)
+                    test "When matcher is match and invert result" {
+                        let state = invert state
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries when composite query with and operator.`` () =
-                let state = state |> query "a N" |> opAnd
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return filtered entries (invert)" (genList [ "Length" ])
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Name" ])
+                    test "When composite query with or operator" {
+                        let state = state |> query "a N"
+                        let context, _ = Query.prepare state
 
-        module ``of LIKE`` =
-            let state = state |> matcher Data.Matcher.Like |> query "a*"
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return all entries (or)" (entries |> List.ofSeq)
+                    }
 
-            [<Fact>]
-            let ``should return all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.Matcher.Like
-                let context, _ = Query.prepare state
+                    test "When composite query with and operator" {
+                        let state = state |> query "a N" |> opAnd
+                        let context, _ = Query.prepare state
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (entries |> List.ofSeq)
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return filtered entries (and)" (genList [ "Name" ])
+                    } ]
 
-            [<Fact>]
-            let ``should return matched entries when matcher is like .`` () =
-                let context, _ = Query.prepare state
+              testList
+                  "of LIKE"
+                  [
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Attribute" ])
+                    let state = state |> matcher Data.Matcher.Like |> query "a*"
 
-            [<Fact>]
-            let ``should return matched entries when matcher is like and case sensitive.`` () =
-                let state = caseSensitive state
-                let context, _ = Query.prepare state
+                    test "When query is empty" {
+                        let state = initState () |> matcher Data.Matcher.Like
+                        let context, _ = Query.prepare state
 
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return all entries" (entries |> List.ofSeq)
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (mapToObj [ "attribute" ])
+                    test "When matcher is like" {
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries when matcher is like and invert result.`` () =
-                let state = invert state
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return matched entries" (genList [ "Attribute" ])
+                    }
 
+                    test "When matcher is like and case sensitive" {
+                        let state = caseSensitive state
+                        let context, _ = Query.prepare state
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Name"; "Length" ])
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return matched entries (case sensitive)" (mapToObj [ "attribute" ])
+                    }
 
-            [<Fact>]
-            let ``should return filtered entries when composite query with or operator.`` () =
-                let state = state |> query "*e* N*"
-                let context, _ = Query.prepare state
+                    test "When matcher is like and invert result" {
+                        let state = invert state
+                        let context, _ = Query.prepare state
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (entries |> List.ofSeq)
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return filtered entries (invert)" (genList [ "Name"; "Length" ])
+                    }
 
-            [<Fact>]
-            let ``should return filtered entries when composite query with and operator.`` () =
-                let state = state |> query "*e* N*" |> opAnd
-                let context, _ = Query.prepare state
+                    test "When composite query with or operator" {
+                        let state = state |> query "*e* N*"
+                        let context, _ = Query.prepare state
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Name" ])
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return all entries (or)" (entries |> List.ofSeq)
+                    }
 
-        module ``of EQ`` =
-            let state = state |> matcher Data.Matcher.Eq |> query "Name"
+                    test "When composite query with and operator" {
+                        let state = state |> query "*e* N*" |> opAnd
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return all entries if query is empty.`` () =
-                let state = initState () |> matcher Data.Matcher.Eq
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return filtered entries (and)" (genList [ "Name" ])
+                    } ]
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (entries |> List.ofSeq)
+              testList
+                  "of EQ"
+                  [
 
-            [<Fact>]
-            let ``should return matched entries when matcher is eq .`` () =
-                let context, _ = Query.prepare state
+                    let state = state |> matcher Data.Matcher.Eq |> query "Name"
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Name" ])
+                    test "When query is empty" {
+                        let state = initState () |> matcher Data.Matcher.Eq
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return matched entries when matcher is eq and case sensitive.`` () =
-                let state = caseSensitive state
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return all entries" (entries |> List.ofSeq)
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (mapToObj [ "Name" ])
+                    test "When matcher is eq" {
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries when matcher is eq and invert result.`` () =
-                let state = invert state
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return matched entries" (genList [ "Name" ])
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Attribute"; "Length" ])
+                    test "When matcher is eq and case sensitive" {
+                        let state = caseSensitive state
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries when composite query with or operator.`` () =
-                let state = state |> query "Name Length"
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return matched entries (case sensitive)" (mapToObj [ "Name" ])
+                    }
 
-                Query.run context entries props
-                |> List.ofSeq
-                |> shouldEqual (genList [ "Name"; "Length" ])
+                    test "When matcher is eq and invert result" {
+                        let state = invert state
+                        let context, _ = Query.prepare state
 
-            [<Fact>]
-            let ``should return filtered entries when composite query with and operator.`` () =
-                let state = state |> query "Name Length" |> opAnd
-                let context, _ = Query.prepare state
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return filtered entries (invert)" (genList [ "Attribute"; "Length" ])
+                    }
 
-                Query.run context entries props |> List.ofSeq |> shouldEqual []
+                    test "When composite query with or operator" {
+                        let state = state |> query "Name Length"
+                        let context, _ = Query.prepare state
+
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return filtered entries (or)" (genList [ "Name"; "Length" ])
+                    }
+
+                    test "When composite query with and operator" {
+                        let state = state |> query "Name Length" |> opAnd
+                        let context, _ = Query.prepare state
+
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should return filtered entries (and)" []
+                    }
+
+                    ]
+
+              ]
 
     module ``with a Dictionary query`` =
         let props = Map []
