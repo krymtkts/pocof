@@ -50,103 +50,116 @@ let tests_toKeyPattern =
 
           ]
 
-module ``get should returns`` =
-    [<Fact>]
-    let ``PocofData.AddQuery if no modifier is specified.`` () =
-        let key = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
-        let actual = Keys.get Map.empty key
+[<Tests>]
+let tests_get =
+    testList
+        "get"
+        [
 
-        actual |> shouldEqual (Data.Action.AddQuery "a")
+          test "PocofData.AddQuery if no modifier is specified." {
+              let key = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
+              let actual = Keys.get Map.empty key
+              actual |> Expect.equal "PocofData.AddQuery" (Data.Action.AddQuery "a")
+          }
 
-    [<Fact>]
-    let ``PocofData.AddQuery if symbol with shift.`` () =
-        let getKey = [ new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) ]
-        let actual = Keys.get Map.empty getKey
+          test "PocofData.AddQuery if symbol with shift." {
+              let getKey = [ new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) ]
+              let actual = Keys.get Map.empty getKey
 
-        actual |> shouldEqual (Data.Action.AddQuery ":")
+              actual
+              |> Expect.equal "PocofData.AddQuery if symbol with shift." (Data.Action.AddQuery ":")
+          }
 
-    [<Fact>]
-    let ``PocofData.AddQuery multiple times.`` () =
-        let getKey =
-            [ new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false)
-              new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
-              new ConsoleKeyInfo('s', ConsoleKey.S, false, false, false)
-              new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false)
-              new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) ]
+          test "PocofData.AddQuery multiple times." {
+              let getKey =
+                  [ new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false)
+                    new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+                    new ConsoleKeyInfo('s', ConsoleKey.S, false, false, false)
+                    new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false)
+                    new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) ]
 
-        let actual = Keys.get Map.empty getKey
+              let actual = Keys.get Map.empty getKey
 
-        actual |> shouldEqual (Data.Action.AddQuery "paste")
+              actual
+              |> Expect.equal "PocofData.AddQuery multiple times." (Data.Action.AddQuery "paste")
+          }
 
-    [<Fact>]
-    let ``user-defined Action if matched.`` () =
-        let keyMap: Map<Data.KeyPattern, Data.Action> =
-            Map
-                [ ({ Modifier = 7; Key = ConsoleKey.E }, Data.Action.Finish)
-                  ({ Modifier = 0
-                     Key = ConsoleKey.Escape },
-                   Data.Action.Noop) ]
+          test "user-defined Action if matched." {
+              let keyMap: Map<Data.KeyPattern, Data.Action> =
+                  Map
+                      [ { Data.KeyPattern.Modifier = 7
+                          Data.KeyPattern.Key = ConsoleKey.E },
+                        Data.Action.Finish
+                        { Data.KeyPattern.Modifier = 0
+                          Data.KeyPattern.Key = ConsoleKey.Escape },
+                        Data.Action.Noop ]
 
-        let key = [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
-        let actual = Keys.get keyMap key
+              let key = [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
+              let actual = Keys.get keyMap key
+              actual |> Expect.equal "user-defined Action if matched." Data.Action.Finish
+          }
 
-        actual |> shouldEqual Data.Action.Finish
+          test "Action if matched." {
+              let keyMap: Map<Data.KeyPattern, Data.Action> =
+                  ([ { Data.KeyPattern.Modifier = 7
+                       Data.KeyPattern.Key = ConsoleKey.E }
+                     { Data.KeyPattern.Modifier = 0
+                       Data.KeyPattern.Key = ConsoleKey.Escape } ],
+                   [ Data.Action.Finish; Data.Action.Noop ],
+                   Keys.defaultKeymap)
+                  |||> List.foldBack2 Map.add
 
-    [<Fact>]
-    let ``Action if matched.`` () =
-        let keyMap =
-            ([ ({ Modifier = 7; Key = ConsoleKey.E }: Data.KeyPattern)
-               { Modifier = 0
-                 Key = ConsoleKey.Escape } ],
-             [ Data.Action.Finish; Data.Action.Noop ],
-             Keys.defaultKeymap)
-            |||> List.foldBack2 Map.add
+              let actual =
+                  Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Home, false, false, true) ]
 
-        let actual =
-            Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Home, false, false, true) ]
+              actual
+              |> Expect.equal "Action if matched (DeleteBackwardInput)" Data.Action.DeleteBackwardInput
 
-        actual |> shouldEqual Data.Action.DeleteBackwardInput
+              let actual =
+                  Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
 
-        let actual =
-            Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
+              actual |> Expect.equal "Action if matched (Finish)" Data.Action.Finish
 
-        actual |> shouldEqual Data.Action.Finish
+              let actual =
+                  Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
 
-        let actual =
-            Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
+              actual |> Expect.equal "Action if matched (Noop)" Data.Action.Noop
+          }
 
-        actual |> shouldEqual Data.Action.Noop
+          test "Action if matched to no modifier key." {
+              let keu = [ new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false) ]
+              let actual = Keys.get Keys.defaultKeymap keu
 
-    [<Fact>]
-    let ``Action if matched to no modifier key.`` () =
-        let keu = [ new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false) ]
-        let actual = Keys.get Keys.defaultKeymap keu
+              actual
+              |> Expect.equal "Action if matched to no modifier key." Data.Action.BeginningOfLine
+          }
 
-        actual |> shouldEqual Data.Action.BeginningOfLine
+          test "PocofData.AddQuery if not match the keymap." {
+              let keyMap: Map<Data.KeyPattern, Data.Action> =
+                  Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.Action.DeleteBackwardInput) ]
 
-    [<Fact>]
-    let ``PocofData.AddQuery if not match the keymap.`` () =
-        let keyMap: Map<Data.KeyPattern, Data.Action> =
-            Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.Action.DeleteBackwardInput) ]
+              let key = [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) ]
+              let actual = Keys.get keyMap key
 
-        let key = [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) ]
-        let actual = Keys.get keyMap key
+              actual
+              |> Expect.equal "PocofData.AddQuery if not match the keymap." (Data.Action.AddQuery "u")
+          }
 
-        actual |> shouldEqual (Data.Action.AddQuery "u")
+          test "PocofData.None if the control character not match the keymap." {
+              let key = [ new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true) ]
+              let actual = Keys.get Keys.defaultKeymap key
 
-    [<Fact>]
-    let ``PocofData.None if the control character not match the keymap.`` () =
-        let key = [ new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true) ]
-        let actual = Keys.get Keys.defaultKeymap key
+              actual
+              |> Expect.equal "PocofData.None if the control character not match the keymap." Data.Action.Noop
+          }
 
-        actual |> shouldEqual Data.Action.Noop
+          test "None if not match the keymap." {
+              let key = [ new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false) ]
+              let actual = Keys.get Keys.defaultKeymap key
+              actual |> Expect.equal "None if not match the keymap." Data.Action.Noop
+          }
 
-    [<Fact>]
-    let ``None if not match the keymap.`` () =
-        let key = [ new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false) ]
-        let actual = Keys.get Keys.defaultKeymap key
-
-        actual |> shouldEqual Data.Action.Noop
+          ]
 
 module ``convertKeymaps should returns`` =
     open System.Management.Automation
