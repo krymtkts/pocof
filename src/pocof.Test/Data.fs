@@ -4,15 +4,12 @@ open System
 open Microsoft.FSharp.Reflection
 open System.Collections.Generic
 
-open FsUnitTyped
+open Expecto
+open Expecto.Flip
 open FsCheck.FSharp
-open FsCheck.Xunit
 
 open Pocof
 open Pocof.Data
-
-open Expecto
-open Expecto.Flip
 
 module LanguageExtension =
     open System.Management.Automation
@@ -149,12 +146,12 @@ module unwrap =
                   data
                   |> unwrap
                   |> List.ofSeq
-                  |> shouldEqual (
-                      data
-                      |> List.map (function
-                          | Entry.Obj x -> x
-                          | Entry.Dict x -> x)
-                  )
+                  |> Expect.equal
+                      "should return mixed entry sequences"
+                      (data
+                       |> List.map (function
+                           | Entry.Obj x -> x
+                           | Entry.Dict x -> x))
                   |> Prop.collect (
                       List.length data,
                       data |> List.filter _.IsObj |> List.length,
