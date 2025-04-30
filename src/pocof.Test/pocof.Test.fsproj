@@ -22,9 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- NOTE: FsCheck.Xunit does not support xUnit.v3 yet. -->
-    <PackageReference Include="FsCheck.Xunit" Version="3.2.0" />
-    <PackageReference Include="FsUnit.xUnit" Version="6.0.1" />
+    <PackageReference Include="Expecto" Version="11.0.0-alpha8" />
+    <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.15.3" />
+    <PackageReference Include="FsCheck" Version="3.2.0" />
+    <PackageReference Include="Expecto.FsCheck" Version="11.0.0-alpha8" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <!-- NOTE: Replace xunit with xunit.v3 from FsUnit.xUnit 7. -->
     <PackageReference Include="xunit" Version="2.9.3" />
