@@ -255,11 +255,13 @@ module ``Action fromString`` =
               ]
 
 module fromString =
-    let ``should fail.``<'DU> (fromString: string -> 'DU) value =
-        shouldFail (fun () -> fromString value |> ignore)
+    let shouldFail<'DU when 'DU: equality> (fromString: string -> 'DU) value =
+        Expect.throwsT<exn> "should throw for unknown value" (fun () -> fromString value |> ignore)
 
-    let ``known matchers.``<'DU> (fromString: string -> 'DU) (data: string) =
-        data |> fromString |> shouldEqual (data |> findDu<'DU>)
+    let knownMatchers<'DU when 'DU: equality> (fromString: string -> 'DU) (data: string) =
+        let actual: 'DU = fromString data
+        let expected: 'DU = findDu<'DU> data
+        actual |> Expect.equal "should return correct DU for known value" expected
 
     type InvalidDuName<'DU>() =
         static member Generate() =
@@ -269,32 +271,74 @@ module fromString =
         static member Generate() =
             duNames<'DU> |> Seq.collect randomCases |> Gen.elements |> Arb.fromGen
 
-    module ``of Matcher`` =
-        [<Property(Arbitrary = [| typeof<InvalidDuName<Matcher>> |])>]
-        let ``should fail when unknown value.`` (data: string) =
-            data |> ``should fail.`` Matcher.fromString
+    module ofMatcher =
+        [<Tests>]
+        let tests_ofMatcher =
+            testList
+                "Matcher.fromString"
+                [
 
-        [<Property(Arbitrary = [| typeof<ValidDuName<Matcher>> |])>]
-        let ``should return known matchers.`` (data: string) =
-            data |> ``known matchers.`` Matcher.fromString |> Prop.collect data
+                  let configInvalid =
+                      { FsCheckConfig.defaultConfig with
+                          arbitrary = [ typeof<InvalidDuName<Matcher>> ] }
 
-    module ``of Operator`` =
-        [<Property(Arbitrary = [| typeof<InvalidDuName<Operator>> |])>]
-        let ``should fail when unknown value.`` (data: string) =
-            data |> ``should fail.`` Operator.fromString
+                  testPropertyWithConfig configInvalid "When unknown value, should throw" (fun data ->
+                      shouldFail Matcher.fromString data |> Prop.collect data)
 
-        [<Property(Arbitrary = [| typeof<ValidDuName<Operator>> |])>]
-        let ``should return known matchers.`` (data: string) =
-            data |> ``known matchers.`` Operator.fromString |> Prop.collect data
+                  let configValid =
+                      { FsCheckConfig.defaultConfig with
+                          arbitrary = [ typeof<ValidDuName<Matcher>> ] }
 
-    module ``of Layout`` =
-        [<Property(Arbitrary = [| typeof<InvalidDuName<Layout>> |])>]
-        let ``should fail when unknown value.`` (data: string) =
-            data |> ``should fail.`` Layout.fromString
+                  testPropertyWithConfig configValid "When known value, should return correct DU" (fun data ->
+                      knownMatchers Matcher.fromString data |> Prop.collect data)
 
-        [<Property(Arbitrary = [| typeof<ValidDuName<Layout>> |])>]
-        let ``should return known matchers.`` (data: string) =
-            data |> ``known matchers.`` Layout.fromString |> Prop.collect data
+                  ]
+
+    module ofOperator =
+        [<Tests>]
+        let tests_ofOperator =
+            testList
+                "Operator.fromString"
+                [
+
+                  let configInvalid =
+                      { FsCheckConfig.defaultConfig with
+                          arbitrary = [ typeof<InvalidDuName<Operator>> ] }
+
+                  testPropertyWithConfig configInvalid "When unknown value, should throw" (fun data ->
+                      shouldFail Operator.fromString data |> Prop.collect data)
+
+                  let configValid =
+                      { FsCheckConfig.defaultConfig with
+                          arbitrary = [ typeof<ValidDuName<Operator>> ] }
+
+                  testPropertyWithConfig configValid "When known value, should return correct DU" (fun data ->
+                      knownMatchers Operator.fromString data |> Prop.collect data)
+
+                  ]
+
+    module ofLayout =
+        [<Tests>]
+        let tests_ofLayout =
+            testList
+                "Layout.fromString"
+                [
+
+                  let configInvalid =
+                      { FsCheckConfig.defaultConfig with
+                          arbitrary = [ typeof<InvalidDuName<Layout>> ] }
+
+                  testPropertyWithConfig configInvalid "When unknown value, should throw" (fun data ->
+                      shouldFail Layout.fromString data |> Prop.collect data)
+
+                  let configValid =
+                      { FsCheckConfig.defaultConfig with
+                          arbitrary = [ typeof<ValidDuName<Layout>> ] }
+
+                  testPropertyWithConfig configValid "When known value, should return correct DU" (fun data ->
+                      knownMatchers Layout.fromString data |> Prop.collect data)
+
+                  ]
 
 module ``QueryState toString`` =
     type QueryConditionGen() =
