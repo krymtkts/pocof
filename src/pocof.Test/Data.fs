@@ -212,23 +212,47 @@ module ``Action fromString`` =
                   (9, actionsNames |> generateStringExclude) ]
             |> Arb.fromGen
 
-    [<Property(Arbitrary = [| typeof<UnknownAction> |])>]
-    let ``should return unknown action error.`` (data: string) =
-        data
-        |> Action.fromString
-        |> shouldEqual (Error $"Unknown Action '{data}'.")
-        |> Prop.collect data
+    [<Tests>]
+    let tests_unknownAction =
+        let configUnknown =
+            { FsCheckConfig.defaultConfig with
+                arbitrary = [ typeof<UnknownAction> ] }
+
+        testList
+            "Action.fromString (unknown)"
+            [
+
+              testPropertyWithConfig configUnknown "When unknown action, should return error"
+              <| fun (data: string) ->
+                  data
+                  |> Action.fromString
+                  |> Expect.equal "should return unknown action error" (Error $"Unknown Action '{data}'.")
+                  |> Prop.collect data
+
+              ]
 
     type KnownAction() =
         static member Generate() =
             actionsNames |> Seq.collect randomCases |> Gen.elements |> Arb.fromGen
 
-    [<Property(Arbitrary = [| typeof<KnownAction> |])>]
-    let ``should return known actions excluding AddQuery.`` (data: string) =
-        data
-        |> Action.fromString
-        |> shouldEqual (data |> findDu<Action> |> Ok)
-        |> Prop.collect data
+    [<Tests>]
+    let tests_knownAction =
+        let configKnown =
+            { FsCheckConfig.defaultConfig with
+                arbitrary = [ typeof<KnownAction> ] }
+
+        testList
+            "Action.fromString (known)"
+            [
+
+              testPropertyWithConfig configKnown "When known action, should return Ok"
+              <| fun (data: string) ->
+                  data
+                  |> Action.fromString
+                  |> Expect.equal "should return known actions excluding AddQuery" (data |> findDu<Action> |> Ok)
+                  |> Prop.collect data
+
+              ]
 
 module fromString =
     let ``should fail.``<'DU> (fromString: string -> 'DU) value =
