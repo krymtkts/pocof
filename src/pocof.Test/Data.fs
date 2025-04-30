@@ -355,20 +355,32 @@ module ``QueryState toString`` =
                 (ArbMap.generate<bool> ArbMap.defaults)
             |> Arb.fromGen
 
-    [<Property(Arbitrary = [| typeof<QueryConditionGen> |])>]
-    let ``should return correct format.`` (data: QueryCondition) =
-        let c = if data.CaseSensitive then "c" else ""
+    [<Tests>]
+    let tests_toString =
+        let config =
+            { FsCheckConfig.defaultConfig with
+                arbitrary = [ typeof<QueryConditionGen> ] }
 
-        let m =
-            match data.Matcher with
-            | Matcher.Eq -> if data.Invert then "ne" else "eq"
-            | Matcher.Like -> $"""{if data.Invert then "not" else ""}like"""
-            | Matcher.Match -> $"""{if data.Invert then "not" else ""}match"""
+        testList
+            "QueryState.toString"
+            [
 
-        data
-        |> QueryCondition.toString
-        |> shouldEqual $"{c}{m} {data.Operator}"
-        |> Prop.collect data
+              testPropertyWithConfig config "When QueryCondition is given, should return correct format"
+              <| fun (data: QueryCondition) ->
+                  let c = if data.CaseSensitive then "c" else ""
+
+                  let m =
+                      match data.Matcher with
+                      | Matcher.Eq -> if data.Invert then "ne" else "eq"
+                      | Matcher.Like -> $"""{if data.Invert then "not" else ""}like"""
+                      | Matcher.Match -> $"""{if data.Invert then "not" else ""}match"""
+
+                  data
+                  |> QueryCondition.toString
+                  |> Expect.equal "should return correct format" $"{c}{m} {data.Operator}"
+                  |> Prop.collect data
+
+              ]
 
 module initConfig =
     [<Tests>]
