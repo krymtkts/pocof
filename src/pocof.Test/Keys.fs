@@ -17,36 +17,40 @@ let tests_toKeyPattern =
 
           test "When input is 'A' (no modifiers)" {
               Keys.toKeyPattern "A"
-              |> Expect.equal "should return Ok with no modifiers" (Ok { Modifier = 0; Key = ConsoleKey.A })
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return no modifiers" { Modifier = 0; Key = ConsoleKey.A }
           }
 
           test "When input is 'alt+a'" {
               Keys.toKeyPattern "alt+a"
-              |> Expect.equal "should return Ok with Alt modifier" (Ok { Modifier = 1; Key = ConsoleKey.A })
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return Alt modifier" { Modifier = 1; Key = ConsoleKey.A }
           }
 
           test "When input is 'Alt+Shift+A'" {
               Keys.toKeyPattern "Alt+Shift+A"
-              |> Expect.equal "should return Ok with Alt and Shift modifiers" (Ok { Modifier = 3; Key = ConsoleKey.A })
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return Alt and Shift modifiers" { Modifier = 3; Key = ConsoleKey.A }
           }
 
           test "When input is 'control+alt+shift+A'" {
               Keys.toKeyPattern "control+alt+shift+A"
-              |> Expect.equal
-                  "should return Ok with Ctrl, Alt and Shift modifiers"
-                  (Ok { Modifier = 7; Key = ConsoleKey.A })
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return Ctrl, Alt and Shift modifiers" { Modifier = 7; Key = ConsoleKey.A }
           }
 
           test "When input is empty string" {
               Keys.toKeyPattern ""
-              |> Expect.equal "should return Error for empty input" (Error "Unsupported key ''.")
+              |> Expect.wantError "should return Error"
+              |> Expect.equal "should return error message for empty string" "Unsupported key ''."
           }
 
           test "When input is unsupported combination" {
               Keys.toKeyPattern "cnt+alt+c+ESC"
+              |> Expect.wantError "should return Error"
               |> Expect.equal
-                  "should return Error for unsupported combination"
-                  (Error "Unsupported modifier 'cnt'. Unsupported modifier 'c'. Unsupported key 'ESC'.")
+                  "should return error message for unsupported combination"
+                  "Unsupported modifier 'cnt'. Unsupported modifier 'c'. Unsupported key 'ESC'."
           }
 
           ]

@@ -1858,9 +1858,7 @@ module invokeAction =
 
     let testStateAndContext action state context expectedState =
         let a1, a2 = invokeAction [] state context action
-
-        a1 |> Expect.equal "" expectedState
-
+        a1 |> Expect.equal "should return expected state after action" expectedState
         (a1, a2)
 
     let testShouldNotChangeQueryContext (expected: QueryContext) (actual: QueryContext) =
@@ -2082,7 +2080,7 @@ module invokeAction =
                   a1.PropertySearch
                   |> function
                       | PropertySearch.Rotate(a, b) ->
-                          a |> Expect.equal "should return the first completion" ""
+                          a |> Expect.isEmpty "should return the first completion"
 
                           b
                           |> Seq.take 4

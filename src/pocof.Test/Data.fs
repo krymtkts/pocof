@@ -63,7 +63,7 @@ module LanguageExtension =
                   // NOTE: requires passing true to preValidated to skip the check for CannotAddPropertyOrMethod.
                   // https://github.com/PowerShell/PowerShell/blob/c505f4ba39111df8bd8a957f8632ff9697639f0b/src/System.Management.Automation/engine/MshMemberInfo.cs#L4598C29-L4598C30
                   a.Properties.Add(p, true)
-                  a["Dummy"] |> Expect.equal "should return None" None
+                  a["Dummy"] |> Expect.isNull "should return None"
               }
 
               ]
@@ -223,7 +223,8 @@ module ``Action fromString`` =
               <| fun (data: string) ->
                   data
                   |> Action.fromString
-                  |> Expect.equal "should return unknown action error" (Error $"Unknown Action '{data}'.")
+                  |> Expect.wantError "should return error"
+                  |> Expect.equal "should return correct error message" $"Unknown Action '{data}'."
                   |> Prop.collect data
 
               ]

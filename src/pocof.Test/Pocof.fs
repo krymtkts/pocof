@@ -129,12 +129,10 @@ let tests_loop =
 
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.interact config state buff publishEvent input
-              actual |> Seq.length |> Expect.equal "should return 5 results when finishing" 5
+              actual |> Expect.hasLength "should return 5 results when finishing" 5
 
               actual
-              |> Seq.iteri (fun i x ->
-                  x = results.[i]
-                  |> Expect.equal (sprintf "should match result at index %d" i) true)
+              |> Seq.iteri (fun i x -> x |> Expect.equal (sprintf "should match result at index %d" i) results.[i])
 
               rui.Check()
           }
@@ -155,7 +153,7 @@ let tests_loop =
 
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.interact config state buff publishEvent input
-              actual |> Seq.length |> Expect.equal "should return 0 results when canceling" 0
+              actual |> Expect.hasLength "should return 0 results when canceling" 0
               rui.Check()
           }
 
@@ -183,12 +181,12 @@ let tests_loop =
 
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.interact config state buff publishEvent input
-              actual |> Seq.length |> Expect.equal "should return 5 results after noop" 5
+              actual |> Expect.hasLength "should return 5 results after noop" 5
 
               actual
               |> Seq.iteri (fun i x ->
-                  x = results.[i]
-                  |> Expect.equal (sprintf "should match result at index %d after noop" i) true)
+                  x
+                  |> Expect.equal (sprintf "should match result at index %d after noop" i) results.[i])
 
               rui.Check()
           }
@@ -219,13 +217,11 @@ let tests_loop =
 
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.interact config state buff publishEvent input
-              actual |> Seq.length |> Expect.equal "should return 2 filtered results" 2
+              actual |> Expect.hasLength "should return 2 filtered results" 2
 
-              Seq.item 0 actual = results.[0]
-              |> Expect.equal "should match filtered result 0" true
+              Seq.item 0 actual |> Expect.equal "should match filtered result 0" results.[0]
 
-              Seq.item 1 actual = results.[3]
-              |> Expect.equal "should match filtered result 1" true
+              Seq.item 1 actual |> Expect.equal "should match filtered result 1" results.[3]
 
               rui.Check()
           }
@@ -255,9 +251,7 @@ let tests_interact =
               let actual = Pocof.interact config state buff publishEvent input
               let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
-              actual
-              |> Seq.length
-              |> Expect.equal "should return 5 results in NonInteractive mode" 5
+              actual |> Expect.hasLength "should return 5 results in NonInteractive mode" 5
 
               actual
               |> List.ofSeq
@@ -284,8 +278,7 @@ let tests_interact =
               let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
               actual
-              |> Seq.length
-              |> Expect.equal "should return 5 results in Interactive TopDown mode" 5
+              |> Expect.hasLength "should return 5 results in Interactive TopDown mode" 5
 
               actual
               |> List.ofSeq
@@ -312,8 +305,7 @@ let tests_interact =
               let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
               actual
-              |> Seq.length
-              |> Expect.equal "should return 5 results in Interactive BottomUp mode" 5
+              |> Expect.hasLength "should return 5 results in Interactive BottomUp mode" 5
 
               actual
               |> List.ofSeq
@@ -340,8 +332,7 @@ let tests_interact =
               let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
 
               actual
-              |> Seq.length
-              |> Expect.equal "should return 5 results in Interactive BottomUpHalf mode" 5
+              |> Expect.hasLength "should return 5 results in Interactive BottomUpHalf mode" 5
 
               actual
               |> List.ofSeq
@@ -363,7 +354,9 @@ open System.Threading
 let tests_render =
     testList
         "render"
-        [ test "When handler has a quit event, should return ContinueProcessing.StopUpstreamCommands" {
+        [
+
+          test "When handler has a quit event, should return ContinueProcessing.StopUpstreamCommands" {
               let config: InternalConfig =
                   { NotInteractive = false
                     Layout = Layout.BottomUpHalf
@@ -405,11 +398,13 @@ let tests_render =
 
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-              let actual = Pocof.render buff handler
 
-              actual
-              |> Expect.equal "should return unit (ContinueProcessing.StopUpstreamCommands)" ()
-          } ]
+              // TODO: check if the rendering finished expectedly.
+              Pocof.render buff handler
+
+          }
+
+          ]
 
 type MockException(o: obj) =
     inherit Exception()
@@ -421,13 +416,17 @@ type MockCmdlet() =
 let tests_stopUpstreamCommandsException =
     testList
         "stopUpstreamCommandsException"
-        [ test "When called, should return the exception instance" {
+        [
+
+          test "When called, should return the exception instance" {
               let actual =
                   Pocof.stopUpstreamCommandsException typeof<MockException> (new MockCmdlet())
 
               actual.GetType()
               |> Expect.equal "should return MockException type" typeof<MockException>
-          } ]
+          }
+
+          ]
 
 [<Tests>]
 let tests_renderOnce =
@@ -455,7 +454,7 @@ let tests_renderOnce =
               |> function
                   | Pocof.RenderProcess.Noop -> true
                   | _ -> false
-              |> Expect.equal "should return ContinueProcessing.Continue when handler is empty" true
+              |> Expect.isTrue "should return ContinueProcessing.Continue when handler is empty"
           }
 
           test "When handler has a render event, should return ContinueProcessing.Continue" {
@@ -483,7 +482,7 @@ let tests_renderOnce =
               |> function
                   | Pocof.RenderProcess.Rendered _ -> true
                   | _ -> false
-              |> Expect.equal "should return ContinueProcessing.Continue when handler has a render event" true
+              |> Expect.isTrue "should return ContinueProcessing.Continue when handler has a render event"
           }
 
           test "When handler has a quit event, should return ContinueProcessing.StopUpstreamCommands" {
@@ -507,7 +506,7 @@ let tests_renderOnce =
               |> function
                   | Pocof.RenderProcess.StopUpstreamCommands -> true
                   | _ -> false
-              |> Expect.equal "should return ContinueProcessing.StopUpstreamCommands when handler has a quit event" true
+              |> Expect.isTrue "should return ContinueProcessing.StopUpstreamCommands when handler has a quit event"
           }
 
           ]
@@ -542,7 +541,7 @@ let tests_Periodic =
               periodic.Render()
 
               actual
-              |> Expect.equal "should invoke cancel action when stopping upstream commands" true
+              |> Expect.isTrue "should invoke cancel action when stopping upstream commands"
 
               periodic.Stop()
           }
@@ -570,8 +569,7 @@ let tests_Periodic =
               Thread.Sleep 100
               periodic.Render()
 
-              actual
-              |> Expect.equal "shouldn't invoke cancel action if rendering completed" false
+              actual |> Expect.isFalse "shouldn't invoke cancel action if rendering completed"
 
               periodic.Stop()
           }
@@ -598,7 +596,7 @@ let tests_Periodic =
               periodic.Render()
 
               actual
-              |> Expect.equal "shouldn't invoke anything if ElapsedMilliseconds is less than 10ms" false
+              |> Expect.isFalse "shouldn't invoke anything if ElapsedMilliseconds is less than 10ms"
 
               periodic.Stop()
           }
@@ -626,7 +624,7 @@ let tests_Periodic =
               periodic.Render()
 
               actual
-              |> Expect.equal "shouldn't invoke idling action if first time idle rendering" false
+              |> Expect.isFalse "shouldn't invoke idling action if first time idle rendering"
 
               periodic.Stop()
           }
@@ -652,7 +650,7 @@ let tests_Periodic =
 
               Thread.Sleep 1000
               periodic.Render()
-              actual |> Expect.equal "should invoke idling action after 1 second" false
+              actual |> Expect.isFalse "should invoke idling action after 1 second"
               periodic.Stop()
           }
 
@@ -683,8 +681,7 @@ let tests_Periodic =
                   periodic.Render()
                   Thread.Sleep 100)
 
-              actual
-              |> Expect.equal "should invoke idling rendering action after 1 second" false
+              actual |> Expect.isFalse "should invoke idling rendering action after 1 second"
 
               periodic.Stop()
           }

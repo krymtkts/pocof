@@ -49,7 +49,7 @@ let tests_DictionaryEntry =
 
           test "When key is not found" {
               let d = DictionaryEntry("Jane", "Doe")
-              d["Ke"] |> Expect.equal "should return null for not found key" null
+              d["Ke"] |> Expect.isNull "should return null for not found key"
           }
 
           ]
@@ -66,7 +66,7 @@ let tests_PSObject =
           }
           test "When property is not found" {
               let o = "a" |> PSObject.AsPSObject
-              o["Lengt"] |> Expect.equal "should return null for not found property" null
+              o["Lengt"] |> Expect.isNull "should return null for not found property"
           }
 
           ]
@@ -82,7 +82,8 @@ let tests_props =
                   properties
                   { state with
                       PropertySearch = Data.PropertySearch.NoSearch }
-              |> Expect.equal "should return Ok with empty list" (Ok [])
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return empty list" []
           }
 
           test "When PropertySearch is Search 'No' (not found)" {
@@ -90,7 +91,8 @@ let tests_props =
                   properties
                   { state with
                       PropertySearch = Data.PropertySearch.Search "No" }
-              |> Expect.equal "should return Error with 'Property not found'" (Error "Property not found")
+              |> Expect.wantError "should return Error"
+              |> Expect.equal "should return 'Property not found'" "Property not found"
           }
 
           test "When PropertySearch is Search '' (empty string)" {
@@ -98,7 +100,8 @@ let tests_props =
                   properties
                   { state with
                       PropertySearch = Data.PropertySearch.Search "" }
-              |> Expect.equal "should return Ok with all properties" (Ok [ "Name"; "Attribute"; "Length" ])
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return all properties" [ "Name"; "Attribute"; "Length" ]
           }
 
           test "When PropertySearch is Search 'Na' (filtered)" {
@@ -106,7 +109,8 @@ let tests_props =
                   properties
                   { state with
                       PropertySearch = Data.PropertySearch.Search "Na" }
-              |> Expect.equal "should return Ok with filtered properties" (Ok [ "Name" ])
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return filtered properties" [ "Name" ]
           }
 
           test "When PropertySearch is Search 'na' (case-insensitive)" {
@@ -114,7 +118,8 @@ let tests_props =
                   properties
                   { state with
                       PropertySearch = Data.PropertySearch.Search "na" }
-              |> Expect.equal "should return Ok with filtered properties (case-insensitive)" (Ok [ "Name" ])
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return  filtered properties (case-insensitive)" [ "Name" ]
           }
 
           test "When PropertySearch is Rotate with empty string" {
@@ -122,7 +127,8 @@ let tests_props =
                   properties
                   { state with
                       PropertySearch = Data.PropertySearch.Rotate("", [ "Name" ]) }
-              |> Expect.equal "should return Ok with all properties (rotate)" (Ok [ "Name"; "Attribute"; "Length" ])
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return all properties (rotate)" [ "Name"; "Attribute"; "Length" ]
           }
 
           test "When PropertySearch is Rotate with filter 'Na'" {
@@ -130,7 +136,8 @@ let tests_props =
                   properties
                   { state with
                       PropertySearch = Data.PropertySearch.Rotate("Na", [ "Name" ]) }
-              |> Expect.equal "should return Ok with filtered properties (rotate)" (Ok [ "Name" ])
+              |> Expect.wantOk "should return Ok"
+              |> Expect.equal "should return filtered properties (rotate)" [ "Name" ]
           }
 
           ]
@@ -237,7 +244,9 @@ module run =
                         Query.run context entries props
                         |> List.ofSeq
                         |> Expect.equal "should return filtered entries (and)" (genList [ "Name" ])
-                    } ]
+                    }
+
+                    ]
 
               testList
                   "of LIKE"
@@ -296,7 +305,9 @@ module run =
                         Query.run context entries props
                         |> List.ofSeq
                         |> Expect.equal "should return filtered entries (and)" (genList [ "Name" ])
-                    } ]
+                    }
+
+                    ]
 
               testList
                   "of EQ"
