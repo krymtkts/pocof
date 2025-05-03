@@ -33,7 +33,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\pocof\pocof.fsproj" />
-    <ProjectReference Include="..\pocof.Test\pocof.Test.fsproj" />
+    <ProjectReference Include="..\pocof.Test\pocof.Test.fsproj" >
+      <ExcludeAssets>build; analyzers; buildtransitive</ExcludeAssets>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>
