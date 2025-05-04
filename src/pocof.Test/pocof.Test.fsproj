@@ -27,12 +27,6 @@
     <PackageReference Include="FsCheck" Version="3.2.0" />
     <PackageReference Include="Expecto.FsCheck" Version="11.0.0-alpha8" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
-    <!-- NOTE: Replace xunit with xunit.v3 from FsUnit.xUnit 7. -->
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
