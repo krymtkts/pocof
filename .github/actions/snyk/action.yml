@@ -8,9 +8,6 @@ inputs:
   project_name:
     description: "Name of the .NET project to scan"
     required: true
-  project_path:
-    description: "Path to the .NET project to scan"
-    required: true
 
 runs:
   using: composite

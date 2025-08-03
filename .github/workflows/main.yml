@@ -39,23 +39,19 @@ jobs:
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
           project_name: pocof
-          project_path: ./src/pocof
       - name: Run Snyk to check for vulnerabilities(pocof.Test)
         uses: ./.github/actions/snyk
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
           project_name: pocof.Test
-          project_path: ./src/pocof.Test
 
       - name: Run Snyk to check for vulnerabilities(pocof.Benchmark)
         uses: ./.github/actions/snyk
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
           project_name: pocof.Benchmark
-          project_path: ./src/pocof.Benchmark
       - name: Run Snyk to check for vulnerabilities(pocof.Inspector)
         uses: ./.github/actions/snyk
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
           project_name: pocof.Inspector
-          project_path: ./src/pocof.Inspector
