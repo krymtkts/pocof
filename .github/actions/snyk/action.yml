@@ -21,7 +21,7 @@ runs:
       if: runner.os == 'Linux'
       continue-on-error: true # To make sure that SARIF upload gets called
       env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        SNYK_TOKEN: ${{ inputs.snyk_token }}
       with:
         command: test
         args: ./src/${{ inputs.project_name }} --sarif-file-output=${{ inputs.project_name }}-snyk.sarif --org=krymtkts
