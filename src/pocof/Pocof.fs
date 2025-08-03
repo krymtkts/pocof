@@ -188,6 +188,8 @@ module Pocof =
         let renderStack: RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
 
+        let event = new AutoResetEvent(false)
+
         [<TailCall>]
         let rec getLatestEvent (h: RenderEvent) (es: RenderEvent list) =
             match h with
@@ -205,9 +207,13 @@ module Pocof =
             | [] -> RenderMessage.None
             | h :: es -> getLatestEvent h es |> RenderMessage.Received
 
-        member __.Publish = renderStack.Push
+        member __.Publish e =
+            renderStack.Push e
+            event.Set() |> ignore
 
         member __.Receive() =
+            event.WaitOne() |> ignore
+
             let items =
                 match renderStack.Count with
                 // NOTE: case of 0 is required for .NET Framework forward compatibility.
@@ -224,7 +230,10 @@ module Pocof =
     let rec render (buff: Screen.Buff) (handler: RenderHandler) =
         match handler.Receive() with
         | RenderMessage.None ->
-            Thread.Sleep 10
+            // NOTE: for backward compatibility.
+#if DEBUG
+            Logger.LogFile [ "render received RenderMessage.None." ]
+#endif
             render buff handler
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
