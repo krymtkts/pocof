@@ -228,16 +228,17 @@ module Pocof =
             items |> getLatestEvent
 
         interface IDisposable with
-            member __.Dispose() =
-                event.Dispose()
+            member __.Dispose() = event.Dispose()
 
     [<TailCall>]
     let rec render (buff: Screen.Buff) (handler: RenderHandler) =
         match handler.Receive(block = true) with
+#if DEBUG
         | RenderMessage.None ->
             // NOTE: for backward compatibility.
-#if DEBUG
             Logger.LogFile [ "render received RenderMessage.None." ]
+#else
+        | RenderMessage.None
 #endif
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
