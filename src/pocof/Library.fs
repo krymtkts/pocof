@@ -15,7 +15,6 @@ type SelectPocofCommand() =
 
     let mutable input: Pocof.IInputStore = Pocof.NormalInputStore()
     let properties: Pocof.PropertyStore = Pocof.PropertyStore()
-    let handler: Pocof.RenderHandler = Pocof.RenderHandler()
     let mutable keymaps: Map<Pocof.KeyPattern, Pocof.Action> = Map []
     let mutable renderPeriodic: unit -> unit = id
     let mutable waitResult: Pocof.Termination -> obj seq = fun (_) -> Seq.empty
@@ -110,7 +109,6 @@ type SelectPocofCommand() =
                 (__.ConsoleInterface())
                 __.Invoke
                 cancelAction
-                handler
                 input.GetEntries
                 { Query = __.Query
                   Matcher = __.Matcher

@@ -367,7 +367,7 @@ let tests_render =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
 
               async {
                   Thread.Sleep 300
@@ -445,7 +445,7 @@ let tests_renderOnce =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.renderOnce handler buff
@@ -468,7 +468,7 @@ let tests_renderOnce =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
 
               (state, lazy PSeq.empty, lazy Error "error")
               |> Pocof.RenderEvent.Render
@@ -496,7 +496,7 @@ let tests_renderOnce =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
               Pocof.RenderEvent.Quit |> handler.Publish
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
@@ -528,7 +528,7 @@ let tests_Periodic =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
               Pocof.RenderEvent.Quit |> handler.Publish
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
@@ -557,7 +557,7 @@ let tests_Periodic =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
               Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
@@ -585,7 +585,7 @@ let tests_Periodic =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let mutable actual = false
@@ -612,7 +612,7 @@ let tests_Periodic =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let mutable actual = false
@@ -640,7 +640,7 @@ let tests_Periodic =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let mutable actual = false
@@ -665,7 +665,7 @@ let tests_Periodic =
                     Properties = []
                     PropertiesMap = Map [] }
 
-              let handler = Pocof.RenderHandler()
+              let handler = new Pocof.RenderHandler()
               Pocof.RenderEvent.Render(state, lazy PSeq.empty, lazy Ok []) |> handler.Publish
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt

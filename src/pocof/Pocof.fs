@@ -188,6 +188,8 @@ module Pocof =
         let renderStack: RenderEvent Concurrent.ConcurrentStack =
             Concurrent.ConcurrentStack()
 
+        let event = new AutoResetEvent(false)
+
         [<TailCall>]
         let rec getLatestEvent (h: RenderEvent) (es: RenderEvent list) =
             match h with
@@ -205,9 +207,14 @@ module Pocof =
             | [] -> RenderMessage.None
             | h :: es -> getLatestEvent h es |> RenderMessage.Received
 
-        member __.Publish = renderStack.Push
+        member __.Publish e =
+            renderStack.Push e
+            event.Set() |> ignore
 
-        member __.Receive() =
+        member __.Receive(block: bool) =
+            if block then
+                event.WaitOne() |> ignore
+
             let items =
                 match renderStack.Count with
                 // NOTE: case of 0 is required for .NET Framework forward compatibility.
@@ -220,12 +227,19 @@ module Pocof =
 
             items |> getLatestEvent
 
+        interface IDisposable with
+            member __.Dispose() = event.Dispose()
+
     [<TailCall>]
     let rec render (buff: Screen.Buff) (handler: RenderHandler) =
-        match handler.Receive() with
+        match handler.Receive(block = true) with
+#if DEBUG
         | RenderMessage.None ->
-            Thread.Sleep 10
-            render buff handler
+            // NOTE: for backward compatibility.
+            Logger.LogFile [ "render received RenderMessage.None." ]
+#else
+        | RenderMessage.None
+#endif
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
             buff.WriteScreen state entries.Value props.Value
@@ -257,7 +271,7 @@ module Pocof =
         | StopUpstreamCommands
 
     let renderOnce (handler: RenderHandler) (buff: Screen.Buff) =
-        match handler.Receive() with
+        match handler.Receive(block = false) with
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
@@ -417,7 +431,6 @@ module Pocof =
         (console: Screen.IConsoleInterface)
         invoke
         cancelAction
-        (handler: RenderHandler)
         (entries: unit -> Entry seq)
         (p: IncomingParameters)
         =
@@ -430,6 +443,7 @@ module Pocof =
             render, waitResult
         | _ ->
             let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout conf.Prompt
+            let handler = new RenderHandler()
 
             let mainTask =
                 async { return interact conf state buff handler.Publish <| entries () }
@@ -445,6 +459,7 @@ module Pocof =
                 | Termination.Force -> ()
                 | _ -> render buff handler
 
+                handler :> IDisposable |> _.Dispose()
                 buff :> IDisposable |> _.Dispose()
                 mainTask.Result
 
