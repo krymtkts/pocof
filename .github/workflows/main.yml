@@ -34,19 +34,24 @@ jobs:
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
           shell: ${{ matrix.shell }}
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/dotnet@master
-        # snyk/actions uses Container action that is only supported on Linux.
-        if: runner.os == 'Linux'
-        continue-on-error: true # To make sure that SARIF upload gets called
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Run Snyk to check for vulnerabilities(pocof)
+        uses: ./.github/actions/snyk
         with:
-          command: test
-          args: --all-projects --sarif-file-output=snyk.sarif --org=krymtkts
-      - name: Upload result to GitHub Code Scanning
-        if: runner.os == 'Linux'
-        uses: github/codeql-action/upload-sarif@v3
+          snyk_token: ${{ secrets.SNYK_TOKEN }}
+          project_name: pocof
+      - name: Run Snyk to check for vulnerabilities(pocof.Test)
+        uses: ./.github/actions/snyk
         with:
-          sarif_file: snyk.sarif
-          category: Snyk
+          snyk_token: ${{ secrets.SNYK_TOKEN }}
+          project_name: pocof.Test
+
+      - name: Run Snyk to check for vulnerabilities(pocof.Benchmark)
+        uses: ./.github/actions/snyk
+        with:
+          snyk_token: ${{ secrets.SNYK_TOKEN }}
+          project_name: pocof.Benchmark
+      - name: Run Snyk to check for vulnerabilities(pocof.Inspector)
+        uses: ./.github/actions/snyk
+        with:
+          snyk_token: ${{ secrets.SNYK_TOKEN }}
+          project_name: pocof.Inspector
