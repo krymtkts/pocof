@@ -211,8 +211,9 @@ module Pocof =
             renderStack.Push e
             event.Set() |> ignore
 
-        member __.Receive() =
-            event.WaitOne() |> ignore
+        member __.Receive(block: bool) =
+            if block then
+                event.WaitOne() |> ignore
 
             let items =
                 match renderStack.Count with
@@ -228,7 +229,7 @@ module Pocof =
 
     [<TailCall>]
     let rec render (buff: Screen.Buff) (handler: RenderHandler) =
-        match handler.Receive() with
+        match handler.Receive(block = true) with
         | RenderMessage.None ->
             // NOTE: for backward compatibility.
 #if DEBUG
@@ -266,7 +267,7 @@ module Pocof =
         | StopUpstreamCommands
 
     let renderOnce (handler: RenderHandler) (buff: Screen.Buff) =
-        match handler.Receive() with
+        match handler.Receive(block = false) with
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
