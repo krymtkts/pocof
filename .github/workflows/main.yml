@@ -34,7 +34,7 @@ jobs:
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
           shell: ${{ matrix.shell }}
-      - name: Run Snyk to check for vulnerabilities
+      - name: Run Snyk to check for vulnerabilities(pocof)
         uses: snyk/actions/dotnet@master
         # snyk/actions uses Container action that is only supported on Linux.
         if: runner.os == 'Linux'
@@ -43,10 +43,58 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --all-projects --sarif-file-output=snyk.sarif --org=krymtkts
-      - name: Upload result to GitHub Code Scanning
+          args: ./src/pocof --sarif-file-output=pocof-snyk.sarif --org=krymtkts
+      - name: Run Snyk to check for vulnerabilities(pocof.Test)
+        uses: snyk/actions/dotnet@master
+        # snyk/actions uses Container action that is only supported on Linux.
+        if: runner.os == 'Linux'
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: ./src/pocof.Test --sarif-file-output=pocof.Test-snyk.sarif --org=krymtkts
+      - name: Run Snyk to check for vulnerabilities(pocof.Benchmark)
+        uses: snyk/actions/dotnet@master
+        # snyk/actions uses Container action that is only supported on Linux.
+        if: runner.os == 'Linux'
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: ./src/pocof.Benchmark --sarif-file-output=pocof.Benchmark-snyk.sarif --org=krymtkts
+      - name: Run Snyk to check for vulnerabilities(pocof.Inspector)
+        uses: snyk/actions/dotnet@master
+        # snyk/actions uses Container action that is only supported on Linux.
+        if: runner.os == 'Linux'
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: ./src/pocof.Inspector --sarif-file-output=pocof.Inspector-snyk.sarif --org=krymtkts
+      - name: Upload result to GitHub Code Scanning(pocof)
         if: runner.os == 'Linux'
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: snyk.sarif
-          category: Snyk
+          sarif_file: pocof-snyk.sarif
+          category: Snyk(pocof)
+      - name: Upload result to GitHub Code Scanning(poof.Test)
+        if: runner.os == 'Linux'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: pocof.Test-snyk.sarif
+          category: Snyk(pocof.Test)
+      - name: Upload result to GitHub Code Scanning(pocof.Benchmark)
+        if: runner.os == 'Linux'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: pocof.Benchmark-snyk.sarif
+          category: Snyk(pocof.Benchmark)
+      - name: Upload result to GitHub Code Scanning(pocof.Inspector)
+        if: runner.os == 'Linux'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: pocof.Inspector-snyk.sarif
+          category: Snyk(pocof.Inspector)
