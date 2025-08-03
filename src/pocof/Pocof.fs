@@ -235,7 +235,6 @@ module Pocof =
 #if DEBUG
             Logger.LogFile [ "render received RenderMessage.None." ]
 #endif
-            render buff handler
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
             buff.WriteScreen state entries.Value props.Value
