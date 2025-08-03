@@ -227,6 +227,10 @@ module Pocof =
 
             items |> getLatestEvent
 
+        interface IDisposable with
+            member __.Dispose() =
+                event.Dispose()
+
     [<TailCall>]
     let rec render (buff: Screen.Buff) (handler: RenderHandler) =
         match handler.Receive(block = true) with
@@ -426,7 +430,6 @@ module Pocof =
         (console: Screen.IConsoleInterface)
         invoke
         cancelAction
-        (handler: RenderHandler)
         (entries: unit -> Entry seq)
         (p: IncomingParameters)
         =
@@ -439,6 +442,7 @@ module Pocof =
             render, waitResult
         | _ ->
             let buff = Screen.init (initRawUI psRawUI console) invoke conf.Layout conf.Prompt
+            let handler = new RenderHandler()
 
             let mainTask =
                 async { return interact conf state buff handler.Publish <| entries () }
@@ -454,6 +458,7 @@ module Pocof =
                 | Termination.Force -> ()
                 | _ -> render buff handler
 
+                handler :> IDisposable |> _.Dispose()
                 buff :> IDisposable |> _.Dispose()
                 mainTask.Result
 
