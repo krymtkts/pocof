@@ -1,7 +1,6 @@
 ﻿module pocof.Benchmark
 
 open BenchmarkDotNet.Attributes
-open BenchmarkDotNet.Engines
 
 open System
 open System.Collections

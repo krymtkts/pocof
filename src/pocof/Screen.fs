@@ -3,7 +3,6 @@ namespace Pocof
 module Screen =
     open System
     open System.Management.Automation.Host
-    open System.Threading
     open System.Threading.Tasks
 
     [<Interface>]
