@@ -6,6 +6,7 @@ open System.Diagnostics
 open System.Management.Automation
 open System.Reflection
 open System.Threading
+open System.Threading.Tasks
 
 open Data
 open Handle
@@ -221,6 +222,10 @@ module Pocof =
                 // NOTE: .NET does not raise an error, but it does not match the documentation.
                 | 0 -> []
                 | c ->
+#if DEBUG
+                    // NOTE: for backward compatibility.
+                    Logger.LogFile [ $"received {c} items." ]
+#endif
                     let items = Array.zeroCreate<RenderEvent> c
                     renderStack.TryPopRange items |> ignore
                     items |> Array.toList
@@ -233,13 +238,12 @@ module Pocof =
     [<TailCall>]
     let rec render (buff: Screen.Buff) (handler: RenderHandler) =
         match handler.Receive(block = true) with
-#if DEBUG
         | RenderMessage.None ->
-            // NOTE: for backward compatibility.
+#if DEBUG
             Logger.LogFile [ "render received RenderMessage.None." ]
-#else
-        | RenderMessage.None
 #endif
+            // NOTE: for backward compatibility. fallback to continue rendering loop.
+            render buff handler
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
             buff.WriteScreen state entries.Value props.Value
@@ -446,21 +450,22 @@ module Pocof =
             let handler = new RenderHandler()
 
             let mainTask =
-                async { return interact conf state buff handler.Publish <| entries () }
-                |> Async.StartAsTask
+                Task.Run(fun () -> interact conf state buff handler.Publish <| entries ())
 
             let periodic = Periodic(handler, buff, cancelAction, conf.PromptLength)
             let renderPeriodic () = periodic.Render()
 
             let waitResult (term: Termination) =
-                periodic.Stop()
+                try
+                    periodic.Stop()
 
-                match term with
-                | Termination.Force -> ()
-                | _ -> render buff handler
+                    match term with
+                    | Termination.Force -> ()
+                    | _ -> render buff handler
 
-                handler :> IDisposable |> _.Dispose()
-                buff :> IDisposable |> _.Dispose()
-                mainTask.Result
+                    mainTask.Result
+                finally
+                    handler :> IDisposable |> _.Dispose()
+                    buff :> IDisposable |> _.Dispose()
 
             renderPeriodic, waitResult
