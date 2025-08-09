@@ -199,18 +199,20 @@ module Screen =
                 | _ -> s |> String.upToIndex w
                 + info
 
-        [<TailCall>]
-        let rec readAsync (acc: ConsoleKeyInfo list) =
-            async {
-                if rui.KeyAvailable() then
-                    let acc = rui.ReadKey true :: acc
-                    return! readAsync acc
-                else
-                    match acc with
-                    | [] ->
-                        do! Async.Sleep 10
-                        return! readAsync acc
-                    | _ -> return List.rev acc
+        let readAsync (acc: ConsoleKeyInfo list) =
+            task {
+                let mutable acc = acc
+                let mutable readingKey = true
+
+                while readingKey do
+                    if rui.KeyAvailable() then
+                        acc <- rui.ReadKey true :: acc
+                    else
+                        match acc with
+                        | [] -> do! Task.Delay 10
+                        | _ -> readingKey <- false
+
+                return List.rev acc
             }
 
         let getCursorPosition (state: Data.InternalState) =
@@ -305,7 +307,7 @@ module Screen =
 
         member __.GetConsoleWidth = rui.GetWindowWidth
 
-        member __.GetKey() = readAsync [] |> Async.RunSynchronously
+        member __.GetKey() = readAsync [] |> _.Result
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
