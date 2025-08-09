@@ -3,7 +3,7 @@ namespace Pocof
 module Screen =
     open System
     open System.Management.Automation.Host
-    open System.Threading.Tasks
+    open System.Threading
 
     [<Interface>]
     type IConsoleInterface =
@@ -198,21 +198,19 @@ module Screen =
                 | _ -> s |> String.upToIndex w
                 + info
 
-        let readAsync (acc: ConsoleKeyInfo list) =
-            task {
-                let mutable acc = acc
-                let mutable readingKey = true
+        let readKey (acc: ConsoleKeyInfo list) =
+            let mutable acc = acc
+            let mutable readingKey = true
 
-                while readingKey do
-                    if rui.KeyAvailable() then
-                        acc <- rui.ReadKey true :: acc
-                    else
-                        match acc with
-                        | [] -> do! Task.Delay 10
-                        | _ -> readingKey <- false
+            while readingKey do
+                if rui.KeyAvailable() then
+                    acc <- rui.ReadKey true :: acc
+                else
+                    match acc with
+                    | [] -> Thread.Sleep 10
+                    | _ -> readingKey <- false
 
-                return List.rev acc
-            }
+            List.rev acc
 
         let getCursorPosition (state: Data.InternalState) =
             match state.QueryState.InputMode with
@@ -306,7 +304,7 @@ module Screen =
 
         member __.GetConsoleWidth = rui.GetWindowWidth
 
-        member __.GetKey() = readAsync [] |> _.Result
+        member __.GetKey() = readKey []
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
