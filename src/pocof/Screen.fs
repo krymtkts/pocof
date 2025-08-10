@@ -261,6 +261,14 @@ module Screen =
             | _ -> line
             |> rui.Write 0 height
 
+        member private __.WriteScreenLine2 (width: int) (height: int) (line: string) =
+            rui.SetCursorPosition 0 height
+
+            match width - __.GetLengthInBufferCells line with
+            | Natural x -> line + String.replicate x " "
+            | _ -> line
+            |> rui.WriteLine
+
         member private __.CalculatePositions =
             let height = rui.GetWindowHeight()
 
@@ -288,7 +296,7 @@ module Screen =
 
             let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions
             let queryString = getQueryString state
-            queryString |> __.WriteScreenLine width baseLine
+            queryString |> __.WriteScreenLine2 width baseLine
 
 #if DEBUG
             Logger.LogFile
@@ -296,7 +304,7 @@ module Screen =
 #endif
 
             getInformationString width state props (PSeq.length entries)
-            |> __.WriteScreenLine width firstLine
+            |> __.WriteScreenLine2 width firstLine
 
             let out =
                 Seq.truncate screenHeight entries
