@@ -247,10 +247,10 @@ module Screen =
                     | Data.Layout.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
                     | _ -> rui.GetWindowHeight()
 
-                pos |> snd |> rui.SetCursorPosition 0
+                pos ||> rui.SetCursorPosition
                 let emptyLine = String.replicate (rui.GetWindowWidth()) " "
 
-                for _ in 1..height do
+                for _ in 1 .. height - 1 do
                     rui.WriteLine emptyLine
 
                 pos ||> rui.SetCursorPosition
