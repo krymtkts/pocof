@@ -10,6 +10,7 @@ module Screen =
         abstract member ReadKey: bool -> ConsoleKeyInfo
         abstract member Write: string -> unit
         abstract member WriteLine: unit -> unit
+        abstract member WriteLine: string -> unit
         abstract member TreatControlCAsInput: bool with get, set
         abstract member CursorVisible: bool with get, set
         abstract member KeyAvailable: bool with get
@@ -21,6 +22,7 @@ module Screen =
             member __.ReadKey(intercept: bool) = Console.ReadKey intercept
             member __.Write(s: string) = Console.Write s
             member __.WriteLine() = Console.WriteLine()
+            member __.WriteLine(s: string) = Console.WriteLine s
 
             member __.TreatControlCAsInput
                 with get () = Console.TreatControlCAsInput
@@ -42,6 +44,7 @@ module Screen =
         abstract member GetWindowHeight: unit -> int
         abstract member Write: int -> int -> string -> unit
         abstract member WriteLine: unit -> unit
+        abstract member WriteLine: string -> unit
         abstract member ReadKey: bool -> ConsoleKeyInfo
         abstract member KeyAvailable: unit -> bool
         abstract member HideCursorWhileRendering: unit -> IDisposable
@@ -71,6 +74,7 @@ module Screen =
                 console.Write s
 
             member __.WriteLine() = console.WriteLine()
+            member __.WriteLine(s: string) = console.WriteLine s
 
             member __.ReadKey(intercept: bool) = console.ReadKey intercept
             member __.KeyAvailable() = console.KeyAvailable
@@ -243,10 +247,11 @@ module Screen =
                     | Data.Layout.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
                     | _ -> rui.GetWindowHeight()
 
-                pos ||> rui.Write
-                <| (String.replicate (rui.GetWindowWidth()) " "
-                    |> List.replicate height
-                    |> String.concat "\n")
+                pos |> snd |> rui.SetCursorPosition 0
+                let emptyLine = String.replicate (rui.GetWindowWidth()) " "
+
+                for _ in 1..height do
+                    rui.WriteLine emptyLine
 
                 pos ||> rui.SetCursorPosition
 

@@ -136,6 +136,7 @@ module SelectPocofCommand =
 
             member __.Write(s: string) = ()
             member __.WriteLine() = ()
+            member __.WriteLine(s: string) = ()
 
             member __.TreatControlCAsInput
                 with get () = true
