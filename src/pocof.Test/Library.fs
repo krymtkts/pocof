@@ -135,6 +135,7 @@ module SelectPocofCommand =
                 new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false)
 
             member __.Write(s: string) = ()
+            member __.WriteLine() = ()
 
             member __.TreatControlCAsInput
                 with get () = true

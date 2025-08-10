@@ -9,6 +9,7 @@ module Screen =
     type IConsoleInterface =
         abstract member ReadKey: bool -> ConsoleKeyInfo
         abstract member Write: string -> unit
+        abstract member WriteLine: unit -> unit
         abstract member TreatControlCAsInput: bool with get, set
         abstract member CursorVisible: bool with get, set
         abstract member KeyAvailable: bool with get
@@ -19,6 +20,7 @@ module Screen =
 
             member __.ReadKey(intercept: bool) = Console.ReadKey intercept
             member __.Write(s: string) = Console.Write s
+            member __.WriteLine() = Console.WriteLine()
 
             member __.TreatControlCAsInput
                 with get () = Console.TreatControlCAsInput
@@ -39,6 +41,7 @@ module Screen =
         abstract member GetWindowWidth: unit -> int
         abstract member GetWindowHeight: unit -> int
         abstract member Write: int -> int -> string -> unit
+        abstract member WriteLine: unit -> unit
         abstract member ReadKey: bool -> ConsoleKeyInfo
         abstract member KeyAvailable: unit -> bool
         abstract member HideCursorWhileRendering: unit -> IDisposable
@@ -66,6 +69,8 @@ module Screen =
             member __.Write (x: int) (y: int) (s: string) =
                 (__ :> IRawUI).SetCursorPosition x y
                 console.Write s
+
+            member __.WriteLine() = console.WriteLine()
 
             member __.ReadKey(intercept: bool) = console.ReadKey intercept
             member __.KeyAvailable() = console.KeyAvailable
@@ -119,7 +124,8 @@ module Screen =
                 | over -> y - over - 1
 
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
-            rui.GetCursorPosition() ||> rui.Write <| String.replicate height "\n"
+            for _ in 1..height do
+                rui.WriteLine()
 
             let y =
                 match layout with
