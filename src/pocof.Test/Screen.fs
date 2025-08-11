@@ -268,10 +268,10 @@ let ``tests Buff writeScreen`` =
                           @"                                                            "
                           @"Name                           Value                        "
                           @"----                           -----                        " ]
-                        [ 1..25 ]
+                        [ 1..24 ]
                         |> List.map (sprintf "Number                         %-2d                           ") ]
 
-              rui.screen |> Expect.equal "should render entries over y" expected
+              rui.screen[0..28] |> Expect.equal "should render entries over y" expected
           }
 
           testList

@@ -97,11 +97,11 @@ module Mock =
                             | _ -> ss)
 
             member __.WriteLine() =
-                (__ :> IRawUI).Write __.x __.y "\n"
+                (__ :> IRawUI).Write __.x __.y ""
                 __.y <- __.y + 1
 
             member __.WriteLine(s) =
-                (__ :> IRawUI).Write __.x __.y <| s + "\n"
+                (__ :> IRawUI).Write __.x __.y s
                 __.y <- __.y + 1
 
             member __.ReadKey(_) =
