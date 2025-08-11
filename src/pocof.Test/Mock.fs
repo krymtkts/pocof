@@ -104,6 +104,8 @@ module Mock =
                 (__ :> IRawUI).Write __.x __.y s
                 __.y <- __.y + 1
 
+            member __.Flush() = ()
+
             member __.ReadKey(_) =
                 match __.keys with
                 | [] -> failwith "key sequence is empty. check your test key sequence."

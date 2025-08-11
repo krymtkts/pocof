@@ -4,6 +4,7 @@ module Screen =
     open System
     open System.Management.Automation.Host
     open System.Threading
+    open System.IO
 
     [<Interface>]
     type IConsoleInterface =
@@ -45,6 +46,7 @@ module Screen =
         abstract member Write: int -> int -> string -> unit
         abstract member WriteLine: unit -> unit
         abstract member WriteLine: string -> unit
+        abstract member Flush: unit -> unit
         abstract member ReadKey: bool -> ConsoleKeyInfo
         abstract member KeyAvailable: unit -> bool
         abstract member HideCursorWhileRendering: unit -> IDisposable
@@ -55,6 +57,15 @@ module Screen =
         let console: IConsoleInterface = console
 
         let ctrlCAsInput: bool = console.TreatControlCAsInput
+
+        let originalOut = Console.Out
+
+        let writer =
+            let sw = new StreamWriter(Console.OpenStandardOutput(), Console.OutputEncoding)
+
+            sw.AutoFlush <- false
+            sw |> Console.SetOut
+            sw
 
         do console.TreatControlCAsInput <- true
 
@@ -74,7 +85,10 @@ module Screen =
                 console.Write s
 
             member __.WriteLine() = console.WriteLine()
+
             member __.WriteLine(s: string) = console.WriteLine s
+
+            member __.Flush() = writer.Flush()
 
             member __.ReadKey(intercept: bool) = console.ReadKey intercept
             member __.KeyAvailable() = console.KeyAvailable
@@ -88,6 +102,7 @@ module Screen =
         interface IDisposable with
             member __.Dispose() =
                 console.TreatControlCAsInput <- ctrlCAsInput
+                originalOut |> Console.SetOut
 
     [<Literal>]
     let private note = "note>"
@@ -130,6 +145,8 @@ module Screen =
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
             for _ in 1..height do
                 rui.WriteLine()
+
+            rui.Flush()
 
             let y =
                 match layout with
@@ -253,6 +270,8 @@ module Screen =
                 for _ in 1 .. height - 1 do
                     rui.WriteLine emptyLine
 
+                rui.Flush()
+
                 pos ||> rui.SetCursorPosition
 
         member private __.WriteScreenLine (width: int) (height: int) (line: string) =
@@ -263,11 +282,15 @@ module Screen =
             | _ -> line
             |> rui.WriteLine
 
+            rui.Flush()
+
         member private __.WriteScreenLineWithoutReturn (width: int) (height: int) (line: string) =
             match width - __.GetLengthInBufferCells line with
             | Natural x -> line + String.replicate x " "
             | _ -> line
             |> rui.Write 0 height
+
+            rui.Flush()
 
         member private __.CalculatePositions =
             let height = rui.GetWindowHeight()
