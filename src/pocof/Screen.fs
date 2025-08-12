@@ -81,6 +81,23 @@ module Screen =
             member __.Dispose() =
                 console.TreatControlCAsInput <- ctrlCAsInput
 
+    type StringBuilderCache() =
+        let mutable cachedWidth = -1
+        let mutable cachedScreenHeight = -1
+        let mutable cachedSb: StringBuilder option = None
+
+        member __.Get (width: int) (screenHeight: int) =
+            match cachedSb with
+            | Some sb when width = cachedWidth && screenHeight = cachedScreenHeight ->
+                sb.Clear() |> ignore
+                sb
+            | _ ->
+                cachedWidth <- width
+                cachedScreenHeight <- screenHeight
+                let sb = StringBuilder((width + 1) * (screenHeight + 1))
+                cachedSb <- Some sb
+                sb
+
     [<Literal>]
     let private note = "note>"
 
@@ -96,6 +113,7 @@ module Screen =
         let invoke: obj seq -> string seq = i
         let layout: Data.Layout = layout
         let promptLength = prompt |> String.length
+        let sbCache = StringBuilderCache()
 
         do
             use _ = rui.HideCursorWhileRendering()
@@ -305,7 +323,7 @@ module Screen =
                 // NOTE: This split lines is implemented complicated way because of netstandard2.0.
                 |> Seq.collect (String.split2 [| "\r\n"; "\n" |])
 
-            let sb = StringBuilder((width + 1) * (screenHeight + 1))
+            let sb = sbCache.Get width screenHeight
 
             Seq.append out (Seq.initInfinite (fun _ -> String.Empty))
             |> Seq.truncate (screenHeight + 1)
