@@ -276,7 +276,7 @@ module Screen =
             | Data.Layout.BottomUpHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
                 let height = height / 2
-                basePosition, basePosition - 1, basePosition - height + 2, height - 3
+                basePosition, basePosition - 1, basePosition - height + 1, height - 3
 
         member __.WriteScreen
             (state: Data.InternalState)
@@ -305,10 +305,18 @@ module Screen =
                 // NOTE: This split lines is implemented complicated way because of netstandard2.0.
                 |> Seq.collect (String.split2 [| "\r\n"; "\n" |])
 
+            let sb = StringBuilder((width + 1) * (screenHeight + 1))
+
             Seq.append out (Seq.initInfinite (fun _ -> String.Empty))
             |> Seq.truncate (screenHeight + 1)
             |> sortForLayout
-            |> Seq.iteri (fun i s -> __.WriteScreenLine width <| i + toHeight <| s)
+            |> Seq.iteri (fun i s ->
+                if i > 0 then
+                    sb.Append('\n') |> ignore
+
+                sb.Append(__.GenerateScreenLine width s) |> ignore)
+
+            rui.Write 0 toHeight <| sb.ToString()
 
             rui.SetCursorPosition
             <| rui.GetLengthInBufferCells(queryString |> String.upToIndex (getCursorPosition state))
