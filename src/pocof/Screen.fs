@@ -244,11 +244,13 @@ module Screen =
 
                 pos ||> rui.SetCursorPosition
 
-        member private __.WriteScreenLine (width: int) (height: int) (line: string) =
+        member private __.GenerateScreenLine (width: int) (line: string) =
             match width - __.GetLengthInBufferCells line with
             | Natural x -> line + String.replicate x " "
             | _ -> line
-            |> rui.Write 0 height
+
+        member private __.WriteScreenLine (width: int) (height: int) (line: string) =
+            __.GenerateScreenLine width line |> rui.Write 0 height
 
         member private __.CalculatePositions =
             let height = rui.GetWindowHeight()
