@@ -82,20 +82,18 @@ module Screen =
                 console.TreatControlCAsInput <- ctrlCAsInput
 
     type StringBuilderCache() =
-        let mutable cachedWidth = -1
-        let mutable cachedScreenHeight = -1
-        let mutable cachedSb: StringBuilder option = None
+        let mutable cachedKey = struct (-1, -1)
+        let mutable cachedSb: StringBuilder ValueOption = ValueNone
 
         member __.Get (width: int) (screenHeight: int) =
             match cachedSb with
-            | Some sb when width = cachedWidth && screenHeight = cachedScreenHeight ->
+            | ValueSome sb when struct (width, screenHeight) = cachedKey ->
                 sb.Clear() |> ignore
                 sb
             | _ ->
-                cachedWidth <- width
-                cachedScreenHeight <- screenHeight
+                cachedKey <- struct (width, screenHeight)
                 let sb = StringBuilder((width + 1) * (screenHeight + 1))
-                cachedSb <- Some sb
+                cachedSb <- ValueSome sb
                 sb
 
     [<Literal>]
