@@ -237,6 +237,24 @@ module Screen =
             | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
             |> (+) (Data.InternalState.getX promptLength state)
 
+        let calculatePositions () =
+            let height = rui.GetWindowHeight()
+
+            match layout with
+            | Data.Layout.TopDown ->
+                let basePosition = 0
+                basePosition, basePosition + 1, basePosition + 2, height - 3
+            | Data.Layout.TopDownHalf ->
+                let basePosition = rui.GetCursorPosition() |> snd
+                basePosition, basePosition + 1, basePosition + 2, height / 2 - 3
+            | Data.Layout.BottomUp ->
+                let basePosition = height - 1
+                basePosition, basePosition - 1, 0, height - 3
+            | Data.Layout.BottomUpHalf ->
+                let basePosition = rui.GetCursorPosition() |> snd
+                let height = height / 2
+                basePosition, basePosition - 1, basePosition - height + 1, height - 3
+
         let sortForLayout =
             match layout with
             | Data.Layout.TopDown
@@ -278,24 +296,6 @@ module Screen =
         member private __.WriteScreenLine (width: int) (height: int) (line: string) =
             __.GenerateScreenLine width line |> rui.Write 0 height
 
-        member private __.CalculatePositions =
-            let height = rui.GetWindowHeight()
-
-            match layout with
-            | Data.Layout.TopDown ->
-                let basePosition = 0
-                basePosition, basePosition + 1, basePosition + 2, height - 3
-            | Data.Layout.TopDownHalf ->
-                let basePosition = rui.GetCursorPosition() |> snd
-                basePosition, basePosition + 1, basePosition + 2, height / 2 - 3
-            | Data.Layout.BottomUp ->
-                let basePosition = height - 1
-                basePosition, basePosition - 1, 0, height - 3
-            | Data.Layout.BottomUpHalf ->
-                let basePosition = rui.GetCursorPosition() |> snd
-                let height = height / 2
-                basePosition, basePosition - 1, basePosition - height + 1, height - 3
-
         member __.WriteScreen
             (state: Data.InternalState)
             (entries: Data.Entry pseq)
@@ -304,7 +304,7 @@ module Screen =
             use _ = rui.HideCursorWhileRendering()
             let width = rui.GetWindowWidth()
 
-            let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions
+            let baseLine, firstLine, toHeight, screenHeight = calculatePositions ()
             let queryString = getQueryString state
             queryString |> __.WriteScreenLine width baseLine
 
