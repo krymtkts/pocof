@@ -84,12 +84,21 @@ module Mock =
             member __.GetWindowHeight() = __.height
 
             member __.Write x y s =
+                // NOTE: Support multi-line writes.
+                let parts = s |> String.split2 [| "\r\n"; "\n" |]
+
                 __.screen <-
                     __.screen
                     |> List.mapi (fun i ss ->
-                        match i with
-                        | ii when ii = y -> ss |> String.upToIndex x |> (+) s
-                        | _ ->
+                        if i = y then
+                            let head = ss |> String.upToIndex x
+                            head + parts[0]
+                        elif i > y && i < y + parts.Length then
+                            // NOTE: Fill remaining lines with parts starting from column 0.
+                            let head = ss |> String.upToIndex x
+                            head + parts[i - y]
+                        else
+                            // NOTE: Adjust line width to resized window width.
                             let l = (__ :> IRawUI).GetLengthInBufferCells ss
 
                             match l <= __.width with
