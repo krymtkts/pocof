@@ -4,6 +4,7 @@ module Screen =
     open System
     open System.Management.Automation.Host
     open System.Threading
+    open System.Text
 
     [<Interface>]
     type IConsoleInterface =
@@ -218,6 +219,13 @@ module Screen =
             | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
             |> (+) (Data.InternalState.getX promptLength state)
 
+        let sortForLayout =
+            match layout with
+            | Data.Layout.TopDown
+            | Data.Layout.TopDownHalf -> id
+            | Data.Layout.BottomUp
+            | Data.Layout.BottomUpHalf -> Seq.rev
+
         interface IDisposable with
             member __.Dispose() =
                 (rui :> IDisposable).Dispose()
@@ -258,16 +266,17 @@ module Screen =
             match layout with
             | Data.Layout.TopDown ->
                 let basePosition = 0
-                basePosition, basePosition + 1, (+) (basePosition + 2), height - 3
+                basePosition, basePosition + 1, basePosition + 2, height - 3
             | Data.Layout.TopDownHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
-                basePosition, basePosition + 1, (+) (basePosition + 2), height / 2 - 3
+                basePosition, basePosition + 1, basePosition + 2, height / 2 - 3
             | Data.Layout.BottomUp ->
                 let basePosition = height - 1
-                basePosition, basePosition - 1, (-) (basePosition - 2), height - 3
+                basePosition, basePosition - 1, 0, height - 3
             | Data.Layout.BottomUpHalf ->
                 let basePosition = rui.GetCursorPosition() |> snd
-                basePosition, basePosition - 1, (-) (basePosition - 2), height / 2 - 3
+                let height = height / 2
+                basePosition, basePosition - 1, basePosition - height + 2, height - 3
 
         member __.WriteScreen
             (state: Data.InternalState)
@@ -298,7 +307,8 @@ module Screen =
 
             Seq.append out (Seq.initInfinite (fun _ -> String.Empty))
             |> Seq.truncate (screenHeight + 1)
-            |> Seq.iteri (fun i s -> __.WriteScreenLine width <| toHeight i <| s)
+            |> sortForLayout
+            |> Seq.iteri (fun i s -> __.WriteScreenLine width <| i + toHeight <| s)
 
             rui.SetCursorPosition
             <| rui.GetLengthInBufferCells(queryString |> String.upToIndex (getCursorPosition state))
