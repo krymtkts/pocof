@@ -4,11 +4,12 @@ module Screen =
     open System
     open System.Management.Automation.Host
     open System.Threading
+    open System.Text
 
     [<Interface>]
     type IConsoleInterface =
-        abstract member ReadKey: bool -> ConsoleKeyInfo
-        abstract member Write: string -> unit
+        abstract member ReadKey: intercept: bool -> ConsoleKeyInfo
+        abstract member Write: s: string -> unit
         abstract member TreatControlCAsInput: bool with get, set
         abstract member CursorVisible: bool with get, set
         abstract member KeyAvailable: bool with get
@@ -34,12 +35,12 @@ module Screen =
     type IRawUI =
         inherit IDisposable
         abstract member GetCursorPosition: unit -> int * int
-        abstract member SetCursorPosition: int -> int -> unit
-        abstract member GetLengthInBufferCells: string -> int
+        abstract member SetCursorPosition: x: int -> y: int -> unit
+        abstract member GetLengthInBufferCells: prompt: string -> int
         abstract member GetWindowWidth: unit -> int
         abstract member GetWindowHeight: unit -> int
-        abstract member Write: int -> int -> string -> unit
-        abstract member ReadKey: bool -> ConsoleKeyInfo
+        abstract member Write: x: int -> y: int -> s: string -> unit
+        abstract member ReadKey: intercept: bool -> ConsoleKeyInfo
         abstract member KeyAvailable: unit -> bool
         abstract member HideCursorWhileRendering: unit -> IDisposable
 
@@ -80,6 +81,21 @@ module Screen =
             member __.Dispose() =
                 console.TreatControlCAsInput <- ctrlCAsInput
 
+    type StringBuilderCache() =
+        let mutable cachedKey = struct (-1, -1)
+        let mutable cachedSb: StringBuilder ValueOption = ValueNone
+
+        member __.Get (width: int) (screenHeight: int) =
+            match cachedSb with
+            | ValueSome sb when struct (width, screenHeight) = cachedKey ->
+                sb.Clear() |> ignore
+                sb
+            | _ ->
+                cachedKey <- struct (width, screenHeight)
+                let sb = StringBuilder((width + 1) * (screenHeight + 1))
+                cachedSb <- ValueSome sb
+                sb
+
     [<Literal>]
     let private note = "note>"
 
@@ -95,6 +111,7 @@ module Screen =
         let invoke: obj seq -> string seq = i
         let layout: Data.Layout = layout
         let promptLength = prompt |> String.length
+        let sbCache = StringBuilderCache()
 
         do
             use _ = rui.HideCursorWhileRendering()
@@ -218,6 +235,40 @@ module Screen =
             | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
             |> (+) (Data.InternalState.getX promptLength state)
 
+        let calculatePositions: unit -> int * int * int * int =
+            let calcTopDown () =
+                let height = rui.GetWindowHeight()
+                let basePosition = 0
+                basePosition, basePosition + 1, basePosition + 2, height - 3
+
+            let calcTopDownHalf () =
+                let height = rui.GetWindowHeight()
+                let basePosition = rui.GetCursorPosition() |> snd
+                basePosition, basePosition + 1, basePosition + 2, height / 2 - 3
+
+            let calcBottomUp () =
+                let height = rui.GetWindowHeight()
+                let basePosition = height - 1
+                basePosition, basePosition - 1, 0, height - 3
+
+            let calcBottomUpHalf () =
+                let basePosition = rui.GetCursorPosition() |> snd
+                let height = rui.GetWindowHeight() / 2
+                basePosition, basePosition - 1, basePosition - height + 1, height - 3
+
+            match layout with
+            | Data.Layout.TopDown -> calcTopDown
+            | Data.Layout.TopDownHalf -> calcTopDownHalf
+            | Data.Layout.BottomUp -> calcBottomUp
+            | Data.Layout.BottomUpHalf -> calcBottomUpHalf
+
+        let sortForLayout =
+            match layout with
+            | Data.Layout.TopDown
+            | Data.Layout.TopDownHalf -> id
+            | Data.Layout.BottomUp
+            | Data.Layout.BottomUpHalf -> Seq.rev
+
         interface IDisposable with
             member __.Dispose() =
                 (rui :> IDisposable).Dispose()
@@ -244,28 +295,13 @@ module Screen =
 
                 pos ||> rui.SetCursorPosition
 
-        member private __.WriteScreenLine (width: int) (height: int) (line: string) =
+        member private __.GenerateScreenLine (width: int) (line: string) =
             match width - __.GetLengthInBufferCells line with
             | Natural x -> line + String.replicate x " "
             | _ -> line
-            |> rui.Write 0 height
 
-        member private __.CalculatePositions =
-            let height = rui.GetWindowHeight()
-
-            match layout with
-            | Data.Layout.TopDown ->
-                let basePosition = 0
-                basePosition, basePosition + 1, (+) (basePosition + 2), height - 3
-            | Data.Layout.TopDownHalf ->
-                let basePosition = rui.GetCursorPosition() |> snd
-                basePosition, basePosition + 1, (+) (basePosition + 2), height / 2 - 3
-            | Data.Layout.BottomUp ->
-                let basePosition = height - 1
-                basePosition, basePosition - 1, (-) (basePosition - 2), height - 3
-            | Data.Layout.BottomUpHalf ->
-                let basePosition = rui.GetCursorPosition() |> snd
-                basePosition, basePosition - 1, (-) (basePosition - 2), height / 2 - 3
+        member private __.WriteScreenLine (width: int) (height: int) (line: string) =
+            __.GenerateScreenLine width line |> rui.Write 0 height
 
         member __.WriteScreen
             (state: Data.InternalState)
@@ -275,7 +311,7 @@ module Screen =
             use _ = rui.HideCursorWhileRendering()
             let width = rui.GetWindowWidth()
 
-            let baseLine, firstLine, toHeight, screenHeight = __.CalculatePositions
+            let baseLine, firstLine, toHeight, screenHeight = calculatePositions ()
             let queryString = getQueryString state
             queryString |> __.WriteScreenLine width baseLine
 
@@ -294,9 +330,18 @@ module Screen =
                 // NOTE: This split lines is implemented complicated way because of netstandard2.0.
                 |> Seq.collect (String.split2 [| "\r\n"; "\n" |])
 
+            let sb = sbCache.Get width screenHeight
+
             Seq.append out (Seq.initInfinite (fun _ -> String.Empty))
             |> Seq.truncate (screenHeight + 1)
-            |> Seq.iteri (fun i s -> __.WriteScreenLine width <| toHeight i <| s)
+            |> sortForLayout
+            |> Seq.iteri (fun i s ->
+                if i > 0 then
+                    sb.Append('\n') |> ignore
+
+                sb.Append(__.GenerateScreenLine width s) |> ignore)
+
+            rui.Write 0 toHeight <| sb.ToString()
 
             rui.SetCursorPosition
             <| rui.GetLengthInBufferCells(queryString |> String.upToIndex (getCursorPosition state))
