@@ -237,23 +237,32 @@ module Screen =
             | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
             |> (+) (Data.InternalState.getX promptLength state)
 
-        let calculatePositions () =
-            let height = rui.GetWindowHeight()
-
-            match layout with
-            | Data.Layout.TopDown ->
+        let calculatePositions: unit -> int * int * int * int =
+            let calcTopDown () =
+                let height = rui.GetWindowHeight()
                 let basePosition = 0
                 basePosition, basePosition + 1, basePosition + 2, height - 3
-            | Data.Layout.TopDownHalf ->
+
+            let calcTopDownHalf () =
+                let height = rui.GetWindowHeight()
                 let basePosition = rui.GetCursorPosition() |> snd
                 basePosition, basePosition + 1, basePosition + 2, height / 2 - 3
-            | Data.Layout.BottomUp ->
+
+            let calcBottomUp () =
+                let height = rui.GetWindowHeight()
                 let basePosition = height - 1
                 basePosition, basePosition - 1, 0, height - 3
-            | Data.Layout.BottomUpHalf ->
+
+            let calcBottomUpHalf () =
                 let basePosition = rui.GetCursorPosition() |> snd
-                let height = height / 2
+                let height = rui.GetWindowHeight() / 2
                 basePosition, basePosition - 1, basePosition - height + 1, height - 3
+
+            match layout with
+            | Data.Layout.TopDown -> calcTopDown
+            | Data.Layout.TopDownHalf -> calcTopDownHalf
+            | Data.Layout.BottomUp -> calcBottomUp
+            | Data.Layout.BottomUpHalf -> calcBottomUpHalf
 
         let sortForLayout =
             match layout with
