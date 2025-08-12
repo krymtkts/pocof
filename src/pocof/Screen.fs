@@ -7,8 +7,8 @@ module Screen =
 
     [<Interface>]
     type IConsoleInterface =
-        abstract member ReadKey: bool -> ConsoleKeyInfo
-        abstract member Write: string -> unit
+        abstract member ReadKey: intercept: bool -> ConsoleKeyInfo
+        abstract member Write: s: string -> unit
         abstract member TreatControlCAsInput: bool with get, set
         abstract member CursorVisible: bool with get, set
         abstract member KeyAvailable: bool with get
@@ -34,12 +34,12 @@ module Screen =
     type IRawUI =
         inherit IDisposable
         abstract member GetCursorPosition: unit -> int * int
-        abstract member SetCursorPosition: int -> int -> unit
-        abstract member GetLengthInBufferCells: string -> int
+        abstract member SetCursorPosition: x: int -> y: int -> unit
+        abstract member GetLengthInBufferCells: prompt: string -> int
         abstract member GetWindowWidth: unit -> int
         abstract member GetWindowHeight: unit -> int
-        abstract member Write: int -> int -> string -> unit
-        abstract member ReadKey: bool -> ConsoleKeyInfo
+        abstract member Write: x: int -> y: int -> s: string -> unit
+        abstract member ReadKey: intercept: bool -> ConsoleKeyInfo
         abstract member KeyAvailable: unit -> bool
         abstract member HideCursorWhileRendering: unit -> IDisposable
 
