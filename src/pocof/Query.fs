@@ -105,10 +105,10 @@ module Query =
         | Matcher.Match ->
             try
                 Regex query |> ignore
-                None
+                ValueNone
             with e ->
-                e.Message |> Some
-        | _ -> None
+                e.Message |> ValueSome
+        | _ -> ValueNone
 
     let prepare (state: InternalState) =
         let queries = prepareQuery state.QueryState.Query state.QueryCondition
@@ -211,7 +211,7 @@ module Query =
     let props (properties: string seq) (state: InternalState) =
         InternalState.prepareNotification state
         |> function
-            | Some message -> Error message
+            | ValueSome message -> Error message
             | _ ->
                 match state.SuppressProperties, state.PropertySearch with
                 | false, PropertySearch.Search(prefix: string)
