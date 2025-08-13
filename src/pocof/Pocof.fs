@@ -290,7 +290,7 @@ module Pocof =
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
 
-        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string> Lazy) ValueOption =
+        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string> Lazy) voption =
             ValueNone
 
         let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string list, string> Lazy) =
