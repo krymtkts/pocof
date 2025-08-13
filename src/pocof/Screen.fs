@@ -297,8 +297,13 @@ module Screen =
 
         member private __.GenerateScreenLine (width: int) (line: string) =
             match width - __.GetLengthInBufferCells line with
-            | Natural x -> line + String.replicate x " "
+            | Natural x -> line + String(' ', x)
             | _ -> line
+
+        member private __.AppendScreenLine (sb: StringBuilder) (width: int) (line: string) =
+            match width - __.GetLengthInBufferCells line with
+            | Natural x -> sb.Append(line).Append(' ', x) |> ignore
+            | _ -> sb.Append(line) |> ignore
 
         member private __.WriteScreenLine (width: int) (height: int) (line: string) =
             __.GenerateScreenLine width line |> rui.Write 0 height
@@ -339,7 +344,7 @@ module Screen =
                 if i > 0 then
                     sb.Append('\n') |> ignore
 
-                sb.Append(__.GenerateScreenLine width s) |> ignore)
+                __.AppendScreenLine sb width s)
 
             rui.Write 0 toHeight <| sb.ToString()
 
