@@ -83,7 +83,7 @@ module Screen =
 
     type StringBuilderCache() =
         let mutable cachedKey = struct (-1, -1)
-        let mutable cachedSb: StringBuilder ValueOption = ValueNone
+        let mutable cachedSb: StringBuilder voption = ValueNone
 
         member __.Get (width: int) (screenHeight: int) =
             match cachedSb with

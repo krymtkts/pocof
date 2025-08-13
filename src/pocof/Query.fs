@@ -41,12 +41,14 @@ module Query =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type QueryPart =
         | Normal of is: (string -> bool)
         | Property of name: string * is: (string -> bool)
 
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type QueryContext =
         { Queries: QueryPart list
           Operator: Operator }
@@ -105,10 +107,10 @@ module Query =
         | Matcher.Match ->
             try
                 Regex query |> ignore
-                None
+                ValueNone
             with e ->
-                e.Message |> Some
-        | _ -> None
+                e.Message |> ValueSome
+        | _ -> ValueNone
 
     let prepare (state: InternalState) =
         let queries = prepareQuery state.QueryState.Query state.QueryCondition
@@ -197,12 +199,6 @@ module Query =
         match context.Queries with
         | [] -> entries
         | _ ->
-            let op =
-                context.Operator
-                |> function
-                    | Operator.And -> (&&)
-                    | Operator.Or -> (||)
-
             let predicate =
                 generatePredicate props [] context.Queries |> generateExpr context.Operator
 
@@ -211,7 +207,7 @@ module Query =
     let props (properties: string seq) (state: InternalState) =
         InternalState.prepareNotification state
         |> function
-            | Some message -> Error message
+            | ValueSome message -> Error message
             | _ ->
                 match state.SuppressProperties, state.PropertySearch with
                 | false, PropertySearch.Search(prefix: string)

@@ -290,8 +290,8 @@ module Pocof =
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
 
-        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string> Lazy) option =
-            None
+        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string> Lazy) voption =
+            ValueNone
 
         let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string list, string> Lazy) =
             let state =
@@ -302,25 +302,26 @@ module Pocof =
 
             buff.WriteScreen state result.Value props.Value
 
+        [<return: Struct>]
         let (|Cancelled|_|) =
             function
             | RenderProcess.Noop ->
                 if idlingStopwatch.ElapsedMilliseconds >= 1000 then
                     idlingStopwatch.Reset()
-                    latest |> Option.iter renderAgain
+                    latest |> ValueOption.iter renderAgain
                     idlingStopwatch.Start()
-                    None
+                    ValueNone
                 else
-                    None
+                    ValueNone
             | RenderProcess.Rendered e ->
-                latest <- Some e
+                latest <- ValueSome e
                 stopwatch.Restart()
                 idlingStopwatch.Restart()
-                None
+                ValueNone
             | RenderProcess.StopUpstreamCommands ->
                 stopwatch.Stop()
                 idlingStopwatch.Stop()
-                Some()
+                ValueSome()
 
         do
             stopwatch.Start()
@@ -329,7 +330,7 @@ module Pocof =
         member __.Stop() =
             stopwatch.Stop()
             idlingStopwatch.Stop()
-            latest |> Option.iter renderAgain
+            latest |> ValueOption.iter renderAgain
 
         member __.Render() =
             if stopwatch.ElapsedMilliseconds >= 10 then
