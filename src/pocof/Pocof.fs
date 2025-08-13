@@ -302,25 +302,26 @@ module Pocof =
 
             buff.WriteScreen state result.Value props.Value
 
+        [<return: Struct>]
         let (|Cancelled|_|) =
             function
             | RenderProcess.Noop ->
                 if idlingStopwatch.ElapsedMilliseconds >= 1000 then
                     idlingStopwatch.Reset()
-                    latest |> Option.iter renderAgain
+                    latest |> ValueOption.iter renderAgain
                     idlingStopwatch.Start()
-                    None
+                    ValueNone
                 else
-                    None
+                    ValueNone
             | RenderProcess.Rendered e ->
-                latest <- Some e
+                latest <- ValueSome e
                 stopwatch.Restart()
                 idlingStopwatch.Restart()
-                None
+                ValueNone
             | RenderProcess.StopUpstreamCommands ->
                 stopwatch.Stop()
                 idlingStopwatch.Stop()
-                Some()
+                ValueSome()
 
         do
             stopwatch.Start()
