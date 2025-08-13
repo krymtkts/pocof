@@ -297,7 +297,7 @@ module Screen =
 
         member private __.GenerateScreenLine (width: int) (line: string) =
             match width - __.GetLengthInBufferCells line with
-            | Natural x -> line + String.replicate x " "
+            | Natural x -> line + String(' ', x)
             | _ -> line
 
         member private __.AppendScreenLine (sb: StringBuilder) (width: int) (line: string) =
