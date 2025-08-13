@@ -197,12 +197,6 @@ module Query =
         match context.Queries with
         | [] -> entries
         | _ ->
-            let op =
-                context.Operator
-                |> function
-                    | Operator.And -> (&&)
-                    | Operator.Or -> (||)
-
             let predicate =
                 generatePredicate props [] context.Queries |> generateExpr context.Operator
 
