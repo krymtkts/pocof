@@ -338,6 +338,7 @@ module Data =
         | InputMode.Select x -> SelectForward x
 
     [<NoComparison>]
+    [<Struct>]
     type QueryState =
         { Query: string
           Cursor: int
@@ -440,6 +441,7 @@ module Data =
             | _ -> PropertySearch.NoSearch
 
     [<NoComparison>]
+    [<Struct>]
     type QueryCondition =
         { Matcher: Matcher
           Operator: Operator
