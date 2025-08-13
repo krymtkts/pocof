@@ -295,6 +295,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
+    [<Struct>]
     type PropertySearch =
         | NoSearch
         | Search of keyword: string
@@ -308,6 +309,7 @@ module Data =
         | NotRequired
 
     // NOTE: Comparison and Equality are required.
+    [<Struct>]
     type KeyPattern = { Modifier: int; Key: ConsoleKey }
 
     [<NoComparison>]
