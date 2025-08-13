@@ -41,12 +41,14 @@ module Query =
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type QueryPart =
         | Normal of is: (string -> bool)
         | Property of name: string * is: (string -> bool)
 
     [<NoComparison>]
     [<NoEquality>]
+    [<Struct>]
     type QueryContext =
         { Queries: QueryPart list
           Operator: Operator }
