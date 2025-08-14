@@ -347,7 +347,7 @@ module Pocof =
 
     [<AbstractClass>]
     type AbstractInputStore() =
-        member val Store: Entry Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+        member val Store: Entry SpscAppendOnlyBuffer = SpscAppendOnlyBuffer()
 
         abstract member AddEntry: Entry -> unit
 
@@ -366,7 +366,7 @@ module Pocof =
     type NormalInputStore() =
         inherit AbstractInputStore()
 
-        override __.AddEntry entry = entry |> base.Store.Enqueue
+        override __.AddEntry entry = entry |> base.Store.Add
 
     [<Sealed>]
     type UniqueInputStore() =
@@ -377,7 +377,7 @@ module Pocof =
 
         override __.AddEntry entry =
             if (entry, ()) |> keys.TryAdd then
-                entry |> __.Store.Enqueue
+                entry |> __.Store.Add
 
     let getInputStore (unique: bool) =
         match unique with
@@ -406,7 +406,7 @@ module Pocof =
         let propertiesDictionary: Concurrent.ConcurrentDictionary<string, unit> =
             Concurrent.ConcurrentDictionary()
 
-        let properties: string Concurrent.ConcurrentQueue = Concurrent.ConcurrentQueue()
+        let properties: string SpscAppendOnlyBuffer = SpscAppendOnlyBuffer()
 
         let propertiesMap: Concurrent.ConcurrentDictionary<string, string> =
             Concurrent.ConcurrentDictionary StringComparer.OrdinalIgnoreCase
@@ -417,7 +417,7 @@ module Pocof =
             if typeNameDictionary.TryAdd(name, ()) then
                 for prop in props do
                     if propertiesDictionary.TryAdd(prop, ()) then
-                        prop |> properties.Enqueue
+                        prop |> properties.Add
                         propertiesMap.TryAdd(prop, prop) |> ignore
 
         member __.GetProperties() = properties
