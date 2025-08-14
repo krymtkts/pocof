@@ -215,19 +215,16 @@ module Screen =
                 | _ -> s |> String.upToIndex w
                 + info
 
-        let readKey (acc: ConsoleKeyInfo list) =
-            let mutable acc = acc
+        let readKey () : ConsoleKeyInfo seq =
+            let acc = ResizeArray<ConsoleKeyInfo>()
             let mutable readingKey = true
 
             while readingKey do
-                if rui.KeyAvailable() then
-                    acc <- rui.ReadKey true :: acc
-                else
-                    match acc with
-                    | [] -> Thread.Sleep 10
-                    | _ -> readingKey <- false
+                if rui.KeyAvailable() then acc.Add(rui.ReadKey true)
+                else if acc.Count = 0 then Thread.Sleep 10
+                else readingKey <- false
 
-            List.rev acc
+            acc
 
         let getCursorPosition (state: Data.InternalState) =
             match state.QueryState.InputMode with
