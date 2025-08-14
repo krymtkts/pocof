@@ -165,9 +165,9 @@ module Keys =
         | true -> ValueSome k.Pattern.Key
         | _ -> ValueNone
 
-    let get (keymap: Map<KeyPattern, Action>) (keyInfo: ConsoleKeyInfo list) =
+    let get (keymap: Map<KeyPattern, Action>) (keyInfo: ConsoleKeyInfo seq) =
         keyInfo
-        |> List.fold
+        |> Seq.fold
             (fun acc k ->
                 let key = key k
 
