@@ -167,9 +167,10 @@ module Keys =
 
     let get (keymap: Map<KeyPattern, Action>) (keyInfo: ConsoleKeyInfo list) =
         keyInfo
-        |> List.map key
         |> List.fold
-            (fun acc key ->
+            (fun acc k ->
+                let key = key k
+
                 match key with
                 | ShortcutKey keymap a -> a
                 | ControlKey _ -> Action.Noop
