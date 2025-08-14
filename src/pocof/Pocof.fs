@@ -49,7 +49,7 @@ module Pocof =
         { Keymaps: Map<KeyPattern, Action>
           Input: Entry pseq
           PublishEvent: RenderEvent -> unit
-          GetKey: unit -> ConsoleKeyInfo list
+          GetKey: unit -> ConsoleKeyInfo seq
           GetConsoleWidth: unit -> int
           GetLengthInBufferCells: string -> int
           WordDelimiters: string
