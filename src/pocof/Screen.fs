@@ -351,7 +351,7 @@ module Screen =
 
         member __.GetConsoleWidth = rui.GetWindowWidth
 
-        member __.GetKey() = readKey []
+        member __.GetKey() = readKey ()
 
         member __.GetLengthInBufferCells = rui.GetLengthInBufferCells
 
