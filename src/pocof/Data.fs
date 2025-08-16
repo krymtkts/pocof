@@ -83,7 +83,8 @@ module LanguageExtension =
             =
         true
 
-    let (|Ascending|) (x, y) = if x < y then (x, y) else (y, x)
+    let (|Ascending|) (x, y) =
+        if x < y then struct (x, y) else struct (y, x)
 
     let (|Negative|_|) (value: int) = value < 0
 
@@ -417,7 +418,7 @@ module Data =
             match state.InputMode with
             | InputMode.Input -> state
             | InputMode.Select c ->
-                let si, c =
+                let struct (si, c) =
                     match state.Cursor, state.Cursor - c with
                     | Ascending x -> x
 

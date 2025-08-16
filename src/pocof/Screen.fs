@@ -165,7 +165,7 @@ module Screen =
             |> function
                 | 0 -> q
                 | i ->
-                    let s, e =
+                    let struct (s, e) =
                         let c = queryState.Cursor - queryState.WindowBeginningCursor
 
                         match c, c - i with
