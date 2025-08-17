@@ -55,7 +55,8 @@ type SpscAppendOnlyBuffer<'T>() =
             tailIndex <- idx + 1
 
         // NOTE: Publish new count after the element write (happens-before for reader).
-        writeCount (readCount () + 1)
+        // NOTE: A volatile read is not required because SPSC guarantees a single writer.
+        writeCount (count + 1)
 
     member __.Count: int = readCount ()
 
