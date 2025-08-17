@@ -4,10 +4,10 @@ open System.Collections
 open System.Collections.Generic
 open System.Threading
 
-[<AllowNullLiteral; Sealed>]
+[<Sealed>]
 type SpscSegment<'T>(capacity: int) =
     let items: 'T array = Array.zeroCreate capacity
-    let mutable next: SpscSegment<'T> = null
+    let mutable next: SpscSegment<'T> | null = null
     member _.Items = items
     member _.Capacity = items.Length
 
