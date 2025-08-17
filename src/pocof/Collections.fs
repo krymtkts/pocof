@@ -46,7 +46,6 @@ type SpscAppendOnlyBuffer<'T>() =
             // NOTE: Publish linkage before the element becomes observable via count.
             t.Next <- newSeg
             tail <- newSeg
-            tailIndex <- 0
             // NOTE: Write into the new tail
             newSeg.Items[0] <- item
             tailIndex <- 1
