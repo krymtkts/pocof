@@ -434,7 +434,7 @@ type CollectionBenchmarks() =
             |> PSeq.ofSeq
 
 
-    [<Benchmark>]
+    [<Benchmark(Baseline = true)>]
     member __.ConcurrentQueue() =
         let cq = new ConcurrentQueue<Entry>()
         __.Objects |> Seq.iter (fun obj -> cq.Enqueue obj)
