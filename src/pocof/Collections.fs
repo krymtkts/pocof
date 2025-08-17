@@ -21,7 +21,10 @@ type SpscSegment<'T>(capacity: int) =
 [<Sealed>]
 type SpscAppendOnlyBuffer<'T>() =
     [<Literal>]
-    let segSize = 1024
+    let segSize = 128
+
+    [<Literal>]
+    let segSizeMax = 8192
 
     // NOTE: Head (first) and tail (current write) segments.
     let head = SpscSegment<'T>(segSize)
@@ -42,7 +45,7 @@ type SpscAppendOnlyBuffer<'T>() =
 
         if idx >= t.Capacity then
             // NOTE: Current segment is full: create a new one, link it, and advance tail.
-            let newSeg = SpscSegment<'T>(t.Capacity)
+            let newSeg = SpscSegment<'T>(min (t.Capacity <<< 1) segSizeMax)
             // NOTE: Publish linkage before the element becomes observable via count.
             t.Next <- newSeg
             tail <- newSeg
