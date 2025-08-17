@@ -6,7 +6,7 @@ open System.Threading
 
 [<AllowNullLiteral; Sealed>]
 type SpscSegment<'T>(capacity: int) =
-    let items: 'T[] = Array.zeroCreate capacity
+    let items: 'T array = Array.zeroCreate capacity
     let mutable next: SpscSegment<'T> = null
     member _.Items = items
     member _.Capacity = items.Length
