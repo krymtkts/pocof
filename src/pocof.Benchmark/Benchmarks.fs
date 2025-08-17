@@ -4,6 +4,7 @@ open BenchmarkDotNet.Attributes
 
 open System
 open System.Collections
+open System.Collections.Concurrent
 open System.Management.Automation
 
 open Pocof
@@ -416,3 +417,29 @@ type DataBenchmarks() =
     [<Benchmark>]
     member __.QueryState_getCurrentProperty() =
         QueryState.getCurrentProperty queryState |> ignore
+
+[<MemoryDiagnoser>]
+type CollectionBenchmarks() =
+
+    [<Params(100, 10000, 100000)>]
+    member val EntryCount = 0 with get, set
+
+    member val Objects: Entry pseq = PSeq.empty with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        __.Objects <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
+            |> PSeq.ofSeq
+
+
+    [<Benchmark>]
+    member __.ConcurrentQueue() =
+        let cq = new ConcurrentQueue<Entry>()
+        __.Objects |> Seq.iter (fun obj -> cq.Enqueue obj)
+
+    [<Benchmark>]
+    member __.SpscAppendOnlyBuffer() =
+        let buffer = new SpscAppendOnlyBuffer<Entry>()
+        __.Objects |> Seq.iter (fun obj -> buffer.Add obj)
