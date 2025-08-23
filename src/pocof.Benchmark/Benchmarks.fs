@@ -465,3 +465,30 @@ type CollectionIterateBenchmarks() =
 
     [<Benchmark>]
     member __.SpscAppendOnlyBuffer_iterate() = __.spsc |> Seq.iter (fun _ -> ())
+
+[<MemoryDiagnoser>]
+type CollectionBenchmarks() =
+
+    [<Params(100, 10000, 1000000)>]
+    member val EntryCount = 0 with get, set
+
+    member val Objects = Array.empty with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        __.Objects <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
+            |> Array.ofSeq
+
+    [<Benchmark(Baseline = true)>]
+    member __.ConcurrentQueue() =
+        let cq = new ConcurrentQueue<Entry>()
+        __.Objects |> Array.iter (fun obj -> cq.Enqueue obj)
+        cq |> Seq.iter (fun _ -> ())
+
+    [<Benchmark>]
+    member __.SpscAppendOnlyBuffer() =
+        let buffer = new SpscAppendOnlyBuffer<Entry>()
+        __.Objects |> Array.iter (fun obj -> buffer.Add obj)
+        buffer |> Seq.iter (fun _ -> ())
