@@ -4,11 +4,13 @@ open BenchmarkDotNet.Attributes
 
 open System
 open System.Collections
+open System.Collections.Concurrent
 open System.Management.Automation
 
 open Pocof
 open Pocof.Data
 open Pocof.Test
+open System.Linq
 
 [<MemoryDiagnoser>]
 type PocofBenchmarks() =
@@ -416,3 +418,88 @@ type DataBenchmarks() =
     [<Benchmark>]
     member __.QueryState_getCurrentProperty() =
         QueryState.getCurrentProperty queryState |> ignore
+
+[<MemoryDiagnoser>]
+type CollectionAddBenchmarks() =
+
+    [<Params(100, 10000, 1000000)>]
+    member val EntryCount = 0 with get, set
+
+    member val Objects = Array.empty with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        __.Objects <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
+            |> Array.ofSeq
+
+    [<Benchmark(Baseline = true)>]
+    member __.ConcurrentQueue() =
+        let cq = new ConcurrentQueue<Entry>()
+        __.Objects |> Array.iter (fun obj -> cq.Enqueue obj)
+
+    [<Benchmark>]
+    member __.SpscAppendOnlyBuffer() =
+        let buffer = new SpscAppendOnlyBuffer<Entry>()
+        __.Objects |> Array.iter (fun obj -> buffer.Add obj)
+
+[<MemoryDiagnoser>]
+type CollectionIterateBenchmarks() =
+
+    [<Params(100, 10000, 1000000)>]
+    member val EntryCount = 0 with get, set
+
+    member val Queue = new ConcurrentQueue<Entry>() with get, set
+    member val spsc = new SpscAppendOnlyBuffer<Entry>() with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        seq { 1 .. __.EntryCount }
+        |> Seq.iter (fun i ->
+            let obj = i |> (string >> PSObject.AsPSObject >> Entry.Obj)
+            __.Queue.Enqueue obj
+            __.spsc.Add obj)
+
+    [<Benchmark(Baseline = true)>]
+    member __.ConcurrentQueue_iterate() = __.Queue |> Seq.iter (fun _ -> ())
+
+    [<Benchmark>]
+    member __.SpscAppendOnlyBuffer_iterate() = __.spsc |> Seq.iter (fun _ -> ())
+
+[<MemoryDiagnoser>]
+type CollectionBenchmarks() =
+
+    let iter predicate source =
+        ParallelEnumerable.ForAll(PSeq.ofSeq source, Action<_>(predicate))
+
+    [<Params(100, 10000, 1000000)>]
+    member val EntryCount = 0 with get, set
+
+    [<Params(1, 4, 8)>]
+    member val FetchCount = 0 with get, set
+
+    member val Objects = Array.empty with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        __.Objects <-
+            seq { 1 .. __.EntryCount }
+            |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
+            |> Array.ofSeq
+
+    [<Benchmark(Baseline = true)>]
+    member __.ConcurrentQueue() =
+        let cq = new ConcurrentQueue<Entry>()
+        __.Objects |> Array.iter (fun obj -> cq.Enqueue obj)
+
+        for _ in 1 .. __.FetchCount do
+            cq |> iter (fun _ -> ())
+
+    [<Benchmark>]
+    member __.SpscAppendOnlyBuffer() =
+        let buffer = new SpscAppendOnlyBuffer<Entry>()
+        __.Objects |> Array.iter (fun obj -> buffer.Add obj)
+
+        for _ in 1 .. __.FetchCount do
+            buffer |> iter (fun _ -> ())
