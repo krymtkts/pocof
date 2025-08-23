@@ -421,7 +421,7 @@ type DataBenchmarks() =
 [<MemoryDiagnoser>]
 type CollectionAddBenchmarks() =
 
-    [<Params(100, 10000, 100000)>]
+    [<Params(100, 10000, 1000000)>]
     member val EntryCount = 0 with get, set
 
     member val Objects = Array.empty with get, set
@@ -446,7 +446,7 @@ type CollectionAddBenchmarks() =
 [<MemoryDiagnoser>]
 type CollectionIterateBenchmarks() =
 
-    [<Params(100, 10000, 100000)>]
+    [<Params(100, 10000, 1000000)>]
     member val EntryCount = 0 with get, set
 
     member val Queue = new ConcurrentQueue<Entry>() with get, set
