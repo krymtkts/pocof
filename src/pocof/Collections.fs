@@ -1,5 +1,6 @@
 namespace Pocof
 
+open System
 open System.Collections
 open System.Collections.Generic
 open System.Threading
@@ -14,6 +15,50 @@ type SpscSegment<'T>(capacity: int) =
     member _.Next
         with get () = Volatile.Read(&next)
         and set (v) = Volatile.Write(&next, v)
+
+[<Struct>]
+type SpscSegmentEnumerator<'T> =
+    val mutable private remaining: int
+    val mutable private seg: SpscSegment<'T>
+    val mutable private idx: int
+    val mutable private current: 'T
+
+    new(head, total) =
+        { remaining = total
+          seg = head
+          idx = 0
+          current = Unchecked.defaultof<'T> }
+
+    // NOTE: for F# pattern enumeration optimization (zero allocation via struct enumerator).
+    member __.Current = __.current
+
+    // NOTE: for F# pattern enumeration optimization (zero allocation via struct enumerator).
+    member __.MoveNext() =
+        if __.remaining <= 0 then
+            false
+        else
+            if __.idx >= __.seg.Capacity then
+                __.seg <- __.seg.Next
+                __.idx <- 0
+
+            __.current <- __.seg.Items[__.idx]
+            __.idx <- __.idx + 1
+            __.remaining <- __.remaining - 1
+            true
+
+    // NOTE: No resources to release.
+    member __.Dispose() = ()
+
+    interface IEnumerator<'T> with
+        member __.Current = __.current
+
+    interface IEnumerator with
+        member __.Current = box __.current
+        member __.MoveNext() = __.MoveNext()
+        member _.Reset() = raise (NotSupportedException())
+
+    interface IDisposable with
+        member __.Dispose() = __.Dispose()
 
 // Single-producer/single-consumer append-only segmented buffer.
 // - Writer: Enqueue only
@@ -62,29 +107,17 @@ type SpscAppendOnlyBuffer<'T>() =
 
     member __.Count: int = readCount ()
 
+    // NOTE: for F# pattern enumeration optimization (zero allocation via struct enumerator).
+    member __.GetEnumerator() =
+        // NOTE: Snapshot the count once; traverse segments accordingly.
+        let snapshotCount = readCount ()
+        new SpscSegmentEnumerator<'T>(head, snapshotCount)
+
     interface IReadOnlyCollection<'T> with
         member __.Count = readCount ()
 
     interface IEnumerable<'T> with
-        member __.GetEnumerator() : IEnumerator<'T> =
-            // NOTE: Snapshot the count once; traverse segments accordingly.
-            let snapshotCount = readCount ()
-            let mutable remaining = snapshotCount
-            let mutable seg = head
-            let mutable idx = 0
-
-            (seq {
-                while remaining > 0 do
-                    if idx >= seg.Capacity then
-                        seg <- seg.Next
-                        idx <- 0
-
-                    yield seg.Items[idx]
-                    idx <- idx + 1
-                    remaining <- remaining - 1
-            })
-                .GetEnumerator()
+        member __.GetEnumerator() : IEnumerator<'T> = __.GetEnumerator() :> IEnumerator<'T>
 
     interface IEnumerable with
-        member __.GetEnumerator() : IEnumerator =
-            (__ :> IEnumerable<'T>).GetEnumerator() :> IEnumerator
+        member __.GetEnumerator() : IEnumerator = __.GetEnumerator() :> IEnumerator
