@@ -11,10 +11,10 @@ type SpscSegment<'T>(capacity: int) =
     let mutable next: SpscSegment<'T> | null = null
     member __.Items = items
     member __.Capacity = items.Length
-
-    member __.Next
-        with get () = Volatile.Read(&next)
-        and set (v) = Volatile.Write(&next, v)
+    // NOTE: Non-volatile read: safe after reader has observed published count.
+    member __.Next = next
+    // NOTE: Writer-side publish with volatile write to establish happens-before with count increment.
+    member __.PublishNext(seg: SpscSegment<'T>) = Volatile.Write(&next, seg)
 
 [<Struct>]
 type SpscSegmentEnumerator<'T> =
@@ -44,11 +44,9 @@ type SpscSegmentEnumerator<'T> =
             false
         else
             if __.idx >= __.cap then
-                let next = __.seg.Next
-
-                if isNull next then
-                    __.remaining <- 0
-                else
+                match __.seg.Next with
+                | null -> __.remaining <- 0
+                | next ->
                     __.seg <- next
                     let items = next.Items
                     __.items <- items
@@ -110,7 +108,7 @@ type SpscAppendOnlyBuffer<'T>() =
             // NOTE: Current segment is full: create a new one, link it, and advance tail.
             let newSeg = SpscSegment<'T>(min (t.Capacity <<< 1) segSizeMax)
             // NOTE: Publish linkage before the element becomes observable via count.
-            t.Next <- newSeg
+            t.PublishNext newSeg
             tail <- newSeg
             // NOTE: Write into the new tail
             newSeg.Items[0] <- item
