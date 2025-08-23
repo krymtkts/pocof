@@ -9,10 +9,10 @@ open System.Threading
 type SpscSegment<'T>(capacity: int) =
     let items: 'T array = Array.zeroCreate capacity
     let mutable next: SpscSegment<'T> | null = null
-    member _.Items = items
-    member _.Capacity = items.Length
+    member __.Items = items
+    member __.Capacity = items.Length
 
-    member _.Next
+    member __.Next
         with get () = Volatile.Read(&next)
         and set (v) = Volatile.Write(&next, v)
 
