@@ -419,27 +419,49 @@ type DataBenchmarks() =
         QueryState.getCurrentProperty queryState |> ignore
 
 [<MemoryDiagnoser>]
-type CollectionBenchmarks() =
+type CollectionAddBenchmarks() =
 
     [<Params(100, 10000, 100000)>]
     member val EntryCount = 0 with get, set
 
-    member val Objects: Entry pseq = PSeq.empty with get, set
+    member val Objects = Array.empty with get, set
 
     [<GlobalSetup>]
     member __.GlobalSetup() =
         __.Objects <-
             seq { 1 .. __.EntryCount }
             |> Seq.map (string >> PSObject.AsPSObject >> Entry.Obj)
-            |> PSeq.ofSeq
-
+            |> Array.ofSeq
 
     [<Benchmark(Baseline = true)>]
     member __.ConcurrentQueue() =
         let cq = new ConcurrentQueue<Entry>()
-        __.Objects |> Seq.iter (fun obj -> cq.Enqueue obj)
+        __.Objects |> Array.iter (fun obj -> cq.Enqueue obj)
 
     [<Benchmark>]
     member __.SpscAppendOnlyBuffer() =
         let buffer = new SpscAppendOnlyBuffer<Entry>()
-        __.Objects |> Seq.iter (fun obj -> buffer.Add obj)
+        __.Objects |> Array.iter (fun obj -> buffer.Add obj)
+
+[<MemoryDiagnoser>]
+type CollectionIterateBenchmarks() =
+
+    [<Params(100, 10000, 100000)>]
+    member val EntryCount = 0 with get, set
+
+    member val Queue = new ConcurrentQueue<Entry>() with get, set
+    member val spsc = new SpscAppendOnlyBuffer<Entry>() with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        seq { 1 .. __.EntryCount }
+        |> Seq.iter (fun i ->
+            let obj = i |> (string >> PSObject.AsPSObject >> Entry.Obj)
+            __.Queue.Enqueue obj
+            __.spsc.Add obj)
+
+    [<Benchmark(Baseline = true)>]
+    member __.ConcurrentQueue_iterate() = __.Queue |> Seq.iter (fun _ -> ())
+
+    [<Benchmark>]
+    member __.SpscAppendOnlyBuffer_iterate() = __.spsc |> Seq.iter (fun _ -> ())
