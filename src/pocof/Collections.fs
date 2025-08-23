@@ -20,12 +20,18 @@ type SpscSegment<'T>(capacity: int) =
 type SpscSegmentEnumerator<'T> =
     val mutable private remaining: int
     val mutable private seg: SpscSegment<'T>
+    val mutable private items: 'T array
+    val mutable private cap: int
     val mutable private idx: int
     val mutable private current: 'T
 
-    new(head, total) =
+    new(head: SpscSegment<'T>, total: int) =
+        let items = head.Items
+
         { remaining = total
           seg = head
+          items = items
+          cap = items.Length
           idx = 0
           current = Unchecked.defaultof<'T> }
 
@@ -37,14 +43,26 @@ type SpscSegmentEnumerator<'T> =
         if __.remaining <= 0 then
             false
         else
-            if __.idx >= __.seg.Capacity then
-                __.seg <- __.seg.Next
-                __.idx <- 0
+            if __.idx >= __.cap then
+                let next = __.seg.Next
 
-            __.current <- __.seg.Items[__.idx]
-            __.idx <- __.idx + 1
-            __.remaining <- __.remaining - 1
-            true
+                if isNull next then
+                    __.remaining <- 0
+                else
+                    __.seg <- next
+                    let items = next.Items
+                    __.items <- items
+                    __.cap <- items.Length
+                    __.idx <- 0
+
+            if __.remaining > 0 then
+                let i = __.idx
+                __.current <- __.items[i]
+                __.idx <- i + 1
+                __.remaining <- __.remaining - 1
+                true
+            else
+                false
 
     // NOTE: No resources to release.
     member __.Dispose() = ()
