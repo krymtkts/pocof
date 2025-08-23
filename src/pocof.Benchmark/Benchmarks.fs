@@ -10,6 +10,7 @@ open System.Management.Automation
 open Pocof
 open Pocof.Data
 open Pocof.Test
+open System.Linq
 
 [<MemoryDiagnoser>]
 type PocofBenchmarks() =
@@ -469,8 +470,14 @@ type CollectionIterateBenchmarks() =
 [<MemoryDiagnoser>]
 type CollectionBenchmarks() =
 
+    let iter predicate source =
+        ParallelEnumerable.ForAll(PSeq.ofSeq source, Action<_>(predicate))
+
     [<Params(100, 10000, 1000000)>]
     member val EntryCount = 0 with get, set
+
+    [<Params(1, 4, 8)>]
+    member val FetchCount = 0 with get, set
 
     member val Objects = Array.empty with get, set
 
@@ -485,10 +492,14 @@ type CollectionBenchmarks() =
     member __.ConcurrentQueue() =
         let cq = new ConcurrentQueue<Entry>()
         __.Objects |> Array.iter (fun obj -> cq.Enqueue obj)
-        cq |> Seq.iter (fun _ -> ())
+
+        for _ in 1 .. __.FetchCount do
+            cq |> iter (fun _ -> ())
 
     [<Benchmark>]
     member __.SpscAppendOnlyBuffer() =
         let buffer = new SpscAppendOnlyBuffer<Entry>()
         __.Objects |> Array.iter (fun obj -> buffer.Add obj)
-        buffer |> Seq.iter (fun _ -> ())
+
+        for _ in 1 .. __.FetchCount do
+            buffer |> iter (fun _ -> ())
