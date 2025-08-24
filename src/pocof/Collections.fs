@@ -53,14 +53,14 @@ type SpscSegmentEnumerator<'T> =
                     __.cap <- items.Length
                     __.idx <- 0
 
-            if __.remaining > 0 then
+            if __.remaining <= 0 then
+                false
+            else
                 let i = __.idx
                 __.current <- __.items[i]
                 __.idx <- i + 1
                 __.remaining <- __.remaining - 1
                 true
-            else
-                false
 
     // NOTE: No resources to release.
     member __.Dispose() = ()
