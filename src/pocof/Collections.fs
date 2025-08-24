@@ -103,10 +103,11 @@ type SpscAppendOnlyBuffer<'T>() =
         // NOTE: Acquire local view of the current tail segment.
         let t = tail
         let idx = tailIndex
+        let cap = t.Capacity
 
-        if idx >= t.Capacity then
+        if idx >= cap then
             // NOTE: Current segment is full: create a new one, link it, and advance tail.
-            let newSeg = SpscSegment<'T>(min (t.Capacity <<< 1) segSizeMax)
+            let newSeg = SpscSegment<'T>(min (cap <<< 1) segSizeMax)
             // NOTE: Publish linkage before the element becomes observable via count.
             t.PublishNext newSeg
             tail <- newSeg
