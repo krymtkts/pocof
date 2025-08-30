@@ -44,24 +44,23 @@ type SpscSegmentEnumerator<'T> =
     member __.MoveNext() =
         if __.remaining <= 0 then
             false
+        elif __.idx < __.cap then
+            let i = __.idx
+            __.current <- __.items[i]
+            __.idx <- i + 1
+            __.remaining <- __.remaining - 1
+            true
         else
-            if __.idx >= __.cap then
-                match __.seg.Next with
-                | null -> __.remaining <- 0
-                | next ->
-                    __.seg <- next
-                    let items = next.Items
-                    __.items <- items
-                    __.cap <- items.Length
-                    __.idx <- 0
-
-            if __.remaining <= 0 then
+            match __.seg.Next with
+            | null ->
+                __.remaining <- 0
                 false
-            else
-                let i = __.idx
-                __.current <- __.items[i]
-                __.idx <- i + 1
-                __.remaining <- __.remaining - 1
+            | next ->
+                __.seg <- next
+                let items = next.Items
+                __.items <- items
+                __.cap <- items.Length
+                __.idx <- 0
                 true
 
     // NOTE: No resources to release.
