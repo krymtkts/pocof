@@ -3,6 +3,7 @@ namespace Pocof
 open System
 open System.Collections
 open System.Collections.Generic
+open System.Runtime.CompilerServices
 open System.Threading
 
 [<Sealed>]
@@ -39,6 +40,7 @@ type SpscSegmentEnumerator<'T> =
     member __.Current = __.current
 
     // NOTE: for F# pattern enumeration optimization (zero allocation via struct enumerator).
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member __.MoveNext() =
         if __.remaining <= 0 then
             false
@@ -99,6 +101,7 @@ type SpscAppendOnlyBuffer<'T>() =
     let readCount () = Volatile.Read(&count)
     let writeCount (v: int) = Volatile.Write(&count, v)
 
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member __.Add(item: 'T) : unit =
         // NOTE: Acquire local view of the current tail segment.
         let t = tail
@@ -125,6 +128,7 @@ type SpscAppendOnlyBuffer<'T>() =
     member __.Count: int = readCount ()
 
     // NOTE: for F# pattern enumeration optimization (zero allocation via struct enumerator).
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member __.GetEnumerator() =
         // NOTE: Snapshot the count once; traverse segments accordingly.
         let snapshotCount = readCount ()
