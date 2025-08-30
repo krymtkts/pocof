@@ -3,6 +3,7 @@ namespace Pocof
 open System
 open System.Collections
 open System.Collections.Generic
+open System.Runtime.CompilerServices
 open System.Threading
 
 [<Sealed>]
@@ -11,10 +12,10 @@ type SpscSegment<'T>(capacity: int) =
     let mutable next: SpscSegment<'T> | null = null
     member __.Items = items
     member __.Capacity = items.Length
-    // NOTE: Non-volatile read: safe after reader has observed published count.
-    member __.Next = next
-    // NOTE: Writer-side publish with volatile write to establish happens-before with count increment.
-    member __.PublishNext(seg: SpscSegment<'T>) = Volatile.Write(&next, seg)
+    // NOTE: Non-volatile reads/writes are safe once the reader has observed the published SpscAppendOnlyBuffer.count.
+    member __.Next
+        with get () = next
+        and set v = next <- v
 
 [<Struct>]
 type SpscSegmentEnumerator<'T> =
@@ -39,28 +40,28 @@ type SpscSegmentEnumerator<'T> =
     member __.Current = __.current
 
     // NOTE: for F# pattern enumeration optimization (zero allocation via struct enumerator).
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member __.MoveNext() =
         if __.remaining <= 0 then
             false
+        elif __.idx < __.cap then
+            let i = __.idx
+            __.current <- __.items[i]
+            __.idx <- i + 1
+            __.remaining <- __.remaining - 1
+            true
         else
-            if __.idx >= __.cap then
-                match __.seg.Next with
-                | null -> __.remaining <- 0
-                | next ->
-                    __.seg <- next
-                    let items = next.Items
-                    __.items <- items
-                    __.cap <- items.Length
-                    __.idx <- 0
-
-            if __.remaining > 0 then
-                let i = __.idx
-                __.current <- __.items[i]
-                __.idx <- i + 1
-                __.remaining <- __.remaining - 1
-                true
-            else
+            match __.seg.Next with
+            | null ->
+                __.remaining <- 0
                 false
+            | next ->
+                __.seg <- next
+                let items = next.Items
+                __.items <- items
+                __.cap <- items.Length
+                __.idx <- 0
+                true
 
     // NOTE: No resources to release.
     member __.Dispose() = ()
@@ -85,7 +86,7 @@ type SpscAppendOnlyBuffer<'T>() =
     let segSize = 128
 
     [<Literal>]
-    let segSizeMax = 8192
+    let segSizeMax = 1024
 
     // NOTE: Head (first) and tail (current write) segments.
     let head = SpscSegment<'T>(segSize)
@@ -99,16 +100,18 @@ type SpscAppendOnlyBuffer<'T>() =
     let readCount () = Volatile.Read(&count)
     let writeCount (v: int) = Volatile.Write(&count, v)
 
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member __.Add(item: 'T) : unit =
         // NOTE: Acquire local view of the current tail segment.
         let t = tail
         let idx = tailIndex
+        let cap = t.Capacity
 
-        if idx >= t.Capacity then
+        if idx >= cap then
             // NOTE: Current segment is full: create a new one, link it, and advance tail.
-            let newSeg = SpscSegment<'T>(min (t.Capacity <<< 1) segSizeMax)
+            let newSeg = SpscSegment<'T>(min (cap <<< 1) segSizeMax)
             // NOTE: Publish linkage before the element becomes observable via count.
-            t.PublishNext newSeg
+            t.Next <- newSeg
             tail <- newSeg
             // NOTE: Write into the new tail
             newSeg.Items[0] <- item
@@ -124,6 +127,7 @@ type SpscAppendOnlyBuffer<'T>() =
     member __.Count: int = readCount ()
 
     // NOTE: for F# pattern enumeration optimization (zero allocation via struct enumerator).
+    [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
     member __.GetEnumerator() =
         // NOTE: Snapshot the count once; traverse segments accordingly.
         let snapshotCount = readCount ()
