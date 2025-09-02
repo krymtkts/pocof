@@ -60,7 +60,10 @@ type SpscSegmentEnumerator<'T> =
                 let items = next.Items
                 __.items <- items
                 __.cap <- items.Length
-                __.idx <- 0
+                // NOTE: Always at least one item in the new segment (because remaining > 0).
+                __.current <- __.items[0]
+                __.idx <- 1
+                __.remaining <- __.remaining - 1
                 true
 
     // NOTE: No resources to release.
