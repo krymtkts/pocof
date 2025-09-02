@@ -8,7 +8,7 @@ open System
 open System.Collections
 open System.Reflection
 
-// Reflection helper to obtain internal segment capacity sequence
+// NOTE: Reflection helper to obtain internal segment capacity sequence
 let private getSegmentCapacities (buf: SpscAppendOnlyBuffer<int>) =
     let t = buf.GetType()
 
@@ -108,7 +108,7 @@ let tests =
               let buf = SpscAppendOnlyBuffer<int>()
               [ 0..9 ] |> List.iter buf.Add
               let mutable e = buf.GetEnumerator()
-              let collected = System.Collections.Generic.List<int>()
+              let collected = Generic.List<int>()
 
               // NOTE: Consume 5 items
               [ 1..5 ]
