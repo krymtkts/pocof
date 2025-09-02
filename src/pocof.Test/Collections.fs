@@ -133,7 +133,7 @@ let tests =
               let total = 1500
               [ 0..total ] |> List.iter buf.Add
               let xs = buf |> Seq.toArray
-              xs |> Array.length |> Expect.equal "length" total
+              xs |> Array.length |> Expect.equal "length" (total + 1)
 
               // NOTE: Position checks (start / segment boundaries / end)
               xs.[0] |> Expect.equal "first" 0
@@ -141,7 +141,7 @@ let tests =
               xs.[128] |> Expect.equal "start seg2" 128
               xs.[128 + 255] |> Expect.equal "end seg2" (128 + 255)
               xs.[128 + 256] |> Expect.equal "start seg3" (128 + 256)
-              xs.[total - 1] |> Expect.equal "last" (total - 1)
+              xs.[total] |> Expect.equal "last" total
           }
 
           test "IReadOnlyCollection Count matches after many adds" {
