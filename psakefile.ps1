@@ -14,8 +14,8 @@ Properties {
 
 Task default -Depends TestAll
 
-# NOTE: I don't know why, but if I add Lint before Test, the module import will be doubled.
-Task TestAll -Depends Init, Build, UnitTest, Test, Lint
+# NOTE: I don't know why, but if I add Lint before E2ETest, the module import will be doubled.
+Task TestAll -Depends Init, Build, UnitTest, E2ETest, Lint
 
 Task Init {
     'Init is running!'
@@ -136,7 +136,7 @@ Task Import -Depends Build {
     }
 }
 
-Task Test -Depends Import {
+Task E2ETest -Depends Import {
     $result = Invoke-Pester -PassThru
     if ($result.Failed) {
         throw 'Invoke-Pester failed.'
