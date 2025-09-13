@@ -4,7 +4,8 @@
     <Version>0.19.0</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Deploy the produced assembly -->
+    <PublishDir>../../publish/pocof</PublishDir>
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>

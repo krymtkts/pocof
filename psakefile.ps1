@@ -121,19 +121,7 @@ Task Import -Depends Build {
     if ( -not ($ModuleName -and $ModuleVersion)) {
         throw "ModuleName or ModuleVersion not defined. $ModuleName, $ModuleVersion"
     }
-    switch ($Stage) {
-        'Debug' {
-            Import-Module (Resolve-Path "${ModuleSrcPath}/bin/Debug/*/publish/*.psd1") -Global
-        }
-        'Release' {
-            $installPath = Join-Path ($env:PSModulePath -split ';' -like '*Users*') $ModuleName -AdditionalChildPath $ModuleVersion
-            New-Item -Path $installPath -ItemType Directory -ErrorAction SilentlyContinue
-            $sourcePath = Resolve-Path "${ModuleSrcPath}/bin/Release/*/publish/*"
-            Copy-Item $sourcePath $installPath -Verbose -Force
-            Copy-Item $sourcePath $ModulePublishPath -Verbose -Force
-            Import-Module $ModuleName -Global
-        }
-    }
+    Import-Module $ModulePublishPath -Global
 }
 
 Task E2ETest -Depends Import {
