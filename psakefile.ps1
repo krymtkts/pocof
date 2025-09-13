@@ -24,17 +24,17 @@ Task Init {
 
 Task Clean {
     'Clean is running!'
-    Get-Module pocof -All | Remove-Module -Force -ErrorAction SilentlyContinue
+    Get-Module $ModuleName -All | Remove-Module -Force -ErrorAction SilentlyContinue
     @(
         "./src/*/*/${Stage}"
         './release'
         "${ModulePublishPath}/*"
-    ) | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitkeep
+    ) | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitignore, .gitkeep
 }
 
 function Get-ValidMarkdownCommentHelp {
     if (Get-Command Measure-PlatyPSMarkdown -ErrorAction SilentlyContinue) {
-        $help = Measure-PlatyPSMarkdown .\docs\$ModuleName\*.md | Where-Object Filetype -Match CommandHelp
+        $help = Measure-PlatyPSMarkdown ./docs/$ModuleName/*.md | Where-Object Filetype -Match CommandHelp
         $validations = $help.FilePath | Test-MarkdownCommandHelp -DetailView
         if (-not $validations.IsValid) {
             $validations.Messages | Where-Object { $_ -notlike 'PASS:*' } | Write-Error
@@ -62,15 +62,12 @@ Task Lint {
     }
 
     # PowerShell analysis
-    $warn = Invoke-ScriptAnalyzer -Path .\psakefile.ps1 -Settings .\PSScriptAnalyzerSettings.psd1
-    if ($warn) {
-        $warn
-        throw 'Invoke-ScriptAnalyzer for psakefile.ps1 failed.'
-    }
-    $warn = Invoke-ScriptAnalyzer -Path .\tests\pocof.Tests.ps1 -Settings .\PSScriptAnalyzerSettings.psd1
-    if ($warn) {
-        $warn
-        throw 'Invoke-ScriptAnalyzer for pocof.Tests.ps1 failed.'
+    @('./psakefile.ps1', "./tests/$ModuleName.Tests.ps1") | ForEach-Object {
+        $warn = Invoke-ScriptAnalyzer -Path $_ -Settings ./PSScriptAnalyzerSettings.psd1
+        if ($warn) {
+            $warn
+            throw "Invoke-ScriptAnalyzer for ${_} failed."
+        }
     }
     Get-ValidMarkdownCommentHelp | Out-Null
 }
@@ -82,6 +79,9 @@ Task Build -Depends Clean {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
     dotnet publish -c $Stage
+    if (-not $?) {
+        throw 'dotnet publish failed.'
+    }
     "Completed to build $ModuleName ver$ModuleVersion"
 }
 
@@ -107,6 +107,7 @@ Task WorkflowTest {
 }
 
 Task Benchmark {
+    # NOTE: ex) Invoke-psake -taskList Benchmark -parameters @{'Filter'='*CollectionBenchmarks*';}
     dotnet run --project ./src/pocof.Benchmark -c Release --filter $Filter
 }
 
