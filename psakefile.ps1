@@ -121,7 +121,11 @@ Task Import -Depends Build {
     if ( -not ($ModuleName -and $ModuleVersion)) {
         throw "ModuleName or ModuleVersion not defined. $ModuleName, $ModuleVersion"
     }
-    Import-Module $ModulePublishPath -Global
+    $module = Get-ChildItem "${ModulePublishPath}/*.psd1"
+    if (-not $module) {
+        throw "Module manifest not found. $($module.ModuleBase)/*.psd1"
+    }
+    $module | Import-Module -Global
 }
 
 Task E2ETest -Depends Import {
