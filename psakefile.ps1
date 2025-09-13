@@ -135,13 +135,17 @@ Task E2ETest -Depends Import {
     }
 }
 
-Task ExternalHelp -Depends Import {
+Task ExternalHelp {
     $help = Get-ValidMarkdownCommentHelp
-    $help.FilePath | Update-MarkdownCommandHelp -NoBackup
+    # NOTE: ex) Invoke-psake -taskList ExternalHelp -parameters @{'SkipUpdateMarkdown'=$true;}
+    # NOTE: Regenerating markdown command help sometimes causes unintended modifications.
+    if (-not $SkipUpdateMarkdown) {
+        $help.FilePath | Update-MarkdownCommandHelp -NoBackup
+    }
     $help.FilePath | Import-MarkdownCommandHelp | Export-MamlCommandHelp -OutputFolder ./src/ -Force | Out-Null
 }
 
-Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll, ExternalHelp {
+Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
     "Release $($ModuleName)! version=$ModuleVersion dryrun=$DryRun"
 
     $m = Get-Module $ModuleName

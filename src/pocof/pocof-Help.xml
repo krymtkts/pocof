@@ -29,7 +29,8 @@
         <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
           <maml:name>InputObject</maml:name>
           <maml:description>
-            <maml:para>Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.</maml:para>
+            <maml:para>Specifies the objects to filter.
+You can also pipe the objects to `Select-Pocof`.</maml:para>
           </maml:description>
           <command:parameterValue required="false" variableLength="true">System.Management.Automation.PSObject[]</command:parameterValue>
         </command:parameter>
@@ -43,35 +44,39 @@
         <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
           <maml:name>Keymaps</maml:name>
           <maml:description>
-            <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.
+            <maml:para>Specifies the custom key bindings.
+Custom keymaps overrides default keymaps.
 Default keymaps are following.</maml:para>
-            <maml:para>| Action                   | Keybinding             | Note                 |
-| ------------------------ | ---------------------- | -------------------- |
-| Cancel                   | `Escape`               |                      |
-| Cancel                   | `Ctrl` + `C`           |                      |
-| Finish                   | `Enter`                |                      |
-| BackwardChar             | `LeftArrow`            |                      |
-| ForwardChar              | `RightArrow`           |                      |
-| BeginningOfLine          | `Home`                 |                      |
-| EndOfLine                | `End`                  |                      |
-| DeleteBackwardChar       | `Backspace`            |                      |
-| DeleteForwardChar        | `Delete`               |                      |
-| DeleteBackwardInput      | `Ctrl` + `Home`        |                      |
-| DeleteForwardInput       | `Ctrl` + `End`         |                      |
-| SelectBackwardChar       | `Shift` + `LeftArrow`  |                      |
-| SelectForwardChar        | `Shift` + `RightArrow` |                      |
-| SelectToBeginningOfLine  | `Shift` + `Home`       |                      |
-| SelectToEndOfLine        | `Shift` + `End`        |                      |
-| RotateMatcher            | `Alt` + `R`            |                      |
-| RotateOperator           | `Alt` + `L`            |                      |
-| ToggleCaseSensitive      | `Alt` + `C`            |                      |
-| ToggleInvertFilter       | `Alt` + `I`            |                      |
-| ToggleSuppressProperties | `Ctrl` + `Spacebar`    |                      |
-| SelectLineUp             | `UpArrow`              | Not implemented yet. |
-| SelectLineDown           | `DownArrow`            | Not implemented yet. |
-| ScrollPageUp             | `PageUp`               | Not implemented yet. |
-| ScrollPageDown           | `PageDown`             | Not implemented yet. |
-| CompleteProperty         | `Tab`                  |                      |</maml:para>
+            <maml:para>| Action                   | Keybinding                      |
+| ------------------------ | ------------------------------- |
+| Cancel                   | `Escape`                        |
+| Cancel                   | `Ctrl` + `C`                    |
+| Finish                   | `Enter`                         |
+| BackwardChar             | `LeftArrow`                     |
+| BackwardWord             | `Ctrl` + `LeftArrow`            |
+| ForwardChar              | `RightArrow`                    |
+| ForwardWord              | `Ctrl` + `RightArrow`           |
+| BeginningOfLine          | `Home`                          |
+| EndOfLine                | `End`                           |
+| DeleteBackwardChar       | `Backspace`                     |
+| DeleteForwardChar        | `Delete`                        |
+| DeleteBackwardWord       | `Ctrl` + `Backspace`            |
+| DeleteForwardWord        | `Ctrl` + `Delete`               |
+| DeleteBackwardInput      | `Ctrl` + `Home`                 |
+| DeleteForwardInput       | `Ctrl` + `End`                  |
+| SelectBackwardChar       | `Shift` + `LeftArrow`           |
+| SelectForwardChar        | `Shift` + `RightArrow`          |
+| SelectBackwardWord       | `Ctrl` + `Shift` + `LeftArrow`  |
+| SelectForwardWord        | `Ctrl` + `Shift` + `RightArrow` |
+| SelectToBeginningOfLine  | `Shift` + `Home`                |
+| SelectToEndOfLine        | `Shift` + `End`                 |
+| SelectAll                | `Ctrl` + `A`                    |
+| RotateMatcher            | `Alt` + `R`                     |
+| RotateOperator           | `Alt` + `L`                     |
+| ToggleCaseSensitive      | `Alt` + `C`                     |
+| ToggleInvertFilter       | `Alt` + `I`                     |
+| ToggleSuppressProperties | `Ctrl` + `Spacebar`             |
+| CompleteProperty         | `Tab`                           |</maml:para>
           </maml:description>
           <command:parameterValue required="false" variableLength="true">System.Collections.Hashtable</command:parameterValue>
         </command:parameter>
@@ -85,146 +90,8 @@ Default keymaps are following.</maml:para>
         <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
           <maml:name>Matcher</maml:name>
           <maml:description>
-            <maml:para>Select the matching mode. You can use `Match`, `Like` or `Eq`.</maml:para>
-            <maml:para>- `Match` provides regular expression matching
-- `Like` provides wildcard matching
-- `Eq` provides exact matching</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>NonInteractive</maml:name>
-          <maml:description>
-            <maml:para>Enabling `NonInteractive` starts the application in non-interactive mode.
-Mainly used for testing purposes.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.Management.Automation.SwitchParameter</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>Operator</maml:name>
-          <maml:description>
-            <maml:para>Select the logical operator to use when specifying query strings.
-You can use `And` or `Or`.</maml:para>
-            <maml:para>- `And` provides logical "And" to multi query generated from splitting query by whitespace
-- `Or` provides logical "Or" to multi query generated from splitting query by whitespace</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>Prompt</maml:name>
-          <maml:description>
-            <maml:para>Specifies the prompt that appears before the query input space.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="0" aliases="none">
-          <maml:name>Query</maml:name>
-          <maml:description>
-            <maml:para>Specifies the initial query string.</maml:para>
-            <maml:para>The syntax of the query is simple.
-You separate the values you want to filter with a space.</maml:para>
-            <maml:para>`Value1 Value2 Value3`</maml:para>
-            <maml:para>The property query is a combination of the property name and the filtering value.
-The property name in the query starts with `:` followed by a space, and then the filter value like following.</maml:para>
-            <maml:para>`:PropertyName FilteringValue`</maml:para>
-            <maml:para>You can also combine normal filtering with property queries.</maml:para>
-            <maml:para>`Value1 Value2 :PropertyName Value3`</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>SuppressProperties</maml:name>
-          <maml:description>
-            <maml:para>Enabling `SuppressProperties` will disable the display of properties under the query input.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.Management.Automation.SwitchParameter</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>Unique</maml:name>
-          <maml:description>
-            <maml:para>Enabling `Unique` will exclude duplicates in `InputObject`.
-`Unique` maintains the order of InputObject after excluding duplicates.
-`Unique` uses the `Equals` and `GetHashCode` methods of `InputObject` to check for equality.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.Management.Automation.SwitchParameter</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>WordDelimiters</maml:name>
-          <maml:description>
-            <maml:para>Specifies the characters that delimit words for word-based cursor movement, selection or deletion functions.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
-        </command:parameter>
-      </command:syntaxItem>
-      <command:syntaxItem>
-        <maml:name>Select-Pocof</maml:name>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>CaseSensitive</maml:name>
-          <maml:description>
-            <maml:para>Filtering in case-sensitive.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.Management.Automation.SwitchParameter</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>InputObject</maml:name>
-          <maml:description>
-            <maml:para>Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.Management.Automation.PSObject[]</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>InvertQuery</maml:name>
-          <maml:description>
-            <maml:para>Enabling `InvertQuery` will invert the filtering output.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.Management.Automation.SwitchParameter</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>Keymaps</maml:name>
-          <maml:description>
-            <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.
-Default keymaps are following.</maml:para>
-            <maml:para>| Action                   | Keybinding             | Note                 |
-| ------------------------ | ---------------------- | -------------------- |
-| Cancel                   | `Escape`               |                      |
-| Cancel                   | `Ctrl` + `C`           |                      |
-| Finish                   | `Enter`                |                      |
-| BackwardChar             | `LeftArrow`            |                      |
-| ForwardChar              | `RightArrow`           |                      |
-| BeginningOfLine          | `Home`                 |                      |
-| EndOfLine                | `End`                  |                      |
-| DeleteBackwardChar       | `Backspace`            |                      |
-| DeleteForwardChar        | `Delete`               |                      |
-| DeleteBackwardInput      | `Ctrl` + `Home`        |                      |
-| DeleteForwardInput       | `Ctrl` + `End`         |                      |
-| SelectBackwardChar       | `Shift` + `LeftArrow`  |                      |
-| SelectForwardChar        | `Shift` + `RightArrow` |                      |
-| SelectToBeginningOfLine  | `Shift` + `Home`       |                      |
-| SelectToEndOfLine        | `Shift` + `End`        |                      |
-| RotateMatcher            | `Alt` + `R`            |                      |
-| RotateOperator           | `Alt` + `L`            |                      |
-| ToggleCaseSensitive      | `Alt` + `C`            |                      |
-| ToggleInvertFilter       | `Alt` + `I`            |                      |
-| ToggleSuppressProperties | `Ctrl` + `Spacebar`    |                      |
-| SelectLineUp             | `UpArrow`              | Not implemented yet. |
-| SelectLineDown           | `DownArrow`            | Not implemented yet. |
-| ScrollPageUp             | `PageUp`               | Not implemented yet. |
-| ScrollPageDown           | `PageDown`             | Not implemented yet. |
-| CompleteProperty         | `Tab`                  |                      |</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.Collections.Hashtable</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>Layout</maml:name>
-          <maml:description>
-            <maml:para>Select the layout: TopDown, TopDownHalf, BottomUp or BottomUpHalf.</maml:para>
-          </maml:description>
-          <command:parameterValue required="false" variableLength="true">System.String</command:parameterValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
-          <maml:name>Matcher</maml:name>
-          <maml:description>
-            <maml:para>Select the matching mode. You can use `Match`, `Like` or `Eq`.</maml:para>
+            <maml:para>Select the matching mode.
+You can use `Match`, `Like` or `Eq`.</maml:para>
             <maml:para>- `Match` provides regular expression matching
 - `Like` provides wildcard matching
 - `Eq` provides exact matching</maml:para>
@@ -307,7 +174,8 @@ The property name in the query starts with `:` followed by a space, and then the
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
         <maml:name>InputObject</maml:name>
         <maml:description>
-          <maml:para>Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.</maml:para>
+          <maml:para>Specifies the objects to filter.
+You can also pipe the objects to `Select-Pocof`.</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="true">System.Management.Automation.PSObject[]</command:parameterValue>
       </command:parameter>
@@ -321,35 +189,39 @@ The property name in the query starts with `:` followed by a space, and then the
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
         <maml:name>Keymaps</maml:name>
         <maml:description>
-          <maml:para>Specifies the custom key bindings. Custom keymaps overrides default keymaps.
+          <maml:para>Specifies the custom key bindings.
+Custom keymaps overrides default keymaps.
 Default keymaps are following.</maml:para>
-          <maml:para>| Action                   | Keybinding             | Note                 |
-| ------------------------ | ---------------------- | -------------------- |
-| Cancel                   | `Escape`               |                      |
-| Cancel                   | `Ctrl` + `C`           |                      |
-| Finish                   | `Enter`                |                      |
-| BackwardChar             | `LeftArrow`            |                      |
-| ForwardChar              | `RightArrow`           |                      |
-| BeginningOfLine          | `Home`                 |                      |
-| EndOfLine                | `End`                  |                      |
-| DeleteBackwardChar       | `Backspace`            |                      |
-| DeleteForwardChar        | `Delete`               |                      |
-| DeleteBackwardInput      | `Ctrl` + `Home`        |                      |
-| DeleteForwardInput       | `Ctrl` + `End`         |                      |
-| SelectBackwardChar       | `Shift` + `LeftArrow`  |                      |
-| SelectForwardChar        | `Shift` + `RightArrow` |                      |
-| SelectToBeginningOfLine  | `Shift` + `Home`       |                      |
-| SelectToEndOfLine        | `Shift` + `End`        |                      |
-| RotateMatcher            | `Alt` + `R`            |                      |
-| RotateOperator           | `Alt` + `L`            |                      |
-| ToggleCaseSensitive      | `Alt` + `C`            |                      |
-| ToggleInvertFilter       | `Alt` + `I`            |                      |
-| ToggleSuppressProperties | `Ctrl` + `Spacebar`    |                      |
-| SelectLineUp             | `UpArrow`              | Not implemented yet. |
-| SelectLineDown           | `DownArrow`            | Not implemented yet. |
-| ScrollPageUp             | `PageUp`               | Not implemented yet. |
-| ScrollPageDown           | `PageDown`             | Not implemented yet. |
-| CompleteProperty         | `Tab`                  |                      |</maml:para>
+          <maml:para>| Action                   | Keybinding                      |
+| ------------------------ | ------------------------------- |
+| Cancel                   | `Escape`                        |
+| Cancel                   | `Ctrl` + `C`                    |
+| Finish                   | `Enter`                         |
+| BackwardChar             | `LeftArrow`                     |
+| BackwardWord             | `Ctrl` + `LeftArrow`            |
+| ForwardChar              | `RightArrow`                    |
+| ForwardWord              | `Ctrl` + `RightArrow`           |
+| BeginningOfLine          | `Home`                          |
+| EndOfLine                | `End`                           |
+| DeleteBackwardChar       | `Backspace`                     |
+| DeleteForwardChar        | `Delete`                        |
+| DeleteBackwardWord       | `Ctrl` + `Backspace`            |
+| DeleteForwardWord        | `Ctrl` + `Delete`               |
+| DeleteBackwardInput      | `Ctrl` + `Home`                 |
+| DeleteForwardInput       | `Ctrl` + `End`                  |
+| SelectBackwardChar       | `Shift` + `LeftArrow`           |
+| SelectForwardChar        | `Shift` + `RightArrow`          |
+| SelectBackwardWord       | `Ctrl` + `Shift` + `LeftArrow`  |
+| SelectForwardWord        | `Ctrl` + `Shift` + `RightArrow` |
+| SelectToBeginningOfLine  | `Shift` + `Home`                |
+| SelectToEndOfLine        | `Shift` + `End`                 |
+| SelectAll                | `Ctrl` + `A`                    |
+| RotateMatcher            | `Alt` + `R`                     |
+| RotateOperator           | `Alt` + `L`                     |
+| ToggleCaseSensitive      | `Alt` + `C`                     |
+| ToggleInvertFilter       | `Alt` + `I`                     |
+| ToggleSuppressProperties | `Ctrl` + `Spacebar`             |
+| CompleteProperty         | `Tab`                           |</maml:para>
         </maml:description>
         <command:parameterValue required="false" variableLength="true">System.Collections.Hashtable</command:parameterValue>
       </command:parameter>
@@ -363,7 +235,8 @@ Default keymaps are following.</maml:para>
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="Named" aliases="none">
         <maml:name>Matcher</maml:name>
         <maml:description>
-          <maml:para>Select the matching mode. You can use `Match`, `Like` or `Eq`.</maml:para>
+          <maml:para>Select the matching mode.
+You can use `Match`, `Like` or `Eq`.</maml:para>
           <maml:para>- `Match` provides regular expression matching
 - `Like` provides wildcard matching
 - `Eq` provides exact matching</maml:para>
@@ -463,7 +336,7 @@ The property name in the query starts with `:` followed by a space, and then the
     </maml:alertSet>
     <command:examples>
       <command:example>
-        <maml:title>--------- Example 1: Get current directory items with interactive filtering ---------</maml:title>
+        <maml:title>--------- Get current directory items with interactive filtering ---------</maml:title>
         <maml:introduction>
           <maml:para>```powershell
 PS C:\&gt; Get-ChildItem | Select-Pocof
@@ -474,7 +347,7 @@ PS C:\&gt; Get-ChildItem | Select-Pocof
         <dev:remarks />
       </command:example>
       <command:example>
-        <maml:title>--------- Example 2: Filter with multiple options ---------</maml:title>
+        <maml:title>--------- Filter with multiple options ---------</maml:title>
         <maml:introduction>
           <maml:para>```powershell
 PS C:\&gt; Get-ChildItem | Select-Pocof -CaseSensitive -Query 'docs md' | Invoke-Item
@@ -486,7 +359,7 @@ And performs the default action on the filtered items.</maml:para>
         <dev:remarks />
       </command:example>
       <command:example>
-        <maml:title>--------- Example 3: Filter with property query ---------</maml:title>
+        <maml:title>--------- Filter with property query ---------</maml:title>
         <maml:introduction>
           <maml:para>```powershell
 PS C:\&gt; Get-ChildItem | Select-Pocof -NonInteractive -Query ':Name foo'
@@ -498,7 +371,7 @@ The property name in the query starts with `:` followed by a space, and then the
         <dev:remarks />
       </command:example>
       <command:example>
-        <maml:title>--------- Example 4: Filter hashtable ---------</maml:title>
+        <maml:title>--------- Filter hashtable ---------</maml:title>
         <maml:introduction>
           <maml:para>```powershell
 PS C:\&gt; @{foo=100; bar=101; foobar=102} | Select-Pocof -NonInteractive -Query ':key foo' | % -Begin {$x = @{}} {$x[$_.Key]= $_.Value} -End {$x}
@@ -509,6 +382,11 @@ PS C:\&gt; @{foo=100; bar=101; foobar=102} | Select-Pocof -NonInteractive -Query
         <dev:remarks />
       </command:example>
     </command:examples>
-    <command:relatedLinks />
+    <command:relatedLinks>
+      <maml:navigationLink>
+        <maml:linkText>Online Version</maml:linkText>
+        <command:uri>https://github.com/krymtkts/pocof/blob/main/docs/pocof/Select-Pocof.md</command:uri>
+      </maml:navigationLink>
+    </command:relatedLinks>
   </command:command>
 </helpItems>

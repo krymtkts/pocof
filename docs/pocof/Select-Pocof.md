@@ -4,7 +4,7 @@ external help file: pocof-Help.xml
 HelpUri: https://github.com/krymtkts/pocof/blob/main/docs/pocof/Select-Pocof.md
 Locale: en-US
 Module Name: pocof
-ms.date: 02-01-2025
+ms.date: 09-13-2025
 PlatyPS schema version: 2024-05-01
 title: Select-Pocof
 ---
@@ -17,14 +17,6 @@ Selects objects from a collection based on interactive query.
 
 ## SYNTAX
 
-### Default (Default)
-
-```
-Select-Pocof [[-InputObject] <PSObject[]>] [-Query <String>] [-Matcher <String>]
- [-Operator <String>] [-CaseSensitive] [-InvertQuery] [-NonInteractive] [-SuppressProperties]
- [-Prompt <String>] [-Layout <String>] [-Keymaps <Hashtable>] [<CommonParameters>]
-```
-
 ### \_\_AllParameterSets
 
 ```
@@ -35,6 +27,10 @@ Select-Pocof [[-Query] <string>] [-InputObject <psobject[]>] [-Matcher <string>]
 ```
 
 ## ALIASES
+
+This cmdlet has the following aliases,
+
+- `pocof`
 
 ## DESCRIPTION
 
@@ -55,7 +51,7 @@ For example `Layout`, `Prompt` and so on.
 
 ## EXAMPLES
 
-### Example 1: Get current directory items with interactive filtering
+### Get current directory items with interactive filtering
 
 ```powershell
 PS C:\> Get-ChildItem | Select-Pocof
@@ -63,7 +59,7 @@ PS C:\> Get-ChildItem | Select-Pocof
 
 Interactively filter the output of `Get-ChildItem`.
 
-### Example 2: Filter with multiple options
+### Filter with multiple options
 
 ```powershell
 PS C:\> Get-ChildItem | Select-Pocof -CaseSensitive -Query 'docs md' | Invoke-Item
@@ -72,7 +68,7 @@ PS C:\> Get-ChildItem | Select-Pocof -CaseSensitive -Query 'docs md' | Invoke-It
 Interactively filter the output of `Get-ChildItem` with an initial case-sensitive query.
 And performs the default action on the filtered items.
 
-### Example 3: Filter with property query
+### Filter with property query
 
 ```powershell
 PS C:\> Get-ChildItem | Select-Pocof -NonInteractive -Query ':Name foo'
@@ -81,7 +77,7 @@ PS C:\> Get-ChildItem | Select-Pocof -NonInteractive -Query ':Name foo'
 Interactively filter the output of `Get-ChildItem` using a property query.
 The property name in the query starts with `:` followed by a space, and then the filter value. The format is as follows.
 
-### Example 4: Filter hashtable
+### Filter hashtable
 
 ```powershell
 PS C:\> @{foo=100; bar=101; foobar=102} | Select-Pocof -NonInteractive -Query ':key foo' | % -Begin {$x = @{}} {$x[$_.Key]= $_.Value} -End {$x}
@@ -99,7 +95,6 @@ Filtering in case-sensitive.
 Type: System.Management.Automation.SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -115,13 +110,13 @@ HelpMessage: ""
 
 ### -InputObject
 
-Specifies the objects to filter. You can also pipe the objects to `Select-Pocof`.
+Specifies the objects to filter.
+You can also pipe the objects to `Select-Pocof`.
 
 ```yaml
 Type: System.Management.Automation.PSObject[]
 DefaultValue: None
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -143,7 +138,6 @@ Enabling `InvertQuery` will invert the filtering output.
 Type: System.Management.Automation.SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -159,42 +153,45 @@ HelpMessage: ""
 
 ### -Keymaps
 
-Specifies the custom key bindings. Custom keymaps overrides default keymaps.
+Specifies the custom key bindings.
+Custom keymaps overrides default keymaps.
 Default keymaps are following.
 
-| Action                   | Keybinding             | Note                 |
-| ------------------------ | ---------------------- | -------------------- |
-| Cancel                   | `Escape`               |                      |
-| Cancel                   | `Ctrl` + `C`           |                      |
-| Finish                   | `Enter`                |                      |
-| BackwardChar             | `LeftArrow`            |                      |
-| ForwardChar              | `RightArrow`           |                      |
-| BeginningOfLine          | `Home`                 |                      |
-| EndOfLine                | `End`                  |                      |
-| DeleteBackwardChar       | `Backspace`            |                      |
-| DeleteForwardChar        | `Delete`               |                      |
-| DeleteBackwardInput      | `Ctrl` + `Home`        |                      |
-| DeleteForwardInput       | `Ctrl` + `End`         |                      |
-| SelectBackwardChar       | `Shift` + `LeftArrow`  |                      |
-| SelectForwardChar        | `Shift` + `RightArrow` |                      |
-| SelectToBeginningOfLine  | `Shift` + `Home`       |                      |
-| SelectToEndOfLine        | `Shift` + `End`        |                      |
-| RotateMatcher            | `Alt` + `R`            |                      |
-| RotateOperator           | `Alt` + `L`            |                      |
-| ToggleCaseSensitive      | `Alt` + `C`            |                      |
-| ToggleInvertFilter       | `Alt` + `I`            |                      |
-| ToggleSuppressProperties | `Ctrl` + `Spacebar`    |                      |
-| SelectLineUp             | `UpArrow`              | Not implemented yet. |
-| SelectLineDown           | `DownArrow`            | Not implemented yet. |
-| ScrollPageUp             | `PageUp`               | Not implemented yet. |
-| ScrollPageDown           | `PageDown`             | Not implemented yet. |
-| CompleteProperty         | `Tab`                  |                      |
+| Action                   | Keybinding                      |
+| ------------------------ | ------------------------------- |
+| Cancel                   | `Escape`                        |
+| Cancel                   | `Ctrl` + `C`                    |
+| Finish                   | `Enter`                         |
+| BackwardChar             | `LeftArrow`                     |
+| BackwardWord             | `Ctrl` + `LeftArrow`            |
+| ForwardChar              | `RightArrow`                    |
+| ForwardWord              | `Ctrl` + `RightArrow`           |
+| BeginningOfLine          | `Home`                          |
+| EndOfLine                | `End`                           |
+| DeleteBackwardChar       | `Backspace`                     |
+| DeleteForwardChar        | `Delete`                        |
+| DeleteBackwardWord       | `Ctrl` + `Backspace`            |
+| DeleteForwardWord        | `Ctrl` + `Delete`               |
+| DeleteBackwardInput      | `Ctrl` + `Home`                 |
+| DeleteForwardInput       | `Ctrl` + `End`                  |
+| SelectBackwardChar       | `Shift` + `LeftArrow`           |
+| SelectForwardChar        | `Shift` + `RightArrow`          |
+| SelectBackwardWord       | `Ctrl` + `Shift` + `LeftArrow`  |
+| SelectForwardWord        | `Ctrl` + `Shift` + `RightArrow` |
+| SelectToBeginningOfLine  | `Shift` + `Home`                |
+| SelectToEndOfLine        | `Shift` + `End`                 |
+| SelectAll                | `Ctrl` + `A`                    |
+| RotateMatcher            | `Alt` + `R`                     |
+| RotateOperator           | `Alt` + `L`                     |
+| ToggleCaseSensitive      | `Alt` + `C`                     |
+| ToggleInvertFilter       | `Alt` + `I`                     |
+| ToggleSuppressProperties | `Ctrl` + `Spacebar`             |
+| CompleteProperty         | `Tab`                           |
 
 ```yaml
 Type: System.Collections.Hashtable
 DefaultValue: None
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -216,7 +213,6 @@ Select the layout: TopDown, TopDownHalf, BottomUp or BottomUpHalf.
 Type: System.String
 DefaultValue: TopDown
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -236,7 +232,8 @@ HelpMessage: ""
 
 ### -Matcher
 
-Select the matching mode. You can use `Match`, `Like` or `Eq`.
+Select the matching mode.
+You can use `Match`, `Like` or `Eq`.
 
 - `Match` provides regular expression matching
 - `Like` provides wildcard matching
@@ -246,7 +243,6 @@ Select the matching mode. You can use `Match`, `Like` or `Eq`.
 Type: System.String
 DefaultValue: Match
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -272,7 +268,6 @@ Mainly used for testing purposes.
 Type: System.Management.Automation.SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -298,7 +293,6 @@ You can use `And` or `Or`.
 Type: System.String
 DefaultValue: And
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -308,9 +302,7 @@ ParameterSets:
     ValueFromPipelineByPropertyName: false
     ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues:
-  - And
-  - Or
+AcceptedValues: []
 HelpMessage: ""
 ```
 
@@ -322,7 +314,6 @@ Specifies the prompt that appears before the query input space.
 Type: System.String
 DefaultValue: query
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -356,9 +347,8 @@ You can also combine normal filtering with property queries.
 
 ```yaml
 Type: System.String
-DefaultValue: None
+DefaultValue: ""
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -380,7 +370,6 @@ Enabling `SuppressProperties` will disable the display of properties under the q
 Type: System.Management.Automation.SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -404,7 +393,6 @@ Enabling `Unique` will exclude duplicates in `InputObject`.
 Type: System.Management.Automation.SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -426,7 +414,6 @@ Specifies the characters that delimit words for word-based cursor movement, sele
 Type: System.String
 DefaultValue: ;:,.[]{}()/\\|!?^&*-=+'\"–—―
 SupportsWildcards: false
-ParameterValue: []
 Aliases: []
 ParameterSets:
   - Name: (All)
@@ -449,7 +436,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### System.Management.Automation.PSObject
+### System.Management.Automation.PSObject[]
 
 ## OUTPUTS
 
