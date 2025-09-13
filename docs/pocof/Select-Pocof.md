@@ -162,33 +162,36 @@ HelpMessage: ""
 Specifies the custom key bindings. Custom keymaps overrides default keymaps.
 Default keymaps are following.
 
-| Action                   | Keybinding             | Note                 |
-| ------------------------ | ---------------------- | -------------------- |
-| Cancel                   | `Escape`               |                      |
-| Cancel                   | `Ctrl` + `C`           |                      |
-| Finish                   | `Enter`                |                      |
-| BackwardChar             | `LeftArrow`            |                      |
-| ForwardChar              | `RightArrow`           |                      |
-| BeginningOfLine          | `Home`                 |                      |
-| EndOfLine                | `End`                  |                      |
-| DeleteBackwardChar       | `Backspace`            |                      |
-| DeleteForwardChar        | `Delete`               |                      |
-| DeleteBackwardInput      | `Ctrl` + `Home`        |                      |
-| DeleteForwardInput       | `Ctrl` + `End`         |                      |
-| SelectBackwardChar       | `Shift` + `LeftArrow`  |                      |
-| SelectForwardChar        | `Shift` + `RightArrow` |                      |
-| SelectToBeginningOfLine  | `Shift` + `Home`       |                      |
-| SelectToEndOfLine        | `Shift` + `End`        |                      |
-| RotateMatcher            | `Alt` + `R`            |                      |
-| RotateOperator           | `Alt` + `L`            |                      |
-| ToggleCaseSensitive      | `Alt` + `C`            |                      |
-| ToggleInvertFilter       | `Alt` + `I`            |                      |
-| ToggleSuppressProperties | `Ctrl` + `Spacebar`    |                      |
-| SelectLineUp             | `UpArrow`              | Not implemented yet. |
-| SelectLineDown           | `DownArrow`            | Not implemented yet. |
-| ScrollPageUp             | `PageUp`               | Not implemented yet. |
-| ScrollPageDown           | `PageDown`             | Not implemented yet. |
-| CompleteProperty         | `Tab`                  |                      |
+| Action                   | Keybinding                      |
+| ------------------------ | ------------------------------- |
+| Cancel                   | `Escape`                        |
+| Cancel                   | `Ctrl` + `C`                    |
+| Finish                   | `Enter`                         |
+| BackwardChar             | `LeftArrow`                     |
+| BackwardWord             | `Ctrl` + `LeftArrow`            |
+| ForwardChar              | `RightArrow`                    |
+| ForwardWord              | `Ctrl` + `RightArrow`           |
+| BeginningOfLine          | `Home`                          |
+| EndOfLine                | `End`                           |
+| DeleteBackwardChar       | `Backspace`                     |
+| DeleteForwardChar        | `Delete`                        |
+| DeleteBackwardWord       | `Ctrl` + `Backspace`            |
+| DeleteForwardWord        | `Ctrl` + `Delete`               |
+| DeleteBackwardInput      | `Ctrl` + `Home`                 |
+| DeleteForwardInput       | `Ctrl` + `End`                  |
+| SelectBackwardChar       | `Shift` + `LeftArrow`           |
+| SelectForwardChar        | `Shift` + `RightArrow`          |
+| SelectBackwardWord       | `Ctrl` + `Shift` + `LeftArrow`  |
+| SelectForwardWord        | `Ctrl` + `Shift` + `RightArrow` |
+| SelectToBeginningOfLine  | `Shift` + `Home`                |
+| SelectToEndOfLine        | `Shift` + `End`                 |
+| SelectAll                | `Ctrl` + `A`                    |
+| RotateMatcher            | `Alt` + `R`                     |
+| RotateOperator           | `Alt` + `L`                     |
+| ToggleCaseSensitive      | `Alt` + `C`                     |
+| ToggleInvertFilter       | `Alt` + `I`                     |
+| ToggleSuppressProperties | `Ctrl` + `Spacebar`             |
+| CompleteProperty         | `Tab`                           |
 
 ```yaml
 Type: System.Collections.Hashtable
