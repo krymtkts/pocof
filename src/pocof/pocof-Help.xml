@@ -341,7 +341,6 @@ The property name in the query starts with `:` followed by a space, and then the
           <maml:para>```powershell
 PS C:\&gt; Get-ChildItem | Select-Pocof
 ```</maml:para>
-          <maml:para>&#x80;</maml:para>
           <maml:para>Interactively filter the output of `Get-ChildItem`.</maml:para>
         </maml:introduction>
         <dev:code />
@@ -353,7 +352,6 @@ PS C:\&gt; Get-ChildItem | Select-Pocof
           <maml:para>```powershell
 PS C:\&gt; Get-ChildItem | Select-Pocof -CaseSensitive -Query 'docs md' | Invoke-Item
 ```</maml:para>
-          <maml:para>&#x80;</maml:para>
           <maml:para>Interactively filter the output of `Get-ChildItem` with an initial case-sensitive query.
 And performs the default action on the filtered items.</maml:para>
         </maml:introduction>
@@ -366,7 +364,6 @@ And performs the default action on the filtered items.</maml:para>
           <maml:para>```powershell
 PS C:\&gt; Get-ChildItem | Select-Pocof -NonInteractive -Query ':Name foo'
 ```</maml:para>
-          <maml:para>&#x80;</maml:para>
           <maml:para>Interactively filter the output of `Get-ChildItem` using a property query.
 The property name in the query starts with `:` followed by a space, and then the filter value. The format is as follows.</maml:para>
         </maml:introduction>
@@ -379,7 +376,6 @@ The property name in the query starts with `:` followed by a space, and then the
           <maml:para>```powershell
 PS C:\&gt; @{foo=100; bar=101; foobar=102} | Select-Pocof -NonInteractive -Query ':key foo' | % -Begin {$x = @{}} {$x[$_.Key]= $_.Value} -End {$x}
 ```</maml:para>
-          <maml:para>&#x80;</maml:para>
           <maml:para>Interactively filter hashtable and create new hashtable from filtered items.</maml:para>
         </maml:introduction>
         <dev:code />
