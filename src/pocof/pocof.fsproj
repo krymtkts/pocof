@@ -1,23 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.19.0</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.19.0</Version>
+    <Copyright>Copyright © 2022 Takatoshi Kuriyama. All rights reserved.</Copyright>
+    <Description>AAn interactive pipeline filtering Cmdlet for PowerShell written in F#. A fork of poco which is a PowerShell port of peco.</Description>
     <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Disable XML generation. -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Disable deps.json generation -->
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <!-- Deploy the produced assembly -->
+    <PublishDir>../../publish/pocof</PublishDir>
+    <!-- Disable satellite assemblies generation -->
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+    <!-- Set warning level to 4 and treat warnings as errors -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
-    <!-- Disable pocof.xml generation. -->
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <!-- Disable pocof.deps.json generation. -->
-    <GenerateDependencyFile>false</GenerateDependencyFile>
   </PropertyGroup>
 
   <!-- Disable debug symbols for the release build. -->
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
