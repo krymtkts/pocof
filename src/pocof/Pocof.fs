@@ -382,9 +382,9 @@ module Pocof =
         | _ -> NormalInputStore() :> IInputStore
 
     let buildProperties (exists: string -> bool) (add: string * string seq -> Unit) (input: PSObject) =
-        let name = input.BaseObject.GetType().FullName
+        let typeName = input.BaseObject.GetType().FullName
 
-        if name |> exists |> not then
+        if typeName |> exists |> not then
             let props =
                 match input.BaseObject with
                 | :? IDictionary as dct ->
@@ -393,14 +393,11 @@ module Pocof =
                     | s -> s |> Seq.head |> _.GetType().GetProperties() |> Seq.map _.Name
                 | _ -> input.Properties |> Seq.map _.Name
 
-            add (name, props)
+            add (typeName, props)
 
     [<Sealed>]
     type PropertyStore() =
         let typeNameDictionary: Concurrent.ConcurrentDictionary<string, unit> =
-            Concurrent.ConcurrentDictionary()
-
-        let propertiesDictionary: Concurrent.ConcurrentDictionary<string, unit> =
             Concurrent.ConcurrentDictionary()
 
         let properties: string SpscAppendOnlyBuffer = SpscAppendOnlyBuffer()
@@ -408,7 +405,7 @@ module Pocof =
         let propertiesMap: Concurrent.ConcurrentDictionary<string, string> =
             Concurrent.ConcurrentDictionary StringComparer.OrdinalIgnoreCase
 
-        member __.ContainsKey = propertiesDictionary.ContainsKey
+        member __.ContainsKey = typeNameDictionary.ContainsKey
 
         member __.Add(name, props) =
             if typeNameDictionary.TryAdd(name, ()) then
