@@ -111,7 +111,7 @@ module Pocof =
             let results = lazy Query.run context args.Input args.PropertiesMap
             let state = state |> adjustQueryWindow args.GetLengthInBufferCells
             let props = lazy Query.props args.Properties state
-            (state, results, props) |> RenderEvent.Render |> args.PublishEvent
+            RenderEvent.Render(state, results, props) |> args.PublishEvent
             results, state
 
     [<TailCall>]
@@ -373,7 +373,7 @@ module Pocof =
             Concurrent.ConcurrentDictionary()
 
         override __.AddEntry entry =
-            if (entry, ()) |> keys.TryAdd then
+            if keys.TryAdd(entry, ()) then
                 entry |> __.Store.Add
 
     let getInputStore (unique: bool) =
@@ -393,7 +393,7 @@ module Pocof =
                     | s -> s |> Seq.head |> _.GetType().GetProperties() |> Seq.map _.Name
                 | _ -> input.Properties |> Seq.map _.Name
 
-            (name, props) |> add
+            add (name, props)
 
     [<Sealed>]
     type PropertyStore() =
