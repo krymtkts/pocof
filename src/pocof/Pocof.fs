@@ -283,10 +283,7 @@ module Pocof =
             RenderProcess.Rendered(state, entries, props)
 
     [<Sealed>]
-    type Periodic(handler, buff, cancelAction, promptLength) =
-        let handler: RenderHandler = handler
-        let buff: Screen.Buff = buff
-        let cancelAction: unit -> unit = cancelAction
+    type Periodic(handler: RenderHandler, buff: Screen.Buff, cancelAction: unit -> unit, promptLength: int) =
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
 
