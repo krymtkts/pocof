@@ -138,7 +138,7 @@ module Screen =
                 | Data.Layout.BottomUpHalf -> y + height
                 | _ -> y
 
-            (0, y) ||> rui.SetCursorPosition
+            rui.SetCursorPosition 0 y
 
         [<TailCall>]
         let rec getQuery (w: int) (q: string) (l: int) =
