@@ -27,7 +27,6 @@ Task Clean {
     Get-Module $ModuleName -All | Remove-Module -Force -ErrorAction SilentlyContinue
     @(
         "./src/*/*/${Stage}"
-        './release'
         "${ModulePublishPath}/*"
     ) | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue -Exclude .gitignore, .gitkeep
 }
