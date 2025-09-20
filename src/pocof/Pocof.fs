@@ -111,7 +111,7 @@ module Pocof =
             let results = lazy Query.run context args.Input args.PropertiesMap
             let state = state |> adjustQueryWindow args.GetLengthInBufferCells
             let props = lazy Query.props args.Properties state
-            (state, results, props) |> RenderEvent.Render |> args.PublishEvent
+            RenderEvent.Render(state, results, props) |> args.PublishEvent
             results, state
 
     [<TailCall>]
@@ -283,10 +283,7 @@ module Pocof =
             RenderProcess.Rendered(state, entries, props)
 
     [<Sealed>]
-    type Periodic(handler, buff, cancelAction, promptLength) =
-        let handler: RenderHandler = handler
-        let buff: Screen.Buff = buff
-        let cancelAction: unit -> unit = cancelAction
+    type Periodic(handler: RenderHandler, buff: Screen.Buff, cancelAction: unit -> unit, promptLength: int) =
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
 
@@ -376,7 +373,7 @@ module Pocof =
             Concurrent.ConcurrentDictionary()
 
         override __.AddEntry entry =
-            if (entry, ()) |> keys.TryAdd then
+            if keys.TryAdd(entry, ()) then
                 entry |> __.Store.Add
 
     let getInputStore (unique: bool) =
@@ -385,9 +382,9 @@ module Pocof =
         | _ -> NormalInputStore() :> IInputStore
 
     let buildProperties (exists: string -> bool) (add: string * string seq -> Unit) (input: PSObject) =
-        let name = input.BaseObject.GetType().FullName
+        let typeName = input.BaseObject.GetType().FullName
 
-        if name |> exists |> not then
+        if typeName |> exists |> not then
             let props =
                 match input.BaseObject with
                 | :? IDictionary as dct ->
@@ -396,14 +393,11 @@ module Pocof =
                     | s -> s |> Seq.head |> _.GetType().GetProperties() |> Seq.map _.Name
                 | _ -> input.Properties |> Seq.map _.Name
 
-            (name, props) |> add
+            add (typeName, props)
 
     [<Sealed>]
     type PropertyStore() =
         let typeNameDictionary: Concurrent.ConcurrentDictionary<string, unit> =
-            Concurrent.ConcurrentDictionary()
-
-        let propertiesDictionary: Concurrent.ConcurrentDictionary<string, unit> =
             Concurrent.ConcurrentDictionary()
 
         let properties: string SpscAppendOnlyBuffer = SpscAppendOnlyBuffer()
@@ -411,14 +405,13 @@ module Pocof =
         let propertiesMap: Concurrent.ConcurrentDictionary<string, string> =
             Concurrent.ConcurrentDictionary StringComparer.OrdinalIgnoreCase
 
-        member __.ContainsKey = propertiesDictionary.ContainsKey
+        member __.ContainsKey = typeNameDictionary.ContainsKey
 
         member __.Add(name, props) =
             if typeNameDictionary.TryAdd(name, ()) then
                 for prop in props do
-                    if propertiesDictionary.TryAdd(prop, ()) then
+                    if propertiesMap.TryAdd(prop, prop) then
                         prop |> properties.Add
-                        propertiesMap.TryAdd(prop, prop) |> ignore
 
         member __.GetProperties() = properties
         member __.GetPropertyMap() = propertiesMap

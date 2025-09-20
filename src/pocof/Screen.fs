@@ -45,10 +45,7 @@ module Screen =
         abstract member HideCursorWhileRendering: unit -> IDisposable
 
     [<Sealed>]
-    type RawUI(rui, console) =
-        let rui: PSHostRawUserInterface = rui
-        let console: IConsoleInterface = console
-
+    type RawUI(rui: PSHostRawUserInterface, console: IConsoleInterface) =
         let ctrlCAsInput: bool = console.TreatControlCAsInput
 
         do console.TreatControlCAsInput <- true
@@ -106,10 +103,7 @@ module Screen =
     let escapeSequenceResetInvert = "\x1b[27m"
 
     [<Sealed>]
-    type Buff(r, i, layout, prompt) =
-        let rui: IRawUI = r
-        let invoke: obj seq -> string seq = i
-        let layout: Data.Layout = layout
+    type Buff(rui: IRawUI, invoke: obj seq -> string seq, layout: Data.Layout, prompt: string) =
         let promptLength = prompt |> String.length
         let sbCache = StringBuilderCache()
 
@@ -144,7 +138,7 @@ module Screen =
                 | Data.Layout.BottomUpHalf -> y + height
                 | _ -> y
 
-            (0, y) ||> rui.SetCursorPosition
+            rui.SetCursorPosition 0 y
 
         [<TailCall>]
         let rec getQuery (w: int) (q: string) (l: int) =

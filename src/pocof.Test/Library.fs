@@ -150,7 +150,7 @@ module SelectPocofCommand =
         inherit SelectPocofCommand()
 
         member val Host: PSHost = new Mock.Host()
-        override __.Invoke(input: 'a seq) = input |> Seq.map string
+        override __.Invoke(input: obj seq) = input |> Seq.map string
         override __.PSHost() = __.Host
 
         override __.ConsoleInterface() = new MockConsoleInterface()
