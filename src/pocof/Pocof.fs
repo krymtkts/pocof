@@ -413,9 +413,8 @@ module Pocof =
         member __.Add(name, props) =
             if typeNameDictionary.TryAdd(name, ()) then
                 for prop in props do
-                    if propertiesDictionary.TryAdd(prop, ()) then
+                    if propertiesMap.TryAdd(prop, prop) then
                         prop |> properties.Add
-                        propertiesMap.TryAdd(prop, prop) |> ignore
 
         member __.GetProperties() = properties
         member __.GetPropertyMap() = propertiesMap
