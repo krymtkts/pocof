@@ -65,9 +65,9 @@ type SelectPocofCommand() =
     [<ValidateNotNullOrEmpty>]
     member val WordDelimiters = Pocof.defaultWordDelimiters with get, set
 
-    abstract member Invoke: 'a seq -> string seq
+    abstract member Invoke: obj seq -> string seq
 
-    default __.Invoke(input: 'a seq) =
+    default __.Invoke(input: obj seq) =
         __.InvokeCommand.InvokeScript(
             @"$input | Format-Table | Out-String",
             true,
