@@ -13,7 +13,7 @@ module Handle =
 
         let state = state |> InternalState.updateQueryState qs |> InternalState.refresh
 
-        state, context |> QueryContext.prepareQuery state
+        struct (state, context |> QueryContext.prepareQuery state)
 
     let private updateCursor
         (update: QueryState -> int -> QueryState)
@@ -24,10 +24,10 @@ module Handle =
         =
         let qs = update state.QueryState cursor |> QueryState.setInputMode mode
 
-        state
-        |> InternalState.refreshIfTrue (state.QueryState.Cursor <> qs.Cursor)
-        |> InternalState.updateQueryState qs,
-        context
+        struct (state
+                |> InternalState.refreshIfTrue (state.QueryState.Cursor <> qs.Cursor)
+                |> InternalState.updateQueryState qs,
+                context)
 
     let private moveCursor = updateCursor QueryState.moveCursor
     let private moveCursorBackwardWith = moveCursor -1
@@ -119,16 +119,16 @@ module Handle =
 
         let state = state |> InternalState.refresh |> InternalState.updateQueryState qs
 
-        state, context |> QueryContext.prepareQuery state
+        struct (state, context |> QueryContext.prepareQuery state)
 
     let private removeChars (direction: Direction) (size: int) (state: InternalState) (context: QueryContext) =
-        let removeQuery, limit =
+        let struct (removeQuery, limit) =
             match direction with
-            | Direction.Backward -> QueryState.backspaceQuery, 0
-            | Direction.Forward -> QueryState.deleteQuery, String.length state.QueryState.Query
+            | Direction.Backward -> struct (QueryState.backspaceQuery, 0)
+            | Direction.Forward -> struct (QueryState.deleteQuery, String.length state.QueryState.Query)
 
         match state.QueryState.Cursor with
-        | x when x = limit -> InternalState.noRefresh state, context
+        | x when x = limit -> struct (InternalState.noRefresh state, context)
         | _ ->
             let qs = removeQuery state.QueryState size
 
@@ -139,7 +139,7 @@ module Handle =
                 )
                 |> InternalState.updateQueryState qs
 
-            state, context |> QueryContext.prepareQuery state
+            struct (state, context |> QueryContext.prepareQuery state)
 
     let private removeCharsWithInputMode
         (direction: Direction)
@@ -180,7 +180,7 @@ module Handle =
         (context: QueryContext)
         =
         let cursor = state.QueryState.Cursor - selection
-        let state, context = setCursor cursor InputMode.Input state context
+        let struct (state, context) = setCursor cursor InputMode.Input state context
         removeChars direction (op wordCursor selection) state context
 
     let private deleteWord
@@ -209,9 +209,9 @@ module Handle =
         <| expandSelection (fun x y -> min x -y)
 
     let private deleteBackwardInput (state: InternalState) (context: QueryContext) =
-        let state, context =
+        let struct (state, context) =
             match state.QueryState.InputMode with
-            | InputMode.Input -> state, context
+            | InputMode.Input -> struct (state, context)
             | InputMode.Select c ->
                 let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
 
@@ -228,7 +228,7 @@ module Handle =
             | InputMode.Select c ->
                 let beginning = min state.QueryState.Cursor <| state.QueryState.Cursor - c
 
-                let state, context = setCursor beginning InputMode.Input state context
+                let struct (state, context) = setCursor beginning InputMode.Input state context
                 state, context, beginning
 
         removeCharsWithInputMode Direction.Forward (queryLength - beginning) state context
@@ -280,32 +280,32 @@ module Handle =
             <| InputMode.Select s
             <| QueryState.setCursor state.QueryState s
 
-        state |> InternalState.refresh |> InternalState.updateQueryState qs, context
+        struct (state |> InternalState.refresh |> InternalState.updateQueryState qs, context)
 
     let private rotateMatcher (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.rotateMatcher |> InternalState.refresh
 
-        state, context |> QueryContext.prepareQuery state
+        struct (state, context |> QueryContext.prepareQuery state)
 
     let private rotateOperator (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.rotateOperator |> InternalState.refresh
 
-        state, context |> QueryContext.prepareQuery state |> QueryContext.prepareTest state
+        struct (state, context |> QueryContext.prepareQuery state |> QueryContext.prepareTest state)
 
     let private toggleCaseSensitive (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.toggleCaseSensitive |> InternalState.refresh
 
-        state, context |> QueryContext.prepareQuery state
+        struct (state, context |> QueryContext.prepareQuery state)
 
     let private toggleInvertFilter (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.toggleInvertFilter |> InternalState.refresh
 
-        state, context |> QueryContext.prepareQuery state
+        struct (state, context |> QueryContext.prepareQuery state)
 
     let private toggleSuppressProperties (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.toggleSuppressProperties |> InternalState.refresh
 
-        state, context
+        struct (state, context)
 
     [<return: Struct>]
     let private (|AlreadyCompleted|_|) (keyword: string) (tail: string) (candidate: string) =
@@ -329,8 +329,8 @@ module Handle =
             let tail = state.QueryState.Query |> String.fromIndex state.QueryState.Cursor
 
             match candidate with
-            | AlreadyCompleted keyword tail rest -> basePosition, head, rest
-            | _ -> basePosition, head, tail
+            | AlreadyCompleted keyword tail rest -> struct (basePosition, head, rest)
+            | _ -> struct (basePosition, head, tail)
 
         let buildValues head next tail keyword candidates basePosition =
             let state =
@@ -340,10 +340,10 @@ module Handle =
                     PropertySearch = PropertySearch.Rotate(keyword, candidates) }
                 |> InternalState.refresh
 
-            state, context |> QueryContext.prepareQuery state
+            struct (state, context |> QueryContext.prepareQuery state)
 
         match state.PropertySearch with
-        | PropertySearch.NoSearch -> InternalState.noRefresh state, context
+        | PropertySearch.NoSearch -> struct (InternalState.noRefresh state, context)
         | PropertySearch.Search keyword ->
             let candidates = properties |> Seq.filter (String.startsWithIgnoreCase keyword)
 
@@ -351,7 +351,7 @@ module Handle =
             | true -> InternalState.noRefresh state, context
             | _ ->
                 let candidate = Seq.head candidates
-                let basePosition, head, tail = splitQuery keyword candidate
+                let struct (basePosition, head, tail) = splitQuery keyword candidate
 #if DEBUG
                 Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
@@ -360,7 +360,7 @@ module Handle =
             let cur = candidates |> Seq.head
             let candidates = candidates |> Seq.tail
             let next = candidates |> Seq.head
-            let basePosition, head, tail = splitQuery cur next
+            let struct (basePosition, head, tail) = splitQuery cur next
 #if DEBUG
             Logger.LogFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif
@@ -372,7 +372,7 @@ module Handle =
         (state: InternalState)
         (context: QueryContext)
         (action: Action)
-        =
+        : struct (InternalState * QueryContext) =
         match action with
         | Action.Noop -> InternalState.noRefresh state, context
         | Action.AddQuery query -> addQuery state context query

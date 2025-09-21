@@ -135,14 +135,16 @@ module Pocof =
                 unwrap results.Value
             | action ->
                 // NOTE: update the console width before invokeAction because users can modify the console width during blocking by args.GetKey.
-                action
-                |> invokeAction
-                    args.WordDelimiters
-                    args.Properties
-                    (state
-                     |> InternalState.updateConsoleWidth args.PromptLength (args.GetConsoleWidth()))
-                    context
-                ||> loop args results
+                let struct (state, context) =
+                    action
+                    |> invokeAction
+                        args.WordDelimiters
+                        args.Properties
+                        (state
+                         |> InternalState.updateConsoleWidth args.PromptLength (args.GetConsoleWidth()))
+                        context
+
+                loop args results state context
 
     let interact
         (conf: InternalConfig)
