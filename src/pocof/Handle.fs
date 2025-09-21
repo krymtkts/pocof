@@ -10,9 +10,7 @@ module Handle =
 
     let private addQuery (state: InternalState) (context: QueryContext) (query: string) =
         let qs = QueryState.deleteSelection state.QueryState |> QueryState.addQuery query
-
         let state = state |> InternalState.updateQueryState qs |> InternalState.refresh
-
         struct (state, context |> QueryContext.prepareQuery state)
 
     let private updateCursor
@@ -112,9 +110,7 @@ module Handle =
 
     let private removeSelection (state: InternalState) (context: QueryContext) =
         let qs = QueryState.deleteSelection state.QueryState
-
         let state = state |> InternalState.refresh |> InternalState.updateQueryState qs
-
         struct (state, context |> QueryContext.prepareQuery state)
 
     let private removeChars (direction: Direction) (size: int) (state: InternalState) (context: QueryContext) =
@@ -211,7 +207,6 @@ module Handle =
             | InputMode.Input -> struct (state, context)
             | InputMode.Select c ->
                 let selection = max state.QueryState.Cursor <| state.QueryState.Cursor - c
-
                 setCursor selection InputMode.Input state context
 
         removeCharsWithInputMode Direction.Backward state.QueryState.Cursor state context
@@ -224,7 +219,6 @@ module Handle =
             | InputMode.Input -> struct (state, context, state.QueryState.Cursor)
             | InputMode.Select c ->
                 let beginning = min state.QueryState.Cursor <| state.QueryState.Cursor - c
-
                 let struct (state, context) = setCursor beginning InputMode.Input state context
                 struct (state, context, beginning)
 
@@ -281,27 +275,22 @@ module Handle =
 
     let private rotateMatcher (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.rotateMatcher |> InternalState.refresh
-
         struct (state, context |> QueryContext.prepareQuery state)
 
     let private rotateOperator (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.rotateOperator |> InternalState.refresh
-
         struct (state, context |> QueryContext.prepareQuery state |> QueryContext.prepareTest state)
 
     let private toggleCaseSensitive (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.toggleCaseSensitive |> InternalState.refresh
-
         struct (state, context |> QueryContext.prepareQuery state)
 
     let private toggleInvertFilter (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.toggleInvertFilter |> InternalState.refresh
-
         struct (state, context |> QueryContext.prepareQuery state)
 
     let private toggleSuppressProperties (state: InternalState) (context: QueryContext) =
         let state = state |> InternalState.toggleSuppressProperties |> InternalState.refresh
-
         struct (state, context)
 
     [<return: Struct>]
@@ -320,7 +309,7 @@ module Handle =
         | _ -> ValueNone
 
     let private completeProperty (properties: string seq) (state: InternalState) (context: QueryContext) =
-        let splitQuery keyword candidate =
+        let splitQuery state keyword candidate =
             let basePosition = state.QueryState.Cursor - String.length keyword
             let head = state.QueryState.Query |> String.upToIndex basePosition
             let tail = state.QueryState.Query |> String.fromIndex state.QueryState.Cursor
@@ -329,7 +318,7 @@ module Handle =
             | AlreadyCompleted keyword tail rest -> struct (basePosition, head, rest)
             | _ -> struct (basePosition, head, tail)
 
-        let buildValues head next tail keyword candidates basePosition =
+        let buildValues head next tail keyword candidates basePosition context =
             let state =
                 { state with
                     InternalState.QueryState.Query = $"%s{head}%s{next}%s{tail}"
@@ -337,7 +326,7 @@ module Handle =
                     PropertySearch = PropertySearch.Rotate(keyword, candidates) }
                 |> InternalState.refresh
 
-            struct (state, context |> QueryContext.prepareQuery state) // TODO: Remove the value-type (struct) capture caused by this closure.
+            struct (state, context |> QueryContext.prepareQuery state)
 
         match state.PropertySearch with
         | PropertySearch.NoSearch -> struct (InternalState.noRefresh state, context)
@@ -348,20 +337,20 @@ module Handle =
             | true -> struct (InternalState.noRefresh state, context)
             | _ ->
                 let candidate = Seq.head candidates
-                let struct (basePosition, head, tail) = splitQuery keyword candidate
+                let struct (basePosition, head, tail) = splitQuery state keyword candidate
 #if DEBUG
                 Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
 #endif
-                buildValues head candidate tail keyword (candidates |> Seq.cycle) basePosition
+                buildValues head candidate tail keyword (candidates |> Seq.cycle) basePosition context
         | PropertySearch.Rotate(keyword, candidates) ->
             let cur = candidates |> Seq.head
             let candidates = candidates |> Seq.tail
             let next = candidates |> Seq.head
-            let struct (basePosition, head, tail) = splitQuery cur next
+            let struct (basePosition, head, tail) = splitQuery state cur next
 #if DEBUG
             Logger.LogFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
 #endif
-            buildValues head next tail keyword candidates basePosition
+            buildValues head next tail keyword candidates basePosition context
 
     let invokeAction
         (wordDelimiters: string)
