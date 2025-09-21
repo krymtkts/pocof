@@ -44,14 +44,14 @@ module Handle =
     [<TailCall>]
     let rec private findCursorOfChar (predicate: char -> bool) (str: char array) (cursor: int) =
         if Array.length str <= cursor then
-            Array.Empty(), cursor
+            struct (Array.Empty(), cursor)
         else
             let c = str.[cursor]
 
             if predicate c then
                 findCursorOfChar predicate str (cursor + 1)
             else
-                str, cursor
+                struct (str, cursor)
 
     let private findWordCursor (wordDelimiters: string) =
         isWordDelimiter wordDelimiters |> findCursorOfChar
@@ -61,18 +61,19 @@ module Handle =
 
     let private findWordCursorWith
         (substring: int -> string -> char array)
-        (findA: string -> char array -> int -> char array * int)
-        (findB: string -> char array -> int -> char array * int)
+        (findA: string -> char array -> int -> struct (char array * int))
+        (findB: string -> char array -> int -> struct (char array * int))
         (wordDelimiters: string)
         (query: string)
         (cursor: int)
         =
         if String.length query < cursor then
-            Array.Empty(), 0
+            struct (Array.Empty(), 0)
         else
             let str = substring cursor query
             // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
-            findA wordDelimiters str 0 ||> findB wordDelimiters
+            let struct (str, cursor) = findA wordDelimiters str 0
+            findB wordDelimiters str cursor
 
     let private findBackwardWordCursor =
         findWordCursorWith
@@ -86,11 +87,16 @@ module Handle =
             findWordDelimiterCursor
             findWordCursor
 
-    let private wordAction findWordCursor converter (state: InternalState) =
+    let private wordAction
+        (findWordCursor: string -> int -> struct (char array * int))
+        (converter: int -> int)
+        (state: InternalState)
+        =
         let i =
-            findWordCursor state.QueryState.Query state.QueryState.Cursor
-            |> snd
-            |> converter
+            let struct (_, cursor) =
+                findWordCursor state.QueryState.Query state.QueryState.Cursor
+
+            converter cursor
 
         moveCursor i InputMode.Input state
 
@@ -184,14 +190,15 @@ module Handle =
         removeChars direction (op wordCursor selection) state context
 
     let private deleteWord
-        findCursor
-        direction
+        (findCursor: string -> int -> struct (char array * int))
+        (direction: Direction)
         handleBackwardSelection
         handleForwardSelection
         (state: InternalState)
         (context: QueryContext)
         =
-        let wordCursor = findCursor state.QueryState.Query state.QueryState.Cursor |> snd
+        let struct (_, wordCursor) =
+            findCursor state.QueryState.Query state.QueryState.Cursor
 
         match state.QueryState.InputMode with
         | Input -> removeChars direction wordCursor state context
@@ -222,14 +229,14 @@ module Handle =
     let private deleteForwardInput (state: InternalState) (context: QueryContext) =
         let queryLength = String.length state.QueryState.Query
 
-        let state, context, beginning =
+        let struct (state, context, beginning) =
             match state.QueryState.InputMode with
-            | InputMode.Input -> state, context, state.QueryState.Cursor
+            | InputMode.Input -> struct (state, context, state.QueryState.Cursor)
             | InputMode.Select c ->
                 let beginning = min state.QueryState.Cursor <| state.QueryState.Cursor - c
 
                 let struct (state, context) = setCursor beginning InputMode.Input state context
-                state, context, beginning
+                struct (state, context, beginning)
 
         removeCharsWithInputMode Direction.Forward (queryLength - beginning) state context
 
@@ -243,12 +250,17 @@ module Handle =
         <| QueryState.getQuerySelection 1 state.QueryState
         <| state
 
-    let private selectWord findCursor operator converter (state: InternalState) =
-        let i = findCursor state.QueryState.Query state.QueryState.Cursor |> snd
+    let private selectWord
+        (findCursor: string -> int -> struct (char array * int))
+        operator
+        (converter: int -> int)
+        (state: InternalState)
+        =
+        let struct (_, cursor) = findCursor state.QueryState.Query state.QueryState.Cursor
 
         setCursor
-        <| operator state.QueryState.Cursor i
-        <| QueryState.getQuerySelection (converter i) state.QueryState
+        <| operator state.QueryState.Cursor cursor
+        <| QueryState.getQuerySelection (converter cursor) state.QueryState
         <| state
 
     let private selectBackwardWord wordDelimiters =
@@ -340,7 +352,7 @@ module Handle =
                     PropertySearch = PropertySearch.Rotate(keyword, candidates) }
                 |> InternalState.refresh
 
-            struct (state, context |> QueryContext.prepareQuery state)
+            struct (state, context |> QueryContext.prepareQuery state) // TODO: Remove the value-type (struct) capture caused by this closure.
 
         match state.PropertySearch with
         | PropertySearch.NoSearch -> struct (InternalState.noRefresh state, context)
@@ -348,7 +360,7 @@ module Handle =
             let candidates = properties |> Seq.filter (String.startsWithIgnoreCase keyword)
 
             match candidates |> Seq.isEmpty with
-            | true -> InternalState.noRefresh state, context
+            | true -> struct (InternalState.noRefresh state, context)
             | _ ->
                 let candidate = Seq.head candidates
                 let struct (basePosition, head, tail) = splitQuery keyword candidate
@@ -374,7 +386,7 @@ module Handle =
         (action: Action)
         : struct (InternalState * QueryContext) =
         match action with
-        | Action.Noop -> InternalState.noRefresh state, context
+        | Action.Noop -> struct (InternalState.noRefresh state, context)
         | Action.AddQuery query -> addQuery state context query
         | Action.BackwardChar -> backwardChar state context
         | Action.ForwardChar -> forwardChar state context
