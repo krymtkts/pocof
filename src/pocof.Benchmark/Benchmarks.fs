@@ -140,7 +140,7 @@ type HandleBenchmarks() =
 
     let properties = [ "Key"; "Value"; "Length"; "Name"; "Type"; "Names" ]
 
-    [<Benchmark>]
+    [<Benchmark(Baseline = true)>]
     member __.invokeAction_Noop() =
         Action.Noop |> Handle.invokeAction wordDelimiters [] state context
 
