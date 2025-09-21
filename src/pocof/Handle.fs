@@ -68,11 +68,11 @@ module Handle =
         (cursor: int)
         =
         if String.length query < cursor then
-            struct (Array.Empty(), 0)
+            0
         else
             let str = substring cursor query
             // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
-            findA wordDelimiters str 0 ||*> findB wordDelimiters
+            findA wordDelimiters str 0 ||*> findB wordDelimiters |> snd'
 
     let private findBackwardWordCursor =
         findWordCursorWith
@@ -86,16 +86,8 @@ module Handle =
             findWordDelimiterCursor
             findWordCursor
 
-    let private wordAction
-        (findWordCursor: string -> int -> struct (char array * int))
-        (converter: int -> int)
-        (state: InternalState)
-        =
-        let i =
-            findWordCursor state.QueryState.Query state.QueryState.Cursor
-            |> snd'
-            |> converter
-
+    let private wordAction (findWordCursor: string -> int -> int) (converter: int -> int) (state: InternalState) =
+        let i = findWordCursor state.QueryState.Query state.QueryState.Cursor |> converter
         moveCursor i InputMode.Input state
 
     let private backwardWord wordDelimiters =
@@ -189,14 +181,14 @@ module Handle =
         ||*> removeChars direction (op wordCursor selection)
 
     let private deleteWord
-        (findCursor: string -> int -> struct (char array * int))
+        (findCursor: string -> int -> int)
         (direction: Direction)
         handleBackwardSelection
         handleForwardSelection
         (state: InternalState)
         (context: QueryContext)
         =
-        let wordCursor = findCursor state.QueryState.Query state.QueryState.Cursor |> snd'
+        let wordCursor = findCursor state.QueryState.Query state.QueryState.Cursor
 
         match state.QueryState.InputMode with
         | Input -> removeChars direction wordCursor state context
@@ -248,13 +240,8 @@ module Handle =
         <| QueryState.getQuerySelection 1 state.QueryState
         <| state
 
-    let private selectWord
-        (findCursor: string -> int -> struct (char array * int))
-        operator
-        (converter: int -> int)
-        (state: InternalState)
-        =
-        let cursor = findCursor state.QueryState.Query state.QueryState.Cursor |> snd'
+    let private selectWord (findCursor: string -> int -> int) operator (converter: int -> int) (state: InternalState) =
+        let cursor = findCursor state.QueryState.Query state.QueryState.Cursor
 
         setCursor
         <| operator state.QueryState.Cursor cursor
