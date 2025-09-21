@@ -72,8 +72,7 @@ module Handle =
         else
             let str = substring cursor query
             // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
-            let struct (str, cursor) = findA wordDelimiters str 0
-            findB wordDelimiters str cursor
+            findA wordDelimiters str 0 ||*> findB wordDelimiters
 
     let private findBackwardWordCursor =
         findWordCursorWith
@@ -93,10 +92,9 @@ module Handle =
         (state: InternalState)
         =
         let i =
-            let struct (_, cursor) =
-                findWordCursor state.QueryState.Query state.QueryState.Cursor
-
-            converter cursor
+            findWordCursor state.QueryState.Query state.QueryState.Cursor
+            |> snd'
+            |> converter
 
         moveCursor i InputMode.Input state
 
@@ -186,8 +184,9 @@ module Handle =
         (context: QueryContext)
         =
         let cursor = state.QueryState.Cursor - selection
-        let struct (state, context) = setCursor cursor InputMode.Input state context
-        removeChars direction (op wordCursor selection) state context
+
+        setCursor cursor InputMode.Input state context
+        ||*> removeChars direction (op wordCursor selection)
 
     let private deleteWord
         (findCursor: string -> int -> struct (char array * int))
@@ -197,8 +196,7 @@ module Handle =
         (state: InternalState)
         (context: QueryContext)
         =
-        let struct (_, wordCursor) =
-            findCursor state.QueryState.Query state.QueryState.Cursor
+        let wordCursor = findCursor state.QueryState.Query state.QueryState.Cursor |> snd'
 
         match state.QueryState.InputMode with
         | Input -> removeChars direction wordCursor state context
@@ -256,7 +254,7 @@ module Handle =
         (converter: int -> int)
         (state: InternalState)
         =
-        let struct (_, cursor) = findCursor state.QueryState.Query state.QueryState.Cursor
+        let cursor = findCursor state.QueryState.Query state.QueryState.Cursor |> snd'
 
         setCursor
         <| operator state.QueryState.Cursor cursor
