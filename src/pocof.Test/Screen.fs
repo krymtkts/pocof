@@ -63,7 +63,7 @@ let ``tests Buff writeScreen`` =
               let rui = new MockRawUI()
 
               (rui :> IRawUI).GetCursorPosition()
-              |> (fun (x, y) -> (rui :> IRawUI).SetCursorPosition <| x / 2 <| y / 2 + 1)
+              |> fun struct (x, y) -> (rui :> IRawUI).SetCursorPosition <| x / 2 <| y / 2 + 1
 
               let state = state |> InternalState.updateConsoleWidth ``query>Length`` rui.width
               let rui = getRenderedScreen rui state Layout.TopDownHalf ``query>``

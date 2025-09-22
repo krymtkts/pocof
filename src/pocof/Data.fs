@@ -132,6 +132,34 @@ module LanguageExtension =
                             // Exception getting "Size": "There is no Runspace available to run scripts in this thread. You can provide one in the DefaultRunspace property of the System.Management.Automation.Runspaces.Runspace type. The script block you attempted to invoke was: $this.UnixStat.Size"
                             null
 
+    let
+#if !DEBUG
+        inline
+#endif
+        (||*>)
+            struct (a, b)
+            f
+            =
+        f a b
+
+    let
+#if !DEBUG
+        inline
+#endif
+        fst'
+            struct (a, _)
+            =
+        a
+
+    let
+#if !DEBUG
+        inline
+#endif
+        snd'
+            struct (_, b)
+            =
+        b
+
 module Data =
     open System
     open System.Collections
