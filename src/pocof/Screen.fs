@@ -34,7 +34,7 @@ module Screen =
     [<Interface>]
     type IRawUI =
         inherit IDisposable
-        abstract member GetCursorPosition: unit -> int * int
+        abstract member GetCursorPosition: unit -> struct (int * int)
         abstract member SetCursorPosition: x: int -> y: int -> unit
         abstract member GetLengthInBufferCells: prompt: string -> int
         abstract member GetWindowWidth: unit -> int
@@ -52,7 +52,7 @@ module Screen =
 
         interface IRawUI with
             member __.GetCursorPosition() =
-                rui.CursorPosition.X, rui.CursorPosition.Y
+                struct (rui.CursorPosition.X, rui.CursorPosition.Y)
 
             member __.SetCursorPosition (x: int) (y: int) = rui.CursorPosition <- Coordinates(x, y)
 
@@ -122,7 +122,7 @@ module Screen =
                 let y =
                     match layout with
                     | Data.Layout.TopDownHalf
-                    | Data.Layout.BottomUpHalf -> rui.GetCursorPosition() |> snd
+                    | Data.Layout.BottomUpHalf -> rui.GetCursorPosition() |> snd'
                     | _ -> 0
 
                 match y + height - rui.GetWindowHeight() with
@@ -130,7 +130,7 @@ module Screen =
                 | over -> y - over - 1
 
             // NOTE: add lines to the end of the screen for scrolling using the PSReadLine method.
-            rui.GetCursorPosition() ||> rui.Write <| String.replicate height "\n"
+            rui.GetCursorPosition() ||*> rui.Write <| String.replicate height "\n"
 
             let y =
                 match layout with
@@ -226,26 +226,26 @@ module Screen =
             | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
             |> (+) (Data.InternalState.getX promptLength state)
 
-        let calculatePositions: unit -> int * int * int * int =
+        let calculatePositions: unit -> struct (int * int * int * int) =
             let calcTopDown () =
                 let height = rui.GetWindowHeight()
                 let basePosition = 0
-                basePosition, basePosition + 1, basePosition + 2, height - 3
+                struct (basePosition, basePosition + 1, basePosition + 2, height - 3)
 
             let calcTopDownHalf () =
                 let height = rui.GetWindowHeight()
-                let basePosition = rui.GetCursorPosition() |> snd
-                basePosition, basePosition + 1, basePosition + 2, height / 2 - 3
+                let basePosition = rui.GetCursorPosition() |> snd'
+                struct (basePosition, basePosition + 1, basePosition + 2, height / 2 - 3)
 
             let calcBottomUp () =
                 let height = rui.GetWindowHeight()
                 let basePosition = height - 1
-                basePosition, basePosition - 1, 0, height - 3
+                struct (basePosition, basePosition - 1, 0, height - 3)
 
             let calcBottomUpHalf () =
-                let basePosition = rui.GetCursorPosition() |> snd
+                let basePosition = rui.GetCursorPosition() |> snd'
                 let height = rui.GetWindowHeight() / 2
-                basePosition, basePosition - 1, basePosition - height + 1, height - 3
+                struct (basePosition, basePosition - 1, basePosition - height + 1, height - 3)
 
             match layout with
             | Data.Layout.TopDown -> calcTopDown
@@ -266,7 +266,7 @@ module Screen =
                 use _ = rui.HideCursorWhileRendering()
 
                 let pos =
-                    let y = rui.GetCursorPosition() |> snd
+                    let y = rui.GetCursorPosition() |> snd'
 
                     match layout with
                     | Data.Layout.BottomUp -> 0, 0
@@ -307,7 +307,7 @@ module Screen =
             use _ = rui.HideCursorWhileRendering()
             let width = rui.GetWindowWidth()
 
-            let baseLine, firstLine, toHeight, screenHeight = calculatePositions ()
+            let struct (baseLine, firstLine, toHeight, screenHeight) = calculatePositions ()
             let queryString = getQueryString state
             queryString |> __.WriteScreenLine width baseLine
 
