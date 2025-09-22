@@ -146,6 +146,15 @@ module LanguageExtension =
 #if !DEBUG
         inline
 #endif
+        fst'
+            struct (a, _)
+            =
+        a
+
+    let
+#if !DEBUG
+        inline
+#endif
         snd'
             struct (_, b)
             =

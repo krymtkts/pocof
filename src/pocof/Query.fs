@@ -116,9 +116,9 @@ module Query =
         let queries = prepareQuery state.QueryState.Query state.QueryCondition
         let notification = prepareNotification state.QueryState.Query state.QueryCondition
 
-        { Queries = queries
-          Operator = state.QueryCondition.Operator },
-        notification
+        struct ({ Queries = queries
+                  Operator = state.QueryCondition.Operator },
+                notification)
 
     module InternalState =
         let prepareNotification state =

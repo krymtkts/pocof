@@ -134,7 +134,7 @@ type HandleBenchmarks() =
             InternalState.QueryState.Cursor = 5
             PropertySearch = PropertySearch.Rotate("Na", Seq.cycle [ "Name"; "Names" ]) }
 
-    let context, _ = state |> Query.prepare
+    let context = state |> Query.prepare |> fst'
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
@@ -236,7 +236,7 @@ type QueryRunBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
             |> Query.prepare
-            |> fst
+            |> fst'
 
         __.PropertyContext <-
             { state with
@@ -245,7 +245,7 @@ type QueryRunBenchmarks() =
                     |> Seq.map (fun x -> $":Length {x}")
                     |> String.concat " " }
             |> Query.prepare
-            |> fst
+            |> fst'
 
         __.Objects <-
             seq { 1 .. __.EntryCount }
@@ -292,7 +292,7 @@ type QueryPrepareBenchmarks() =
           Refresh = Refresh.NotRequired }
 
     [<Benchmark>]
-    member __.prepare() = Query.prepare state |> fst
+    member __.prepare() = Query.prepare state |> fst'
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
@@ -316,7 +316,7 @@ type QueryBenchmarks() =
         { state with
             InternalState.QueryState.Query = ":Name foo bar :Value buz" }
 
-    let contextForPrepareQuery = Query.prepare state |> fst
+    let contextForPrepareQuery = Query.prepare state |> fst'
 
     [<Benchmark>]
     member __.prepareQuery() =
