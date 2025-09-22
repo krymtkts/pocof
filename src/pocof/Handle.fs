@@ -8,6 +8,9 @@ open Query
 module Handle =
     type QueryContext = Query.QueryContext
 
+    let private noop (state: InternalState) (context: QueryContext) =
+        struct (InternalState.noRefresh state, context)
+
     let private addQuery (state: InternalState) (context: QueryContext) (query: string) =
         let qs = QueryState.deleteSelection state.QueryState |> QueryState.addQuery query
         let state = state |> InternalState.updateQueryState qs |> InternalState.refresh
@@ -114,10 +117,10 @@ module Handle =
         struct (state, context |> QueryContext.prepareQuery state)
 
     let private removeChars (direction: Direction) (size: int) (state: InternalState) (context: QueryContext) =
-        let struct (removeQuery, limit) =
+        let removeQuery, limit =
             match direction with
-            | Direction.Backward -> struct (QueryState.backspaceQuery, 0)
-            | Direction.Forward -> struct (QueryState.deleteQuery, String.length state.QueryState.Query)
+            | Direction.Backward -> QueryState.backspaceQuery, 0
+            | Direction.Forward -> QueryState.deleteQuery, String.length state.QueryState.Query
 
         match state.QueryState.Cursor with
         | x when x = limit -> struct (InternalState.noRefresh state, context)
@@ -214,13 +217,13 @@ module Handle =
     let private deleteForwardInput (state: InternalState) (context: QueryContext) =
         let queryLength = String.length state.QueryState.Query
 
-        let struct (state, context, beginning) =
+        let state, context, beginning =
             match state.QueryState.InputMode with
-            | InputMode.Input -> struct (state, context, state.QueryState.Cursor)
+            | InputMode.Input -> state, context, state.QueryState.Cursor
             | InputMode.Select c ->
                 let beginning = min state.QueryState.Cursor <| state.QueryState.Cursor - c
                 let struct (state, context) = setCursor beginning InputMode.Input state context
-                struct (state, context, beginning)
+                state, context, beginning
 
         removeCharsWithInputMode Direction.Forward (queryLength - beginning) state context
 
@@ -360,7 +363,7 @@ module Handle =
         (action: Action)
         : struct (InternalState * QueryContext) =
         match action with
-        | Action.Noop -> struct (InternalState.noRefresh state, context)
+        | Action.Noop -> noop state context
         | Action.AddQuery query -> addQuery state context query
         | Action.BackwardChar -> backwardChar state context
         | Action.ForwardChar -> forwardChar state context
