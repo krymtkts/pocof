@@ -74,9 +74,8 @@ module Handle =
     let private backwardWord (wordDelimiters: string) (state: InternalState) =
         let i =
             findBackwardWordCursor wordDelimiters state.QueryState.Query state.QueryState.Cursor
-            |> (~-) // TODO: Refactor deleteBackwardWord/selectBackwardWord so negate here is unnecessary.
 
-        moveCursor i InputMode.Input state
+        moveCursor -i InputMode.Input state
 
     let private forwardWord (wordDelimiters: string) (state: InternalState) =
         let i =
