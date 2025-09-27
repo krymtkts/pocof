@@ -33,7 +33,7 @@ module Handle =
     let private moveCursor = updateCursor QueryState.moveCursor
     let private moveCursorBackwardWith = moveCursor -1
     let private backwardChar = moveCursorBackwardWith InputMode.Input
-    let private moveCursorForwardWith (mode: InputMode) (state: InternalState) = moveCursor 1 mode state
+    let private moveCursorForwardWith = moveCursor 1
     let private forwardChar = moveCursorForwardWith InputMode.Input
 
     [<Literal>]
