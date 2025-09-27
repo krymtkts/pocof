@@ -39,7 +39,14 @@ module Handle =
     [<Literal>]
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
-    let private isWordDelimiter (wordDelimiters: string) (c: char) =
+    let
+#if !DEBUG
+        inline
+#endif
+        private isWordDelimiter
+            (wordDelimiters: string)
+            (c: char)
+            =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
     let private findBackwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
