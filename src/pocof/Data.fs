@@ -416,21 +416,26 @@ module Data =
                     | s -> s |> InputMode.Select
 
         let backspaceQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
-            let index, count =
-                let ql = String.length state.Query
+            let query = state.Query
 
-                match ql - state.Cursor with
+            let index, count =
+                let ql = String.length query
+                let cursor = state.Cursor
+                let diff = ql - cursor
+
+                match diff with
                 | Negative ->
                     ql,
-                    match size + ql - state.Cursor with
+                    // NOTE: if the cursor is over the query, delete from the end of the query.
+                    match size + diff with
                     | Negative -> 0
                     | s -> s
-                | _ -> state.Cursor, size
+                | _ -> cursor, size
                 |> function
                     | cursor, size -> cursor - size, size
 
             { state with
-                Query = state.Query.Remove(index, count)
+                Query = query.Remove(index, count)
                 Cursor = index }
 
         let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
