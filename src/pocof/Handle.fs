@@ -49,7 +49,7 @@ module Handle =
             =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
-    let private findBackwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
+    let private measureBackwardWordMove (wordDelimiters: string) (query: string) (cursor: int) =
         if cursor <= 0 || cursor > query.Length then
             0
         else
@@ -63,7 +63,7 @@ module Handle =
 
             cursor - i
 
-    let private findForwardWordCursor (wordDelimiters: string) (query: string) (cursor: int) =
+    let private measureForwardWordMove (wordDelimiters: string) (query: string) (cursor: int) =
         if cursor < 0 || cursor >= query.Length then
             0
         else
@@ -80,13 +80,13 @@ module Handle =
 
     let private backwardWord (wordDelimiters: string) (state: InternalState) =
         let i =
-            findBackwardWordCursor wordDelimiters state.QueryState.Query state.QueryState.Cursor
+            measureBackwardWordMove wordDelimiters state.QueryState.Query state.QueryState.Cursor
 
         moveCursor -i InputMode.Input state
 
     let private forwardWord (wordDelimiters: string) (state: InternalState) =
         let i =
-            findForwardWordCursor wordDelimiters state.QueryState.Query state.QueryState.Cursor
+            measureForwardWordMove wordDelimiters state.QueryState.Query state.QueryState.Cursor
 
         moveCursor i InputMode.Input state
 
@@ -188,12 +188,12 @@ module Handle =
         | SelectForward selection -> handleForwardSelection direction selection wordCursor state context
 
     let private deleteBackwardWord wordDelimiters =
-        deleteWord (findBackwardWordCursor wordDelimiters) Direction.Backward
+        deleteWord (measureBackwardWordMove wordDelimiters) Direction.Backward
         <| expandSelection max
         <| calculateRemovalSize (-)
 
     let private deleteForwardWord wordDelimiters =
-        deleteWord (findForwardWordCursor wordDelimiters) Direction.Forward
+        deleteWord (measureForwardWordMove wordDelimiters) Direction.Forward
         <| calculateRemovalSize (+)
         <| expandSelection (fun x y -> min x -y)
 
@@ -239,10 +239,10 @@ module Handle =
         <| state
 
     let private selectBackwardWord wordDelimiters =
-        selectWord (findBackwardWordCursor wordDelimiters) (-) (~-)
+        selectWord (measureBackwardWordMove wordDelimiters) (-) (~-)
 
     let private selectForwardWord wordDelimiters =
-        selectWord (findForwardWordCursor wordDelimiters) (+) id
+        selectWord (measureForwardWordMove wordDelimiters) (+) id
 
     let private selectToBeginningOfLine (state: InternalState) (context: QueryContext) =
         setCursor 0
