@@ -49,11 +49,13 @@ module Handle =
             =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
+    // TODO: measure functions should correct the invalid cursor position.
     let private measureBackwardWordMove (wordDelimiters: string) (query: string) (cursor: int) =
-        if cursor <= 0 || cursor > query.Length then
+        if cursor <= 0 then
             0
         else
-            let mutable i = cursor
+            let len = query.Length
+            let mutable i = min len cursor
 
             while i > 0 && isWordDelimiter wordDelimiters query.[i - 1] do
                 i <- i - 1
@@ -63,12 +65,14 @@ module Handle =
 
             cursor - i
 
+    // TODO: measure functions should correct the invalid cursor position.
     let private measureForwardWordMove (wordDelimiters: string) (query: string) (cursor: int) =
-        if cursor < 0 || cursor >= query.Length then
+        let len = query.Length
+
+        if cursor >= len then
             0
         else
-            let len = query.Length
-            let mutable i = cursor
+            let mutable i = max 0 cursor
 
             while i < len && not (isWordDelimiter wordDelimiters query.[i]) do
                 i <- i + 1
