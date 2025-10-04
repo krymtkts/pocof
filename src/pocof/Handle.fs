@@ -33,69 +33,66 @@ module Handle =
     let private moveCursor = updateCursor QueryState.moveCursor
     let private moveCursorBackwardWith = moveCursor -1
     let private backwardChar = moveCursorBackwardWith InputMode.Input
-    let private moveCursorForwardWith (mode: InputMode) (state: InternalState) = moveCursor 1 mode state
+    let private moveCursorForwardWith = moveCursor 1
     let private forwardChar = moveCursorForwardWith InputMode.Input
 
     [<Literal>]
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
-    let private isWordDelimiter (wordDelimiters: string) (c: char) =
+    let
+#if !DEBUG
+        inline
+#endif
+        private isWordDelimiter
+            (wordDelimiters: string)
+            (c: char)
+            =
         Char.IsWhiteSpace c || wordDelimiters.IndexOf(c) >= 0
 
-    [<TailCall>]
-    let rec private findCursorOfChar (predicate: char -> bool) (str: char array) (cursor: int) =
-        if Array.length str <= cursor then
-            struct (Array.Empty(), cursor)
-        else
-            let c = str.[cursor]
-
-            if predicate c then
-                findCursorOfChar predicate str (cursor + 1)
-            else
-                struct (str, cursor)
-
-    let private findWordCursor (wordDelimiters: string) =
-        isWordDelimiter wordDelimiters |> findCursorOfChar
-
-    let rec private findWordDelimiterCursor (wordDelimiters: string) =
-        isWordDelimiter wordDelimiters >> not |> findCursorOfChar
-
-    let private findWordCursorWith
-        (substring: int -> string -> char array)
-        (findA: string -> char array -> int -> struct (char array * int))
-        (findB: string -> char array -> int -> struct (char array * int))
-        (wordDelimiters: string)
-        (query: string)
-        (cursor: int)
-        =
-        if String.length query < cursor then
+    // TODO: measure functions should correct the invalid cursor position.
+    let private measureBackwardWordMove (wordDelimiters: string) (query: string) (cursor: int) =
+        if cursor <= 0 then
             0
         else
-            let str = substring cursor query
-            // NOTE: emulate the behavior of the backward-word function in the PSReadLine.
-            findA wordDelimiters str 0 ||*> findB wordDelimiters |> snd'
+            let len = query.Length
+            let mutable i = min len cursor
 
-    let private findBackwardWordCursor =
-        findWordCursorWith
-            (fun i s -> s |> String.upToIndex i |> _.ToCharArray() |> Array.rev)
-            findWordCursor
-            findWordDelimiterCursor
+            while i > 0 && isWordDelimiter wordDelimiters query.[i - 1] do
+                i <- i - 1
 
-    let private findForwardWordCursor =
-        findWordCursorWith
-            (fun i s -> s |> String.fromIndex i |> _.ToCharArray())
-            findWordDelimiterCursor
-            findWordCursor
+            while i > 0 && not (isWordDelimiter wordDelimiters query.[i - 1]) do
+                i <- i - 1
 
-    let private wordAction (findWordCursor: string -> int -> int) (converter: int -> int) (state: InternalState) =
-        let i = findWordCursor state.QueryState.Query state.QueryState.Cursor |> converter
+            cursor - i
+
+    // TODO: measure functions should correct the invalid cursor position.
+    let private measureForwardWordMove (wordDelimiters: string) (query: string) (cursor: int) =
+        let len = query.Length
+
+        if cursor >= len then
+            0
+        else
+            let mutable i = max 0 cursor
+
+            while i < len && not (isWordDelimiter wordDelimiters query.[i]) do
+                i <- i + 1
+
+            while i < len && isWordDelimiter wordDelimiters query.[i] do
+                i <- i + 1
+
+            i - cursor
+
+    let private backwardWord (wordDelimiters: string) (state: InternalState) =
+        let i =
+            measureBackwardWordMove wordDelimiters state.QueryState.Query state.QueryState.Cursor
+
+        moveCursor -i InputMode.Input state
+
+    let private forwardWord (wordDelimiters: string) (state: InternalState) =
+        let i =
+            measureForwardWordMove wordDelimiters state.QueryState.Query state.QueryState.Cursor
+
         moveCursor i InputMode.Input state
-
-    let private backwardWord wordDelimiters =
-        wordAction (findBackwardWordCursor wordDelimiters) (~-)
-
-    let private forwardWord wordDelimiters =
-        wordAction (findForwardWordCursor wordDelimiters) id
 
     let private setCursor = updateCursor QueryState.setCursor
     let private beginningOfLine = setCursor 0 InputMode.Input
@@ -195,12 +192,12 @@ module Handle =
         | SelectForward selection -> handleForwardSelection direction selection wordCursor state context
 
     let private deleteBackwardWord wordDelimiters =
-        deleteWord (findBackwardWordCursor wordDelimiters) Direction.Backward
+        deleteWord (measureBackwardWordMove wordDelimiters) Direction.Backward
         <| expandSelection max
         <| calculateRemovalSize (-)
 
     let private deleteForwardWord wordDelimiters =
-        deleteWord (findForwardWordCursor wordDelimiters) Direction.Forward
+        deleteWord (measureForwardWordMove wordDelimiters) Direction.Forward
         <| calculateRemovalSize (+)
         <| expandSelection (fun x y -> min x -y)
 
@@ -246,10 +243,10 @@ module Handle =
         <| state
 
     let private selectBackwardWord wordDelimiters =
-        selectWord (findBackwardWordCursor wordDelimiters) (-) (~-)
+        selectWord (measureBackwardWordMove wordDelimiters) (-) (~-)
 
     let private selectForwardWord wordDelimiters =
-        selectWord (findForwardWordCursor wordDelimiters) (+) id
+        selectWord (measureForwardWordMove wordDelimiters) (+) id
 
     let private selectToBeginningOfLine (state: InternalState) (context: QueryContext) =
         setCursor 0
