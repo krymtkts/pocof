@@ -462,9 +462,9 @@ module Data =
 
         let getCurrentProperty (state: QueryState) =
             let s =
-                state.Query
-                |> String.upToIndex state.Cursor
-                |> fun x -> String.fromIndex <| x.LastIndexOf " " + 1 <| x
+                let q, c = state.Query, state.Cursor
+                let start = if c > 0 then q.LastIndexOf(' ', c - 1) + 1 else 0
+                q.Substring(start, c - start)
 
 #if DEBUG
             Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
