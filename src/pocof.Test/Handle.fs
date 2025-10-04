@@ -364,6 +364,29 @@ module invokeAction =
                   a2.Queries |> testQueryPartProperty "name" "aaa"
               }
 
+              test "When moving backward on 'aaaaaa' with cursor=7" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = "aaaaaa"
+                          InternalState.QueryState.Cursor = 7
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.NoSearch }
+
+                  let context = Query.prepare state |> fst'
+                  let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
+
+                  a1
+                  |> Expect.equal
+                      "should return state with cursor=0 and InputMode=Input"
+                      { state with
+                          InternalState.QueryState.Query = "aaaaaa"
+                          InternalState.QueryState.Cursor = 0
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.NoSearch }
+
+                  a2.Queries |> testQueryPartNormal "aaaaaa"
+              }
+
               ]
 
     [<Tests>]
@@ -438,7 +461,28 @@ module invokeAction =
                   a2.Queries |> testQueryPartProperty "name" "aaa"
               }
 
-              ]
+              test "When moving forward on 'aaaaaa' with cursor=-1" {
+                  let state =
+                      { state with
+                          InternalState.QueryState.Query = "aaaaaa"
+                          InternalState.QueryState.Cursor = -1
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.NoSearch }
+
+                  let context = Query.prepare state |> fst'
+                  let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
+
+                  a1
+                  |> Expect.equal
+                      "should return state with cursor=6 and InputMode=Input"
+                      { state with
+                          InternalState.QueryState.Query = "aaaaaa"
+                          InternalState.QueryState.Cursor = 6
+                          InternalState.QueryState.InputMode = InputMode.Input
+                          PropertySearch = PropertySearch.NoSearch }
+
+                  a2.Queries |> testQueryPartNormal "aaaaaa"
+              } ]
 
     [<Tests>]
     let tests_BeginningOfLine =
