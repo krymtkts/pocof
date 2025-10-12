@@ -483,18 +483,57 @@ module Data =
           Invert: bool }
 
     module QueryCondition =
+        [<Literal>]
+        let private textEq = "eq"
+
+        [<Literal>]
+        let private textLike = "like"
+
+        [<Literal>]
+        let private textMatch = "match"
+
+        [<Literal>]
+        let private textAnd = "and"
+
+        [<Literal>]
+        let private textOr = "or"
+
+        [<Literal>]
+        let private textNe = "ne"
+
+        [<Literal>]
+        let private textNotlike = "notlike"
+
+        [<Literal>]
+        let private textNotmatch = "notmatch"
+
+        let private matcherText (m: Matcher) =
+            match m with
+            | Matcher.Eq -> textEq
+            | Matcher.Like -> textLike
+            | Matcher.Match -> textMatch
+
+        let private invertedMatcherText (m: Matcher) =
+            match m with
+            | Matcher.Eq -> textNe
+            | Matcher.Like -> textNotlike
+            | Matcher.Match -> textNotmatch
+
+        let private operatorText (o: Operator) =
+            match o with
+            | Operator.And -> textAnd
+            | Operator.Or -> textOr
+
         let toString (condition: QueryCondition) =
-            [ match condition.CaseSensitive with
-              | true -> "c"
-              | _ -> ""
-              // NOTE: use ToString to avoid extra branches when calculating coverages.
-              match condition.Matcher, condition.Invert with
-              | Matcher.Eq, true -> "ne"
-              | m, true -> "not" + m.ToString()
-              | m, _ -> m.ToString()
-              " "
-              condition.Operator.ToString() ]
-            |> String.concat ""
+            let cText = if condition.CaseSensitive then "c" else ""
+
+            let mText =
+                if condition.Invert then
+                    invertedMatcherText condition.Matcher
+                else
+                    matcherText condition.Matcher
+
+            String.Concat(cText, mText, " ", operatorText condition.Operator)
 
         let rotateMatcher (condition: QueryCondition) =
             { condition with
