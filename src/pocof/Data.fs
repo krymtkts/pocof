@@ -227,10 +227,6 @@ module Data =
             | Ok x -> x
             | Error e -> failwith e
 
-    let private toString (x: 'a) =
-        match FSharpValue.GetUnionFields(x, typeof<'a>) with
-        | case, _ -> case.Name
-
     [<return: Struct>]
     let (|Prefix|_|) (p: string) (s: string) =
         match String.startsWith p s with
@@ -290,8 +286,6 @@ module Data =
         | Like
         | Match
 
-        override __.ToString() = toString __ |> _.ToLower()
-
     [<RequireQualifiedAccess>]
     module Matcher =
         let fromString = generateDictOfDu<Matcher> <| set [] |> fromString<Matcher>
@@ -302,8 +296,6 @@ module Data =
     type Operator =
         | And
         | Or
-
-        override __.ToString() = toString __ |> _.ToLower()
 
     [<RequireQualifiedAccess>]
     module Operator =
