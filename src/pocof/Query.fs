@@ -96,7 +96,7 @@ module Query =
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
         match query |> _.Trim() with
-        | q when String.length q = 0 -> []
+        | q when q.Length = 0 -> []
         | q ->
             let is = prepareTest condition
             let xs = q |> Regex.split @"\s+"

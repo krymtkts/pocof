@@ -371,11 +371,11 @@ module Data =
         let addQuery (query: string) (state: QueryState) =
             { state with
                 Query = state.Query.Insert(state.Cursor, query)
-                Cursor = state.Cursor + String.length query }
+                Cursor = state.Cursor + query.Length }
 
         [<return: Struct>]
         let (|OverQuery|_|) (query: string) (cursor: int) =
-            let ql = String.length query
+            let ql = query.Length
 
             match cursor with
             | x when x > ql -> ValueSome ql
@@ -397,7 +397,7 @@ module Data =
         let getQuerySelection (cursor: int) (state: QueryState) =
             match state.Cursor, cursor with
             | _, 0 -> state.InputMode
-            | x, y when x + y < 0 || x + y > String.length state.Query -> state.InputMode
+            | x, y when x + y < 0 || x + y > state.Query.Length -> state.InputMode
             | _ ->
                 match state.InputMode with
                 | InputMode.Input -> 0
@@ -411,7 +411,7 @@ module Data =
             let query = state.Query
 
             let index, count =
-                let ql = String.length query
+                let ql = query.Length
                 let cursor = state.Cursor
                 let diff = ql - cursor
 
@@ -431,7 +431,7 @@ module Data =
                 Cursor = index }
 
         let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
-            let ql = String.length state.Query
+            let ql = state.Query.Length
 
             match ql - state.Cursor with
             | Negative -> { state with Cursor = ql }

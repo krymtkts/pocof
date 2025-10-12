@@ -166,7 +166,7 @@ module Screen =
                         | Ascending x -> x
 
                     let s = max s 0
-                    let e = min e <| String.length q
+                    let e = min e q.Length
                     q.Insert(e, escapeSequenceResetInvert).Insert(s, escapeSequenceInvert)
 
         let getQueryString (state: Data.InternalState) =
@@ -174,11 +174,11 @@ module Screen =
                 state.QueryState.Query
                 |> String.fromIndex state.QueryState.WindowBeginningCursor
                 |> function
-                    | x when String.length x > state.QueryState.WindowWidth ->
+                    | x when x.Length > state.QueryState.WindowWidth ->
                         x |> String.upToIndex state.QueryState.WindowWidth
                     | x -> x
                 |> fun q ->
-                    match state.QueryState.WindowWidth - String.length q with
+                    match state.QueryState.WindowWidth - q.Length with
                     | Natural l -> q + String.replicate l " "
                     | _ -> q
 
@@ -201,8 +201,8 @@ module Screen =
             | Ok p -> p |> String.concat " "
             |> fun s ->
                 let info = Data.InternalState.queryInfo state count
-                let w = width - (info |> String.length)
-                let ss = s |> String.length
+                let w = width - info.Length
+                let ss = s.Length
 
                 match w - ss with
                 | Natural x -> s + String.replicate x " "
@@ -223,7 +223,7 @@ module Screen =
         let getCursorPosition (state: Data.InternalState) =
             match state.QueryState.InputMode with
             | Data.InputMode.Input -> 0
-            | Data.InputMode.Select(_) -> escapeSequenceInvert |> String.length
+            | Data.InputMode.Select(_) -> escapeSequenceInvert.Length
             |> (+) (Data.InternalState.getX promptLength state)
 
         let calculatePositions: unit -> struct (int * int * int * int) =
