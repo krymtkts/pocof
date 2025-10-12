@@ -483,57 +483,110 @@ module Data =
           Invert: bool }
 
     module QueryCondition =
+        // Case-insensitive variants
         [<Literal>]
-        let private textEq = "eq"
-
-        [<Literal>]
-        let private textLike = "like"
+        let private eqAnd = "eq and"
 
         [<Literal>]
-        let private textMatch = "match"
+        let private eqOr = "eq or"
 
         [<Literal>]
-        let private textAnd = "and"
+        let private likeAnd = "like and"
 
         [<Literal>]
-        let private textOr = "or"
+        let private likeOr = "like or"
 
         [<Literal>]
-        let private textNe = "ne"
+        let private matchAnd = "match and"
 
         [<Literal>]
-        let private textNotlike = "notlike"
+        let private matchOr = "match or"
 
         [<Literal>]
-        let private textNotmatch = "notmatch"
+        let private neAnd = "ne and"
 
-        let private matcherText (m: Matcher) =
-            match m with
-            | Matcher.Eq -> textEq
-            | Matcher.Like -> textLike
-            | Matcher.Match -> textMatch
+        [<Literal>]
+        let private neOr = "ne or"
 
-        let private invertedMatcherText (m: Matcher) =
-            match m with
-            | Matcher.Eq -> textNe
-            | Matcher.Like -> textNotlike
-            | Matcher.Match -> textNotmatch
+        [<Literal>]
+        let private notlikeAnd = "notlike and"
 
-        let private operatorText (o: Operator) =
-            match o with
-            | Operator.And -> textAnd
-            | Operator.Or -> textOr
+        [<Literal>]
+        let private notlikeOr = "notlike or"
+
+        [<Literal>]
+        let private notmatchAnd = "notmatch and"
+
+        [<Literal>]
+        let private notmatchOr = "notmatch or"
+
+        // Case-sensitive variants
+        [<Literal>]
+        let private ceqAnd = "ceq and"
+
+        [<Literal>]
+        let private ceqOr = "ceq or"
+
+        [<Literal>]
+        let private clikeAnd = "clike and"
+
+        [<Literal>]
+        let private clikeOr = "clike or"
+
+        [<Literal>]
+        let private cmatchAnd = "cmatch and"
+
+        [<Literal>]
+        let private cmatchOr = "cmatch or"
+
+        [<Literal>]
+        let private cneAnd = "cne and"
+
+        [<Literal>]
+        let private cneOr = "cne or"
+
+        [<Literal>]
+        let private cnotlikeAnd = "cnotlike and"
+
+        [<Literal>]
+        let private cnotlikeOr = "cnotlike or"
+
+        [<Literal>]
+        let private cnotmatchAnd = "cnotmatch and"
+
+        [<Literal>]
+        let private cnotmatchOr = "cnotmatch or"
 
         let toString (condition: QueryCondition) =
-            let cText = if condition.CaseSensitive then "c" else ""
-
-            let mText =
-                if condition.Invert then
-                    invertedMatcherText condition.Matcher
-                else
-                    matcherText condition.Matcher
-
-            String.Concat(cText, mText, " ", operatorText condition.Operator)
+            match condition.CaseSensitive, condition.Invert, condition.Matcher, condition.Operator with
+            // Case-insensitive
+            | false, false, Matcher.Eq, Operator.And -> eqAnd
+            | false, false, Matcher.Eq, Operator.Or -> eqOr
+            | false, false, Matcher.Like, Operator.And -> likeAnd
+            | false, false, Matcher.Like, Operator.Or -> likeOr
+            | false, false, Matcher.Match, Operator.And -> matchAnd
+            | false, false, Matcher.Match, Operator.Or -> matchOr
+            // Inverted Case-insensitive
+            | false, true, Matcher.Eq, Operator.And -> neAnd
+            | false, true, Matcher.Eq, Operator.Or -> neOr
+            | false, true, Matcher.Like, Operator.And -> notlikeAnd
+            | false, true, Matcher.Like, Operator.Or -> notlikeOr
+            | false, true, Matcher.Match, Operator.And -> notmatchAnd
+            | false, true, Matcher.Match, Operator.Or -> notmatchOr
+            // Case-sensitive & variants
+            | true, false, Matcher.Eq, Operator.And -> ceqAnd
+            | true, false, Matcher.Eq, Operator.Or -> ceqOr
+            | true, false, Matcher.Like, Operator.And -> clikeAnd
+            | true, false, Matcher.Like, Operator.Or -> clikeOr
+            | true, false, Matcher.Match, Operator.And -> cmatchAnd
+            | true, false, Matcher.Match, Operator.Or -> cmatchOr
+            // Inverted Case-sensitive & variants
+            | true, true, Matcher.Eq, Operator.And -> cneAnd
+            | true, true, Matcher.Eq, Operator.Or -> cneOr
+            | true, true, Matcher.Like, Operator.And -> cnotlikeAnd
+            | true, true, Matcher.Like, Operator.Or -> cnotlikeOr
+            | true, true, Matcher.Match, Operator.And -> cnotmatchAnd
+            | true, true, Matcher.Match, Operator.Or -> cnotmatchOr
 
         let rotateMatcher (condition: QueryCondition) =
             { condition with
