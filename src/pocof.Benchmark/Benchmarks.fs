@@ -428,6 +428,12 @@ type DataBenchmarks() =
           WindowWidth = 0
           InputMode = InputMode.Input }
 
+    let queryCondition =
+        { Matcher = Matcher.Match
+          Operator = Operator.And
+          CaseSensitive = false
+          Invert = false }
+
     [<Benchmark>]
     member __.Action_fromString() =
         Action.fromString "CompleteProperty" |> ignore
@@ -435,10 +441,13 @@ type DataBenchmarks() =
     [<Benchmark>]
     member __.Operator_fromString() = Operator.fromString "And" |> ignore
 
-
     [<Benchmark>]
     member __.QueryState_getCurrentProperty() =
         QueryState.getCurrentProperty queryState |> ignore
+
+    [<Benchmark>]
+    member __.QueryCondition_toString() =
+        QueryCondition.toString queryCondition |> ignore
 
 [<MemoryDiagnoser>]
 type CollectionAddBenchmarks() =
