@@ -434,6 +434,9 @@ type DataBenchmarks() =
           CaseSensitive = false
           Invert = false }
 
+    [<Literal>]
+    let queryString = ":Name foo"
+
     [<Benchmark>]
     member __.Action_fromString() =
         Action.fromString "CompleteProperty" |> ignore
@@ -448,6 +451,13 @@ type DataBenchmarks() =
     [<Benchmark>]
     member __.QueryCondition_toString() =
         QueryCondition.toString queryCondition |> ignore
+
+    [<Benchmark>]
+    member __.Prefix_colon() =
+        queryString
+        |> function
+            | Prefix ":" x -> x |> ignore
+            | _ -> ()
 
 [<MemoryDiagnoser>]
 type CollectionAddBenchmarks() =
