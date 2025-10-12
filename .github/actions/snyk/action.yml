@@ -24,7 +24,7 @@ runs:
         args: ./src/${{ inputs.project_name }} --sarif-file-output=${{ inputs.project_name }}-snyk.sarif --org=krymtkts
     - name: Upload result to GitHub Code Scanning(${{ inputs.project_name }})
       if: runner.os == 'Linux'
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: ${{ inputs.project_name }}-snyk.sarif
         category: Snyk(${{ inputs.project_name }})
