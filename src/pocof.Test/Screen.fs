@@ -180,10 +180,10 @@ let ``tests Buff writeScreen`` =
               rui.screen |> Expect.equal "should render property suggestions" expected
           }
 
-          test "When rendering property suggestions with suppressProperties" {
+          test "When rendering property suggestions just fit to line" {
               let rui = new MockRawUI(80, 30)
               use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
-              let props = []
+              let props = [ String.replicate 63 "x"; "y"; "z" ]
 
               let state: InternalState =
                   { state with
@@ -198,7 +198,7 @@ let ``tests Buff writeScreen`` =
               let expected =
                   List.concat
                       [ [ @"prompt>:                                                                        "
-                          @"                                                                   match and [0]" ]
+                          @"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx y  match and [0]" ]
                         generateLine rui.width 28 ]
 
               rui.screen |> Expect.equal "render empty property suggestions" expected

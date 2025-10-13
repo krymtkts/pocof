@@ -224,23 +224,24 @@ module Screen =
                 sb.Append(head) |> ignore
                 let mutable remaining = available - sb.Length
 
-                let rec appendItems (items: string list) =
+                let mutable items = tail
+                let mutable continueLoop = true
+
+                while continueLoop && not items.IsEmpty do
                     match items with
-                    | [] -> ()
                     | item :: rest when remaining > 1 ->
                         sb.Append(' ') |> ignore
                         remaining <- remaining - 1
+                        let itemLength = item.Length
 
-                        if item.Length <= remaining then
+                        if itemLength <= remaining then
                             sb.Append(item) |> ignore
-                            remaining <- remaining - item.Length
-                            appendItems rest
+                            remaining <- remaining - itemLength
+                            items <- rest
                         else
-                            // Append only what fits and stop
                             sb.Append(item, 0, remaining) |> ignore
-                    | _ -> ()
-
-                appendItems tail
+                            continueLoop <- false
+                    | _ -> continueLoop <- false
 
             let messageLength = sb.Length
 
