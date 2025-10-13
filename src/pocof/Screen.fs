@@ -183,20 +183,27 @@ module Screen =
 
         let getQueryString (state: Data.InternalState) =
             let q =
-                state.QueryState.Query
-                |> String.fromIndex state.QueryState.WindowBeginningCursor
-                |> function
-                    | x when x.Length > state.QueryState.WindowWidth ->
-                        x |> String.upToIndex state.QueryState.WindowWidth
-                    | x -> x
-                |> fun q ->
-                    match state.QueryState.WindowWidth - q.Length with
-                    | Natural l -> q + String(' ', l)
-                    | _ -> q
+                let query = state.QueryState.Query
+                let startIndex = state.QueryState.WindowBeginningCursor
+                let windowWidth = state.QueryState.WindowWidth
 
+                let sb = StringBuilder(windowWidth)
+
+                let queryLength = query.Length
+                let maxLength = min (queryLength - startIndex) windowWidth
+
+                if startIndex < queryLength then
+                    sb.Append(query, startIndex, maxLength) |> ignore
+
+                let currentLength = sb.Length
+
+                if currentLength < windowWidth then
+                    sb.Append(' ', windowWidth - currentLength) |> ignore
+
+                sb.ToString()
 #if DEBUG
             Logger.LogFile
-                [ $"query '{q}' query length '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+                [ $"query '{q}' query length '{q.Length}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
             getQuery state.QueryState.WindowWidth q state.QueryState.WindowWidth
             |> buildQueryString state.QueryState
