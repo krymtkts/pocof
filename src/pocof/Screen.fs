@@ -179,7 +179,7 @@ module Screen =
                     | x -> x
                 |> fun q ->
                     match state.QueryState.WindowWidth - q.Length with
-                    | Natural l -> q + String.replicate l " "
+                    | Natural l -> q + String(' ', l)
                     | _ -> q
 
 #if DEBUG
@@ -205,7 +205,7 @@ module Screen =
                 let ss = s.Length
 
                 match w - ss with
-                | Natural x -> s + String.replicate x " "
+                | Natural x -> s + String(' ', x)
                 | _ -> s |> String.upToIndex w
                 + info
 
