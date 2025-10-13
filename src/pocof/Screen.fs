@@ -222,9 +222,25 @@ module Screen =
             | Ok [] -> ()
             | Ok(head :: tail) ->
                 sb.Append(head) |> ignore
+                let mutable remaining = available - sb.Length
 
-                for item in tail do
-                    sb.Append(' ').Append(item) |> ignore
+                let rec appendItems (items: string list) =
+                    match items with
+                    | [] -> ()
+                    | item :: rest when remaining > 1 ->
+                        sb.Append(' ') |> ignore
+                        remaining <- remaining - 1
+
+                        if item.Length <= remaining then
+                            sb.Append(item) |> ignore
+                            remaining <- remaining - item.Length
+                            appendItems rest
+                        else
+                            // Append only what fits and stop
+                            sb.Append(item, 0, remaining) |> ignore
+                    | _ -> ()
+
+                appendItems tail
 
             let messageLength = sb.Length
 
