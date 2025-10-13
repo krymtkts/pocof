@@ -213,18 +213,26 @@ module Screen =
             (props: Result<string list, string>)
             (count: int)
             =
-            match props with
-            | Error e -> note + e
-            | Ok p -> p |> String.concat " "
-            |> fun s ->
-                let info = Data.InternalState.queryInfo state count
-                let w = width - info.Length
-                let ss = s.Length
+            let sb = StringBuilder(width)
+            let info = Data.InternalState.queryInfo state count
+            let available = width - info.Length
 
-                match w - ss with
-                | Natural x -> s + String(' ', x)
-                | _ -> s |> String.upToIndex w
-                + info
+            match props with
+            | Error e -> sb.Append(note).Append(e) |> ignore
+            | Ok [] -> ()
+            | Ok(head :: tail) ->
+                sb.Append(head) |> ignore
+
+                for item in tail do
+                    sb.Append(' ').Append(item) |> ignore
+
+            let messageLength = sb.Length
+
+            match available - messageLength with
+            | Natural padding -> sb.Append(' ', padding) |> ignore
+            | _ -> sb.Length <- available
+
+            sb.Append(info).ToString()
 
         let readKey () : ConsoleKeyInfo seq =
             let acc = ResizeArray<ConsoleKeyInfo>()
