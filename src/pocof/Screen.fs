@@ -148,65 +148,64 @@ module Screen =
             let cl = rui.GetLengthInBufferCells q
 
             match w - cl with
-            | 0
-            | 1 -> q
+            | x when x >= 0 -> struct (q, x)
             | x ->
                 let l = l + (x + Math.Sign x) / 2
                 let q = q |> String.upToIndex l
                 getQuery w q l
 
-        let buildQueryString (queryState: Data.QueryState) (q: string) =
-            match queryState.InputMode with
-            | Data.InputMode.Input -> 0
-            | Data.InputMode.Select i -> i
-            |> function
-                | 0 -> prompt + q
-                | i ->
-                    let struct (s, e) =
-                        let c = queryState.Cursor - queryState.WindowBeginningCursor
+        let buildQueryString (queryState: Data.QueryState) (q: string) (remains: int) =
+            let queryWithPrompt =
+                let sb = StringBuilder(q.Length + remains + escapeSequenceLength)
 
-                        match c, c - i with
-                        | Ascending x -> x
+                match queryState.InputMode with
+                | Data.InputMode.Input -> 0
+                | Data.InputMode.Select i -> i
+                |> function
+                    | 0 -> sb.Append(prompt).Append(q)
+                    | i ->
+                        let struct (s, e) =
+                            let c = queryState.Cursor - queryState.WindowBeginningCursor
 
-                    let s = max s 0
-                    let e = min e q.Length
-                    let sb = StringBuilder(q.Length + escapeSequenceLength)
+                            match c, c - i with
+                            | Ascending x -> x
 
-                    sb
-                        .Append(prompt)
-                        .Append(q, 0, s)
-                        .Append(escapeSequenceInvert)
-                        .Append(q, s, e - s)
-                        .Append(escapeSequenceResetInvert)
-                        .Append(q, e, q.Length - e)
-                        .ToString()
+                        let s = max s 0
+                        let e = min e q.Length
+
+                        sb
+                            .Append(prompt)
+                            .Append(q, 0, s)
+                            .Append(escapeSequenceInvert)
+                            .Append(q, s, e - s)
+                            .Append(escapeSequenceResetInvert)
+                            .Append(q, e, q.Length - e)
+
+
+            if remains > 0 then
+                queryWithPrompt.Append(' ', remains).ToString()
+            else
+                queryWithPrompt.ToString()
 
         let getQueryString (state: Data.InternalState) =
             let q =
                 let query = state.QueryState.Query
                 let startIndex = state.QueryState.WindowBeginningCursor
                 let windowWidth = state.QueryState.WindowWidth
+                let remaining = query.Length - startIndex
 
-                let sb = StringBuilder(windowWidth)
+                if remaining <= 0 then
+                    String.Empty
+                else
+                    let maxLength = min remaining windowWidth
+                    query.Substring(startIndex, maxLength)
 
-                let queryLength = query.Length
-                let maxLength = min (queryLength - startIndex) windowWidth
-
-                if startIndex < queryLength then
-                    sb.Append(query, startIndex, maxLength) |> ignore
-
-                let currentLength = sb.Length
-
-                if currentLength < windowWidth then
-                    sb.Append(' ', windowWidth - currentLength) |> ignore
-
-                sb.ToString()
 #if DEBUG
             Logger.LogFile
                 [ $"query '{q}' query length '{q.Length}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
-            getQuery state.QueryState.WindowWidth q state.QueryState.WindowWidth
-            |> buildQueryString state.QueryState
+            getQuery state.QueryState.WindowWidth q q.Length
+            ||*> fun adjustedQ -> buildQueryString state.QueryState adjustedQ
 
         let getInformationString
             (width: int)
