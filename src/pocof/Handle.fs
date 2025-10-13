@@ -98,7 +98,7 @@ module Handle =
     let private beginningOfLine = setCursor 0 InputMode.Input
 
     let private endOfLine (state: InternalState) =
-        setCursor <| String.length state.QueryState.Query <| InputMode.Input <| state
+        setCursor state.QueryState.Query.Length InputMode.Input state
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -117,7 +117,7 @@ module Handle =
         let removeQuery, limit =
             match direction with
             | Direction.Backward -> QueryState.backspaceQuery, 0
-            | Direction.Forward -> QueryState.deleteQuery, String.length state.QueryState.Query
+            | Direction.Forward -> QueryState.deleteQuery, state.QueryState.Query.Length
 
         match state.QueryState.Cursor with
         | x when x = limit -> struct (InternalState.noRefresh state, context)
@@ -212,7 +212,7 @@ module Handle =
         removeCharsWithInputMode Direction.Backward state.QueryState.Cursor state context
 
     let private deleteForwardInput (state: InternalState) (context: QueryContext) =
-        let queryLength = String.length state.QueryState.Query
+        let queryLength = state.QueryState.Query.Length
 
         let state, context, beginning =
             match state.QueryState.InputMode with
@@ -255,16 +255,15 @@ module Handle =
         <| context
 
     let private selectToEndOfLine (state: InternalState) (context: QueryContext) =
-        let s = String.length state.QueryState.Query - state.QueryState.Cursor
+        let s = state.QueryState.Query.Length - state.QueryState.Cursor
 
-        setCursor
-        <| String.length state.QueryState.Query
+        setCursor state.QueryState.Query.Length
         <| QueryState.getQuerySelection s state.QueryState
         <| state
         <| context
 
     let private selectAll (state: InternalState) (context: QueryContext) =
-        let s = String.length state.QueryState.Query
+        let s = state.QueryState.Query.Length
 
         let qs =
             QueryState.setInputMode
@@ -296,7 +295,7 @@ module Handle =
     [<return: Struct>]
     let private (|AlreadyCompleted|_|) (keyword: string) (tail: string) (candidate: string) =
         let rest: string =
-            match String.length keyword with
+            match keyword.Length with
             | 0 -> candidate
             | _ -> candidate |> String.replace keyword ""
 
@@ -305,12 +304,12 @@ module Handle =
             if i = -1 then tail else String.upToIndex i tail
 
         match rest = tailHead with
-        | true -> tail |> String.fromIndex (String.length tailHead) |> ValueSome
+        | true -> tail |> String.fromIndex tailHead.Length |> ValueSome
         | _ -> ValueNone
 
     let private completeProperty (properties: string seq) (state: InternalState) (context: QueryContext) =
-        let splitQuery state keyword candidate =
-            let basePosition = state.QueryState.Cursor - String.length keyword
+        let splitQuery (state: InternalState) (keyword: string) (candidate: string) =
+            let basePosition = state.QueryState.Cursor - keyword.Length
             let head = state.QueryState.Query |> String.upToIndex basePosition
             let tail = state.QueryState.Query |> String.fromIndex state.QueryState.Cursor
 
@@ -322,7 +321,7 @@ module Handle =
             let state =
                 { state with
                     InternalState.QueryState.Query = $"%s{head}%s{next}%s{tail}"
-                    InternalState.QueryState.Cursor = basePosition + String.length next
+                    InternalState.QueryState.Cursor = basePosition + next.Length
                     PropertySearch = PropertySearch.Rotate(keyword, candidates) }
                 |> InternalState.refresh
 

@@ -373,9 +373,14 @@ module ``QueryState toString`` =
                       | Matcher.Like -> $"""{if data.Invert then "not" else ""}like"""
                       | Matcher.Match -> $"""{if data.Invert then "not" else ""}match"""
 
+                  let o =
+                      match data.Operator with
+                      | Operator.And -> "and"
+                      | Operator.Or -> "or"
+
                   data
                   |> QueryCondition.toString
-                  |> Expect.equal "should return correct format" $"{c}{m} {data.Operator}"
+                  |> Expect.equal "should return correct format" $"{c}{m} {o}"
                   |> Prop.collect data
 
               ]
