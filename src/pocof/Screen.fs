@@ -102,6 +102,9 @@ module Screen =
     [<Literal>]
     let escapeSequenceResetInvert = "\x1b[27m"
 
+    let escapeSequenceLength =
+        escapeSequenceInvert.Length + escapeSequenceResetInvert.Length
+
     [<Sealed>]
     type Buff(rui: IRawUI, invoke: obj seq -> string seq, layout: Data.Layout, prompt: string) =
         let promptLength = prompt |> String.length
@@ -152,12 +155,12 @@ module Screen =
                 let q = q |> String.upToIndex l
                 getQuery w q l
 
-        let selectRange (queryState: Data.QueryState) (q: string) =
+        let buildQueryString (queryState: Data.QueryState) (q: string) =
             match queryState.InputMode with
             | Data.InputMode.Input -> 0
             | Data.InputMode.Select i -> i
             |> function
-                | 0 -> q
+                | 0 -> prompt + q
                 | i ->
                     let struct (s, e) =
                         let c = queryState.Cursor - queryState.WindowBeginningCursor
@@ -167,7 +170,16 @@ module Screen =
 
                     let s = max s 0
                     let e = min e q.Length
-                    q.Insert(e, escapeSequenceResetInvert).Insert(s, escapeSequenceInvert)
+                    let sb = StringBuilder(q.Length + escapeSequenceLength)
+
+                    sb
+                        .Append(prompt)
+                        .Append(q, 0, s)
+                        .Append(escapeSequenceInvert)
+                        .Append(q, s, e - s)
+                        .Append(escapeSequenceResetInvert)
+                        .Append(q, e, q.Length - e)
+                        .ToString()
 
         let getQueryString (state: Data.InternalState) =
             let q =
@@ -187,8 +199,7 @@ module Screen =
                 [ $"query '{q}' query length '{String.length q}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
             getQuery state.QueryState.WindowWidth q state.QueryState.WindowWidth
-            |> selectRange state.QueryState
-            |> (+) prompt
+            |> buildQueryString state.QueryState
 
         let getInformationString
             (width: int)
