@@ -180,6 +180,30 @@ let ``tests Buff writeScreen`` =
               rui.screen |> Expect.equal "should render property suggestions" expected
           }
 
+          test "When rendering property suggestions with suppressProperties" {
+              let rui = new MockRawUI(80, 30)
+              use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
+              let props = []
+
+              let state: InternalState =
+                  { state with
+                      InternalState.QueryState.Query = @":"
+                      InternalState.QueryState.Cursor = 1
+                      InternalState.QueryCondition.CaseSensitive = false
+                      PropertySearch = PropertySearch.Search("") }
+                  |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
+
+              buff.WriteScreen state PSeq.empty <| (props |> List.ofSeq |> Ok)
+
+              let expected =
+                  List.concat
+                      [ [ @"prompt>:                                                                        "
+                          @"                                                                   match and [0]" ]
+                        generateLine rui.width 28 ]
+
+              rui.screen |> Expect.equal "render empty property suggestions" expected
+          }
+
           test "When rendering props notification" {
               let rui = new MockRawUI(80, 30)
               use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
