@@ -5,8 +5,10 @@ open ObjectLayoutInspector
 open Pocof
 
 let private printLayout t =
-    typeof<TypeLayout>.GetMethod("PrintLayout", [| typeof<bool> |]).MakeGenericMethod([| t |]).Invoke(null, [| true |])
-    |> ignore
+    typeof<TypeLayout>.GetMethod("PrintLayout", [| typeof<bool> |])
+    |> function
+        | null -> ()
+        | m -> m.MakeGenericMethod([| t |]).Invoke(null, [| true |]) |> ignore
 
 let private typesInData =
     [ typeof<Data.Entry>
