@@ -378,11 +378,11 @@ let tests_render =
 
                   Thread.Sleep 300
 
-                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  (state, lazy PSeq.empty, lazy Ok(seq { "Value" }))
                   |> Pocof.RenderEvent.Render
                   |> handler.Publish
 
-                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  (state, lazy PSeq.empty, lazy Ok(seq { "Value" }))
                   |> Pocof.RenderEvent.Render
                   |> handler.Publish
 
@@ -390,7 +390,7 @@ let tests_render =
 
                   Pocof.RenderEvent.Quit |> handler.Publish
 
-                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  (state, lazy PSeq.empty, lazy Ok(seq { "Value" }))
                   |> Pocof.RenderEvent.Render
                   |> handler.Publish
               }

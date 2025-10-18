@@ -216,5 +216,5 @@ module Query =
 
                     match ret |> Seq.isEmpty with
                     | true -> Error "Property not found"
-                    | _ -> ret |> List.ofSeq |> Ok
-                | _ -> Ok []
+                    | _ -> ret |> Ok
+                | _ -> Ok Array.empty

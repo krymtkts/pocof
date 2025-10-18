@@ -40,7 +40,7 @@ module Pocof =
     [<NoEquality>]
     [<Struct>]
     type RenderEvent =
-        | Render of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
+        | Render of (InternalState * Entry pseq Lazy * Result<string seq, string> Lazy)
         | Quit
 
     [<NoComparison>]
@@ -258,7 +258,7 @@ module Pocof =
     [<Struct>]
     type RenderProcess =
         | Noop
-        | Rendered of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
+        | Rendered of (InternalState * Entry pseq Lazy * Result<string seq, string> Lazy)
         | StopUpstreamCommands
 
     let renderOnce (handler: RenderHandler) (buff: Screen.Buff) =
@@ -274,10 +274,10 @@ module Pocof =
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
 
-        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string> Lazy) voption =
+        let mutable latest: (InternalState * Entry pseq Lazy * Result<string seq, string> Lazy) voption =
             ValueNone
 
-        let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string list, string> Lazy) =
+        let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string seq, string> Lazy) =
             let state =
                 state
                 // NOTE: adjust the console width before writing the screen.

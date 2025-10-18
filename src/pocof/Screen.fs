@@ -210,7 +210,7 @@ module Screen =
         let getInformationString
             (width: int)
             (state: Data.InternalState)
-            (props: Result<string list, string>)
+            (props: Result<string seq, string>)
             (count: int)
             =
             let sb = StringBuilder(width)
@@ -219,17 +219,15 @@ module Screen =
 
             match props with
             | Error e -> sb.Append(note).Append(e) |> ignore
-            | Ok [] -> ()
-            | Ok(head :: tail) ->
-                sb.Append(head) |> ignore
-                let mutable remaining = available - sb.Length
+            | Ok props ->
+                use enumerator = props.GetEnumerator()
 
-                let mutable items = tail
-                let mutable continueLoop = true
+                if enumerator.MoveNext() then
+                    sb.Append(enumerator.Current) |> ignore
+                    let mutable remaining = available - sb.Length
 
-                while continueLoop && not items.IsEmpty do
-                    match items with
-                    | item :: rest when remaining > 1 ->
+                    while remaining > 1 && enumerator.MoveNext() do
+                        let item = enumerator.Current
                         sb.Append(' ') |> ignore
                         remaining <- remaining - 1
                         let itemLength = item.Length
@@ -237,11 +235,9 @@ module Screen =
                         if itemLength <= remaining then
                             sb.Append(item) |> ignore
                             remaining <- remaining - itemLength
-                            items <- rest
                         else
                             sb.Append(item, 0, remaining) |> ignore
-                            continueLoop <- false
-                    | _ -> continueLoop <- false
+                            remaining <- 0 // NOTE: terminate loop
 
             let messageLength = sb.Length
 
@@ -352,7 +348,7 @@ module Screen =
         member __.WriteScreen
             (state: Data.InternalState)
             (entries: Data.Entry pseq)
-            (props: Result<string list, string>)
+            (props: Result<string seq, string>)
             =
             use _ = rui.HideCursorWhileRendering()
             let width = rui.GetWindowWidth()
