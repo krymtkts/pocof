@@ -64,7 +64,7 @@ module Query =
         if l = i then
             acc
         else
-            let x = xs.[i]
+            let x = xs[i]
             let i = i + 1
 
             let acc, i =
@@ -76,7 +76,7 @@ module Query =
                 else
                     match x with
                     | Prefix ":" p ->
-                        let y = xs.[i]
+                        let y = xs[i]
                         QueryPart.Property(p, is y) :: acc, i + 1
                     | _ -> QueryPart.Normal(is x) :: acc, i
 
