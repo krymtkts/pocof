@@ -375,9 +375,9 @@ module Pocof =
             let props =
                 match input.BaseObject with
                 | :? IDictionary as dct ->
-                    match Seq.cast<DictionaryEntry> dct with
-                    | s when Seq.isEmpty s -> Seq.empty
-                    | s -> s |> Seq.head |> _.GetType().GetProperties() |> Seq.map _.Name
+                    match dct |> Seq.cast<DictionaryEntry> |> Seq.tryHead with
+                    | None -> Seq.empty
+                    | Some s -> s |> _.GetType().GetProperties() |> Seq.map _.Name
                 | _ -> input.Properties |> Seq.map _.Name
 
             add (typeName, props)
