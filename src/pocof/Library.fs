@@ -75,7 +75,7 @@ type SelectPocofCommand() =
             Array.ofSeq input,
             null
         )
-        |> Seq.map string
+        |> Seq.map (fun x -> x.BaseObject :?> string)
 
     abstract member PSHost: unit -> PSHost
     default __.PSHost() = __.Host
