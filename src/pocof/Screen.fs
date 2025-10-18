@@ -321,11 +321,19 @@ module Screen =
                     | Data.Layout.BottomUpHalf -> pos |> snd |> (-) (rui.GetWindowHeight())
                     | _ -> rui.GetWindowHeight()
 
-                pos ||> rui.Write
-                <| (String.replicate (rui.GetWindowWidth()) " "
-                    |> List.replicate height
-                    |> String.concat "\n")
+                let blankLines =
+                    let width = rui.GetWindowWidth()
+                    let sb = StringBuilder(width * height)
 
+                    for i = 1 to height do
+                        if i = height then
+                            sb.Append(' ', width) |> ignore
+                        else
+                            sb.Append(' ', width).Append('\n') |> ignore
+
+                    sb.ToString()
+
+                pos ||> rui.Write <| blankLines
                 pos ||> rui.SetCursorPosition
 
         member private __.GenerateScreenLine (width: int) (line: string) =
