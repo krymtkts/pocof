@@ -72,7 +72,7 @@ type SelectPocofCommand() =
             @"$input | Format-Table | Out-String",
             true,
             PipelineResultTypes.None,
-            Array.ofSeq input,
+            Seq.toArray input,
             null
         )
         |> Seq.map (fun x -> x.BaseObject :?> string)
