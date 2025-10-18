@@ -191,22 +191,13 @@ module Pocof =
 
         let event = new AutoResetEvent(false)
 
-        [<TailCall>]
-        let rec getLatestEvent (h: RenderEvent) (es: RenderEvent list) =
-            match h with
-            | RenderEvent.Quit -> h
-            | h ->
-                match es with
-                | [] -> h
-                | e :: es ->
-                    match e with
-                    | RenderEvent.Quit -> e
-                    | _ -> getLatestEvent h es
-
-        let getLatestEvent (es: RenderEvent list) =
-            match es with
-            | [] -> RenderMessage.None
-            | h :: es -> getLatestEvent h es |> RenderMessage.Received
+        // NOTE: be careful it does not cover the case of 0 length.
+        let getLatestEvent (events: RenderEvent array) =
+            if Array.exists (fun (e: RenderEvent) -> e.IsQuit) events then
+                RenderEvent.Quit
+            else
+                events[0]
+            |> RenderMessage.Received
 
         member __.Publish e =
             renderStack.Push e
@@ -216,21 +207,17 @@ module Pocof =
             if block then
                 event.WaitOne() |> ignore
 
-            let items =
-                match renderStack.Count with
-                // NOTE: case of 0 is required for .NET Framework forward compatibility.
-                // NOTE: .NET does not raise an error, but it does not match the documentation.
-                | 0 -> []
-                | c ->
+            match renderStack.Count with
+            // NOTE: case of 0 is required for .NET Framework forward compatibility.
+            // NOTE: .NET does not raise an error, but it does not match the documentation.
+            | 0 -> RenderMessage.None
+            | c ->
 #if DEBUG
-                    // NOTE: for backward compatibility.
-                    Logger.LogFile [ $"received {c} items." ]
+                Logger.LogFile [ $"received {c} items." ]
 #endif
-                    let items = Array.zeroCreate<RenderEvent> c
-                    renderStack.TryPopRange items |> ignore
-                    items |> Array.toList
-
-            items |> getLatestEvent
+                let items = Array.zeroCreate<RenderEvent> c
+                renderStack.TryPopRange items |> ignore
+                getLatestEvent items
 
         interface IDisposable with
             member __.Dispose() = event.Dispose()
