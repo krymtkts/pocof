@@ -159,7 +159,7 @@ let ``tests Buff writeScreen`` =
           test "When rendering property suggestions" {
               let rui = new MockRawUI(80, 30)
               use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
-              let props = [ 1..20 ] |> List.map (fun i -> $"Name%02d{i}")
+              let props = [ 1..20 ] |> Seq.map (fun i -> $"Name%02d{i}")
 
               let state: InternalState =
                   { state with
@@ -169,7 +169,7 @@ let ``tests Buff writeScreen`` =
                       PropertySearch = PropertySearch.Search("") }
                   |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
-              buff.WriteScreen state PSeq.empty <| (props |> List.ofSeq |> Ok)
+              buff.WriteScreen state PSeq.empty <| (props |> Ok)
 
               let expected =
                   List.concat
@@ -183,7 +183,13 @@ let ``tests Buff writeScreen`` =
           test "When rendering property suggestions just fit to line" {
               let rui = new MockRawUI(80, 30)
               use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
-              let props = [ String.replicate 63 "x"; "y"; "z" ]
+
+              let props =
+                  seq {
+                      String.replicate 63 "x"
+                      "y"
+                      "z"
+                  }
 
               let state: InternalState =
                   { state with
@@ -193,7 +199,7 @@ let ``tests Buff writeScreen`` =
                       PropertySearch = PropertySearch.Search("") }
                   |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
-              buff.WriteScreen state PSeq.empty <| (props |> List.ofSeq |> Ok)
+              buff.WriteScreen state PSeq.empty <| (props |> Ok)
 
               let expected =
                   List.concat

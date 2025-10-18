@@ -57,10 +57,10 @@ module Handle =
             let len = query.Length
             let mutable i = min len cursor
 
-            while i > 0 && isWordDelimiter wordDelimiters query.[i - 1] do
+            while i > 0 && isWordDelimiter wordDelimiters query[i - 1] do
                 i <- i - 1
 
-            while i > 0 && not (isWordDelimiter wordDelimiters query.[i - 1]) do
+            while i > 0 && not (isWordDelimiter wordDelimiters query[i - 1]) do
                 i <- i - 1
 
             cursor - i
@@ -74,10 +74,10 @@ module Handle =
         else
             let mutable i = max 0 cursor
 
-            while i < len && not (isWordDelimiter wordDelimiters query.[i]) do
+            while i < len && not (isWordDelimiter wordDelimiters query[i]) do
                 i <- i + 1
 
-            while i < len && isWordDelimiter wordDelimiters query.[i] do
+            while i < len && isWordDelimiter wordDelimiters query[i] do
                 i <- i + 1
 
             i - cursor

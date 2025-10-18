@@ -83,7 +83,7 @@ let tests_props =
                   { state with
                       PropertySearch = Data.PropertySearch.NoSearch }
               |> Expect.wantOk "should return Ok"
-              |> Expect.equal "should return empty list" []
+              |> Expect.sequenceEqual "should return empty list" []
           }
 
           test "When PropertySearch is Search 'No' (not found)" {
@@ -101,7 +101,7 @@ let tests_props =
                   { state with
                       PropertySearch = Data.PropertySearch.Search "" }
               |> Expect.wantOk "should return Ok"
-              |> Expect.equal "should return all properties" [ "Name"; "Attribute"; "Length" ]
+              |> Expect.sequenceEqual "should return all properties" [ "Name"; "Attribute"; "Length" ]
           }
 
           test "When PropertySearch is Search 'Na' (filtered)" {
@@ -110,7 +110,7 @@ let tests_props =
                   { state with
                       PropertySearch = Data.PropertySearch.Search "Na" }
               |> Expect.wantOk "should return Ok"
-              |> Expect.equal "should return filtered properties" [ "Name" ]
+              |> Expect.sequenceEqual "should return filtered properties" [ "Name" ]
           }
 
           test "When PropertySearch is Search 'na' (case-insensitive)" {
@@ -119,7 +119,7 @@ let tests_props =
                   { state with
                       PropertySearch = Data.PropertySearch.Search "na" }
               |> Expect.wantOk "should return Ok"
-              |> Expect.equal "should return  filtered properties (case-insensitive)" [ "Name" ]
+              |> Expect.sequenceEqual "should return  filtered properties (case-insensitive)" [ "Name" ]
           }
 
           test "When PropertySearch is Rotate with empty string" {
@@ -128,7 +128,7 @@ let tests_props =
                   { state with
                       PropertySearch = Data.PropertySearch.Rotate("", [ "Name" ]) }
               |> Expect.wantOk "should return Ok"
-              |> Expect.equal "should return all properties (rotate)" [ "Name"; "Attribute"; "Length" ]
+              |> Expect.sequenceEqual "should return all properties (rotate)" [ "Name"; "Attribute"; "Length" ]
           }
 
           test "When PropertySearch is Rotate with filter 'Na'" {
@@ -137,7 +137,7 @@ let tests_props =
                   { state with
                       PropertySearch = Data.PropertySearch.Rotate("Na", [ "Name" ]) }
               |> Expect.wantOk "should return Ok"
-              |> Expect.equal "should return filtered properties (rotate)" [ "Name" ]
+              |> Expect.sequenceEqual "should return filtered properties (rotate)" [ "Name" ]
           }
 
           ]
@@ -490,7 +490,7 @@ module run =
               test "When composite query with or operator" {
                   let state = state |> query ":fn a  :ln  d"
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[0]; entries.[1]; entries.[3] ]
+                  let filtered = [ entries[0]; entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -500,7 +500,7 @@ module run =
               test "When composite query with and operator" {
                   let state = state |> query ":fn a :ln d" |> opAnd
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[1] ]
+                  let filtered = [ entries[1] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -528,7 +528,7 @@ module run =
               test "When incomplete composite query with filter" {
                   let state = state |> query "a :fn "
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[1]; entries.[3] ]
+                  let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -538,7 +538,7 @@ module run =
               test "When a non-existent property query exists after a correct query" {
                   let state = state |> query "a :f  e "
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[1]; entries.[3] ]
+                  let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -548,7 +548,7 @@ module run =
               test "When a non-existent property query exists before a correct query" {
                   let state = state |> query ":f e a"
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[1]; entries.[3] ]
+                  let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq

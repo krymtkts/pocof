@@ -1,4 +1,14 @@
 <Project>
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <!-- Disable satellite assemblies generation -->
+        <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+        <!-- Set warning level to 4 and treat warnings as errors -->
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningLevel>4</WarningLevel>
+        <!-- Enable warning for usage of the legacy F# indexing syntax expr.[idx]. -->
+        <WarnOn>$(WarnOn);3366</WarnOn>
+    </PropertyGroup>
     <ItemGroup>
         <!-- Analyzer configurations. -->
         <PackageReference Include="Ionide.Analyzers" Version="0.14.4">

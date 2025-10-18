@@ -72,10 +72,10 @@ type SelectPocofCommand() =
             @"$input | Format-Table | Out-String",
             true,
             PipelineResultTypes.None,
-            Array.ofSeq input,
+            Seq.toArray input,
             null
         )
-        |> Seq.map string
+        |> Seq.map (fun x -> x.BaseObject :?> string)
 
     abstract member PSHost: unit -> PSHost
     default __.PSHost() = __.Host

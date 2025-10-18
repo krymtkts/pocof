@@ -40,7 +40,7 @@ module Pocof =
     [<NoEquality>]
     [<Struct>]
     type RenderEvent =
-        | Render of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
+        | Render of (InternalState * Entry pseq Lazy * Result<string seq, string> Lazy)
         | Quit
 
     [<NoComparison>]
@@ -191,22 +191,13 @@ module Pocof =
 
         let event = new AutoResetEvent(false)
 
-        [<TailCall>]
-        let rec getLatestEvent (h: RenderEvent) (es: RenderEvent list) =
-            match h with
-            | RenderEvent.Quit -> h
-            | h ->
-                match es with
-                | [] -> h
-                | e :: es ->
-                    match e with
-                    | RenderEvent.Quit -> e
-                    | _ -> getLatestEvent h es
-
-        let getLatestEvent (es: RenderEvent list) =
-            match es with
-            | [] -> RenderMessage.None
-            | h :: es -> getLatestEvent h es |> RenderMessage.Received
+        // NOTE: be careful it does not cover the case of 0 length.
+        let getLatestEvent (events: RenderEvent array) =
+            if Array.exists (fun (e: RenderEvent) -> e.IsQuit) events then
+                RenderEvent.Quit
+            else
+                events[0]
+            |> RenderMessage.Received
 
         member __.Publish e =
             renderStack.Push e
@@ -216,21 +207,17 @@ module Pocof =
             if block then
                 event.WaitOne() |> ignore
 
-            let items =
-                match renderStack.Count with
-                // NOTE: case of 0 is required for .NET Framework forward compatibility.
-                // NOTE: .NET does not raise an error, but it does not match the documentation.
-                | 0 -> []
-                | c ->
+            match renderStack.Count with
+            // NOTE: case of 0 is required for .NET Framework forward compatibility.
+            // NOTE: .NET does not raise an error, but it does not match the documentation.
+            | 0 -> RenderMessage.None
+            | c ->
 #if DEBUG
-                    // NOTE: for backward compatibility.
-                    Logger.LogFile [ $"received {c} items." ]
+                Logger.LogFile [ $"received {c} items." ]
 #endif
-                    let items = Array.zeroCreate<RenderEvent> c
-                    renderStack.TryPopRange items |> ignore
-                    items |> Array.toList
-
-            items |> getLatestEvent
+                let items = Array.zeroCreate<RenderEvent> c
+                renderStack.TryPopRange items |> ignore
+                getLatestEvent items
 
         interface IDisposable with
             member __.Dispose() = event.Dispose()
@@ -271,7 +258,7 @@ module Pocof =
     [<Struct>]
     type RenderProcess =
         | Noop
-        | Rendered of (InternalState * Entry pseq Lazy * Result<string list, string> Lazy)
+        | Rendered of (InternalState * Entry pseq Lazy * Result<string seq, string> Lazy)
         | StopUpstreamCommands
 
     let renderOnce (handler: RenderHandler) (buff: Screen.Buff) =
@@ -287,10 +274,10 @@ module Pocof =
         let stopwatch = Stopwatch()
         let idlingStopwatch = Stopwatch()
 
-        let mutable latest: (InternalState * Entry pseq Lazy * Result<string list, string> Lazy) voption =
+        let mutable latest: (InternalState * Entry pseq Lazy * Result<string seq, string> Lazy) voption =
             ValueNone
 
-        let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string list, string> Lazy) =
+        let renderAgain (state: InternalState, result: Entry pseq Lazy, props: Result<string seq, string> Lazy) =
             let state =
                 state
                 // NOTE: adjust the console width before writing the screen.
@@ -388,9 +375,9 @@ module Pocof =
             let props =
                 match input.BaseObject with
                 | :? IDictionary as dct ->
-                    match Seq.cast<DictionaryEntry> dct with
-                    | s when Seq.isEmpty s -> Seq.empty
-                    | s -> s |> Seq.head |> _.GetType().GetProperties() |> Seq.map _.Name
+                    match dct |> Seq.cast<DictionaryEntry> |> Seq.tryHead with
+                    | None -> Seq.empty
+                    | Some s -> s |> _.GetType().GetProperties() |> Seq.map _.Name
                 | _ -> input.Properties |> Seq.map _.Name
 
             add (typeName, props)

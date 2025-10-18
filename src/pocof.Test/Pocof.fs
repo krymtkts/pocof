@@ -132,7 +132,7 @@ let tests_loop =
               actual |> Expect.hasLength "should return 5 results when finishing" 5
 
               actual
-              |> Seq.iteri (fun i x -> x |> Expect.equal (sprintf "should match result at index %d" i) results.[i])
+              |> Seq.iteri (fun i x -> x |> Expect.equal (sprintf "should match result at index %d" i) results[i])
 
               rui.Check()
           }
@@ -186,7 +186,7 @@ let tests_loop =
               actual
               |> Seq.iteri (fun i x ->
                   x
-                  |> Expect.equal (sprintf "should match result at index %d after noop" i) results.[i])
+                  |> Expect.equal (sprintf "should match result at index %d after noop" i) results[i])
 
               rui.Check()
           }
@@ -219,9 +219,9 @@ let tests_loop =
               let actual = Pocof.interact config state buff publishEvent input
               actual |> Expect.hasLength "should return 2 filtered results" 2
 
-              Seq.item 0 actual |> Expect.equal "should match filtered result 0" results.[0]
+              Seq.item 0 actual |> Expect.equal "should match filtered result 0" results[0]
 
-              Seq.item 1 actual |> Expect.equal "should match filtered result 1" results.[3]
+              Seq.item 1 actual |> Expect.equal "should match filtered result 1" results[3]
 
               rui.Check()
           }
@@ -378,11 +378,11 @@ let tests_render =
 
                   Thread.Sleep 300
 
-                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  (state, lazy PSeq.empty, lazy Ok(seq { "Value" }))
                   |> Pocof.RenderEvent.Render
                   |> handler.Publish
 
-                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  (state, lazy PSeq.empty, lazy Ok(seq { "Value" }))
                   |> Pocof.RenderEvent.Render
                   |> handler.Publish
 
@@ -390,7 +390,7 @@ let tests_render =
 
                   Pocof.RenderEvent.Quit |> handler.Publish
 
-                  (state, lazy PSeq.empty, lazy Ok [ "Value" ])
+                  (state, lazy PSeq.empty, lazy Ok(seq { "Value" }))
                   |> Pocof.RenderEvent.Render
                   |> handler.Publish
               }
