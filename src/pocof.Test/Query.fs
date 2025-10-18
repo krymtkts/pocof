@@ -143,8 +143,6 @@ let tests_props =
           ]
 
 module run =
-    open System.Collections
-
     let duplicateCase (s: string) = [ s; s.ToLower() ]
     let mapToObj = List.map (PSObject.AsPSObject >> Data.Entry.Obj)
 
@@ -382,6 +380,7 @@ module run =
             mapToDict
                 [ DictionaryEntry("John", "Doe")
                   DictionaryEntry("Jane", "Doe")
+                  DictionaryEntry("X", null)
                   DictionaryEntry("Ming", "Wu")
                   DictionaryEntry("Taro", "Nanashi") ]
             |> PSeq.ofSeq
