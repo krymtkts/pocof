@@ -5,18 +5,12 @@
     <Version>0.20.0</Version>
     <Copyright>Copyright © 2022 Takatoshi Kuriyama. All rights reserved.</Copyright>
     <Description>An interactive pipeline filtering Cmdlet for PowerShell written in F#. A fork of poco which is a PowerShell port of peco.</Description>
-    <Nullable>enable</Nullable>
     <!-- Disable XML generation. -->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- Disable deps.json generation -->
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <!-- Deploy the produced assembly -->
     <PublishDir>../../publish/pocof</PublishDir>
-    <!-- Disable satellite assemblies generation -->
-    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
-    <!-- Set warning level to 4 and treat warnings as errors -->
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
   <!-- Disable debug symbols for the release build. -->
