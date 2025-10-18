@@ -490,7 +490,7 @@ module run =
               test "When composite query with or operator" {
                   let state = state |> query ":fn a  :ln  d"
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[0]; entries.[1]; entries.[3] ]
+                  let filtered = [ entries[0]; entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -500,7 +500,7 @@ module run =
               test "When composite query with and operator" {
                   let state = state |> query ":fn a :ln d" |> opAnd
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[1] ]
+                  let filtered = [ entries[1] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -528,7 +528,7 @@ module run =
               test "When incomplete composite query with filter" {
                   let state = state |> query "a :fn "
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[1]; entries.[3] ]
+                  let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -538,7 +538,7 @@ module run =
               test "When a non-existent property query exists after a correct query" {
                   let state = state |> query "a :f  e "
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[1]; entries.[3] ]
+                  let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -548,7 +548,7 @@ module run =
               test "When a non-existent property query exists before a correct query" {
                   let state = state |> query ":f e a"
                   let context = Query.prepare state |> fst'
-                  let filtered = [ entries.[1]; entries.[3] ]
+                  let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq

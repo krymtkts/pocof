@@ -136,12 +136,12 @@ let tests =
               xs |> Array.length |> Expect.equal "length" (total + 1)
 
               // NOTE: Position checks (start / segment boundaries / end)
-              xs.[0] |> Expect.equal "first" 0
-              xs.[127] |> Expect.equal "end seg1" 127
-              xs.[128] |> Expect.equal "start seg2" 128
-              xs.[128 + 255] |> Expect.equal "end seg2" (128 + 255)
-              xs.[128 + 256] |> Expect.equal "start seg3" (128 + 256)
-              xs.[total] |> Expect.equal "last" total
+              xs[0] |> Expect.equal "first" 0
+              xs[127] |> Expect.equal "end seg1" 127
+              xs[128] |> Expect.equal "start seg2" 128
+              xs[128 + 255] |> Expect.equal "end seg2" (128 + 255)
+              xs[128 + 256] |> Expect.equal "start seg3" (128 + 256)
+              xs[total] |> Expect.equal "last" total
           }
 
           test "IReadOnlyCollection Count matches after many adds" {
