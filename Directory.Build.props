@@ -1,4 +1,8 @@
 <Project>
+    <PropertyGroup>
+        <!-- Enable warning for usage of the legacy F# indexing syntax expr.[idx]. -->
+        <WarnOn>$(WarnOn);3366</WarnOn>
+    </PropertyGroup>
     <ItemGroup>
         <!-- Analyzer configurations. -->
         <PackageReference Include="Ionide.Analyzers" Version="0.14.4">
