@@ -185,7 +185,12 @@ module Query =
             let x entry =
                 match entry with
                 // NOTE: A hashtable query matches either the key or the value.
-                | Entry.Dict dct -> (||) (dct.Key.ToString() |> test) (dct.Value.ToString() |> test)
+                | Entry.Dict dct ->
+                    // NOTE: Dictionary keys are never null.
+                    dct.Key.ToString() |> test
+                    || match dct.Value with
+                       | null -> false
+                       | dv -> dv.ToString() |> test
                 | Entry.Obj o -> o.ToString() |> test
 
             generatePredicate props (x :: acc) tail
