@@ -76,8 +76,11 @@ module Query =
                 else
                     match x with
                     | Prefix ":" p ->
-                        let y = xs[i]
-                        QueryPart.Property(p, is y) :: acc, i + 1
+                        if p.Length = 0 then
+                            acc, i
+                        else
+                            let y = xs[i]
+                            QueryPart.Property(p, is y) :: acc, i + 1
                     | _ -> QueryPart.Normal(is x) :: acc, i
 
             parseQuery is acc xs l i
