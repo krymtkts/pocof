@@ -312,16 +312,43 @@ type QueryBenchmarks() =
           SuppressProperties = false
           Refresh = Refresh.NotRequired }
 
-    let stateForPrepareQuery =
-        { state with
-            InternalState.QueryState.Query = ":Name foo bar :Value buz" }
+    let context = Query.prepare state |> fst'
 
-    let contextForPrepareQuery = Query.prepare state |> fst'
+    let sampleProperties =
+        [ "Length"; "Name"; "Type"; "Value"; "Key"; "Path"; "Count"; "Content" ]
+
+    [<Params(1, 3, 5, 7)>]
+    member val QueryCount = 0 with get, set
+
+    member val NormalState = state with get, set
+    member val NormalContext = context with get, set
+    member val PropertyState = state with get, set
+    member val PropertyContext = context with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        __.NormalState <-
+            { state with
+                InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
+
+        __.NormalContext <- __.NormalState |> Query.prepare |> fst'
+
+        __.PropertyState <-
+            { state with
+                InternalState.QueryState.Query =
+                    seq { 0 .. __.QueryCount }
+                    |> Seq.mapi (fun x -> fun _ -> $":{sampleProperties[x % sampleProperties.Length]} {x}")
+                    |> String.concat " " }
+
+        __.PropertyContext <- __.PropertyState |> Query.prepare |> fst'
+
+    [<Benchmark(Baseline = true)>]
+    member __.prepareNormalQuery() =
+        Query.QueryContext.prepareQuery __.NormalState __.NormalContext |> ignore
 
     [<Benchmark>]
-    member __.prepareQuery() =
-        Query.QueryContext.prepareQuery stateForPrepareQuery contextForPrepareQuery
-        |> ignore
+    member __.preparePropertyQuery() =
+        Query.QueryContext.prepareQuery __.PropertyState __.PropertyContext |> ignore
 
 [<MemoryDiagnoser>]
 type PocofInteractBenchmarks() =
