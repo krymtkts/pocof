@@ -96,20 +96,18 @@ module Query =
                 let tokenLen = i - start
 
                 // NOTE: token never empty here. it is guarded by if i < len above.
-                let token = input.Substring(start, tokenLen)
-
                 match pendingProp with
                 | ValueSome prop ->
                     // NOTE: Any token after a pending property prefix becomes its value (even if it begins with ':').
-                    acc <- QueryPart.Property(prop, is token) :: acc
+                    acc <- QueryPart.Property(prop, is (input.Substring(start, tokenLen))) :: acc
                     pendingProp <- ValueNone
                 | ValueNone ->
-                    if token[0] = ':' then
+                    if input[start] = ':' then
                         // NOTE: Found a property prefix. Store (possibly empty) name; value will be bound by next token.
                         if tokenLen > 1 then
-                            pendingProp <- ValueSome(token.Substring(1))
+                            pendingProp <- ValueSome(input.Substring(start + 1, tokenLen - 1))
                     else
-                        acc <- QueryPart.Normal(is token) :: acc
+                        acc <- QueryPart.Normal(is (input.Substring(start, tokenLen))) :: acc
 
         acc
 
