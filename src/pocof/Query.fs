@@ -53,34 +53,65 @@ module Query =
         { Queries: QueryPart list
           Operator: Operator }
 
-    [<TailCall>]
-    let rec private parseQuery
-        (is: string -> string -> bool)
-        (acc: QueryPart list)
-        (xs: string array)
-        (l: int)
-        (i: int)
-        =
-        if l = i then
-            acc
-        else
-            let x = xs[i]
-            let i = i + 1
+    let private parseQuery (is: string -> string -> bool) (input: string) : QueryPart list =
+        let len = input.Length
+        let mutable i = 0
+        let mutable acc = []
+        let mutable pendingProp: string voption = ValueNone
 
-            let acc, i =
-                if l = i then
-                    match x with
-                    | Prefix ":" _ -> acc
-                    | _ -> QueryPart.Normal(is x) :: acc
-                    , i
-                else
-                    match x with
-                    | Prefix ":" p ->
-                        let y = xs[i]
-                        QueryPart.Property(p, is y) :: acc, i + 1
-                    | _ -> QueryPart.Normal(is x) :: acc, i
+        let
+#if !DEBUG
+            inline
+#endif
+            skipWhitespace
+                (startIndex: int)
+                =
+            let mutable j = startIndex
 
-            parseQuery is acc xs l i
+            while j < len && Char.IsWhiteSpace input[j] do
+                j <- j + 1
+
+            j
+
+        let
+#if !DEBUG
+            inline
+#endif
+            nextToken
+                (startIndex: int)
+                =
+            let mutable j = startIndex
+
+            while j < len && not (Char.IsWhiteSpace input[j]) do
+                j <- j + 1
+
+            j
+
+        while i < len do
+            i <- skipWhitespace i
+
+            if i < len then
+                let start = i
+                i <- nextToken i
+                let tokenLen = i - start
+
+                // NOTE: token never empty here. it is guarded by if i < len above.
+                let token = input.Substring(start, tokenLen)
+
+                match pendingProp with
+                | ValueSome prop ->
+                    // NOTE: Any token after a pending property prefix becomes its value (even if it begins with ':').
+                    acc <- QueryPart.Property(prop, is token) :: acc
+                    pendingProp <- ValueNone
+                | ValueNone ->
+                    if token[0] = ':' then
+                        // NOTE: Found a property prefix. Store (possibly empty) name; value will be bound by next token.
+                        if tokenLen > 1 then
+                            pendingProp <- ValueSome(token.Substring(1))
+                    else
+                        acc <- QueryPart.Normal(is token) :: acc
+
+        acc
 
     let private prepareTest (condition: QueryCondition) =
         let is =
@@ -95,12 +126,11 @@ module Query =
         | _ -> is
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
-        match query |> _.Trim() with
+        match query with
         | q when q.Length = 0 -> []
         | q ->
             let is = prepareTest condition
-            let xs = q |> Regex.split @"\s+"
-            parseQuery is [] xs <| Array.length xs <| 0
+            parseQuery is q
 
     let private prepareNotification (query: string) (condition: QueryCondition) =
         match condition.Matcher with

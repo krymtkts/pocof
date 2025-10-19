@@ -72,6 +72,101 @@ let tests_PSObject =
           ]
 
 [<Tests>]
+let tests_QueryContext =
+
+    testList
+        "QueryContext.prepareQuery"
+        [
+
+          test "When query is empty" {
+              let context: Query.QueryContext =
+                  { Queries = []
+                    Operator = Data.Operator.And }
+
+              let state =
+                  { state with
+                      QueryState =
+                          { state.QueryState with
+                              Query = "     " } }
+
+              let actual = Query.QueryContext.prepareQuery state context
+              actual.Queries |> Expect.isEmpty "should return empty QueryPart list"
+          }
+
+          test "When normal query with spaces" {
+              let context: Query.QueryContext =
+                  { Queries = []
+                    Operator = Data.Operator.And }
+
+              let state =
+                  { state with
+                      QueryState =
+                          { state.QueryState with
+                              Query = "    abc    xyz " } }
+
+              let actual = Query.QueryContext.prepareQuery state context
+
+              actual.Queries |> Expect.hasLength "should have 2 QueryParts" 2
+
+              actual.Queries[1]
+              |> function
+                  | Query.QueryPart.Normal test ->
+                      test "abc" |> Expect.isTrue "should match 'abc'"
+                      test "ab" |> Expect.isFalse "should not match 'ab'"
+                  | _ -> failwith "unexpected QueryPart"
+
+              actual.Queries[0]
+              |> function
+                  | Query.QueryPart.Normal test ->
+                      test "xyz" |> Expect.isTrue "should match 'xyz'"
+                      test "xy" |> Expect.isFalse "should not match 'xy'"
+                  | _ -> failwith "unexpected QueryPart"
+          }
+
+          test "When property query" {
+              let context: Query.QueryContext =
+                  { Queries = []
+                    Operator = Data.Operator.And }
+
+              let state =
+                  { state with
+                      QueryState =
+                          { state.QueryState with
+                              Query = "  :name  abc : aa : :attr  xyz  " } }
+
+              let actual = Query.QueryContext.prepareQuery state context
+
+              // NOTE: "  :name  abc : aa : :attr  xyz  " -> [:attr xyz] [aa] [:name abc]
+              actual.Queries |> Expect.hasLength "should have 2 QueryParts" 3
+
+              actual.Queries[2]
+              |> function
+                  | Query.QueryPart.Property(prop, test) ->
+                      prop |> Expect.equal "should have property 'name'" "name"
+                      test "abc" |> Expect.isTrue "should match 'abc'"
+                      test "ab" |> Expect.isFalse "should not match 'ab'"
+                  | _ -> failwith "unexpected QueryPart"
+
+              actual.Queries[1]
+              |> function
+                  | Query.QueryPart.Property _ -> failwith "unexpected QueryPart"
+                  | Query.QueryPart.Normal test ->
+                      test "aa" |> Expect.isTrue "should match 'aa'"
+                      test "a" |> Expect.isFalse "should not match 'a'"
+
+              actual.Queries[0]
+              |> function
+                  | Query.QueryPart.Property(prop, test) ->
+                      prop |> Expect.equal "should have property 'attr'" "attr"
+                      test "xyz" |> Expect.isTrue "should match 'xyz'"
+                      test "xy" |> Expect.isFalse "should not match 'xy'"
+                  | _ -> failwith "unexpected QueryPart"
+          }
+
+
+          ]
+
+
 let tests_props =
     testList
         "props"
