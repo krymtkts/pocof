@@ -83,6 +83,12 @@ let tests_QueryContext =
                   { Queries = []
                     Operator = Data.Operator.And }
 
+              let state =
+                  { state with
+                      QueryState =
+                          { state.QueryState with
+                              Query = "     " } }
+
               let actual = Query.QueryContext.prepareQuery state context
               actual.Queries |> Expect.isEmpty "should return empty QueryPart list"
           }

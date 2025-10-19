@@ -95,21 +95,21 @@ module Query =
                 i <- nextToken i
                 let tokenLen = i - start
 
-                if tokenLen > 0 then
-                    let token = input.Substring(start, tokenLen)
+                // NOTE: token never empty here. it is guarded by if i < len above.
+                let token = input.Substring(start, tokenLen)
 
-                    match pendingProp with
-                    | ValueSome prop ->
-                        // NOTE: Any token after a pending property prefix becomes its value (even if it begins with ':').
-                        acc <- QueryPart.Property(prop, is token) :: acc
-                        pendingProp <- ValueNone
-                    | ValueNone ->
-                        if token[0] = ':' then
-                            // NOTE: Found a property prefix. Store (possibly empty) name; value will be bound by next token.
-                            if tokenLen > 1 then
-                                pendingProp <- ValueSome(token.Substring(1))
-                        else
-                            acc <- QueryPart.Normal(is token) :: acc
+                match pendingProp with
+                | ValueSome prop ->
+                    // NOTE: Any token after a pending property prefix becomes its value (even if it begins with ':').
+                    acc <- QueryPart.Property(prop, is token) :: acc
+                    pendingProp <- ValueNone
+                | ValueNone ->
+                    if token[0] = ':' then
+                        // NOTE: Found a property prefix. Store (possibly empty) name; value will be bound by next token.
+                        if tokenLen > 1 then
+                            pendingProp <- ValueSome(token.Substring(1))
+                    else
+                        acc <- QueryPart.Normal(is token) :: acc
 
         acc
 
@@ -126,7 +126,7 @@ module Query =
         | _ -> is
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
-        match query |> _.Trim() with
+        match query with
         | q when q.Length = 0 -> []
         | q ->
             let is = prepareTest condition
