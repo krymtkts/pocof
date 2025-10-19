@@ -59,7 +59,13 @@ module Query =
         let mutable acc = []
         let mutable pendingProp: string voption = ValueNone
 
-        let inline skipWhitespace (startIndex: int) =
+        let
+#if !DEBUG
+            inline
+#endif
+            skipWhitespace
+                (startIndex: int)
+                =
             let mutable j = startIndex
 
             while j < len && Char.IsWhiteSpace input[j] do
@@ -67,7 +73,13 @@ module Query =
 
             j
 
-        let inline nextToken (startIndex: int) =
+        let
+#if !DEBUG
+            inline
+#endif
+            nextToken
+                (startIndex: int)
+                =
             let mutable j = startIndex
 
             while j < len && not (Char.IsWhiteSpace input[j]) do
