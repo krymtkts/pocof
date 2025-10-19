@@ -53,65 +53,53 @@ module Query =
         { Queries: QueryPart list
           Operator: Operator }
 
-    [<NoComparison>]
-    [<NoEquality>]
-    [<Struct>]
-    type private TokenSpan = { Start: int; Length: int }
-
-    let private tokenizeToSpans (s: string) : TokenSpan array =
-        let result = ResizeArray<TokenSpan>()
-        let mutable start = 0
-        let len = s.Length
+    let private parseQuery (is: string -> string -> bool) (input: string) : QueryPart list =
+        let len = input.Length
         let mutable i = 0
+        let mutable acc = []
+        let mutable pendingProp: string voption = ValueNone
+
+        let inline skipWhitespace (startIndex: int) =
+            let mutable j = startIndex
+
+            while j < len && Char.IsWhiteSpace input[j] do
+                j <- j + 1
+
+            j
+
+        let inline nextToken (startIndex: int) =
+            let mutable j = startIndex
+
+            while j < len && not (Char.IsWhiteSpace input[j]) do
+                j <- j + 1
+
+            j
 
         while i < len do
-            if Char.IsWhiteSpace s[i] then
-                if i > start then
-                    result.Add({ Start = start; Length = i - start })
+            i <- skipWhitespace i
 
-                start <- i + 1
+            if i < len then
+                let start = i
+                i <- nextToken i
+                let tokenLen = i - start
 
-            i <- i + 1
+                if tokenLen > 0 then
+                    let token = input.Substring(start, tokenLen)
 
-        if len > start then
-            result.Add({ Start = start; Length = len - start })
-
-        result.ToArray()
-
-    [<TailCall>]
-    let rec private parseQuery
-        (is: string -> string -> bool)
-        (input: string)
-        (acc: QueryPart list)
-        (spans: TokenSpan array)
-        (l: int)
-        (i: int)
-        =
-        if l = i then
-            acc
-        else
-            let span = spans[i]
-            let x = input.Substring(span.Start, span.Length)
-            let i = i + 1
-
-            let acc, i =
-                if l = i then
-                    match x with
-                    | Prefix ":" _ -> acc
-                    | _ -> QueryPart.Normal(is x) :: acc
-                    , i
-                else
-                    match x with
-                    | Prefix ":" p ->
-                        if p.Length = 0 then
-                            acc, i
+                    match pendingProp with
+                    | ValueSome prop ->
+                        // NOTE: Any token after a pending property prefix becomes its value (even if it begins with ':').
+                        acc <- QueryPart.Property(prop, is token) :: acc
+                        pendingProp <- ValueNone
+                    | ValueNone ->
+                        if token[0] = ':' then
+                            // NOTE: Found a property prefix. Store (possibly empty) name; value will be bound by next token.
+                            if tokenLen > 1 then
+                                pendingProp <- ValueSome(token.Substring(1))
                         else
-                            let ySpan = spans[i]
-                            let y = input.Substring(ySpan.Start, ySpan.Length)
-                            QueryPart.Property(p, is y) :: acc, i + 1
-                    | _ -> QueryPart.Normal(is x) :: acc, i
+                            acc <- QueryPart.Normal(is token) :: acc
 
-            parseQuery is input acc spans l i
+        acc
 
     let private prepareTest (condition: QueryCondition) =
         let is =
@@ -130,8 +118,7 @@ module Query =
         | q when q.Length = 0 -> []
         | q ->
             let is = prepareTest condition
-            let spans = tokenizeToSpans q
-            parseQuery is q [] spans <| Array.length spans <| 0
+            parseQuery is q
 
     let private prepareNotification (query: string) (condition: QueryCondition) =
         match condition.Matcher with
