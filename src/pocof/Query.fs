@@ -53,18 +53,45 @@ module Query =
         { Queries: QueryPart list
           Operator: Operator }
 
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type private TokenSpan = { Start: int; Length: int }
+
+    let private tokenizeToSpans (s: string) : TokenSpan array =
+        let result = ResizeArray<TokenSpan>()
+        let mutable start = 0
+        let len = s.Length
+        let mutable i = 0
+
+        while i < len do
+            if Char.IsWhiteSpace s[i] then
+                if i > start then
+                    result.Add({ Start = start; Length = i - start })
+
+                start <- i + 1
+
+            i <- i + 1
+
+        if len > start then
+            result.Add({ Start = start; Length = len - start })
+
+        result.ToArray()
+
     [<TailCall>]
     let rec private parseQuery
         (is: string -> string -> bool)
+        (input: string)
         (acc: QueryPart list)
-        (xs: string array)
+        (spans: TokenSpan array)
         (l: int)
         (i: int)
         =
         if l = i then
             acc
         else
-            let x = xs[i]
+            let span = spans[i]
+            let x = input.Substring(span.Start, span.Length)
             let i = i + 1
 
             let acc, i =
@@ -79,11 +106,12 @@ module Query =
                         if p.Length = 0 then
                             acc, i
                         else
-                            let y = xs[i]
+                            let ySpan = spans[i]
+                            let y = input.Substring(ySpan.Start, ySpan.Length)
                             QueryPart.Property(p, is y) :: acc, i + 1
                     | _ -> QueryPart.Normal(is x) :: acc, i
 
-            parseQuery is acc xs l i
+            parseQuery is input acc spans l i
 
     let private prepareTest (condition: QueryCondition) =
         let is =
@@ -102,8 +130,8 @@ module Query =
         | q when q.Length = 0 -> []
         | q ->
             let is = prepareTest condition
-            let xs = q |> Regex.split @"\s+"
-            parseQuery is [] xs <| Array.length xs <| 0
+            let spans = tokenizeToSpans q
+            parseQuery is q [] spans <| Array.length spans <| 0
 
     let private prepareNotification (query: string) (condition: QueryCondition) =
         match condition.Matcher with
