@@ -12,31 +12,63 @@ open System.Text.RegularExpressions
 open Data
 
 module Query =
-    let private equalOpt sensitive =
-        match sensitive with
-        | true -> StringComparison.CurrentCulture
-        | _ -> StringComparison.CurrentCultureIgnoreCase
+    let private equals (condition: QueryCondition) =
+        let cmp =
+            if condition.CaseSensitive then
+                StringComparison.Ordinal
+            else
+                StringComparison.OrdinalIgnoreCase
 
-    let private likeOpt sensitive =
-        match sensitive with
-        | true -> WildcardOptions.None
-        | _ -> WildcardOptions.IgnoreCase
+        if condition.Invert then
+            fun (token: string) ->
+                let token = token
+                fun (s: string) -> s.Equals(token, cmp) |> not
+        else
+            fun (token: string) ->
+                let token = token
+                fun (s: string) -> s.Equals(token, cmp)
 
-    let private matchOpt sensitive =
-        match sensitive with
-        | true -> RegexOptions.None
-        | _ -> RegexOptions.IgnoreCase
+    let private likes (condition: QueryCondition) =
+        let opt =
+            if condition.CaseSensitive then
+                WildcardOptions.None
+            else
+                WildcardOptions.IgnoreCase
 
-    let private equals (opt: StringComparison) (r: string) = String.equals opt r
+        if condition.Invert then
+            fun (pattern: string) ->
+                let wp = WildcardPattern.Get(pattern, opt)
+                fun (s: string) -> wp.IsMatch s |> not
+        else
+            fun (pattern: string) ->
+                let wp = WildcardPattern.Get(pattern, opt)
+                fun (s: string) -> wp.IsMatch s
 
-    let private likes (opt: WildcardOptions) (wcp: string) = WildcardPattern.Get(wcp, opt).IsMatch
+    let private matches (condition: QueryCondition) =
+        let ro =
+            if condition.CaseSensitive then
+                RegexOptions.None
+            else
+                RegexOptions.IgnoreCase ||| RegexOptions.CultureInvariant
 
-    let private matches (opt: RegexOptions) (pattern: string) =
-        try
-            // NOTE: expect using cache.
-            Regex(pattern, opt).IsMatch
-        with _ ->
-            alwaysTrue
+        if condition.Invert then
+            fun (pattern: string) ->
+                let reg =
+                    try
+                        Regex(pattern, ro).IsMatch
+                    with _ ->
+                        alwaysTrue
+
+                fun (s: string) -> reg s |> not
+        else
+            fun (pattern: string) ->
+                let reg =
+                    try
+                        Regex(pattern, ro).IsMatch
+                    with _ ->
+                        alwaysTrue
+
+                fun (s: string) -> reg s
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -112,16 +144,11 @@ module Query =
         acc
 
     let private prepareTest (condition: QueryCondition) =
-        let is =
-            condition.CaseSensitive
-            |> match condition.Matcher with
-               | Matcher.Eq -> equalOpt >> equals
-               | Matcher.Like -> likeOpt >> likes
-               | Matcher.Match -> matchOpt >> matches
-
-        match condition.Invert with
-        | true -> fun r -> is r >> not
-        | _ -> is
+        condition
+        |> match condition.Matcher with
+           | Matcher.Eq -> equals
+           | Matcher.Like -> likes
+           | Matcher.Match -> matches
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
         match query with
