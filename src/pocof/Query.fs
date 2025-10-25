@@ -193,13 +193,15 @@ module Query =
         (op: Operator)
         (queries: QueryPart list)
         =
-        let xVar = Var("x", typeof<Entry>)
-        let x = xVar |> Expr.Var |> Expr.Cast<Entry>
+        let entryVar = Var("x", typeof<Entry>)
+        let entry = entryVar |> Expr.Var |> Expr.Cast<Entry>
+        let falseQuote = <@ false @>
+        let trueQuote = <@ true @>
 
         let combination =
             match op with
-            | Operator.And -> fun c acc -> <@ c %x @>, acc, <@ false @>
-            | Operator.Or -> fun c acc -> <@ c %x @>, <@ true @>, acc
+            | Operator.And -> fun c acc -> <@ c %entry @>, acc, falseQuote
+            | Operator.Or -> fun c acc -> <@ c %entry @>, trueQuote, acc
 
         let rec recBody (acc: Expr<bool>) (hasCondition: bool) (queries: QueryPart list) =
             match queries with
@@ -229,23 +231,23 @@ module Query =
                 let acc = combination x acc |> Expr.IfThenElse |> Expr.Cast<bool>
 
                 recBody acc true tail
-            | [] -> acc, hasCondition
+            | [] -> struct (acc, hasCondition)
 
-        let body, hasCondition =
+        let struct (body, hasCondition) =
             // NOTE: condition's order is already reversed.
             match queries with
             | [] -> <@ true @>, false
             | queries ->
                 let init =
                     match op with
-                    | Operator.And -> <@ true @>
-                    | Operator.Or -> <@ false @>
+                    | Operator.And -> trueQuote
+                    | Operator.Or -> falseQuote
 
-                let term = Expr.IfThenElse(init, <@ true @>, <@ false @>) |> Expr.Cast<bool>
+                let term = Expr.IfThenElse(init, trueQuote, falseQuote) |> Expr.Cast<bool>
                 recBody term false queries
 
         if hasCondition then
-            Expr.Lambda(xVar, body) |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
+            Expr.Lambda(entryVar, body) |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
         else
             alwaysTrue
 
