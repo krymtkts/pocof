@@ -188,7 +188,11 @@ module Query =
             { context with
                 QueryContext.Operator = state.QueryCondition.Operator }
 
-    let private generateExpr (op: Operator) (conditions: (Entry -> bool) list) =
+    let private generateExpr
+        (props: Generic.IReadOnlyDictionary<string, string>)
+        (op: Operator)
+        (queries: QueryPart list)
+        =
         let xVar = Var("x", typeof<Entry>)
         let x = xVar |> Expr.Var |> Expr.Cast<Entry>
 
@@ -197,59 +201,53 @@ module Query =
             | Operator.And -> fun c acc -> <@ c %x @>, acc, <@ false @>
             | Operator.Or -> fun c acc -> <@ c %x @>, <@ true @>, acc
 
-        let rec recBody acc conditions =
-            match conditions with
-            | [] -> acc
-            | condition :: conditions ->
-                let acc = combination condition acc |> Expr.IfThenElse |> Expr.Cast<bool>
-                recBody acc conditions
+        let rec recBody (acc: Expr<bool>) (hasCondition: bool) (queries: QueryPart list) =
+            match queries with
+            | QueryPart.Property(p, test) :: tail ->
+                match props.TryGetValue p with
+                | true, pn ->
+                    let x (entry: Entry) =
+                        match entry[pn] with
+                        | null -> false
+                        | pv -> pv.ToString() |> test
 
-        let body =
+                    let acc = combination x acc |> Expr.IfThenElse |> Expr.Cast<bool>
+                    recBody acc true tail
+                | _ -> recBody acc hasCondition tail
+            | QueryPart.Normal test :: tail ->
+                let x entry =
+                    match entry with
+                    // NOTE: A hashtable query matches either the key or the value.
+                    | Entry.Dict dct ->
+                        // NOTE: Dictionary keys are never null.
+                        dct.Key.ToString() |> test
+                        || match dct.Value with
+                           | null -> false
+                           | dv -> dv.ToString() |> test
+                    | Entry.Obj o -> o.ToString() |> test
+
+                let acc = combination x acc |> Expr.IfThenElse |> Expr.Cast<bool>
+
+                recBody acc true tail
+            | [] -> acc, hasCondition
+
+        let body, hasCondition =
             // NOTE: condition's order is already reversed.
-            match conditions with
-            | [] -> <@ true @>
-            | condition :: conditions ->
-                let term =
-                    Expr.IfThenElse(<@ condition %x @>, <@ true @>, <@ false @>) |> Expr.Cast<bool>
+            match queries with
+            | [] -> <@ true @>, false
+            | queries ->
+                let init =
+                    match op with
+                    | Operator.And -> <@ true @>
+                    | Operator.Or -> <@ false @>
 
-                recBody term conditions
+                let term = Expr.IfThenElse(init, <@ true @>, <@ false @>) |> Expr.Cast<bool>
+                recBody term false queries
 
-        let lambda = Expr.Lambda(xVar, body)
-
-        lambda |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
-
-    [<TailCall>]
-    let rec private generatePredicate
-        (props: Generic.IReadOnlyDictionary<string, string>)
-        (acc: (Entry -> bool) list)
-        queries
-        =
-        match queries with
-        | QueryPart.Property(p, test) :: tail ->
-            match props.TryGetValue p with
-            | true, pn ->
-                let x (entry: Entry) =
-                    match entry[pn] with
-                    | null -> false
-                    | pv -> pv.ToString() |> test
-
-                generatePredicate props (x :: acc) tail
-            | _ -> generatePredicate props acc tail
-
-        | QueryPart.Normal test :: tail ->
-            let x entry =
-                match entry with
-                // NOTE: A hashtable query matches either the key or the value.
-                | Entry.Dict dct ->
-                    // NOTE: Dictionary keys are never null.
-                    dct.Key.ToString() |> test
-                    || match dct.Value with
-                       | null -> false
-                       | dv -> dv.ToString() |> test
-                | Entry.Obj o -> o.ToString() |> test
-
-            generatePredicate props (x :: acc) tail
-        | [] -> acc
+        if hasCondition then
+            Expr.Lambda(xVar, body) |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
+        else
+            alwaysTrue
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         // #if DEBUG
@@ -259,9 +257,7 @@ module Query =
         match context.Queries with
         | [] -> entries
         | _ ->
-            let predicate =
-                generatePredicate props [] context.Queries |> generateExpr context.Operator
-
+            let predicate = generateExpr props context.Operator context.Queries
             entries |> PSeq.filter predicate
 
     let props (properties: string seq) (state: InternalState) =
