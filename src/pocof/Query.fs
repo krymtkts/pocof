@@ -195,8 +195,6 @@ module Query =
         =
         let entryVar = Var("x", typeof<Entry>)
         let entry = entryVar |> Expr.Var |> Expr.Cast<Entry>
-        let falseQuote = <@ false @>
-        let trueQuote = <@ true @>
 
         let combine =
             match op with
@@ -235,12 +233,12 @@ module Query =
         let struct (body, hasCondition) =
             // NOTE: condition's order is already reversed.
             match queries with
-            | [] -> trueQuote, false
+            | [] -> <@ false @>, false
             | queries ->
                 let init =
                     match op with
-                    | Operator.And -> trueQuote
-                    | Operator.Or -> falseQuote
+                    | Operator.And -> <@ true @>
+                    | Operator.Or -> <@ false @>
 
                 recBody init false queries
 
@@ -250,10 +248,6 @@ module Query =
             alwaysTrue
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
-        // #if DEBUG
-        //         Logger.LogFile context.Queries
-        // #endif
-
         match context.Queries with
         | [] -> entries
         | _ ->
