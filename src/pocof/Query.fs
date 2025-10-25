@@ -198,10 +198,10 @@ module Query =
         let falseQuote = <@ false @>
         let trueQuote = <@ true @>
 
-        let combination =
+        let combine =
             match op with
-            | Operator.And -> fun c acc -> <@ c %entry @>, acc, falseQuote
-            | Operator.Or -> fun c acc -> <@ c %entry @>, trueQuote, acc
+            | Operator.And -> fun test acc -> <@ if test %entry then %acc else false @>
+            | Operator.Or -> fun test acc -> <@ if test %entry then true else %acc @>
 
         let rec recBody (acc: Expr<bool>) (hasCondition: bool) (queries: QueryPart list) =
             match queries with
@@ -213,7 +213,7 @@ module Query =
                         | null -> false
                         | pv -> pv.ToString() |> test
 
-                    let acc = combination x acc |> Expr.IfThenElse |> Expr.Cast<bool>
+                    let acc = combine x acc
                     recBody acc true tail
                 | _ -> recBody acc hasCondition tail
             | QueryPart.Normal test :: tail ->
@@ -228,8 +228,7 @@ module Query =
                            | dv -> dv.ToString() |> test
                     | Entry.Obj o -> o.ToString() |> test
 
-                let acc = combination x acc |> Expr.IfThenElse |> Expr.Cast<bool>
-
+                let acc = combine x acc
                 recBody acc true tail
             | [] -> struct (acc, hasCondition)
 
