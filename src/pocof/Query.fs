@@ -236,15 +236,14 @@ module Query =
         let struct (body, hasCondition) =
             // NOTE: condition's order is already reversed.
             match queries with
-            | [] -> <@ true @>, false
+            | [] -> trueQuote, false
             | queries ->
                 let init =
                     match op with
                     | Operator.And -> trueQuote
                     | Operator.Or -> falseQuote
 
-                let term = Expr.IfThenElse(init, trueQuote, falseQuote) |> Expr.Cast<bool>
-                recBody term false queries
+                recBody init false queries
 
         if hasCondition then
             Expr.Lambda(entryVar, body) |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
