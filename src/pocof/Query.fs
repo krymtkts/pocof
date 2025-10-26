@@ -2,8 +2,6 @@
 #nowarn 3264
 namespace Pocof
 
-open FSharp.Linq.RuntimeHelpers
-open Microsoft.FSharp.Quotations
 open System
 open System.Collections
 open System.Management.Automation
