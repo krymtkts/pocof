@@ -247,14 +247,40 @@ module Screen =
 
             sb.Append(info).ToString()
 
+        // NOTE: balance responsiveness and CPU usage with staged backoff while polling.
+        [<Literal>]
+        let spinThreshold = 32
+
+        [<Literal>]
+        let yieldThreshold = 8
+
+        [<Literal>]
+        let sleepDurationMs = 1
+
         let readKey () : ConsoleKeyInfo seq =
             let acc = ResizeArray<ConsoleKeyInfo>()
             let mutable readingKey = true
+            let mutable idleCount = 0
+            let mutable spin = SpinWait()
 
             while readingKey do
-                if rui.KeyAvailable() then acc.Add(rui.ReadKey true)
-                else if acc.Count = 0 then Thread.Sleep 10
-                else readingKey <- false
+                if rui.KeyAvailable() then
+                    acc.Add(rui.ReadKey true)
+                    idleCount <- 0
+                    spin.Reset()
+                else if acc.Count = 0 then
+                    match idleCount with
+                    | x when x < spinThreshold ->
+                        spin.SpinOnce()
+                        idleCount <- idleCount + 1
+                    | x when x < spinThreshold + yieldThreshold ->
+                        Thread.Sleep 0
+                        idleCount <- idleCount + 1
+                    | _ ->
+                        // NOTE: keep idleCount to avoid overflow.
+                        Thread.Sleep sleepDurationMs
+                else
+                    readingKey <- false
 
             acc
 
