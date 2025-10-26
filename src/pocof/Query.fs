@@ -1,9 +1,5 @@
-// NOTE: to avoid nullness warning from LeafExpressionConverter.EvaluateQuotation in unreachable pass.
-#nowarn 3264
 namespace Pocof
 
-open FSharp.Linq.RuntimeHelpers
-open Microsoft.FSharp.Quotations
 open System
 open System.Collections
 open System.Management.Automation
@@ -12,31 +8,60 @@ open System.Text.RegularExpressions
 open Data
 
 module Query =
-    let private equalOpt sensitive =
-        match sensitive with
-        | true -> StringComparison.CurrentCulture
-        | _ -> StringComparison.CurrentCultureIgnoreCase
+    let private equals (condition: QueryCondition) =
+        let cmp =
+            if condition.CaseSensitive then
+                StringComparison.Ordinal
+            else
+                StringComparison.OrdinalIgnoreCase
 
-    let private likeOpt sensitive =
-        match sensitive with
-        | true -> WildcardOptions.None
-        | _ -> WildcardOptions.IgnoreCase
+        if condition.Invert then
+            fun (token: string) ->
+                let token = token
+                fun (s: string) -> s.Equals(token, cmp) |> not
+        else
+            fun (token: string) ->
+                let token = token
+                fun (s: string) -> s.Equals(token, cmp)
 
-    let private matchOpt sensitive =
-        match sensitive with
-        | true -> RegexOptions.None
-        | _ -> RegexOptions.IgnoreCase
+    let private likes (condition: QueryCondition) =
+        let opt =
+            if condition.CaseSensitive then
+                WildcardOptions.None
+            else
+                WildcardOptions.IgnoreCase
 
-    let private equals (opt: StringComparison) (r: string) = String.equals opt r
+        if condition.Invert then
+            fun (pattern: string) ->
+                let wp = WildcardPattern.Get(pattern, opt)
+                fun (s: string) -> wp.IsMatch s |> not
+        else
+            fun (pattern: string) ->
+                let wp = WildcardPattern.Get(pattern, opt)
+                fun (s: string) -> wp.IsMatch s
 
-    let private likes (opt: WildcardOptions) (wcp: string) = WildcardPattern.Get(wcp, opt).IsMatch
+    let private matches (condition: QueryCondition) =
+        let ro =
+            if condition.CaseSensitive then
+                RegexOptions.None
+            else
+                RegexOptions.IgnoreCase ||| RegexOptions.CultureInvariant
 
-    let private matches (opt: RegexOptions) (pattern: string) =
-        try
-            // NOTE: expect using cache.
-            Regex(pattern, opt).IsMatch
-        with _ ->
-            alwaysTrue
+        if condition.Invert then
+            fun (pattern: string) ->
+                try
+                    let reg = Regex(pattern, ro).IsMatch
+                    fun (s: string) -> reg s |> not
+                with _ ->
+                    alwaysTrue
+
+        else
+            fun (pattern: string) ->
+                try
+                    let reg = Regex(pattern, ro).IsMatch
+                    fun (s: string) -> reg s
+                with _ ->
+                    alwaysTrue
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -96,34 +121,27 @@ module Query =
                 let tokenLen = i - start
 
                 // NOTE: token never empty here. it is guarded by if i < len above.
-                let token = input.Substring(start, tokenLen)
-
                 match pendingProp with
                 | ValueSome prop ->
                     // NOTE: Any token after a pending property prefix becomes its value (even if it begins with ':').
-                    acc <- QueryPart.Property(prop, is token) :: acc
+                    acc <- QueryPart.Property(prop, is (input.Substring(start, tokenLen))) :: acc
                     pendingProp <- ValueNone
                 | ValueNone ->
-                    if token[0] = ':' then
+                    if input[start] = ':' then
                         // NOTE: Found a property prefix. Store (possibly empty) name; value will be bound by next token.
                         if tokenLen > 1 then
-                            pendingProp <- ValueSome(token.Substring(1))
+                            pendingProp <- ValueSome(input.Substring(start + 1, tokenLen - 1))
                     else
-                        acc <- QueryPart.Normal(is token) :: acc
+                        acc <- QueryPart.Normal(is (input.Substring(start, tokenLen))) :: acc
 
         acc
 
     let private prepareTest (condition: QueryCondition) =
-        let is =
-            condition.CaseSensitive
-            |> match condition.Matcher with
-               | Matcher.Eq -> equalOpt >> equals
-               | Matcher.Like -> likeOpt >> likes
-               | Matcher.Match -> matchOpt >> matches
-
-        match condition.Invert with
-        | true -> fun r -> is r >> not
-        | _ -> is
+        condition
+        |> match condition.Matcher with
+           | Matcher.Eq -> equals
+           | Matcher.Like -> likes
+           | Matcher.Match -> matches
 
     let private prepareQuery (query: string) (condition: QueryCondition) =
         match query with
@@ -163,80 +181,71 @@ module Query =
             { context with
                 QueryContext.Operator = state.QueryCondition.Operator }
 
-    let private generateExpr (op: Operator) (conditions: (Entry -> bool) list) =
-        let xVar = Var("x", typeof<Entry>)
-        let x = xVar |> Expr.Var |> Expr.Cast<Entry>
-
-        let combination =
-            match op with
-            | Operator.And -> fun c acc -> <@ c %x @>, acc, <@ false @>
-            | Operator.Or -> fun c acc -> <@ c %x @>, <@ true @>, acc
-
-        let rec recBody acc conditions =
-            match conditions with
-            | [] -> acc
-            | condition :: conditions ->
-                let acc = combination condition acc |> Expr.IfThenElse |> Expr.Cast<bool>
-                recBody acc conditions
-
-        let body =
-            // NOTE: condition's order is already reversed.
-            match conditions with
-            | [] -> <@ true @>
-            | condition :: conditions ->
-                let term =
-                    Expr.IfThenElse(<@ condition %x @>, <@ true @>, <@ false @>) |> Expr.Cast<bool>
-
-                recBody term conditions
-
-        let lambda = Expr.Lambda(xVar, body)
-
-        lambda |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
-
-    [<TailCall>]
-    let rec private generatePredicate
+    let private generatePredicate
         (props: Generic.IReadOnlyDictionary<string, string>)
-        (acc: (Entry -> bool) list)
-        queries
-        =
-        match queries with
-        | QueryPart.Property(p, test) :: tail ->
-            match props.TryGetValue p with
-            | true, pn ->
-                let x (entry: Entry) =
-                    match entry[pn] with
-                    | null -> false
-                    | pv -> pv.ToString() |> test
+        (op: Operator)
+        (queries: QueryPart list)
+        : Entry -> bool =
+        let rec buildPredicates (acc: (Entry -> bool) list) queries =
+            match queries with
+            | QueryPart.Property(p, test) :: tail ->
+                match props.TryGetValue p with
+                | true, pn ->
+                    let predicate (entry: Entry) =
+                        match entry[pn] with
+                        | null -> false
+                        | pv -> pv.ToString() |> test
 
-                generatePredicate props (x :: acc) tail
-            | _ -> generatePredicate props acc tail
+                    buildPredicates (predicate :: acc) tail
+                | _ -> buildPredicates acc tail
 
-        | QueryPart.Normal test :: tail ->
-            let x entry =
-                match entry with
-                // NOTE: A hashtable query matches either the key or the value.
-                | Entry.Dict dct ->
-                    // NOTE: Dictionary keys are never null.
-                    dct.Key.ToString() |> test
-                    || match dct.Value with
-                       | null -> false
-                       | dv -> dv.ToString() |> test
-                | Entry.Obj o -> o.ToString() |> test
+            | QueryPart.Normal test :: tail ->
+                let predicate entry =
+                    match entry with
+                    // NOTE: A hashtable query matches either the key or the value.
+                    | Entry.Dict dct ->
+                        // NOTE: Dictionary keys are never null.
+                        dct.Key.ToString() |> test
+                        || match dct.Value with
+                           | null -> false
+                           | dv -> dv.ToString() |> test
+                    | Entry.Obj o -> o.ToString() |> test
 
-            generatePredicate props (x :: acc) tail
-        | [] -> acc
+                buildPredicates (predicate :: acc) tail
+            | [] -> acc
+
+        let predicates = buildPredicates [] queries |> List.toArray
+
+        match predicates.Length with
+        | 0 -> alwaysTrue
+        | _ ->
+            match op with
+            | Operator.And ->
+                fun entry ->
+                    let mutable i = 0
+                    let mutable result = true
+
+                    while result && i < predicates.Length do
+                        result <- predicates[i]entry
+                        i <- i + 1
+
+                    result
+            | Operator.Or ->
+                fun entry ->
+                    let mutable i = 0
+                    let mutable result = false
+
+                    while not result && i < predicates.Length do
+                        result <- predicates[i]entry
+                        i <- i + 1
+
+                    result
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
-        // #if DEBUG
-        //         Logger.LogFile context.Queries
-        // #endif
-
         match context.Queries with
         | [] -> entries
         | _ ->
-            let predicate =
-                generatePredicate props [] context.Queries |> generateExpr context.Operator
-
+            let predicate = generatePredicate props context.Operator context.Queries
             entries |> PSeq.filter predicate
 
     let props (properties: string seq) (state: InternalState) =

@@ -213,10 +213,10 @@ type QueryRunBenchmarks() =
           SuppressProperties = false
           Refresh = Refresh.NotRequired }
 
-    [<Params(10, 100, 1000)>]
+    [<Params(100, 1000)>]
     member val EntryCount = 0 with get, set
 
-    [<Params(0, 1, 3, 5)>]
+    [<Params(1, 5, 10)>]
     member val QueryCount = 0 with get, set
 
     member val NormalContext: Query.QueryContext =
@@ -259,19 +259,19 @@ type QueryRunBenchmarks() =
 
     [<Benchmark>]
     member __.run_obj_normal() =
-        Query.run __.NormalContext __.Objects props
+        Query.run __.NormalContext __.Objects props |> PSeq.length |> ignore
 
     [<Benchmark>]
     member __.run_dict_normal() =
-        Query.run __.NormalContext __.Dicts props
+        Query.run __.NormalContext __.Dicts props |> PSeq.length |> ignore
 
     [<Benchmark>]
     member __.run_obj_property() =
-        Query.run __.PropertyContext __.Objects props
+        Query.run __.PropertyContext __.Objects props |> PSeq.length |> ignore
 
     [<Benchmark>]
     member __.run_dict_property() =
-        Query.run __.PropertyContext __.Dicts props
+        Query.run __.PropertyContext __.Dicts props |> PSeq.length |> ignore
 
 [<MemoryDiagnoser>]
 type QueryPrepareBenchmarks() =

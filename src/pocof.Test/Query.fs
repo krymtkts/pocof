@@ -321,6 +321,14 @@ module run =
                         |> Expect.equal "should return filtered entries (invert)" (genList [ "Length" ])
                     }
 
+                    test "When matcher is invalid and invert result" {
+                        let state = state |> query "+" |> invert
+                        let context = Query.prepare state |> fst'
+
+                        Query.run context entries props
+                        |> Expect.sequenceEqual "should return all entries" entries
+                    }
+
                     test "When composite query with or operator" {
                         let state = state |> query "a N"
                         let context = Query.prepare state |> fst'
