@@ -216,7 +216,7 @@ type QueryRunBenchmarks() =
     [<Params(100, 1000)>]
     member val EntryCount = 0 with get, set
 
-    [<Params(1, 5)>]
+    [<Params(1, 5, 10)>]
     member val QueryCount = 0 with get, set
 
     member val NormalContext: Query.QueryContext =

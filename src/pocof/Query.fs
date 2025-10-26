@@ -188,34 +188,26 @@ module Query =
             { context with
                 QueryContext.Operator = state.QueryCondition.Operator }
 
-    let private generateExpr
+    let private generatePredicate
         (props: Generic.IReadOnlyDictionary<string, string>)
         (op: Operator)
         (queries: QueryPart list)
-        =
-        let entryVar = Var("x", typeof<Entry>)
-        let entry = entryVar |> Expr.Var |> Expr.Cast<Entry>
-
-        let combine =
-            match op with
-            | Operator.And -> fun test acc -> <@ if test %entry then %acc else false @>
-            | Operator.Or -> fun test acc -> <@ if test %entry then true else %acc @>
-
-        let rec recBody (acc: Expr<bool>) (hasCondition: bool) (queries: QueryPart list) =
+        : Entry -> bool =
+        let rec buildPredicates (acc: (Entry -> bool) list) queries =
             match queries with
             | QueryPart.Property(p, test) :: tail ->
                 match props.TryGetValue p with
                 | true, pn ->
-                    let x (entry: Entry) =
+                    let predicate (entry: Entry) =
                         match entry[pn] with
                         | null -> false
                         | pv -> pv.ToString() |> test
 
-                    let acc = combine x acc
-                    recBody acc true tail
-                | _ -> recBody acc hasCondition tail
+                    buildPredicates (predicate :: acc) tail
+                | _ -> buildPredicates acc tail
+
             | QueryPart.Normal test :: tail ->
-                let x entry =
+                let predicate entry =
                     match entry with
                     // NOTE: A hashtable query matches either the key or the value.
                     | Entry.Dict dct ->
@@ -226,32 +218,41 @@ module Query =
                            | dv -> dv.ToString() |> test
                     | Entry.Obj o -> o.ToString() |> test
 
-                let acc = combine x acc
-                recBody acc true tail
-            | [] -> struct (acc, hasCondition)
+                buildPredicates (predicate :: acc) tail
+            | [] -> acc
 
-        let struct (body, hasCondition) =
-            // NOTE: condition's order is already reversed.
-            match queries with
-            | [] -> <@ false @>, false
-            | queries ->
-                let init =
-                    match op with
-                    | Operator.And -> <@ true @>
-                    | Operator.Or -> <@ false @>
+        let predicates = buildPredicates [] queries |> List.toArray
 
-                recBody init false queries
+        match predicates.Length with
+        | 0 -> alwaysTrue
+        | _ ->
+            match op with
+            | Operator.And ->
+                fun entry ->
+                    let mutable i = 0
+                    let mutable result = true
 
-        if hasCondition then
-            Expr.Lambda(entryVar, body) |> LeafExpressionConverter.EvaluateQuotation :?> Entry -> bool
-        else
-            alwaysTrue
+                    while result && i < predicates.Length do
+                        result <- predicates[i]entry
+                        i <- i + 1
+
+                    result
+            | Operator.Or ->
+                fun entry ->
+                    let mutable i = 0
+                    let mutable result = false
+
+                    while not result && i < predicates.Length do
+                        result <- predicates[i]entry
+                        i <- i + 1
+
+                    result
 
     let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
         match context.Queries with
         | [] -> entries
         | _ ->
-            let predicate = generateExpr props context.Operator context.Queries
+            let predicate = generatePredicate props context.Operator context.Queries
             entries |> PSeq.filter predicate
 
     let props (properties: string seq) (state: InternalState) =
