@@ -53,22 +53,19 @@ module Query =
 
         if condition.Invert then
             fun (pattern: string) ->
-                let reg =
-                    try
-                        Regex(pattern, ro).IsMatch
-                    with _ ->
-                        alwaysTrue
+                try
+                    let reg = Regex(pattern, ro).IsMatch
+                    fun (s: string) -> reg s |> not
+                with _ ->
+                    alwaysTrue
 
-                fun (s: string) -> reg s |> not
         else
             fun (pattern: string) ->
-                let reg =
-                    try
-                        Regex(pattern, ro).IsMatch
-                    with _ ->
-                        alwaysTrue
-
-                fun (s: string) -> reg s
+                try
+                    let reg = Regex(pattern, ro).IsMatch
+                    fun (s: string) -> reg s
+                with _ ->
+                    alwaysTrue
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
