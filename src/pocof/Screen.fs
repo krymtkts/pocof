@@ -125,14 +125,10 @@ module Screen =
 
         member __.Reset() = __.count <- 0
 
-        member private __.Grow(requiredIndex: int) =
+        member private __.Grow() =
             let mutable newCapacity =
                 let current = __.buffer.Length
-
                 if current = 0 then 1 else current * 2
-
-            while requiredIndex >= newCapacity do
-                newCapacity <- newCapacity * 2
 
             let newBuffer = Array.zeroCreate<ConsoleKeyInfo> newCapacity
 
@@ -145,7 +141,7 @@ module Screen =
             let index = __.count
 
             if index >= __.buffer.Length then
-                __.Grow index
+                __.Grow()
 
             __.buffer[index] <- key
             __.count <- index + 1
