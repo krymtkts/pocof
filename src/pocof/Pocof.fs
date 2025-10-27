@@ -10,6 +10,7 @@ open System.Threading.Tasks
 
 open Data
 open Handle
+open Keys
 
 [<RequireQualifiedAccess>]
 module Pocof =
@@ -49,7 +50,7 @@ module Pocof =
         { Keymaps: Map<KeyPattern, Action>
           Input: Entry pseq
           PublishEvent: RenderEvent -> unit
-          GetKey: unit -> ConsoleKeyInfo seq
+          GetKey: unit -> KeyBatch
           GetConsoleWidth: unit -> int
           GetLengthInBufferCells: string -> int
           WordDelimiters: string

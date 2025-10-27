@@ -648,10 +648,10 @@ let tests_getKey =
               let rui = new MockRawUI()
               use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, "prompt>")
 
-              let expected =
-                  seq { yield new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) }
-
-              buff.GetKey() |> Expect.sequenceEqual "should return key sequence" expected
+              buff.GetKey().Buffer[0]
+              |> Expect.equal
+                  "should return key sequence"
+                  (new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false))
           }
 
           ]

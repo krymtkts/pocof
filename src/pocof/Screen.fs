@@ -6,6 +6,8 @@ module Screen =
     open System.Threading
     open System.Text
 
+    open Keys
+
     [<Interface>]
     type IConsoleInterface =
         abstract member ReadKey: intercept: bool -> ConsoleKeyInfo
@@ -104,6 +106,9 @@ module Screen =
 
     let escapeSequenceLength =
         escapeSequenceInvert.Length + escapeSequenceResetInvert.Length
+
+    [<Literal>]
+    let private initialKeyBufferCapacity = 32
 
     [<Sealed>]
     type Buff(rui: IRawUI, invoke: obj seq -> string seq, layout: Data.Layout, prompt: string) =
@@ -257,18 +262,52 @@ module Screen =
         [<Literal>]
         let sleepDurationMs = 1
 
-        let readKey () : ConsoleKeyInfo seq =
-            let acc = ResizeArray<ConsoleKeyInfo>()
+        [<ThreadStatic; DefaultValue>]
+        static val mutable private keyBuffer: ConsoleKeyInfo[]
+
+        let readKey () : KeyBatch =
+            let mutable buffer =
+                let existing = Buff.keyBuffer
+
+                if obj.ReferenceEquals(existing, null) then
+                    let initial = Array.zeroCreate<ConsoleKeyInfo> initialKeyBufferCapacity
+                    Buff.keyBuffer <- initial
+                    initial
+                else
+                    existing
+
+            let mutable capacity = buffer.Length
+            let mutable count = 0
             let mutable readingKey = true
             let mutable idleCount = 0
             let mutable spin = SpinWait()
 
+            let inline ensureCapacity requiredCount =
+                if requiredCount >= capacity then
+                    let mutable newCapacity = capacity * 2
+
+                    while requiredCount >= newCapacity do
+                        newCapacity <- newCapacity * 2
+
+                    let newBuffer = Array.zeroCreate<ConsoleKeyInfo> newCapacity
+
+                    if count > 0 then
+                        Array.Copy(buffer, newBuffer, count)
+
+                    Buff.keyBuffer <- newBuffer
+                    buffer <- newBuffer
+                    capacity <- newCapacity
+
             while readingKey do
                 if rui.KeyAvailable() then
-                    acc.Add(rui.ReadKey true)
+                    if count >= capacity then
+                        ensureCapacity count
+
+                    buffer[count] <- rui.ReadKey true
+                    count <- count + 1
                     idleCount <- 0
                     spin.Reset()
-                else if acc.Count = 0 then
+                else if count = 0 then
                     match idleCount with
                     | x when x < spinThreshold ->
                         spin.SpinOnce()
@@ -282,7 +321,7 @@ module Screen =
                 else
                     readingKey <- false
 
-            acc
+            KeyBatch(buffer, count)
 
         let getCursorPosition (state: Data.InternalState) =
             match state.QueryState.InputMode with
