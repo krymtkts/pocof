@@ -22,8 +22,8 @@
   <ItemGroup>
     <Compile Include="Collections.fs" />
     <Compile Include="Data.fs" />
-    <Compile Include="Screen.fs" />
     <Compile Include="Keys.fs" />
+    <Compile Include="Screen.fs" />
     <Compile Include="Query.fs" />
     <Compile Include="Handle.fs" />
     <Compile Include="Pocof.fs" />

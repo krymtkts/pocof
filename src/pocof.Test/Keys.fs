@@ -62,13 +62,17 @@ let tests_get =
         [
 
           test "When no modifier" {
-              let key = [ new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) ]
+              let key =
+                  Keys.KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) |], 1)
+
               let actual = Keys.get Map.empty key
               actual |> Expect.equal "should return AddQuery" (Data.Action.AddQuery "a")
           }
 
           test "When symbol with shift" {
-              let getKey = [ new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) ]
+              let getKey =
+                  Keys.KeyBatch([| new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false) |], 1)
+
               let actual = Keys.get Map.empty getKey
 
               actual
@@ -77,11 +81,14 @@ let tests_get =
 
           test "When multiple keys are pressed" {
               let getKey =
-                  [ new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false)
-                    new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
-                    new ConsoleKeyInfo('s', ConsoleKey.S, false, false, false)
-                    new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false)
-                    new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) ]
+                  Keys.KeyBatch(
+                      [| new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false)
+                         new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+                         new ConsoleKeyInfo('s', ConsoleKey.S, false, false, false)
+                         new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false)
+                         new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false) |],
+                      5
+                  )
 
               let actual = Keys.get Map.empty getKey
 
@@ -99,7 +106,9 @@ let tests_get =
                           Data.KeyPattern.Key = ConsoleKey.Escape },
                         Data.Action.Noop ]
 
-              let key = [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
+              let key =
+                  Keys.KeyBatch([| new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) |], 1)
+
               let actual = Keys.get keyMap key
               actual |> Expect.equal "should return user-defined Action" Data.Action.Finish
           }
@@ -115,24 +124,29 @@ let tests_get =
                   |||> List.foldBack2 Map.add
 
               let actual =
-                  Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Home, false, false, true) ]
+                  Keys.get keyMap
+                  <| Keys.KeyBatch([| new ConsoleKeyInfo('\000', ConsoleKey.Home, false, false, true) |], 1)
 
               actual
               |> Expect.equal "should return DeleteBackwardInput" Data.Action.DeleteBackwardInput
 
               let actual =
-                  Keys.get keyMap [ new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) ]
+                  Keys.get keyMap
+                  <| Keys.KeyBatch([| new ConsoleKeyInfo('e', ConsoleKey.E, true, true, true) |], 1)
 
               actual |> Expect.equal "should return Finish" Data.Action.Finish
 
               let actual =
-                  Keys.get keyMap [ new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) ]
+                  Keys.get keyMap
+                  <| Keys.KeyBatch([| new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, true, false) |], 1)
 
               actual |> Expect.equal "should return Noop" Data.Action.Noop
           }
 
           test "When matched to no modifier key" {
-              let keu = [ new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false) ]
+              let keu =
+                  Keys.KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.Home, false, false, false) |], 1)
+
               let actual = Keys.get Keys.defaultKeymap keu
 
               actual
@@ -143,7 +157,9 @@ let tests_get =
               let keyMap: Map<Data.KeyPattern, Data.Action> =
                   Map [ ({ Modifier = 1; Key = ConsoleKey.U }, Data.Action.DeleteBackwardInput) ]
 
-              let key = [ new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) ]
+              let key =
+                  Keys.KeyBatch([| new ConsoleKeyInfo('u', ConsoleKey.U, false, true, true) |], 1)
+
               let actual = Keys.get keyMap key
 
               actual
@@ -151,7 +167,9 @@ let tests_get =
           }
 
           test "When control character not matched in keymap" {
-              let key = [ new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true) ]
+              let key =
+                  Keys.KeyBatch([| new ConsoleKeyInfo('\009', ConsoleKey.Tab, false, true, true) |], 1)
+
               let actual = Keys.get Keys.defaultKeymap key
 
               actual
@@ -159,7 +177,9 @@ let tests_get =
           }
 
           test "When not matched in keymap (Noop)" {
-              let key = [ new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false) ]
+              let key =
+                  Keys.KeyBatch([| new ConsoleKeyInfo('\000', ConsoleKey.F1, false, false, false) |], 1)
+
               let actual = Keys.get Keys.defaultKeymap key
               actual |> Expect.equal "should return Noop for unmatched key" Data.Action.Noop
           }

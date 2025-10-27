@@ -13,6 +13,66 @@ open Pocof.Screen
 open Pocof.Test
 
 [<Tests>]
+let ``tests KeyBatchBuilder`` =
+    testList
+        "KeyBatchBuilder"
+        [
+
+          test "Append accumulates keys and expands buffer (from zero capacity)" {
+              let mutable builder = KeyBatchBuilder 0
+              let keyA = ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+              let keyB = ConsoleKeyInfo('b', ConsoleKey.B, false, false, false)
+
+              builder.Append keyA
+              builder.Append keyB
+
+              let batch = builder.ToBatch()
+
+              batch.Length |> Expect.equal "should capture both keys" 2
+              batch.Buffer[0] |> Expect.equal "should keep first key" keyA
+              batch.Buffer[1] |> Expect.equal "should keep second key" keyB
+              batch.Buffer.Length > 1 |> Expect.isTrue "should grow capacity"
+          }
+
+          test "Append accumulates keys and expands buffer (from initial capacity)" {
+              let mutable builder = KeyBatchBuilder 1
+              let keyA = ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+              let keyB = ConsoleKeyInfo('b', ConsoleKey.B, false, false, false)
+
+              builder.Append keyA
+              builder.Append keyB
+
+              let batch = builder.ToBatch()
+
+              batch.Length |> Expect.equal "should capture both keys" 2
+              batch.Buffer[0] |> Expect.equal "should keep first key" keyA
+              batch.Buffer[1] |> Expect.equal "should keep second key" keyB
+              batch.Buffer.Length > 1 |> Expect.isTrue "should grow capacity"
+          }
+
+          test "Reset clears count but keeps buffer" {
+              let mutable builder = KeyBatchBuilder 4
+              let key = ConsoleKeyInfo('x', ConsoleKey.X, false, false, false)
+
+              builder.Append key
+              let originalBuffer = builder.ToBatch().Buffer
+
+              builder.Reset()
+
+              builder.Count |> Expect.equal "should clear count" 0
+
+              let keyAfter = ConsoleKeyInfo('y', ConsoleKey.Y, false, false, false)
+              builder.Append keyAfter
+              let bufferAfter = builder.ToBatch().Buffer
+
+              obj.ReferenceEquals(originalBuffer, bufferAfter)
+              |> Expect.isTrue "should reuse buffer"
+          }
+
+
+          ]
+
+[<Tests>]
 let ``tests Buff writeScreen`` =
     let state: InternalState =
         { QueryState =
@@ -648,10 +708,10 @@ let tests_getKey =
               let rui = new MockRawUI()
               use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, "prompt>")
 
-              let expected =
-                  seq { yield new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false) }
-
-              buff.GetKey() |> Expect.sequenceEqual "should return key sequence" expected
+              buff.GetKey().Buffer[0]
+              |> Expect.equal
+                  "should return key sequence"
+                  (new ConsoleKeyInfo('\000', ConsoleKey.Enter, false, false, false))
           }
 
           ]

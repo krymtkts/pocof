@@ -6,6 +6,8 @@ module Screen =
     open System.Threading
     open System.Text
 
+    open Keys
+
     [<Interface>]
     type IConsoleInterface =
         abstract member ReadKey: intercept: bool -> ConsoleKeyInfo
@@ -105,10 +107,52 @@ module Screen =
     let escapeSequenceLength =
         escapeSequenceInvert.Length + escapeSequenceResetInvert.Length
 
+    [<Literal>]
+    let private initialKeyBufferCapacity = 16
+
+    [<NoEquality>]
+    [<NoComparison>]
+    [<Struct>]
+    type KeyBatchBuilder =
+        val mutable private buffer: ConsoleKeyInfo array
+        val mutable private count: int
+
+        new(initialCapacity: int) =
+            { buffer = Array.zeroCreate initialCapacity
+              count = 0 }
+
+        member __.Count = __.count
+
+        member __.Reset() = __.count <- 0
+
+        member private __.Grow() =
+            let mutable newCapacity =
+                let current = __.buffer.Length
+                if current = 0 then 1 else current * 2
+
+            let newBuffer = Array.zeroCreate<ConsoleKeyInfo> newCapacity
+
+            if __.count > 0 then
+                Array.Copy(__.buffer, newBuffer, __.count)
+
+            __.buffer <- newBuffer
+
+        member __.Append(key: ConsoleKeyInfo) =
+            let index = __.count
+
+            if index >= __.buffer.Length then
+                __.Grow()
+
+            __.buffer[index] <- key
+            __.count <- index + 1
+
+        member __.ToBatch() = KeyBatch(__.buffer, __.count)
+
     [<Sealed>]
     type Buff(rui: IRawUI, invoke: obj seq -> string seq, layout: Data.Layout, prompt: string) =
         let promptLength = prompt |> String.length
         let sbCache = StringBuilderCache()
+        let mutable keyBuilder = KeyBatchBuilder(initialKeyBufferCapacity)
 
         do
             use _ = rui.HideCursorWhileRendering()
@@ -247,16 +291,43 @@ module Screen =
 
             sb.Append(info).ToString()
 
-        let readKey () : ConsoleKeyInfo seq =
-            let acc = ResizeArray<ConsoleKeyInfo>()
+        // NOTE: balance responsiveness and CPU usage with staged backoff while polling.
+        [<Literal>]
+        let spinThreshold = 32
+
+        [<Literal>]
+        let yieldThreshold = 8
+
+        [<Literal>]
+        let sleepDurationMs = 1
+
+        let readKey () : KeyBatch =
+            keyBuilder.Reset()
             let mutable readingKey = true
+            let mutable idleCount = 0
+            let mutable spin = SpinWait()
 
             while readingKey do
-                if rui.KeyAvailable() then acc.Add(rui.ReadKey true)
-                else if acc.Count = 0 then Thread.Sleep 10
-                else readingKey <- false
+                if rui.KeyAvailable() then
+                    let key = rui.ReadKey true
+                    keyBuilder.Append key
+                    idleCount <- 0
+                    spin.Reset()
+                else if keyBuilder.Count = 0 then
+                    match idleCount with
+                    | x when x < spinThreshold ->
+                        spin.SpinOnce()
+                        idleCount <- idleCount + 1
+                    | x when x < spinThreshold + yieldThreshold ->
+                        Thread.Sleep 0
+                        idleCount <- idleCount + 1
+                    | _ ->
+                        // NOTE: keep idleCount to avoid overflow.
+                        Thread.Sleep sleepDurationMs
+                else
+                    readingKey <- false
 
-            acc
+            keyBuilder.ToBatch()
 
         let getCursorPosition (state: Data.InternalState) =
             match state.QueryState.InputMode with

@@ -147,6 +147,13 @@ module Keys =
 #endif
         KeyInfo = { Pattern: KeyPattern; KeyChar: char }
 
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type KeyBatch(buffer: ConsoleKeyInfo array, count: int) =
+        member __.Buffer = buffer
+        member __.Length = count
+
     let private key (k: ConsoleKeyInfo) =
         let m = k.Modifiers.GetHashCode()
 
@@ -165,18 +172,24 @@ module Keys =
         | true -> ValueSome k.Pattern.Key
         | _ -> ValueNone
 
-    let get (keymap: Map<KeyPattern, Action>) (keyInfo: ConsoleKeyInfo seq) =
-        keyInfo
-        |> Seq.fold
-            (fun acc k ->
-                let key = key k
+    let get (keymap: Map<KeyPattern, Action>) (keys: KeyBatch) =
+        let mutable acc = Action.Noop
+        let mutable index = 0
+        let length = keys.Length
+        let buffer = keys.Buffer
 
-                match key with
+        while index < length do
+            let keyInfo = key buffer[index]
+
+            acc <-
+                match keyInfo with
                 | ShortcutKey keymap a -> a
                 | ControlKey _ -> Action.Noop
                 | _ ->
                     match acc with
-                    | Action.AddQuery s -> key.KeyChar |> string |> (+) s
-                    | _ -> key.KeyChar |> string
-                    |> Action.AddQuery)
-            Action.Noop
+                    | Action.AddQuery s -> keyInfo.KeyChar |> string |> (+) s |> Action.AddQuery
+                    | _ -> keyInfo.KeyChar |> string |> Action.AddQuery
+
+            index <- index + 1
+
+        acc
