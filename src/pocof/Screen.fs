@@ -108,12 +108,55 @@ module Screen =
         escapeSequenceInvert.Length + escapeSequenceResetInvert.Length
 
     [<Literal>]
-    let private initialKeyBufferCapacity = 32
+    let private initialKeyBufferCapacity = 16
+
+    [<NoEquality>]
+    [<NoComparison>]
+    [<Struct>]
+    type KeyBatchBuilder =
+        val mutable private buffer: ConsoleKeyInfo[]
+        val mutable private count: int
+
+        new(initialCapacity: int) =
+            { buffer = Array.zeroCreate initialCapacity
+              count = 0 }
+
+        member __.Count = __.count
+
+        member __.Reset() = __.count <- 0
+
+        member private __.Grow(requiredIndex: int) =
+            let mutable newCapacity =
+                let current = __.buffer.Length
+
+                if current = 0 then 1 else current * 2
+
+            while requiredIndex >= newCapacity do
+                newCapacity <- newCapacity * 2
+
+            let newBuffer = Array.zeroCreate<ConsoleKeyInfo> newCapacity
+
+            if __.count > 0 then
+                Array.Copy(__.buffer, newBuffer, __.count)
+
+            __.buffer <- newBuffer
+
+        member __.Append(key: ConsoleKeyInfo) =
+            let index = __.count
+
+            if index >= __.buffer.Length then
+                __.Grow index
+
+            __.buffer[index] <- key
+            __.count <- index + 1
+
+        member __.ToBatch() = KeyBatch(__.buffer, __.count)
 
     [<Sealed>]
     type Buff(rui: IRawUI, invoke: obj seq -> string seq, layout: Data.Layout, prompt: string) =
         let promptLength = prompt |> String.length
         let sbCache = StringBuilderCache()
+        let mutable keyBuilder = KeyBatchBuilder(initialKeyBufferCapacity)
 
         do
             use _ = rui.HideCursorWhileRendering()
@@ -262,52 +305,19 @@ module Screen =
         [<Literal>]
         let sleepDurationMs = 1
 
-        [<ThreadStatic; DefaultValue>]
-        static val mutable private keyBuffer: ConsoleKeyInfo[]
-
         let readKey () : KeyBatch =
-            let mutable buffer =
-                let existing = Buff.keyBuffer
-
-                if obj.ReferenceEquals(existing, null) then
-                    let initial = Array.zeroCreate<ConsoleKeyInfo> initialKeyBufferCapacity
-                    Buff.keyBuffer <- initial
-                    initial
-                else
-                    existing
-
-            let mutable capacity = buffer.Length
-            let mutable count = 0
+            keyBuilder.Reset()
             let mutable readingKey = true
             let mutable idleCount = 0
             let mutable spin = SpinWait()
 
-            let inline ensureCapacity requiredCount =
-                if requiredCount >= capacity then
-                    let mutable newCapacity = capacity * 2
-
-                    while requiredCount >= newCapacity do
-                        newCapacity <- newCapacity * 2
-
-                    let newBuffer = Array.zeroCreate<ConsoleKeyInfo> newCapacity
-
-                    if count > 0 then
-                        Array.Copy(buffer, newBuffer, count)
-
-                    Buff.keyBuffer <- newBuffer
-                    buffer <- newBuffer
-                    capacity <- newCapacity
-
             while readingKey do
                 if rui.KeyAvailable() then
-                    if count >= capacity then
-                        ensureCapacity count
-
-                    buffer[count] <- rui.ReadKey true
-                    count <- count + 1
+                    let key = rui.ReadKey true
+                    keyBuilder.Append key
                     idleCount <- 0
                     spin.Reset()
-                else if count = 0 then
+                else if keyBuilder.Count = 0 then
                     match idleCount with
                     | x when x < spinThreshold ->
                         spin.SpinOnce()
@@ -321,7 +331,7 @@ module Screen =
                 else
                     readingKey <- false
 
-            KeyBatch(buffer, count)
+            keyBuilder.ToBatch()
 
         let getCursorPosition (state: Data.InternalState) =
             match state.QueryState.InputMode with
