@@ -150,7 +150,7 @@ module Keys =
     [<NoComparison>]
     [<NoEquality>]
     [<Struct>]
-    type KeyBatch(buffer: ConsoleKeyInfo[], count: int) =
+    type KeyBatch(buffer: ConsoleKeyInfo array, count: int) =
         member __.Buffer = buffer
         member __.Length = count
 

@@ -114,7 +114,7 @@ module Screen =
     [<NoComparison>]
     [<Struct>]
     type KeyBatchBuilder =
-        val mutable private buffer: ConsoleKeyInfo[]
+        val mutable private buffer: ConsoleKeyInfo array
         val mutable private count: int
 
         new(initialCapacity: int) =
