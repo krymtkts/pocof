@@ -52,7 +52,7 @@ Task Lint {
     if (-not $?) {
         throw 'dotnet fantomas failed.'
     }
-    $analyzerPath = dotnet build $ModuleSrcPath --getProperty:PkgIonide_Analyzers
+    $analyzerPath = dotnet build $ModuleSrcPath -f 'netstandard2.0' --getProperty:PkgIonide_Analyzers
     Get-ChildItem './src/*/*.fsproj' | ForEach-Object {
         dotnet fsharp-analyzers --project $_ --analyzers-path $analyzerPath --report "analysis/$($_.BaseName)-report.sarif" --code-root src --exclude-files '**/obj/**/*' '**/bin/**/*'
         if (-not $?) {
@@ -77,25 +77,31 @@ Task Build -Depends Clean {
     if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
-    dotnet publish -c $Stage
-    if (-not $?) {
-        throw 'dotnet publish failed.'
+    'net6.0', 'netstandard2.0' | ForEach-Object {
+        "Build $ModuleName ver$ModuleVersion for target framework: $_"
+        dotnet publish -c $Stage -f $_ $ModuleSrcPath
+        if (-not $?) {
+            throw 'dotnet publish failed.'
+        }
     }
     "Completed to build $ModuleName ver$ModuleVersion"
 }
 
 Task UnitTest {
     Remove-Item ./src/pocof.Test/TestResults/* -Recurse -ErrorAction SilentlyContinue
-    dotnet test --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 5s --blame-hang-dump-type full
-    if (-not $?) {
-        throw 'dotnet test failed.'
+    'net6.0', 'netstandard2.0' | ForEach-Object {
+        "Run unit tests for target framework: $_"
+        dotnet test -p:TestTargetFramework=$_ --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 5s --blame-hang-dump-type full
+        if (-not $?) {
+            throw "dotnet test failed for target framework: $_"
+        }
+        Move-Item ./src/pocof.Test/TestResults/*/coverage.cobertura.xml "./src/pocof.Test/TestResults/coverage.${_}.cobertura.xml" -Force
     }
-    Move-Item ./src/pocof.Test/TestResults/*/coverage.cobertura.xml ./src/pocof.Test/TestResults/coverage.cobertura.xml -Force
 }
 
 Task Coverage -Depends UnitTest {
     Remove-Item ./coverage/*
-    reportgenerator -reports:'./src/pocof.Test/TestResults/coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
+    reportgenerator -reports:'./src/pocof.Test/TestResults/coverage.*.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
 
 Task WorkflowTest {
@@ -124,7 +130,7 @@ Task Import -Depends Build {
     if (-not $module) {
         throw "Module manifest not found. $($module.ModuleBase)/*.psd1"
     }
-    $module | Import-Module -Global
+    $module | Import-Module -Global -Verbose
 }
 
 Task E2ETest -Depends Import {

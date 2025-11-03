@@ -9,7 +9,7 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule = 'pocof.dll'
+    RootModule = 'pocof.psm1'
 
     # Version number of this module.
     ModuleVersion = '0.21.0'
@@ -90,7 +90,7 @@
     # ModuleList = @()
 
     # List of all files packaged with this module
-    FileList = @('pocof.dll', 'pocof-Help.xml')
+    FileList = @('pocof.psm1', 'pocof-Help.xml', 'net6.0/pocof.dll', 'netstandard2.0/pocof.dll')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData = @{

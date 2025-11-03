@@ -237,8 +237,8 @@ module Pocof =
             buff.WriteScreen state entries.Value props.Value
             render buff handler
 
-    let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) =
-        let stopUpstreamCommandsException =
+    let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) : Exception | null =
+        let stopUpstreamCommandsException: obj | null =
             Activator.CreateInstance(
                 exp,
                 BindingFlags.Default
@@ -249,9 +249,10 @@ module Pocof =
                 [| cmdlet :> obj |],
                 null
             )
-            :?> Exception
 
-        stopUpstreamCommandsException
+        match stopUpstreamCommandsException with
+        | :? Exception as exp -> exp
+        | _ -> null
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -370,9 +371,11 @@ module Pocof =
         | _ -> NormalInputStore() :> IInputStore
 
     let buildProperties (exists: string -> bool) (add: string * string seq -> Unit) (input: PSObject) =
-        let typeName = input.BaseObject.GetType().FullName
+        let typeName: string | null = input.BaseObject.GetType().FullName
 
-        if typeName |> exists |> not then
+        match typeName with
+        | null -> ()
+        | typeName when typeName |> exists |> not ->
             let props =
                 match input.BaseObject with
                 | :? IDictionary as dct ->
@@ -382,6 +385,7 @@ module Pocof =
                 | _ -> input.Properties |> Seq.map _.Name
 
             add (typeName, props)
+        | _ -> ()
 
     [<Sealed>]
     type PropertyStore() =
