@@ -194,7 +194,11 @@ module Query =
                     let predicate (entry: Entry) =
                         match entry[pn] with
                         | null -> false
-                        | pv -> pv.ToString() |> test
+                        | pv ->
+                            pv.ToString()
+                            |> function
+                                | null -> false
+                                | sv -> test sv
 
                     buildPredicates (predicate :: acc) tail
                 | _ -> buildPredicates acc tail
@@ -205,10 +209,17 @@ module Query =
                     // NOTE: A hashtable query matches either the key or the value.
                     | Entry.Dict dct ->
                         // NOTE: Dictionary keys are never null.
-                        dct.Key.ToString() |> test
+                        dct.Key.ToString()
+                        |> function
+                            | null -> false
+                            | sv -> test sv
                         || match dct.Value with
                            | null -> false
-                           | dv -> dv.ToString() |> test
+                           | dv ->
+                               dv.ToString()
+                               |> function
+                                   | null -> false
+                                   | sv -> test sv
                     | Entry.Obj o -> o.ToString() |> test
 
                 buildPredicates (predicate :: acc) tail

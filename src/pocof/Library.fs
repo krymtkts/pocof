@@ -86,7 +86,13 @@ type SelectPocofCommand() =
     abstract member GetStopUpstreamCommandsExceptionType: unit -> Type
 
     default __.GetStopUpstreamCommandsExceptionType() =
-        Assembly.GetAssembly(typeof<PSCmdlet>).GetType("System.Management.Automation.StopUpstreamCommandsException")
+        Assembly.GetAssembly(typeof<PSCmdlet>)
+        |> function
+            | null -> failwith "Failed to get PowerShell assembly."
+            | assembly -> assembly.GetType("System.Management.Automation.StopUpstreamCommandsException")
+        |> function
+            | null -> failwith "Failed to get StopUpstreamCommandsException type."
+            | t -> t
 
     override __.BeginProcessing() =
         match Pocof.convertKeymaps __.Keymaps with
@@ -101,7 +107,9 @@ type SelectPocofCommand() =
 
             __
             |> Pocof.stopUpstreamCommandsException (__.GetStopUpstreamCommandsExceptionType())
-            |> raise
+            |> function
+                | null -> ()
+                | e -> raise e
 
         let r, w =
             Pocof.init

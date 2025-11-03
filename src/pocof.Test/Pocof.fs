@@ -254,8 +254,7 @@ let tests_interact =
               actual |> Expect.hasLength "should return 5 results in NonInteractive mode" 5
 
               actual
-              |> List.ofSeq
-              |> Expect.equal "should match expected results in NonInteractive mode" expected
+              |> Expect.sequenceEqual "should match expected results in NonInteractive mode" expected
 
               (buff :> IDisposable).Dispose()
           }
@@ -281,8 +280,7 @@ let tests_interact =
               |> Expect.hasLength "should return 5 results in Interactive TopDown mode" 5
 
               actual
-              |> List.ofSeq
-              |> Expect.equal "should match expected results in Interactive TopDown mode" expected
+              |> Expect.sequenceEqual "should match expected results in Interactive TopDown mode" expected
 
               (buff :> IDisposable).Dispose()
           }
@@ -308,8 +306,7 @@ let tests_interact =
               |> Expect.hasLength "should return 5 results in Interactive BottomUp mode" 5
 
               actual
-              |> List.ofSeq
-              |> Expect.equal "should match expected results in Interactive BottomUp mode" expected
+              |> Expect.sequenceEqual "should match expected results in Interactive BottomUp mode" expected
 
               (buff :> IDisposable).Dispose()
           }
@@ -335,8 +332,7 @@ let tests_interact =
               |> Expect.hasLength "should return 5 results in Interactive BottomUpHalf mode" 5
 
               actual
-              |> List.ofSeq
-              |> Expect.equal "should match expected results in Interactive BottomUpHalf mode" expected
+              |> Expect.sequenceEqual "should match expected results in Interactive BottomUpHalf mode" expected
 
               (buff :> IDisposable).Dispose()
           }
@@ -419,11 +415,15 @@ let tests_stopUpstreamCommandsException =
         [
 
           test "When called, should return the exception instance" {
-              let actual =
+              let actual: Exception | null =
                   Pocof.stopUpstreamCommandsException typeof<MockException> (new MockCmdlet())
 
-              actual.GetType()
-              |> Expect.equal "should return MockException type" typeof<MockException>
+              actual
+              |> function
+                  | null -> failwith "Expected MockException instance, but got null."
+                  | e ->
+                      e.GetType()
+                      |> Expect.equal "should return MockException type" typeof<MockException>
           }
 
           ]

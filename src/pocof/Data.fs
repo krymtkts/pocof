@@ -110,16 +110,18 @@ module LanguageExtension =
 
     type Collections.DictionaryEntry with
         member __.Item
-            with get (prop: string) =
-                prop
-                |> function
+            with get (prop: string): obj | null =
+                let v: obj | null =
+                    match prop with
                     | "Key" -> __.Key
                     | "Value" -> __.Value
                     | _ -> null
 
+                v
+
     type Management.Automation.PSObject with
         member __.Item
-            with get (prop: string) =
+            with get (prop: string): obj | null =
                 // NOTE: should check empty prop by the caller.
                 __.Properties[prop]
                 |> function
@@ -173,7 +175,7 @@ module Data =
         | Dict of d: DictionaryEntry
 
         member __.Item
-            with get (prop: string) =
+            with get (prop: string): obj | null =
                 __
                 |> function
                     | Obj o -> o[prop]
