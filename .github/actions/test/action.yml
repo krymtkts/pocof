@@ -32,15 +32,18 @@ runs:
         Set-ItemProperty -Path 'HKCU:\Control Panel\International' -Name 'sShortDate' -Value 'yyyy-MM-dd'
         RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
     - name: Execute All Tests
+      id: run_tests
       shell: ${{ inputs.shell }}
       run: |
         Invoke-Psake -taskList TestAll
         if (-not $psake.build_success) { exit 1 }
+        $reports = Get-ChildItem ./src/pocof.Test/TestResults/coverage.*.cobertura.xml join ','
+        "REPORT_PATHS=$reports" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       if: runner.os == 'Linux'
       with:
-        file: ./src/pocof.Test/TestResults/coverage.cobertura.xml
+        file: ${{ steps.run_tests.outputs.REPORT_PATHS }}
       env:
         CODECOV_TOKEN: ${{ inputs.codecov_token }}
     # NOTE: separate multiple SARIF uploads to add categories. see https://github.blog/changelog/2024-05-06-code-scanning-will-stop-combining-runs-from-a-single-upload/
