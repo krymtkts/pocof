@@ -86,16 +86,19 @@ Task Build -Depends Clean {
 
 Task UnitTest {
     Remove-Item ./src/pocof.Test/TestResults/* -Recurse -ErrorAction SilentlyContinue
-    dotnet test --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 5s --blame-hang-dump-type full
-    if (-not $?) {
-        throw 'dotnet test failed.'
+    'net6.0', 'netstandard2.0' | ForEach-Object {
+        "Run unit tests for target framework: $_"
+        dotnet test -p:TestTargetFramework=$_ --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 5s --blame-hang-dump-type full
+        if (-not $?) {
+            throw "dotnet test failed for target framework: $_"
+        }
+        Move-Item ./src/pocof.Test/TestResults/*/coverage.cobertura.xml "./src/pocof.Test/TestResults/coverage.${_}.cobertura.xml" -Force
     }
-    Move-Item ./src/pocof.Test/TestResults/*/coverage.cobertura.xml ./src/pocof.Test/TestResults/coverage.cobertura.xml -Force
 }
 
 Task Coverage -Depends UnitTest {
     Remove-Item ./coverage/*
-    reportgenerator -reports:'./src/pocof.Test/TestResults/coverage.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
+    reportgenerator -reports:'./src/pocof.Test/TestResults/coverage.*.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
 }
 
 Task WorkflowTest {
