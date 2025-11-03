@@ -37,7 +37,7 @@ runs:
       run: |
         Invoke-Psake -taskList TestAll
         if (-not $psake.build_success) { exit 1 }
-        $reports = Get-ChildItem ./src/pocof.Test/TestResults/coverage.*.cobertura.xml join ','
+        $reports = (Get-ChildItem ./src/pocof.Test/TestResults/coverage.*.cobertura.xml) -join ','
         "REPORT_PATHS=$reports" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
