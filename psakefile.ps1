@@ -77,9 +77,12 @@ Task Build -Depends Clean {
     if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
-    dotnet publish -c $Stage
-    if (-not $?) {
-        throw 'dotnet publish failed.'
+    'net6.0', 'netstandard2.0' | ForEach-Object {
+        "Build $ModuleName ver$ModuleVersion for target framework: $_"
+        dotnet publish -c $Stage -f $_ $ModuleSrcPath
+        if (-not $?) {
+            throw 'dotnet publish failed.'
+        }
     }
     "Completed to build $ModuleName ver$ModuleVersion"
 }
@@ -127,7 +130,7 @@ Task Import -Depends Build {
     if (-not $module) {
         throw "Module manifest not found. $($module.ModuleBase)/*.psd1"
     }
-    $module | Import-Module -Global
+    $module | Import-Module -Global -Verbose
 }
 
 Task E2ETest -Depends Import {

@@ -30,10 +30,14 @@
     <Compile Include="Library.fs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="pocof.psd1" Pack="true" CopyToOutputDirectory="Always" />
-    <None Include="pocof-Help.xml" Pack="true" CopyToOutputDirectory="Always" />
-  </ItemGroup>
+  <Target Name="CopyStaticFilesToPublishRoot" AfterTargets="Publish">
+    <ItemGroup>
+      <StaticFiles Include="pocof.psm1;pocof.psd1;pocof-Help.xml" />
+    </ItemGroup>
+    <Copy SourceFiles="@(StaticFiles)"
+          DestinationFolder="$(PublishDir)../"
+          SkipUnchangedFiles="true" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="PowerShellStandard.Library" Version="7.0.0-preview.1">

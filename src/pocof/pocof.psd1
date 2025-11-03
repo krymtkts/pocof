@@ -9,7 +9,7 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule = 'pocof.dll'
+    RootModule = 'pocof.psm1'
 
     # Version number of this module.
     ModuleVersion = '0.21.0'
