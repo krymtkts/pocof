@@ -52,7 +52,7 @@ Task Lint {
     if (-not $?) {
         throw 'dotnet fantomas failed.'
     }
-    $analyzerPath = dotnet build $ModuleSrcPath --getProperty:PkgIonide_Analyzers
+    $analyzerPath = dotnet build $ModuleSrcPath -f 'netstandard2.0' --getProperty:PkgIonide_Analyzers
     Get-ChildItem './src/*/*.fsproj' | ForEach-Object {
         dotnet fsharp-analyzers --project $_ --analyzers-path $analyzerPath --report "analysis/$($_.BaseName)-report.sarif" --code-root src --exclude-files '**/obj/**/*' '**/bin/**/*'
         if (-not $?) {
