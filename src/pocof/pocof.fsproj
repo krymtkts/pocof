@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <Version>0.21.0</Version>
     <Copyright>Copyright © 2022 Takatoshi Kuriyama. All rights reserved.</Copyright>
     <Description>An interactive pipeline filtering Cmdlet for PowerShell written in F#. A fork of poco which is a PowerShell port of peco.</Description>
@@ -10,7 +10,7 @@
     <!-- Disable deps.json generation -->
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <!-- Deploy the produced assembly -->
-    <PublishDir>../../publish/pocof</PublishDir>
+    <PublishDir>../../publish/pocof/$(TargetFramework)/</PublishDir>
   </PropertyGroup>
 
   <!-- Disable debug symbols for the release build. -->
