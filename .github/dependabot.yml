@@ -21,6 +21,7 @@ updates:
     # NOTE: dependabot raises dependency_file_not_found error with root directory.
     # NOTE: directories can use glob patterns.
     directories:
+      - "/.config"
       - "/src/pocof*"
     schedule:
       interval: "weekly"
@@ -28,6 +29,10 @@ updates:
       time: "06:00"
       timezone: "Asia/Tokyo"
     groups:
+      dotnet-tools:
+        patterns:
+          - "fantomas"
+          - "fsharp-analyzers"
       pwsh-std:
         patterns:
           - "PowerShellStandard.Library"
@@ -42,12 +47,10 @@ updates:
         patterns:
           - "*"
         exclude-patterns:
+          - "fantomas"
+          - "fsharp-analyzers"
           - "PowerShellStandard.Library"
           - "Microsoft.PowerShell.SDK"
-        update-types:
-          - "major"
-          - "minor"
-          - "patch"
     ignore:
       - dependency-name: "PowerShellStandard.Library"
         update-types:
