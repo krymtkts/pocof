@@ -34,6 +34,7 @@ updates:
         patterns:
           - "fantomas"
           - "fsharp-analyzers"
+          - "Ionide.Analyzers"
       pwsh-std:
         patterns:
           - "PowerShellStandard.Library"
@@ -50,6 +51,7 @@ updates:
         exclude-patterns:
           - "fantomas"
           - "fsharp-analyzers"
+          - "Ionide.Analyzers"
           - "PowerShellStandard.Library"
           - "Microsoft.PowerShell.SDK"
     ignore:
