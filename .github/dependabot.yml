@@ -23,7 +23,6 @@ updates:
     directories:
       - "/"
       - "/.config"
-      - "/src/pocof*"
     schedule:
       interval: "weekly"
       day: "friday"

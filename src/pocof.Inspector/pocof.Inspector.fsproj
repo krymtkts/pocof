@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ObjectLayoutInspector" Version="0.1.4" />
+    <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="ObjectLayoutInspector" />
   </ItemGroup>
 
   <ItemGroup>

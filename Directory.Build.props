@@ -11,7 +11,7 @@
     </PropertyGroup>
     <ItemGroup>
         <!-- Analyzer configurations. -->
-        <PackageReference Include="Ionide.Analyzers" Version="0.14.4">
+        <PackageReference Include="Ionide.Analyzers" >
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
