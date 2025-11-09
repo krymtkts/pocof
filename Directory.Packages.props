@@ -19,7 +19,7 @@
         <PackageVersion Include="coverlet.collector" Version="6.0.4" />
 
         <!-- NOTE: for creating mock PSObject -->
-        <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.7" />
+        <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.13" />
 
         <!-- NOTE: Benchmark dependencies. -->
         <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
