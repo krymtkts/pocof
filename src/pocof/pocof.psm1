@@ -20,7 +20,7 @@ $binaryModuleRoot = Join-Path -Path $PSModuleRoot -ChildPath $targetFramework
 $binaryModulePath = Join-Path -Path $binaryModuleRoot -ChildPath 'pocof.dll'
 $binaryModule = Import-Module -Name $binaryModulePath -PassThru
 
-Write-Verbose "pocof: Loaded $targetFramework binary from $binaryModulePath" -Verbose
+Write-Verbose "pocof: Loaded $targetFramework binary from $binaryModulePath" -Verbose:($VerbosePreference -ne 'SilentlyContinue')
 
 # NOTE: When the module is unloaded, remove the nested binary module that was loaded with it.
 $PSModule.OnRemove = {
