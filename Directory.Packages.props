@@ -4,6 +4,9 @@
         <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
     <ItemGroup>
+        <!-- NOTE: F# dependencies. -->
+        <PackageVersion Include="FSharp.Core" Version="9.0.303" />
+
         <!-- NOTE: PowerShell dependencies. -->
         <PackageVersion Include="PowerShellStandard.Library" Version="7.0.0-preview.1" />
 
