@@ -40,7 +40,7 @@
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="PowerShellStandard.Library" Version="7.0.0-preview.1">
+    <PackageReference Include="PowerShellStandard.Library" >
       <ExcludeAssets>contentFiles</ExcludeAssets>
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>

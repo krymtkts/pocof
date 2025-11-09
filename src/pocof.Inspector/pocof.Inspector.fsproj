@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ObjectLayoutInspector" Version="0.1.4" />
+    <PackageReference Include="ObjectLayoutInspector" />
   </ItemGroup>
 
   <ItemGroup>
