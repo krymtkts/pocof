@@ -20,17 +20,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Expecto"  />
-    <PackageReference Include="YoloDev.Expecto.TestSdk"  />
-    <PackageReference Include="FsCheck"  />
-    <PackageReference Include="Expecto.FsCheck"  />
-    <PackageReference Include="Microsoft.NET.Test.Sdk"  />
+    <PackageReference Include="Expecto" />
+    <PackageReference Include="YoloDev.Expecto.TestSdk" />
+    <PackageReference Include="FsCheck" />
+    <PackageReference Include="Expecto.FsCheck" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="coverlet.collector" >
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- NOTE: for creating mock PSObject -->
-    <PackageReference Include="Microsoft.PowerShell.SDK"  />
+    <PackageReference Include="Microsoft.PowerShell.SDK" />
   </ItemGroup>
 
   <ItemGroup>
