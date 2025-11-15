@@ -77,6 +77,10 @@ Task Build -Depends Clean {
     if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
+    dotnet build -c $Stage
+    if (-not $?) {
+        throw 'dotnet build failed.'
+    }
     'net6.0', 'netstandard2.0' | ForEach-Object {
         "Build $ModuleName ver$ModuleVersion for target framework: $_"
         dotnet publish -c $Stage -f $_ $ModuleSrcPath
