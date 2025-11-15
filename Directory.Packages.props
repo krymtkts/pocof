@@ -1,34 +1,34 @@
 <Project>
-    <PropertyGroup>
-        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-        <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    </PropertyGroup>
-    <ItemGroup>
-        <!-- NOTE: F# dependencies. -->
-        <PackageVersion Include="FSharp.Core" Version="10.0.100" />
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- NOTE: F# dependencies. -->
+    <PackageVersion Include="FSharp.Core" Version="10.0.100" />
 
-        <!-- NOTE: PowerShell dependencies. -->
-        <PackageVersion Include="PowerShellStandard.Library" Version="7.0.0-preview.1" />
+    <!-- NOTE: PowerShell dependencies. -->
+    <PackageVersion Include="PowerShellStandard.Library" Version="7.0.0-preview.1" />
 
-        <!-- NOTE: Test dependencies. -->
-        <PackageVersion Include="Expecto" Version="11.0.0-alpha8" />
-        <PackageVersion Include="YoloDev.Expecto.TestSdk" Version="0.15.5" />
-        <PackageVersion Include="FsCheck" Version="3.3.1" />
-        <PackageVersion Include="Expecto.FsCheck" Version="11.0.0-alpha8" />
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
-        <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <!-- NOTE: Test dependencies. -->
+    <PackageVersion Include="Expecto" Version="11.0.0-alpha8" />
+    <PackageVersion Include="YoloDev.Expecto.TestSdk" Version="0.15.5" />
+    <PackageVersion Include="FsCheck" Version="3.3.1" />
+    <PackageVersion Include="Expecto.FsCheck" Version="11.0.0-alpha8" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
 
-        <!-- NOTE: for creating mock PSObject -->
-        <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.13" />
+    <!-- NOTE: for creating mock PSObject -->
+    <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.13" />
 
-        <!-- NOTE: Benchmark dependencies. -->
-        <PackageVersion Include="BenchmarkDotNet" Version="0.15.6" />
-        <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.6" />
+    <!-- NOTE: Benchmark dependencies. -->
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.6" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.6" />
 
-        <!-- NOTE: Inspector dependencies. -->
-        <PackageVersion Include="ObjectLayoutInspector" Version="0.1.4" />
+    <!-- NOTE: Inspector dependencies. -->
+    <PackageVersion Include="ObjectLayoutInspector" Version="0.1.4" />
 
-        <!-- NOTE: Analyzer configurations. -->
-        <PackageVersion Include="Ionide.Analyzers" Version="0.14.10" />
-    </ItemGroup>
+    <!-- NOTE: Analyzer configurations. -->
+    <PackageVersion Include="Ionide.Analyzers" Version="0.14.10" />
+  </ItemGroup>
 </Project>
