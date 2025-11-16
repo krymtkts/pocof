@@ -411,7 +411,7 @@ module Screen =
         member private __.AppendScreenLine (sb: StringBuilder) (width: int) (line: string) =
             match width - __.GetLengthInBufferCells line with
             | Natural x -> sb.Append(line).Append(' ', x) |> ignore
-            | _ -> sb.Append(line) |> ignore
+            | _ -> sb.Append(line, 0, width) |> ignore
 
         member private __.WriteScreenLine (width: int) (height: int) (line: string) =
             __.GenerateScreenLine width line |> rui.Write 0 height

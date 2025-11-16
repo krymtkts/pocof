@@ -364,6 +364,35 @@ let ``tests Buff writeScreen`` =
               rui.screen |> Expect.equal "should render entries over y" expected
           }
 
+          test "When rendering many wide entries" {
+              let rui = new MockRawUI(60, 30)
+              use buff = new Buff(rui, formatTableOutString, Layout.TopDown, ``prompt>``)
+
+              let state: InternalState =
+                  { state with
+                      InternalState.QueryState.Query = ""
+                      InternalState.QueryState.Cursor = 0
+                      InternalState.QueryCondition.CaseSensitive = false }
+                  |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
+
+              let entries =
+                  [ 1..100 ]
+                  |> List.map (fun _ -> String.replicate 10 "0123456789" |> PSObject.AsPSObject |> Entry.Obj)
+                  |> PSeq.ofSeq
+
+              buff.WriteScreen state entries <| Ok []
+
+              let expected =
+                  List.concat
+                      [ [ @"prompt>                                                     "
+                          @"                                             match and [100]" ]
+                        List.replicate 27 (String.replicate 6 "0123456789")
+                        [ String(' ', 60) ] ]
+
+              rui.screen
+              |> Expect.equal "should render wide entries only within window width" expected
+          }
+
           testList
               "query window"
               [
