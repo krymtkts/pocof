@@ -116,8 +116,8 @@ Task WorkflowTest {
 }
 
 Task Benchmark {
-    # NOTE: ex) Invoke-psake -taskList Benchmark -parameters @{'Filter'='*CollectionBenchmarks*';}
-    dotnet run --project ./src/pocof.Benchmark -c Release --filter $Filter
+    # NOTE: ex) invoke-psake -taskList Benchmark -parameters @{Filter='*invokeAction*';TestTargetFramework='net6.0'}
+    dotnet run --project ./src/pocof.Benchmark -c Release --filter $Filter -p:TestTargetFramework=$TestTargetFramework
 }
 
 Task MemoryLayout {

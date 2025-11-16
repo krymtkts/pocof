@@ -33,7 +33,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\pocof\pocof.fsproj" />
+    <ProjectReference Include="..\pocof\pocof.fsproj"
+                      Properties="TargetFramework=$(TestTargetFramework)"
+                      Condition="'$(TestTargetFramework)' != ''" />
+    <ProjectReference Include="..\pocof\pocof.fsproj"
+                      Condition="'$(TestTargetFramework)' == ''" />
     <ProjectReference Include="..\pocof.Test\pocof.Test.fsproj" >
       <ExcludeAssets>build; analyzers; buildtransitive</ExcludeAssets>
     </ProjectReference>
