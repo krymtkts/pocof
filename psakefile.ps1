@@ -72,10 +72,20 @@ Task Lint {
     Get-ValidMarkdownCommentHelp | Out-Null
 }
 
+function Get-FullModuleVersion {
+    param (
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline)]
+        [ValidateNotNull()]
+        [psobject]
+        $Module
+    )
+    "$($Module.ModuleVersion ?? $Module.Version)$($Module.PrivateData.PSData.Prerelease ? "-$($Module.PrivateData.PSData.Prerelease)" : '')"
+}
+
 Task Build -Depends Clean {
     'Build command let!'
     $module = Import-PowerShellDataFile "${ModuleSrcPath}/${ModuleName}.psd1"
-    $ManifestModuleVersion = $module.ModuleVersion + ($module.PrivateData.PSData.Prerelease ? "-$($module.PrivateData.PSData.Prerelease)" : '')
+    $ManifestModuleVersion = $module | Get-FullModuleVersion
     if ($ManifestModuleVersion -ne $ModuleVersion) {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
@@ -161,7 +171,7 @@ Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
     "Release ${ModuleName}! version=${ModuleVersion} dryrun=${DryRun}"
 
     $m = Get-Module $ModuleName
-    $publishModuleVersion = "$($m.Version)$($m.PrivateData.PSData.Prerelease ? "-$($m.PrivateData.PSData.Prerelease)" : '')"
+    $publishModuleVersion = $m | Get-FullModuleVersion
     if ($publishModuleVersion -ne $ModuleVersion) {
         throw "Version inconsistency between project and module. ${publishModuleVersion}, ${ModuleVersion}"
     }
