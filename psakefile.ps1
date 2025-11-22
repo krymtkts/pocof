@@ -135,6 +135,7 @@ Task Import -Depends Build {
     if (-not $module) {
         throw "Module manifest not found. $($module.ModuleBase)/*.psd1"
     }
+    Test-ModuleManifest -Path $module -ErrorAction Stop
     $module | Import-Module -Global -Verbose
 }
 
