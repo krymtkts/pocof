@@ -6,7 +6,7 @@ Properties {
         $DryRun = $true
     }
     $ModuleName = Get-ChildItem ./src/*/*.psd1 | Select-Object -ExpandProperty BaseName
-    $ModuleVersion = (Resolve-Path "./src/${ModuleName}/*.fsproj" | Select-Xml '//Version/text()').Node.Value
+    $ModuleVersion = (Resolve-Path "./src/${ModuleName}/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value
     $ModuleSrcPath = Resolve-Path "./src/${ModuleName}/"
     $ModulePublishPath = Resolve-Path "./publish/${ModuleName}/"
     "Module: ${ModuleName} ver${ModuleVersion} root=${ModuleSrcPath} publish=${ModulePublishPath}"
