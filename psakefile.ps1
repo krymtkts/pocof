@@ -73,8 +73,9 @@ Task Lint {
 
 Task Build -Depends Clean {
     'Build command let!'
-    Import-LocalizedData -BindingVariable module -BaseDirectory $ModuleSrcPath -FileName "${ModuleName}.psd1"
-    if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
+    $module = Import-PowerShellDataFile "${ModuleSrcPath}/${ModuleName}.psd1"
+    $ManifestModuleVersion = $module.ModuleVersion + ($module.PrivateData.PSData.Prerelease ? "-$($module.PrivateData.PSData.Prerelease)" : '')
+    if ($ManifestModuleVersion -ne $ModuleVersion) {
         throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
     }
     dotnet build -c $Stage
