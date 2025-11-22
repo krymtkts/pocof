@@ -161,8 +161,9 @@ Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
     "Release ${ModuleName}! version=${ModuleVersion} dryrun=${DryRun}"
 
     $m = Get-Module $ModuleName
-    if ($m.Version -ne $ModuleVersion) {
-        throw "Version inconsistency between project and module. $($m.Version), ${ModuleVersion}"
+    $publishModuleVersion = "$($m.Version)$($m.PrivateData.PSData.Prerelease ? "-$($m.PrivateData.PSData.Prerelease)" : '')"
+    if ($publishModuleVersion -ne $ModuleVersion) {
+        throw "Version inconsistency between project and module. ${publishModuleVersion}, ${ModuleVersion}"
     }
     $p = Get-ChildItem "${ModulePublishPath}/*.psd1"
     if (-not $p) {
