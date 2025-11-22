@@ -79,7 +79,8 @@ function Get-FullModuleVersion {
         [psobject]
         $Module
     )
-    "$($Module.ModuleVersion ?? $Module.Version)$($Module.PrivateData.PSData.Prerelease ? "-$($Module.PrivateData.PSData.Prerelease)" : '')"
+    # NOTE: Short hand operator is not supported in PowerShell 5.1.
+    "$(if ($Module.ModuleVersion) { $Module.ModuleVersion } else { $Module.Version })$(if ($Module.PrivateData.PSData.Prerelease) { "-$($Module.PrivateData.PSData.Prerelease)" } else { '' })"
 }
 
 Task Build -Depends Clean {
