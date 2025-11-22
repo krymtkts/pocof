@@ -95,7 +95,7 @@ Task Build -Depends Clean {
         throw 'dotnet build failed.'
     }
     'net6.0', 'netstandard2.0' | ForEach-Object {
-        "Build ${ModuleName} ver${ModuleVersion} for target framework: $_"
+        "Build ${ModuleName} ver${ModuleVersion} for target framework: ${_}"
         dotnet publish -c $Stage -f $_ $ModuleSrcPath
         if (-not $?) {
             throw 'dotnet publish failed.'
@@ -107,10 +107,10 @@ Task Build -Depends Clean {
 Task UnitTest {
     Remove-Item "${TestResultsRootPath}/*" -Recurse -ErrorAction SilentlyContinue
     'net6.0', 'netstandard2.0' | ForEach-Object {
-        "Run unit tests for target framework: $_"
+        "Run unit tests for target framework: ${_}"
         dotnet test -p:TestTargetFramework=$_ --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 5s --blame-hang-dump-type full
         if (-not $?) {
-            throw "dotnet test failed for target framework: $_"
+            throw "dotnet test failed for target framework: ${_}"
         }
         Move-Item "${TestResultsRootPath}/*/coverage.cobertura.xml" "${TestResultsRootPath}/coverage.${_}.cobertura.xml" -Force
     }
