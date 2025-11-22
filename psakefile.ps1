@@ -6,9 +6,10 @@ Properties {
         $DryRun = $true
     }
     $ModuleName = Get-ChildItem ./src/*/*.psd1 | Select-Object -ExpandProperty BaseName
-    $ModuleVersion = (Resolve-Path "./src/${ModuleName}/*.fsproj" | Select-Xml '//Version/text()').Node.Value
     $ModuleSrcPath = Resolve-Path "./src/${ModuleName}/"
+    $ModuleVersion = (Resolve-Path "${ModuleSrcPath}/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value
     $ModulePublishPath = Resolve-Path "./publish/${ModuleName}/"
+    $TestResultsRootPath = "./src/${ModuleName}.Test/TestResults/"
     "Module: ${ModuleName} ver${ModuleVersion} root=${ModuleSrcPath} publish=${ModulePublishPath}"
 }
 
@@ -33,7 +34,7 @@ Task Clean {
 
 function Get-ValidMarkdownCommentHelp {
     if (Get-Command Measure-PlatyPSMarkdown -ErrorAction SilentlyContinue) {
-        $help = Measure-PlatyPSMarkdown ./docs/$ModuleName/*.md | Where-Object Filetype -Match CommandHelp
+        $help = Measure-PlatyPSMarkdown "./docs/${ModuleName}/*.md" | Where-Object Filetype -Match CommandHelp
         $validations = $help.FilePath | Test-MarkdownCommandHelp -DetailView
         if (-not $validations.IsValid) {
             $validations.Messages | Where-Object { $_ -notlike 'PASS:*' } | Write-Error
@@ -61,7 +62,7 @@ Task Lint {
     }
 
     # PowerShell analysis
-    @('./psakefile.ps1', "./tests/$ModuleName.Tests.ps1") | ForEach-Object {
+    @('./psakefile.ps1', "./tests/${ModuleName}.Tests.ps1") | ForEach-Object {
         $warn = Invoke-ScriptAnalyzer -Path $_ -Settings ./PSScriptAnalyzerSettings.psd1
         if ($warn) {
             $warn
@@ -71,41 +72,53 @@ Task Lint {
     Get-ValidMarkdownCommentHelp | Out-Null
 }
 
+function Get-FullModuleVersion {
+    param (
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline)]
+        [ValidateNotNull()]
+        [psobject]
+        $Module
+    )
+    # NOTE: Short hand operator is not supported in PowerShell 5.1.
+    "$(if ($Module.ModuleVersion) { $Module.ModuleVersion } else { $Module.Version })$(if ($Module.PrivateData.PSData.Prerelease) { "-$($Module.PrivateData.PSData.Prerelease)" } else { '' })"
+}
+
 Task Build -Depends Clean {
     'Build command let!'
-    Import-LocalizedData -BindingVariable module -BaseDirectory $ModuleSrcPath -FileName "${ModuleName}.psd1"
-    if ($module.ModuleVersion -ne (Resolve-Path "./src/*/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value) {
-        throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
+    $module = Import-PowerShellDataFile "${ModuleSrcPath}/${ModuleName}.psd1"
+    $ManifestModuleVersion = $module | Get-FullModuleVersion
+    if ($ManifestModuleVersion -ne $ModuleVersion) {
+        throw "Version inconsistency between Module manifest (.psd1) and project (.fsproj). .psd1: ${ManifestModuleVersion}, .fsproj: ${ModuleVersion}"
     }
     dotnet build -c $Stage
     if (-not $?) {
         throw 'dotnet build failed.'
     }
     'net6.0', 'netstandard2.0' | ForEach-Object {
-        "Build $ModuleName ver$ModuleVersion for target framework: $_"
+        "Build ${ModuleName} ver${ModuleVersion} for target framework: ${_}"
         dotnet publish -c $Stage -f $_ $ModuleSrcPath
         if (-not $?) {
             throw 'dotnet publish failed.'
         }
     }
-    "Completed to build $ModuleName ver$ModuleVersion"
+    "Completed to build ${ModuleName} ver${ModuleVersion}"
 }
 
 Task UnitTest {
-    Remove-Item ./src/pocof.Test/TestResults/* -Recurse -ErrorAction SilentlyContinue
+    Remove-Item "${TestResultsRootPath}/*" -Recurse -ErrorAction SilentlyContinue
     'net6.0', 'netstandard2.0' | ForEach-Object {
-        "Run unit tests for target framework: $_"
+        "Run unit tests for target framework: ${_}"
         dotnet test -p:TestTargetFramework=$_ --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 5s --blame-hang-dump-type full
         if (-not $?) {
-            throw "dotnet test failed for target framework: $_"
+            throw "dotnet test failed for target framework: ${_}"
         }
-        Move-Item ./src/pocof.Test/TestResults/*/coverage.cobertura.xml "./src/pocof.Test/TestResults/coverage.${_}.cobertura.xml" -Force
+        Move-Item "${TestResultsRootPath}/*/coverage.cobertura.xml" "${TestResultsRootPath}/coverage.${_}.cobertura.xml" -Force
     }
 }
 
 Task Coverage -Depends UnitTest {
     Remove-Item ./coverage/*
-    reportgenerator -reports:'./src/pocof.Test/TestResults/coverage.*.cobertura.xml' -targetdir:'coverage' -reporttypes:Html
+    reportgenerator -reports:"${TestResultsRootPath}/coverage.*.cobertura.xml" -targetdir:'coverage' -reporttypes:Html
 }
 
 Task WorkflowTest {
@@ -126,14 +139,15 @@ Task MemoryLayout {
 }
 
 Task Import -Depends Build {
-    "Import $ModuleName ver$ModuleVersion"
+    "Import ${ModuleName} ver${ModuleVersion}"
     if ( -not ($ModuleName -and $ModuleVersion)) {
-        throw "ModuleName or ModuleVersion not defined. $ModuleName, $ModuleVersion"
+        throw "ModuleName or ModuleVersion not defined. ${ModuleName}, ${ModuleVersion}"
     }
     $module = Get-ChildItem "${ModulePublishPath}/*.psd1"
     if (-not $module) {
         throw "Module manifest not found. $($module.ModuleBase)/*.psd1"
     }
+    Test-ModuleManifest -Path $module -ErrorAction Stop
     $module | Import-Module -Global -Verbose
 }
 
@@ -155,11 +169,12 @@ Task ExternalHelp {
 }
 
 Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
-    "Release $($ModuleName)! version=$ModuleVersion dryrun=$DryRun"
+    "Release ${ModuleName}! version=${ModuleVersion} dryrun=${DryRun}"
 
     $m = Get-Module $ModuleName
-    if ($m.Version -ne $ModuleVersion) {
-        throw "Version inconsistency between project and module. $($m.Version), $ModuleVersion"
+    $publishModuleVersion = $m | Get-FullModuleVersion
+    if ($publishModuleVersion -ne $ModuleVersion) {
+        throw "Version inconsistency between Module manifest (.psd1) and project (.fsproj). .psd1: ${publishModuleVersion}, .fsproj: ${ModuleVersion}"
     }
     $p = Get-ChildItem "${ModulePublishPath}/*.psd1"
     if (-not $p) {
