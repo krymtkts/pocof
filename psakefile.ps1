@@ -87,7 +87,7 @@ Task Build -Depends Clean {
     $module = Import-PowerShellDataFile "${ModuleSrcPath}/${ModuleName}.psd1"
     $ManifestModuleVersion = $module | Get-FullModuleVersion
     if ($ManifestModuleVersion -ne $ModuleVersion) {
-        throw 'Module manifest (.psd1) version does not match project (.fsproj) version.'
+        throw "Version inconsistency between Module manifest (.psd1) and project (.fsproj). .psd1: ${ManifestModuleVersion}, .fsproj: ${ModuleVersion}"
     }
     dotnet build -c $Stage
     if (-not $?) {
@@ -173,7 +173,7 @@ Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
     $m = Get-Module $ModuleName
     $publishModuleVersion = $m | Get-FullModuleVersion
     if ($publishModuleVersion -ne $ModuleVersion) {
-        throw "Version inconsistency between project and module. ${publishModuleVersion}, ${ModuleVersion}"
+        throw "Version inconsistency between Module manifest (.psd1) and project (.fsproj). .psd1: ${publishModuleVersion}, .fsproj: ${ModuleVersion}"
     }
     $p = Get-ChildItem "${ModulePublishPath}/*.psd1"
     if (-not $p) {
