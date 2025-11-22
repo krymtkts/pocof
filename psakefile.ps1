@@ -9,7 +9,7 @@ Properties {
     $ModuleSrcPath = Resolve-Path "./src/${ModuleName}/"
     $ModuleVersion = (Resolve-Path "${ModuleSrcPath}/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value
     $ModulePublishPath = Resolve-Path "./publish/${ModuleName}/"
-    $TestResultsRootPath = Resolve-Path './src/pocof.Test/TestResults/'
+    $TestResultsRootPath = "./src/${ModuleName}.Test/TestResults/"
     "Module: ${ModuleName} ver${ModuleVersion} root=${ModuleSrcPath} publish=${ModulePublishPath}"
 }
 
