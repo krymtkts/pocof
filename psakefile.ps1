@@ -9,6 +9,7 @@ Properties {
     $ModuleSrcPath = Resolve-Path "./src/${ModuleName}/"
     $ModuleVersion = (Resolve-Path "${ModuleSrcPath}/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value
     $ModulePublishPath = Resolve-Path "./publish/${ModuleName}/"
+    $ModuleManifestPath = "${ModulePublishPath}/${ModuleName}.psd1"
     $TestResultsRootPath = "./src/${ModuleName}.Test/TestResults/"
     "Module: ${ModuleName} ver${ModuleVersion} root=${ModuleSrcPath} publish=${ModulePublishPath}"
 }
@@ -143,7 +144,7 @@ Task Import -Depends Build {
     if ( -not ($ModuleName -and $ModuleVersion)) {
         throw "ModuleName or ModuleVersion not defined. ${ModuleName}, ${ModuleVersion}"
     }
-    $module = Get-ChildItem "${ModulePublishPath}/*.psd1"
+    $module = Get-ChildItem $ModuleManifestPath
     if (-not $module) {
         throw "Module manifest not found. $($module.ModuleBase)/*.psd1"
     }
@@ -171,18 +172,14 @@ Task ExternalHelp {
 Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
     "Release ${ModuleName}! version=${ModuleVersion} dryrun=${DryRun}"
 
-    $m = Get-Module $ModuleName
-    $publishModuleVersion = $m | Get-FullModuleVersion
-    if ($publishModuleVersion -ne $ModuleVersion) {
-        throw "Version inconsistency between Module manifest (.psd1) and project (.fsproj). .psd1: ${publishModuleVersion}, .fsproj: ${ModuleVersion}"
-    }
-    $p = Get-ChildItem "${ModulePublishPath}/*.psd1"
-    if (-not $p) {
-        throw "Module manifest not found. $($m.ModuleBase)/*.psd1"
+    $module = Import-PowerShellDataFile $ModuleManifestPath
+    $ManifestModuleVersion = $module | Get-FullModuleVersion
+    if ($ManifestModuleVersion -ne $ModuleVersion) {
+        throw "Version inconsistency between Module manifest (.psd1) and project (.fsproj). .psd1: ${ManifestModuleVersion}, .fsproj: ${ModuleVersion}"
     }
 
     $Params = @{
-        Path = $p.FullName
+        Path = $ModulePublishPath
         Repository = 'PSGallery'
         ApiKey = (Get-Credential API-key -Message 'Enter your API key as the password').GetNetworkCredential().Password
         WhatIf = $DryRun
