@@ -1,4 +1,4 @@
-# Pocof
+# pocof
 
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/pocof)](https://www.powershellgallery.com/packages/pocof)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/pocof)](https://www.powershellgallery.com/packages/pocof)
