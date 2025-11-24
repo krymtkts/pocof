@@ -34,13 +34,13 @@ jobs:
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
           shell: ${{ matrix.shell }}
+      - uses: snyk/actions/setup@master
+        if: runner.os == 'Linux' && github.event.pull_request.head.repo.full_name == github.repository
       - name: Run Snyk to check for vulnerabilities
         # NOTE: snyk/actions uses Container action that is only supported on Linux.
         # NOTE: skip snyk/actions when PR is from forked repository.
         if: runner.os == 'Linux' && github.event.pull_request.head.repo.full_name == github.repository
-        uses: snyk/actions/dotnet@master
+        run: |
+          snyk test --all-projects --org=krymtkts
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: test
-          args: --all-projects --org=krymtkts

@@ -13,17 +13,12 @@ runs:
   using: composite
   steps:
     - name: Run Snyk to check for vulnerabilities(${{ inputs.project_name }})
-      uses: snyk/actions/dotnet@master
-      # snyk/actions uses Container action that is only supported on Linux.
-      if: runner.os == 'Linux'
       continue-on-error: true # To make sure that SARIF upload gets called
+      run: |
+        snyk test ./src/${{ inputs.project_name }} --sarif-file-output=${{ inputs.project_name }}-snyk.sarif --org=krymtkts
       env:
         SNYK_TOKEN: ${{ inputs.snyk_token }}
-      with:
-        command: test
-        args: ./src/${{ inputs.project_name }} --sarif-file-output=${{ inputs.project_name }}-snyk.sarif --org=krymtkts
     - name: Upload result to GitHub Code Scanning(${{ inputs.project_name }})
-      if: runner.os == 'Linux'
       uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: ${{ inputs.project_name }}-snyk.sarif

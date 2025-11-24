@@ -34,23 +34,29 @@ jobs:
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
           shell: ${{ matrix.shell }}
+      - uses: snyk/actions/setup@master
+        if: runner.os == 'Linux'
       - name: Run Snyk to check for vulnerabilities(pocof)
+        if: runner.os == 'Linux'
         uses: ./.github/actions/snyk
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
           project_name: pocof
       - name: Run Snyk to check for vulnerabilities(pocof.Test)
+        if: runner.os == 'Linux'
         uses: ./.github/actions/snyk
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
           project_name: pocof.Test
 
       - name: Run Snyk to check for vulnerabilities(pocof.Benchmark)
+        if: runner.os == 'Linux'
         uses: ./.github/actions/snyk
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
           project_name: pocof.Benchmark
       - name: Run Snyk to check for vulnerabilities(pocof.Inspector)
+        if: runner.os == 'Linux'
         uses: ./.github/actions/snyk
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
