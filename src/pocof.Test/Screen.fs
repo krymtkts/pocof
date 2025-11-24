@@ -393,6 +393,38 @@ let ``tests Buff writeScreen`` =
               |> Expect.equal "should render wide entries only within window width" expected
           }
 
+          let intToChar i =
+              Char.ConvertFromUtf32(i + Char.ConvertToUtf32("０", 0))
+
+          test "When rendering multi-byte string entries" {
+              let rui = new MockRawUI(60, 30)
+              use buff = new Buff(rui, formatTableOutString, Layout.TopDown, ``prompt>``)
+
+              let state: InternalState =
+                  { state with
+                      InternalState.QueryState.Query = ""
+                      InternalState.QueryState.Cursor = 0
+                      InternalState.QueryCondition.CaseSensitive = false }
+                  |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
+
+              let entries =
+                  [ 1..100 ]
+                  |> List.map (fun i -> i % 10 |> intToChar |> String.replicate 100 |> PSObject.AsPSObject |> Entry.Obj)
+                  |> PSeq.ofSeq
+
+              buff.WriteScreen state entries <| Ok []
+
+              let expected =
+                  List.concat
+                      [ [ @"prompt>                                                     "
+                          @"                                             match and [100]" ]
+                        List.init 27 (fun i -> (i + 1) % 10 |> intToChar |> String.replicate 30)
+                        [ String(' ', 60) ] ]
+
+              rui.screen
+              |> Expect.equal "should render string entries only within window width" expected
+          }
+
           testList
               "query window"
               [
@@ -471,9 +503,6 @@ let ``tests Buff writeScreen`` =
                     rui.screen
                     |> Expect.equal "should render tail 44 of query when cursor 100" expected
                 }
-
-                let intToChar i =
-                    Char.ConvertFromUtf32(i + Char.ConvertToUtf32("０", 0))
 
                 test "When rendering head 40 of query when cursor 0 with full-width characters" {
                     let query =
