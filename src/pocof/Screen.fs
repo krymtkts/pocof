@@ -188,15 +188,15 @@ module Screen =
             rui.SetCursorPosition 0 y
 
         [<TailCall>]
-        let rec getQuery (w: int) (q: string) (l: int) =
-            let cl = rui.GetLengthInBufferCells q
+        let rec fitStringToWidth (width: int) (value: string) (valueLength: int) =
+            let cl = rui.GetLengthInBufferCells value
 
-            match w - cl with
-            | x when x >= 0 -> struct (q, x)
+            match width - cl with
+            | x when x >= 0 -> struct (value, x)
             | x ->
-                let l = l + (x + Math.Sign x) / 2
-                let q = q |> String.upToIndex l
-                getQuery w q l
+                let l = valueLength + (x + Math.Sign x) / 2
+                let q = value |> String.upToIndex l
+                fitStringToWidth width q l
 
         let buildQueryString (queryState: Data.QueryState) (q: string) (remains: int) =
             let queryWithPrompt =
@@ -248,7 +248,7 @@ module Screen =
             Logger.LogFile
                 [ $"query '{q}' query length '{q.Length}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
 #endif
-            getQuery state.QueryState.WindowWidth q q.Length
+            fitStringToWidth state.QueryState.WindowWidth q q.Length
             ||*> fun adjustedQ -> buildQueryString state.QueryState adjustedQ
 
         let getInformationString
