@@ -8,7 +8,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 An interactive pipeline filtering Cmdlet for PowerShell written in F#.
-Pocof implemented in .Net Standard 2.0, ensuring compatibility across Windows, Linux, and Mac.
+
+pocof implements [.NET Standard 2.0](https://learn.microsoft.com/en-us/dotnet/standard/net-standard?tabs=net-standard-2-0) for broad compatibility across Windows, Linux, and Mac.
+It also ships an optimized .NET 8.0 build for PowerShell 7.4 (LTS, .NET 8.0) and later.
+On PowerShell 7.4 and later, pocof uses the optimized .NET 8.0 binary.
+On older PowerShell versions, it uses the .NET Standard 2.0 binary.
 
 A fork of [poco](https://github.com/jasonmarcher/poco) by jasonmarcher.
 poco based on [PowerShell peco](https://gist.github.com/yumura/8df37c22ae1b7942dec7) by yumura.
