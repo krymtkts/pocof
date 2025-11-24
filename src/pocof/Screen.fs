@@ -409,9 +409,12 @@ module Screen =
             | _ -> line
 
         member private __.AppendScreenLine (sb: StringBuilder) (width: int) (line: string) =
-            match width - __.GetLengthInBufferCells line with
-            | Natural x -> sb.Append(line).Append(' ', x) |> ignore
-            | _ -> sb.Append(line, 0, width) |> ignore
+            let struct (value, remains) = fitStringToWidth width line line.Length
+
+            if remains > 0 then
+                sb.Append(value).Append(' ', remains) |> ignore
+            else
+                sb.Append(value) |> ignore
 
         member private __.WriteScreenLine (width: int) (height: int) (line: string) =
             __.GenerateScreenLine width line |> rui.Write 0 height
