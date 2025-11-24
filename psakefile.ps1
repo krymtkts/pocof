@@ -7,7 +7,9 @@ Properties {
     }
     $ModuleName = Get-ChildItem ./src/*/*.psd1 | Select-Object -ExpandProperty BaseName
     $ModuleSrcPath = Resolve-Path "./src/${ModuleName}/"
-    $ModuleVersion = (Resolve-Path "${ModuleSrcPath}/${ModuleName}.fsproj" | Select-Xml '//Version/text()').Node.Value
+    $ProjectPath = Resolve-Path "${ModuleSrcPath}/${ModuleName}.fsproj"
+    $ModuleVersion = ($ProjectPath | Select-Xml '//Version/text()').Node.Value
+    $TargetFrameworks = ($ProjectPath | Select-Xml '//TargetFrameworks/text()').Node.Value -split ';'
     $ModulePublishPath = Resolve-Path "./publish/${ModuleName}/"
     $ModuleManifestPath = "${ModulePublishPath}/${ModuleName}.psd1"
     $TestResultsRootPath = "./src/${ModuleName}.Test/TestResults/"
@@ -95,7 +97,7 @@ Task Build -Depends Clean {
     if (-not $?) {
         throw 'dotnet build failed.'
     }
-    'net6.0', 'netstandard2.0' | ForEach-Object {
+    $TargetFrameworks | ForEach-Object {
         "Build ${ModuleName} ver${ModuleVersion} for target framework: ${_}"
         dotnet publish -c $Stage -f $_ $ModuleSrcPath
         if (-not $?) {
@@ -107,7 +109,7 @@ Task Build -Depends Clean {
 
 Task UnitTest {
     Remove-Item "${TestResultsRootPath}/*" -Recurse -ErrorAction SilentlyContinue
-    'net6.0', 'netstandard2.0' | ForEach-Object {
+    $TargetFrameworks | ForEach-Object {
         "Run unit tests for target framework: ${_}"
         dotnet test -p:TestTargetFramework=$_ --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 10s --blame-hang-dump-type full
         if (-not $?) {

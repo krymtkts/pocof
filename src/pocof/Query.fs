@@ -50,7 +50,7 @@ module Query =
         if condition.Invert then
             fun (pattern: string) ->
                 try
-                    let reg = Regex(pattern, ro).IsMatch
+                    let reg: string -> bool = Regex(pattern, ro).IsMatch
                     fun (s: string) -> reg s |> not
                 with _ ->
                     alwaysTrue
@@ -58,7 +58,7 @@ module Query =
         else
             fun (pattern: string) ->
                 try
-                    let reg = Regex(pattern, ro).IsMatch
+                    let reg: string -> bool = Regex(pattern, ro).IsMatch
                     fun (s: string) -> reg s
                 with _ ->
                     alwaysTrue

@@ -9,11 +9,11 @@ $PSModuleRoot = $PSModule.ModuleBase
 
 # NOTE: Import the appropriate nested binary module based on the current PowerShell version.
 # https://learn.microsoft.com/en-us/powershell/scripting/install/powershell-support-lifecycle?view=powershell-7.5#powershell-end-of-support-dates
-if ($PSVersionTable.PSVersion -lt [Version]'7.2') {
-    $targetFramework = 'netstandard2.0'
+if ($PSVersionTable.PSVersion -ge [Version]'7.4') {
+    $targetFramework = 'net8.0'
 }
 else {
-    $targetFramework = 'net6.0'
+    $targetFramework = 'netstandard2.0'
 }
 # NOTE: Build paths separately for Windows PowerShell compatibility.
 $binaryModuleRoot = Join-Path -Path $PSModuleRoot -ChildPath $targetFramework
