@@ -11,8 +11,8 @@ An interactive pipeline filtering Cmdlet for PowerShell written in F#.
 Pocof implemented in .Net Standard 2.0, ensuring compatibility across Windows, Linux, and Mac.
 
 A fork of [poco](https://github.com/jasonmarcher/poco) by jasonmarcher.
-poco based on [powershell peco](https://gist.github.com/yumura/8df37c22ae1b7942dec7) by yumura.
-powershell peco is a port of [peco](https://github.com/peco/peco) for PowerShell.
+poco based on [PowerShell peco](https://gist.github.com/yumura/8df37c22ae1b7942dec7) by yumura.
+PowerShell peco is a port of [peco](https://github.com/peco/peco) for PowerShell.
 
 ## Installation
 
@@ -37,11 +37,9 @@ See [`Select-Pocof.md`](./docs/pocof/Select-Pocof.md)
 
 ## Disclaimer
 
-- Some features are not implemented yet. I have created issues for these planned features.
-- Some objects cannot filter like PowerShell.
 - I mainly use Windows. I tested pocof in Linux on Ubuntu on WSL. I have not tested Mac as I do not have a Mac machine. If you encounter any bugs depends on Linux or Mac, please create an issue with details.
-- The help for some parameters output raw Markdown because PlatyPS cannot render table and bullet list to MAML.
-- PowerShell ISE is not supported.
+- The help for some parameters output raw Markdown because [PlatyPS](https://github.com/PowerShell/platyPS) cannot render table and bullet list to MAML.
+- [Windows PowerShell ISE](https://learn.microsoft.com/en-us/powershell/scripting/windows-powershell/ise/introducing-the-windows-powershell-ise?view=powershell-7.5) is not supported.
 
 ## Publishing module
 
