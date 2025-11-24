@@ -34,6 +34,8 @@ runs:
     - name: Execute All Tests
       id: run_tests
       shell: ${{ inputs.shell }}
+      env:
+        VSTEST_CONNECTION_TIMEOUT: 600
       run: |
         Invoke-Psake -taskList TestAll
         if (-not $psake.build_success) { exit 1 }
