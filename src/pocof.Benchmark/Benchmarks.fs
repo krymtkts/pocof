@@ -141,7 +141,7 @@ type HandleBenchmarks() =
             InternalState.QueryState.Cursor = 5
             PropertySearch = PropertySearch.Rotate("Na", Seq.cycle [ "Name"; "Names" ]) }
 
-    let context = state |> Query.prepare
+    let struct (state, context) = state |> Query.prepare
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
@@ -244,6 +244,7 @@ type QueryRunBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
             |> Query.prepare
+            |> snd'
 
         __.PropertyContext <-
             { state with
@@ -252,6 +253,7 @@ type QueryRunBenchmarks() =
                     |> Seq.map (fun x -> $":Length {x}")
                     |> String.concat " " }
             |> Query.prepare
+            |> snd'
 
         __.Objects <-
             seq { 1 .. __.EntryCount }
@@ -320,7 +322,7 @@ type QueryBenchmarks() =
           Refresh = Refresh.NotRequired
           QueryCache = ValueNone }
 
-    let context = Query.prepare state
+    let context = Query.prepare state |> snd'
 
     let sampleProperties =
         [ "Length"; "Name"; "Type"; "Value"; "Key"; "Path"; "Count"; "Content" ]
@@ -339,7 +341,7 @@ type QueryBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
 
-        __.NormalContext <- __.NormalState |> Query.prepare
+        __.NormalContext <- __.NormalState |> Query.prepare |> snd'
 
         __.PropertyState <-
             { state with
@@ -348,7 +350,7 @@ type QueryBenchmarks() =
                     |> Seq.mapi (fun x -> fun _ -> $":{sampleProperties[x % sampleProperties.Length]} {x}")
                     |> String.concat " " }
 
-        __.PropertyContext <- __.PropertyState |> Query.prepare
+        __.PropertyContext <- __.PropertyState |> Query.prepare |> snd'
 
     [<Benchmark(Baseline = true)>]
     member __.prepareNormalQuery() =

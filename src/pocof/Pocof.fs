@@ -155,7 +155,7 @@ module Pocof =
         (input: Entry seq)
         =
 
-        let context = Query.prepare state
+        let struct (state, context) = Query.prepare state
         let input = input |> PSeq.ofSeq
 
         let args =
@@ -173,7 +173,7 @@ module Pocof =
         loop args (lazy input) state context
 
     let interactOnce (conf: InternalConfig) (state: InternalState) (input: Entry seq) =
-        let context = Query.prepare state
+        let context = Query.prepare state |> snd'
         let input = input |> PSeq.ofSeq
         Query.run context input conf.PropertiesMap |> unwrap
 
