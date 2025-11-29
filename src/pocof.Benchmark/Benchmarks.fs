@@ -140,7 +140,7 @@ type HandleBenchmarks() =
             InternalState.QueryState.Cursor = 5
             PropertySearch = PropertySearch.Rotate("Na", Seq.cycle [ "Name"; "Names" ]) }
 
-    let context = state |> Query.prepare |> fst'
+    let context = state |> Query.prepare
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
@@ -242,7 +242,6 @@ type QueryRunBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
             |> Query.prepare
-            |> fst'
 
         __.PropertyContext <-
             { state with
@@ -251,7 +250,6 @@ type QueryRunBenchmarks() =
                     |> Seq.map (fun x -> $":Length {x}")
                     |> String.concat " " }
             |> Query.prepare
-            |> fst'
 
         __.Objects <-
             seq { 1 .. __.EntryCount }
@@ -298,7 +296,7 @@ type QueryPrepareBenchmarks() =
           Refresh = Refresh.NotRequired }
 
     [<Benchmark>]
-    member __.prepare() = Query.prepare state |> fst'
+    member __.prepare() = Query.prepare state
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
@@ -318,7 +316,7 @@ type QueryBenchmarks() =
           SuppressProperties = false
           Refresh = Refresh.NotRequired }
 
-    let context = Query.prepare state |> fst'
+    let context = Query.prepare state
 
     let sampleProperties =
         [ "Length"; "Name"; "Type"; "Value"; "Key"; "Path"; "Count"; "Content" ]
@@ -337,7 +335,7 @@ type QueryBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
 
-        __.NormalContext <- __.NormalState |> Query.prepare |> fst'
+        __.NormalContext <- __.NormalState |> Query.prepare
 
         __.PropertyState <-
             { state with
@@ -346,7 +344,7 @@ type QueryBenchmarks() =
                     |> Seq.mapi (fun x -> fun _ -> $":{sampleProperties[x % sampleProperties.Length]} {x}")
                     |> String.concat " " }
 
-        __.PropertyContext <- __.PropertyState |> Query.prepare |> fst'
+        __.PropertyContext <- __.PropertyState |> Query.prepare
 
     [<Benchmark(Baseline = true)>]
     member __.prepareNormalQuery() =

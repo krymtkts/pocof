@@ -29,7 +29,7 @@ module invokeAction =
     let invokeAction = Handle.invokeAction ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
     let noop action =
-        let context = Query.prepare state |> fst'
+        let context = Query.prepare state
         let struct (s, c) = invokeAction [] state context action
 
         s
@@ -77,7 +77,7 @@ module invokeAction =
             [
 
               test "When Cancel" {
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   Expect.throws "should fail" (fun () -> invokeAction [] state context Action.Cancel |> ignore)
               }
 
@@ -90,7 +90,7 @@ module invokeAction =
             [
 
               test "When the query is colon" {
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [ "name" ] state context (Action.AddQuery ":")
 
                   a1
@@ -111,7 +111,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [ "name" ] state context (Action.AddQuery " ")
 
                   a1
@@ -133,7 +133,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 4
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [ "name" ] state context (Action.AddQuery "l")
 
                   a1
@@ -163,7 +163,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardChar
 
                   a1
@@ -182,7 +182,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardChar
 
                   a1
@@ -204,7 +204,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardChar
 
                   a1
@@ -234,7 +234,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 1
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardChar
 
                   a1
@@ -255,7 +255,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardChar
 
                   a1
@@ -278,7 +278,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -2
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardChar
 
                   a1
@@ -308,7 +308,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
 
                   a1
@@ -327,7 +327,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 6
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
 
                   a1
@@ -349,7 +349,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 6
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
 
                   a1
@@ -372,7 +372,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Input
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
 
                   a1
@@ -402,7 +402,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 1
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
 
                   a1
@@ -423,7 +423,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 10
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
 
                   a1
@@ -446,7 +446,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -2
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
 
                   a1
@@ -469,7 +469,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Input
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
 
                   a1
@@ -497,7 +497,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BeginningOfLine
 
                   a1
@@ -518,7 +518,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BeginningOfLine
 
                   a1
@@ -541,7 +541,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.BeginningOfLine
 
                   a1
@@ -571,7 +571,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.EndOfLine
 
                   a1
@@ -591,7 +591,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.EndOfLine
 
                   a1
@@ -613,7 +613,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 5
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.EndOfLine
 
                   a1
@@ -643,7 +643,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 6
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
@@ -664,7 +664,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
@@ -686,7 +686,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 2
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
@@ -709,7 +709,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 3
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
@@ -739,7 +739,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
@@ -760,7 +760,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
@@ -782,7 +782,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 6
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
@@ -805,7 +805,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -3
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
@@ -835,7 +835,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 6
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
@@ -857,7 +857,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
@@ -879,7 +879,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 2
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
@@ -902,7 +902,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -5
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
@@ -925,7 +925,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 1
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
@@ -948,7 +948,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 7
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
@@ -978,7 +978,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 6
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
@@ -999,7 +999,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 12
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
@@ -1021,7 +1021,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 2
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
@@ -1044,7 +1044,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -3
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
@@ -1067,7 +1067,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -7
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
@@ -1090,7 +1090,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 3
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
@@ -1119,7 +1119,7 @@ module invokeAction =
                           InternalState.QueryState.Query = "examplequery"
                           InternalState.QueryState.Cursor = 7 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
@@ -1138,7 +1138,7 @@ module invokeAction =
                           InternalState.QueryState.Query = "examplequery"
                           InternalState.QueryState.Cursor = 13 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
@@ -1157,7 +1157,7 @@ module invokeAction =
                           InternalState.QueryState.Query = "query"
                           InternalState.QueryState.Cursor = 0 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
@@ -1179,7 +1179,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 5
                           InternalState.QueryState.Cursor = 10 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
@@ -1200,7 +1200,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -5
                           InternalState.QueryState.Cursor = 5 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
@@ -1228,7 +1228,7 @@ module invokeAction =
                           InternalState.QueryState.Query = "examplequery"
                           InternalState.QueryState.Cursor = 7 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardInput
 
                   a1
@@ -1247,7 +1247,7 @@ module invokeAction =
                           InternalState.QueryState.Query = "example"
                           InternalState.QueryState.Cursor = 7 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardInput
 
                   a1
@@ -1268,7 +1268,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 5
                           InternalState.QueryState.Cursor = 7 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardInput
 
                   a1
@@ -1289,7 +1289,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -5
                           InternalState.QueryState.Cursor = 2 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardInput
 
                   a1
@@ -1318,7 +1318,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardChar
 
                   a1
@@ -1337,7 +1337,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardChar
 
                   a1
@@ -1360,7 +1360,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select(-1)
                           PropertySearch = PropertySearch.Search "nam" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardChar
 
                   a1
@@ -1390,7 +1390,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardChar
 
                   a1
@@ -1413,7 +1413,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 1
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardChar
 
                   a1
@@ -1436,7 +1436,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardChar
 
                   a1
@@ -1463,7 +1463,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
@@ -1482,7 +1482,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
@@ -1504,7 +1504,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select(-1)
                           PropertySearch = PropertySearch.Search "nam" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
@@ -1525,7 +1525,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 4
                           PropertySearch = PropertySearch.Search "nam" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
@@ -1547,7 +1547,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 1
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
@@ -1576,7 +1576,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
@@ -1598,7 +1598,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 1
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
@@ -1619,7 +1619,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 2
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
@@ -1640,7 +1640,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 10
                           InternalState.QueryState.InputMode = InputMode.Select 10 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
@@ -1659,7 +1659,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 6
                           InternalState.QueryState.InputMode = InputMode.Select -4 }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
@@ -1687,7 +1687,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToBeginningOfLine
 
                   a1
@@ -1710,7 +1710,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select -1
                           PropertySearch = PropertySearch.Search "nam" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToBeginningOfLine
 
                   a1
@@ -1732,7 +1732,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToBeginningOfLine
 
                   a1
@@ -1762,7 +1762,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToEndOfLine
 
                   a1
@@ -1785,7 +1785,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Select 1
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToEndOfLine
 
                   a1
@@ -1807,7 +1807,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToEndOfLine
 
                   a1
@@ -1838,7 +1838,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 0
                           PropertySearch = PropertySearch.NoSearch }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectAll
 
                   a1
@@ -1861,7 +1861,7 @@ module invokeAction =
                           InternalState.QueryState.InputMode = InputMode.Input
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectAll
 
                   a1
@@ -1883,7 +1883,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.SelectAll
 
                   a1
@@ -1925,7 +1925,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.Matcher = before }
 
-            let context = Query.prepare stateBefore |> fst'
+            let context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -1952,7 +1952,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.Operator = before }
 
-            let context = Query.prepare stateBefore |> fst'
+            let context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -1979,7 +1979,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.CaseSensitive = before }
 
-            let context = Query.prepare stateBefore |> fst'
+            let context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -2006,7 +2006,7 @@ module invokeAction =
                 { state with
                     InternalState.QueryCondition.Invert = before }
 
-            let context = Query.prepare stateBefore |> fst'
+            let context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -2032,7 +2032,7 @@ module invokeAction =
                 { state with
                     InternalState.SuppressProperties = before }
 
-            let context = Query.prepare stateBefore |> fst'
+            let context = Query.prepare stateBefore
 
             let stateAfter =
                 { state with
@@ -2058,7 +2058,7 @@ module invokeAction =
             [
 
               test "when a tab is entered with non search mode." {
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path" ] state context Action.CompleteProperty
@@ -2078,7 +2078,7 @@ module invokeAction =
                           InternalState.QueryState.Query = ":"
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
                   let struct (a1, a2) = invokeAction [] state context Action.CompleteProperty
 
                   a1
@@ -2096,7 +2096,7 @@ module invokeAction =
                           InternalState.QueryState.Query = ":a"
                           PropertySearch = PropertySearch.Search "a" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path" ] state context Action.CompleteProperty
@@ -2117,7 +2117,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 1
                           PropertySearch = PropertySearch.Search "" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "first"; "second"; "third" ] state context Action.CompleteProperty
@@ -2148,7 +2148,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 2
                           PropertySearch = PropertySearch.Search "p" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "Name"; "Path" ] state context Action.CompleteProperty
@@ -2177,7 +2177,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 2
                           PropertySearch = PropertySearch.Search "n" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
@@ -2206,7 +2206,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 2
                           PropertySearch = PropertySearch.Search "n" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path" ] state context Action.CompleteProperty
@@ -2238,7 +2238,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path" ] state context Action.CompleteProperty
@@ -2267,7 +2267,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Search "name" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path" ] state context Action.CompleteProperty
@@ -2296,7 +2296,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 4
                           PropertySearch = PropertySearch.Search "nam" }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path" ] state context Action.CompleteProperty
@@ -2325,7 +2325,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 5
                           PropertySearch = PropertySearch.Rotate("n", Seq.cycle [ "name"; "number" ]) }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
@@ -2354,7 +2354,7 @@ module invokeAction =
                           InternalState.QueryState.Cursor = 7
                           PropertySearch = PropertySearch.Rotate("n", Seq.cycle [ "number"; "name" ]) }
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state
 
                   let struct (a1, a2) =
                       invokeAction [ "name"; "path"; "number" ] state context Action.CompleteProperty
