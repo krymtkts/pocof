@@ -1,5 +1,6 @@
 module PocofTest.Query
 
+open System
 open System.Collections
 open System.Management.Automation
 
@@ -89,6 +90,33 @@ let tests_QueryContext =
                       QueryState =
                           { state.QueryState with
                               Query = "     " } }
+
+              let actual = Query.QueryContext.prepareQuery state context
+              actual.Queries |> Expect.isEmpty "should return empty QueryPart list"
+          }
+
+          test "When query is cached" {
+              let state =
+                  { state with
+                      QueryState =
+                          { state.QueryState with
+                              Query = "     " } }
+
+              let context: Data.QueryContext =
+                  { Queries = []
+                    Operator = state.QueryCondition.Operator }
+
+              let key: Data.QueryCacheKey =
+                  { Query = state.QueryState.Query
+                    Matcher = state.QueryCondition.Matcher
+                    CaseSensitive = state.QueryCondition.CaseSensitive
+                    Invert = state.QueryCondition.Invert }
+
+              let queryCache: Data.QueryCache = { Key = key; Queries = [] }
+
+              let state =
+                  { state with
+                      QueryCache = ValueSome queryCache }
 
               let actual = Query.QueryContext.prepareQuery state context
               actual.Queries |> Expect.isEmpty "should return empty QueryPart list"
@@ -468,6 +496,37 @@ module run =
                         Query.run context entries props
                         |> List.ofSeq
                         |> Expect.equal "should return filtered entries (and)" []
+                    }
+
+                    ]
+
+              testList
+                  "with cache"
+                  [
+
+                    let cache m (s: Data.InternalState) = { s with QueryCache = ValueSome m }
+
+                    test "When query matches cache" {
+                        let state = state |> query "Name" |> matcher Data.Matcher.Eq
+
+                        let key: Data.QueryCacheKey =
+                            { Query = state.QueryState.Query
+                              Matcher = state.QueryCondition.Matcher
+                              CaseSensitive = state.QueryCondition.CaseSensitive
+                              Invert = state.QueryCondition.Invert }
+
+                        let queryCache: Data.QueryCache =
+                            { Key = key
+                              Queries =
+                                [ Data.QueryPart.Normal(fun s ->
+                                      s.Equals("Name", StringComparison.InvariantCultureIgnoreCase)) ] }
+
+                        let state = state |> cache queryCache
+                        let context = Query.prepare state |> snd'
+
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should reuse cached query" (genList [ "Name" ])
                     }
 
                     ]
