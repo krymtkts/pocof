@@ -29,7 +29,8 @@ let initState () : InternalState =
           Invert = false }
       PropertySearch = PropertySearch.NoSearch
       SuppressProperties = false
-      Refresh = Refresh.Required }
+      Refresh = Refresh.Required
+      QueryCache = ValueNone }
 
 let prompt = "query>"
 let state = initState ()

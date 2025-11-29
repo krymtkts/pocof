@@ -622,7 +622,6 @@ module Data =
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
-    [<NoEquality>]
     [<Struct>]
     type QueryCacheKey =
         { Query: string
@@ -644,7 +643,8 @@ module Data =
           QueryCondition: QueryCondition
           PropertySearch: PropertySearch
           SuppressProperties: bool
-          Refresh: Refresh }
+          Refresh: Refresh
+          QueryCache: QueryCache voption }
 
     module InternalState =
         let queryInfo (state: InternalState) (count: int) =
@@ -708,7 +708,8 @@ module Data =
               QueryCondition = queryCondition
               PropertySearch = QueryState.getCurrentProperty queryState
               SuppressProperties = suppressProperties
-              Refresh = Refresh.Required }
+              Refresh = Refresh.Required
+              QueryCache = ValueNone }
             |> updateConsoleWidth prompt consoleWidth
 
     [<NoComparison>]

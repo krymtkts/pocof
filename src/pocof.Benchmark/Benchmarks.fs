@@ -120,7 +120,8 @@ type HandleBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.Required }
+          Refresh = Refresh.Required
+          QueryCache = ValueNone }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
 
     let stateForWord =
@@ -217,7 +218,8 @@ type QueryRunBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.NotRequired }
+          Refresh = Refresh.NotRequired
+          QueryCache = ValueNone }
 
     [<Params(100, 1000)>]
     member val EntryCount = 0 with get, set
@@ -293,7 +295,8 @@ type QueryPrepareBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.NotRequired }
+          Refresh = Refresh.NotRequired
+          QueryCache = ValueNone }
 
     [<Benchmark>]
     member __.prepare() = Query.prepare state
@@ -314,7 +317,8 @@ type QueryBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.NotRequired }
+          Refresh = Refresh.NotRequired
+          QueryCache = ValueNone }
 
     let context = Query.prepare state
 
@@ -372,7 +376,8 @@ type PocofInteractBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.Required }
+          Refresh = Refresh.Required
+          QueryCache = ValueNone }
 
     let publishEvent _ = ()
 

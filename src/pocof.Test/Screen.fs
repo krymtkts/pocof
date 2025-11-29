@@ -88,7 +88,8 @@ let ``tests Buff writeScreen`` =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.Required }
+          Refresh = Refresh.Required
+          QueryCache = ValueNone }
 
     let ``query>`` = "query>"
     let ``query>Length`` = ``query>`` |> String.length

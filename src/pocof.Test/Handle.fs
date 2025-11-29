@@ -21,7 +21,8 @@ module invokeAction =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.Required }
+          Refresh = Refresh.Required
+          QueryCache = ValueNone }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
 
     // NOTE: for easier testing.
@@ -32,7 +33,7 @@ module invokeAction =
         let struct (s, c) = invokeAction [] state context action
 
         s
-        |> Expect.equal
+        |> Helper.expectInternalStateEqual
             "should return same state"
             { state with
                 Refresh = Refresh.NotRequired }
@@ -93,7 +94,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [ "name" ] state context (Action.AddQuery ":")
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return a property search state and cursor=1"
                       { state with
                           InternalState.QueryState.Query = ":"
@@ -114,7 +115,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [ "name" ] state context (Action.AddQuery " ")
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return a non-search state and cursor=6"
                       { state with
                           InternalState.QueryState.Query = ":name "
@@ -136,7 +137,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [ "name" ] state context (Action.AddQuery "l")
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the selection before adding query"
                       { state with
                           InternalState.QueryState.Query = ":l"
@@ -166,7 +167,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with Refresh.NotRequired"
                       { state with
                           Refresh = Refresh.NotRequired }
@@ -185,7 +186,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=4"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -207,7 +208,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=4 and InputMode=Input"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -237,7 +238,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=2"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -258,7 +259,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with Refresh.NotRequired"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -281,7 +282,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=2 and InputMode=Input"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -311,7 +312,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with Refresh.NotRequired"
                       { state with
                           Refresh = Refresh.NotRequired }
@@ -330,7 +331,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=1"
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -352,7 +353,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=1 and InputMode=Input"
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -375,7 +376,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=0 and InputMode=Input"
                       { state with
                           InternalState.QueryState.Query = "aaaaaa"
@@ -405,7 +406,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=6"
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -426,7 +427,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with Refresh.NotRequired"
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -449,7 +450,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=6 and InputMode=Input"
                       { state with
                           InternalState.QueryState.Query = ":name aaa "
@@ -472,7 +473,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.ForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=6 and InputMode=Input"
                       { state with
                           InternalState.QueryState.Query = "aaaaaa"
@@ -500,7 +501,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BeginningOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=0"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -521,7 +522,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BeginningOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with Refresh.NotRequired"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -544,7 +545,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.BeginningOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=0 and InputMode=Input."
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -574,7 +575,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.EndOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=query length"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -594,7 +595,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.EndOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with Refresh.NotRequired"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -616,7 +617,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.EndOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return state with cursor=query length and InputMode=Input"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -646,7 +647,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the character to the left of cursor, making state.Query one character shorter"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -667,7 +668,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should not change state"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -689,7 +690,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should correct state"
                       { state with
                           InternalState.QueryState.Query = ""
@@ -712,7 +713,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the selection"
                       { state with
                           InternalState.QueryState.Query = ":na"
@@ -742,7 +743,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the character to the right of cursor, making state.Query one character shorter"
                       { state with
                           InternalState.QueryState.Query = "name "
@@ -763,7 +764,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should not change state if the cursor is at the end of line"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -785,7 +786,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should correct state if the cursor is over the query length"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -808,7 +809,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the selection"
                       { state with
                           InternalState.QueryState.Query = ":na"
@@ -838,7 +839,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the word to the left of cursor, making state.Query one word shorter"
                       { state with
                           InternalState.QueryState.Query = ":pocof "
@@ -860,7 +861,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should not change state if the cursor is at the begin of line"
                       { state with
                           InternalState.QueryState.Query = ":name pocof "
@@ -882,7 +883,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should correct state if the cursor is over the query length"
                       { state with
                           InternalState.QueryState.Query = ""
@@ -905,7 +906,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the forward selection"
                       { state with
                           InternalState.QueryState.Query = ": "
@@ -928,7 +929,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the backward word larger than selection"
                       { state with
                           InternalState.QueryState.Query = ":name  "
@@ -951,7 +952,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the backward selection larger than word"
                       { state with
                           InternalState.QueryState.Query = ":nam "
@@ -981,7 +982,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the word to the right of cursor, making state.Query one word shorter"
                       { state with
                           InternalState.QueryState.Query = ":name "
@@ -1002,7 +1003,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should not change state"
                       { state with
                           InternalState.QueryState.Query = ":name pocof "
@@ -1024,7 +1025,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should correct state"
                       { state with
                           InternalState.QueryState.Query = ""
@@ -1047,7 +1048,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the forward selection larger than word"
                       { state with
                           InternalState.QueryState.Query = ":name "
@@ -1070,7 +1071,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the forward word larger than selection"
                       { state with
                           InternalState.QueryState.Query = ":name "
@@ -1093,7 +1094,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove the backward selection"
                       { state with
                           InternalState.QueryState.Query = ":na"
@@ -1122,7 +1123,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove all characters before the specified"
                       { state with
                           InternalState.QueryState.Query = "query"
@@ -1141,7 +1142,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove all characters when the cursor is over the query length"
                       { state with
                           InternalState.QueryState.Query = ""
@@ -1160,7 +1161,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should not change state"
                       { state with
                           InternalState.QueryState.Query = "query"
@@ -1182,7 +1183,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove all characters before the cursor including the selection"
                       { state with
                           InternalState.QueryState.Query = "ry"
@@ -1203,7 +1204,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteBackwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove all characters before the cursor and the the selection"
                       { state with
                           InternalState.QueryState.Query = "ry"
@@ -1231,7 +1232,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove characters after the current cursor"
                       { state with
                           InternalState.QueryState.Query = "example"
@@ -1250,7 +1251,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should not change state"
                       { state with
                           InternalState.QueryState.Query = "example"
@@ -1271,7 +1272,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove all characters after the cursor including the selection"
                       { state with
                           InternalState.QueryState.Query = "ex"
@@ -1292,7 +1293,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.DeleteForwardInput
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should remove all characters before the cursor and the the selection"
                       { state with
                           InternalState.QueryState.Query = "ex"
@@ -1321,7 +1322,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with no change "
                       { state with
                           Refresh = Refresh.NotRequired }
@@ -1340,7 +1341,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=4 and InputMode=Select -1 "
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1363,7 +1364,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=3 and InputMode=Select -2 "
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1393,7 +1394,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=1 and InputMode=Select 1"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1416,7 +1417,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=1 and InputMode=Select 2"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1439,7 +1440,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardChar
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with no change"
                       { state with
                           Refresh = Refresh.NotRequired }
@@ -1466,7 +1467,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with no change"
                       { state with
                           Refresh = Refresh.NotRequired }
@@ -1485,7 +1486,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=1 and InputMode=Select -4"
                       { state with
                           InternalState.QueryState.Cursor = 1
@@ -1507,7 +1508,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=1 and InputMode=Select -4"
                       { state with
                           InternalState.QueryState.Cursor = 1
@@ -1528,7 +1529,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=1 and InputMode=Select -3"
                       { state with
                           InternalState.QueryState.Cursor = 1
@@ -1550,7 +1551,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectBackwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=0 and InputMode=Input"
                       { state with
                           InternalState.QueryState.Cursor = 0
@@ -1579,7 +1580,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=1 and InputMode=Select 1 "
                       { state with
                           InternalState.QueryState.Cursor = 1
@@ -1601,7 +1602,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=6 and InputMode=Select 6"
                       { state with
                           InternalState.QueryState.Cursor = 6
@@ -1622,7 +1623,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=6 and InputMode=Select 4"
                       { state with
                           InternalState.QueryState.Cursor = 6
@@ -1643,7 +1644,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with no change"
                       { state with
                           Refresh = Refresh.NotRequired }
@@ -1662,7 +1663,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectForwardWord
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=10 and InputMode=Input"
                       { state with
                           InternalState.QueryState.Cursor = 10
@@ -1690,7 +1691,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToBeginningOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=0 and InputMode=Select -5"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1713,7 +1714,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToBeginningOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=0 and InputMode=Select -5"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1735,7 +1736,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToBeginningOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with no change"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1765,7 +1766,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToEndOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=5 and InputMode=Select 5"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1788,7 +1789,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToEndOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=5 and InputMode=Select 5"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1810,7 +1811,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectToEndOfLine
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with no change"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1841,7 +1842,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectAll
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=5 and InputMode=Select 5"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1864,7 +1865,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectAll
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=5 and InputMode=Select 5"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1886,7 +1887,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.SelectAll
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "should return QueryState with Cursor=5 and InputMode=Select 5"
                       { state with
                           InternalState.QueryState.Query = ":name"
@@ -1901,7 +1902,10 @@ module invokeAction =
 
     let testStateAndContext action state context expectedState =
         let struct (a1, a2) = invokeAction [] state context action
-        a1 |> Expect.equal "should return expected state after action" expectedState
+
+        a1
+        |> Helper.expectInternalStateEqual "should return expected state after action" expectedState
+
         struct (a1, a2)
 
     let testShouldNotChangeQueryContext (expected: QueryContext) (actual: QueryContext) =
@@ -2063,7 +2067,7 @@ module invokeAction =
                       invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "shouldn't return any difference"
                       { state with
                           Refresh = Refresh.NotRequired }
@@ -2081,7 +2085,7 @@ module invokeAction =
                   let struct (a1, a2) = invokeAction [] state context Action.CompleteProperty
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "shouldn't return any difference"
                       { state with
                           Refresh = Refresh.NotRequired }
@@ -2101,7 +2105,7 @@ module invokeAction =
                       invokeAction [ "name"; "path" ] state context Action.CompleteProperty
 
                   a1
-                  |> Expect.equal
+                  |> Helper.expectInternalStateEqual
                       "shouldn't return any difference"
                       { state with
                           Refresh = Refresh.NotRequired }

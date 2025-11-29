@@ -22,7 +22,8 @@ let initState () : Data.InternalState =
           Invert = false }
       PropertySearch = Data.PropertySearch.NoSearch
       SuppressProperties = false
-      Refresh = Data.Refresh.Required }
+      Refresh = Data.Refresh.Required
+      QueryCache = ValueNone }
 
 let state = initState ()
 let properties = [ "Name"; "Attribute"; "Length" ]
