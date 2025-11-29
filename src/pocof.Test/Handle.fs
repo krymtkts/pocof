@@ -5,7 +5,6 @@ open Expecto.Flip
 
 open Pocof
 open Pocof.Data
-open Pocof.Handle
 
 module invokeAction =
     let state: InternalState =
@@ -50,12 +49,12 @@ module invokeAction =
 
     let testQueryPartNormal value =
         function
-        | [ Query.QueryPart.Normal(x) ] -> x value |> Expect.isTrue "normal query should match"
+        | [ QueryPart.Normal(x) ] -> x value |> Expect.isTrue "normal query should match"
         | _ -> failwith "invalid query part normal."
 
     let testQueryPartProperty propertyName value =
         function
-        | [ Query.QueryPart.Property(x, y) ] ->
+        | [ QueryPart.Property(x, y) ] ->
             x |> Expect.equal "property name should equal to" propertyName
             y value |> Expect.isTrue "property query should match"
         | _ -> failwith "invalid query part property."
@@ -1912,8 +1911,8 @@ module invokeAction =
         List.zip actual.Queries expected.Queries
         |> Expect.all "" (function
             // TODO: requires better solution.
-            | Query.QueryPart.Normal _, Query.QueryPart.Normal _ -> true
-            | Query.QueryPart.Property(ap, _), Query.QueryPart.Property(ep, _) -> ap = ep
+            | QueryPart.Normal _, QueryPart.Normal _ -> true
+            | QueryPart.Property(ap, _), QueryPart.Property(ep, _) -> ap = ep
             | _ -> false)
 
     let sndStruct struct (_, a2) = a2

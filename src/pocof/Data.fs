@@ -605,6 +605,39 @@ module Data =
             { condition with
                 Invert = not condition.Invert }
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type QueryPart =
+        | Normal of is: (string -> bool)
+        | Property of name: string * is: (string -> bool)
+
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type QueryContext =
+        { Queries: QueryPart list
+          Operator: Operator }
+
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type QueryCacheKey =
+        { Query: string
+          Matcher: Matcher
+          CaseSensitive: bool
+          Invert: bool }
+
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type QueryCache =
+        { Key: QueryCacheKey
+          Queries: QueryPart list }
+
     [<NoComparison>]
     type InternalState =
         { QueryState: QueryState

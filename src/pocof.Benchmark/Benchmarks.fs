@@ -225,11 +225,11 @@ type QueryRunBenchmarks() =
     [<Params(1, 5, 10)>]
     member val QueryCount = 0 with get, set
 
-    member val NormalContext: Query.QueryContext =
+    member val NormalContext: QueryContext =
         { Queries = []
           Operator = Operator.And } with get, set
 
-    member val PropertyContext: Query.QueryContext =
+    member val PropertyContext: QueryContext =
         { Queries = []
           Operator = Operator.And } with get, set
 

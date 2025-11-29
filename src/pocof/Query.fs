@@ -63,22 +63,7 @@ module Query =
                 with _ ->
                     alwaysTrue
 
-    [<RequireQualifiedAccess>]
-    [<NoComparison>]
-    [<NoEquality>]
-    [<Struct>]
-    type QueryPart =
-        | Normal of is: (string -> bool)
-        | Property of name: string * is: (string -> bool)
-
-    [<NoComparison>]
-    [<NoEquality>]
-    [<Struct>]
-    type QueryContext =
-        { Queries: QueryPart list
-          Operator: Operator }
-
-    let private parseQuery (is: string -> string -> bool) (input: string) : QueryPart list =
+    let private parseQuery (is: string -> string -> bool) (input: string) : Data.QueryPart list =
         let len = input.Length
         let mutable i = 0
         let mutable acc = []

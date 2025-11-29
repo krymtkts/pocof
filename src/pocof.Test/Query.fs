@@ -79,7 +79,7 @@ let tests_QueryContext =
         [
 
           test "When query is empty" {
-              let context: Query.QueryContext =
+              let context: Data.QueryContext =
                   { Queries = []
                     Operator = Data.Operator.And }
 
@@ -94,7 +94,7 @@ let tests_QueryContext =
           }
 
           test "When normal query with spaces" {
-              let context: Query.QueryContext =
+              let context: Data.QueryContext =
                   { Queries = []
                     Operator = Data.Operator.And }
 
@@ -110,21 +110,21 @@ let tests_QueryContext =
 
               actual.Queries[1]
               |> function
-                  | Query.QueryPart.Normal test ->
+                  | Data.QueryPart.Normal test ->
                       test "abc" |> Expect.isTrue "should match 'abc'"
                       test "ab" |> Expect.isFalse "should not match 'ab'"
                   | _ -> failwith "unexpected QueryPart"
 
               actual.Queries[0]
               |> function
-                  | Query.QueryPart.Normal test ->
+                  | Data.QueryPart.Normal test ->
                       test "xyz" |> Expect.isTrue "should match 'xyz'"
                       test "xy" |> Expect.isFalse "should not match 'xy'"
                   | _ -> failwith "unexpected QueryPart"
           }
 
           test "When property query" {
-              let context: Query.QueryContext =
+              let context: Data.QueryContext =
                   { Queries = []
                     Operator = Data.Operator.And }
 
@@ -141,7 +141,7 @@ let tests_QueryContext =
 
               actual.Queries[2]
               |> function
-                  | Query.QueryPart.Property(prop, test) ->
+                  | Data.QueryPart.Property(prop, test) ->
                       prop |> Expect.equal "should have property 'name'" "name"
                       test "abc" |> Expect.isTrue "should match 'abc'"
                       test "ab" |> Expect.isFalse "should not match 'ab'"
@@ -149,14 +149,14 @@ let tests_QueryContext =
 
               actual.Queries[1]
               |> function
-                  | Query.QueryPart.Property _ -> failwith "unexpected QueryPart"
-                  | Query.QueryPart.Normal test ->
+                  | Data.QueryPart.Property _ -> failwith "unexpected QueryPart"
+                  | Data.QueryPart.Normal test ->
                       test "aa" |> Expect.isTrue "should match 'aa'"
                       test "a" |> Expect.isFalse "should not match 'a'"
 
               actual.Queries[0]
               |> function
-                  | Query.QueryPart.Property(prop, test) ->
+                  | Data.QueryPart.Property(prop, test) ->
                       prop |> Expect.equal "should have property 'attr'" "attr"
                       test "xyz" |> Expect.isTrue "should match 'xyz'"
                       test "xy" |> Expect.isFalse "should not match 'xy'"
