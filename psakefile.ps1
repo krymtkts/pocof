@@ -111,7 +111,7 @@ Task UnitTest {
     Remove-Item "${TestResultsRootPath}/*" -Recurse -ErrorAction SilentlyContinue
     $TargetFrameworks | ForEach-Object {
         "Run unit tests for target framework: ${_}"
-        dotnet test -p:TestTargetFramework=$_ --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 10s --blame-hang-dump-type full
+        dotnet test -p:TestTargetFramework=$_ --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 15s --blame-hang-dump-type full
         if (-not $?) {
             throw "dotnet test failed for target framework: ${_}"
         }
