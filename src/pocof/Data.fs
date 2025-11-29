@@ -605,13 +605,46 @@ module Data =
             { condition with
                 Invert = not condition.Invert }
 
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type QueryPart =
+        | Normal of is: (string -> bool)
+        | Property of name: string * is: (string -> bool)
+
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type QueryContext =
+        { Queries: QueryPart list
+          Operator: Operator }
+
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<Struct>]
+    type QueryCacheKey =
+        { Query: string
+          Matcher: Matcher
+          CaseSensitive: bool
+          Invert: bool }
+
+    [<RequireQualifiedAccess>]
+    [<NoComparison>]
+    [<NoEquality>]
+    [<Struct>]
+    type QueryCache =
+        { Key: QueryCacheKey
+          Queries: QueryPart list }
+
     [<NoComparison>]
     type InternalState =
         { QueryState: QueryState
           QueryCondition: QueryCondition
           PropertySearch: PropertySearch
-          SuppressProperties: bool
-          Refresh: Refresh }
+          QueryCache: QueryCache voption
+          Refresh: Refresh
+          SuppressProperties: bool }
 
     module InternalState =
         let queryInfo (state: InternalState) (count: int) =
@@ -674,8 +707,9 @@ module Data =
             { QueryState = queryState
               QueryCondition = queryCondition
               PropertySearch = QueryState.getCurrentProperty queryState
-              SuppressProperties = suppressProperties
-              Refresh = Refresh.Required }
+              QueryCache = ValueNone
+              Refresh = Refresh.Required
+              SuppressProperties = suppressProperties }
             |> updateConsoleWidth prompt consoleWidth
 
     [<NoComparison>]

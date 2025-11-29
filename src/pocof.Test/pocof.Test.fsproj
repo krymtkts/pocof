@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="Collections.fs" />
+    <Compile Include="Helper.fs" />
     <Compile Include="Data.fs" />
     <Compile Include="Mock.fs" />
     <Compile Include="Screen.fs" />

@@ -63,22 +63,7 @@ module Query =
                 with _ ->
                     alwaysTrue
 
-    [<RequireQualifiedAccess>]
-    [<NoComparison>]
-    [<NoEquality>]
-    [<Struct>]
-    type QueryPart =
-        | Normal of is: (string -> bool)
-        | Property of name: string * is: (string -> bool)
-
-    [<NoComparison>]
-    [<NoEquality>]
-    [<Struct>]
-    type QueryContext =
-        { Queries: QueryPart list
-          Operator: Operator }
-
-    let private parseQuery (is: string -> string -> bool) (input: string) : QueryPart list =
+    let private parseQuery (is: string -> string -> bool) (input: string) : Data.QueryPart list =
         let len = input.Length
         let mutable i = 0
         let mutable acc = []
@@ -160,13 +145,29 @@ module Query =
                 e.Message |> ValueSome
         | _ -> ValueNone
 
-    let prepare (state: InternalState) =
-        let queries = prepareQuery state.QueryState.Query state.QueryCondition
-        let notification = prepareNotification state.QueryState.Query state.QueryCondition
+    let private makeCacheKey (state: InternalState) : QueryCacheKey =
+        { Query = state.QueryState.Query
+          Matcher = state.QueryCondition.Matcher
+          CaseSensitive = state.QueryCondition.CaseSensitive
+          Invert = state.QueryCondition.Invert }
 
-        struct ({ Queries = queries
-                  Operator = state.QueryCondition.Operator },
-                notification)
+    let private cacheQueries (state: InternalState) (key: QueryCacheKey) (queries: QueryPart list) : InternalState =
+        { state with
+            QueryCache = ({ Key = key; Queries = queries }: QueryCache) |> ValueSome }
+
+    let prepare (state: InternalState) : struct (InternalState * QueryContext) =
+        let key = makeCacheKey state
+
+        let state, queries =
+            match state.QueryCache with
+            | ValueSome cache when cache.Key = key -> state, cache.Queries
+            | _ ->
+                let qs = prepareQuery state.QueryState.Query state.QueryCondition
+                cacheQueries state key qs, qs
+
+        struct (state,
+                { Queries = queries
+                  Operator = state.QueryCondition.Operator })
 
     module InternalState =
         let prepareNotification state =
@@ -174,8 +175,15 @@ module Query =
 
     module QueryContext =
         let prepareQuery state context =
+            let key = makeCacheKey state
+
+            let queries =
+                match state.QueryCache with
+                | ValueSome cache when cache.Key = key -> cache.Queries
+                | _ -> prepareQuery state.QueryState.Query state.QueryCondition
+
             { context with
-                QueryContext.Queries = prepareQuery state.QueryState.Query state.QueryCondition }
+                QueryContext.Queries = queries }
 
         let prepareTest state context =
             { context with

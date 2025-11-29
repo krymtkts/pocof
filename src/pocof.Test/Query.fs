@@ -1,5 +1,6 @@
 module PocofTest.Query
 
+open System
 open System.Collections
 open System.Management.Automation
 
@@ -22,7 +23,8 @@ let initState () : Data.InternalState =
           Invert = false }
       PropertySearch = Data.PropertySearch.NoSearch
       SuppressProperties = false
-      Refresh = Data.Refresh.Required }
+      Refresh = Data.Refresh.Required
+      QueryCache = ValueNone }
 
 let state = initState ()
 let properties = [ "Name"; "Attribute"; "Length" ]
@@ -79,7 +81,7 @@ let tests_QueryContext =
         [
 
           test "When query is empty" {
-              let context: Query.QueryContext =
+              let context: Data.QueryContext =
                   { Queries = []
                     Operator = Data.Operator.And }
 
@@ -93,8 +95,35 @@ let tests_QueryContext =
               actual.Queries |> Expect.isEmpty "should return empty QueryPart list"
           }
 
+          test "When query is cached" {
+              let state =
+                  { state with
+                      QueryState =
+                          { state.QueryState with
+                              Query = "     " } }
+
+              let context: Data.QueryContext =
+                  { Queries = []
+                    Operator = state.QueryCondition.Operator }
+
+              let key: Data.QueryCacheKey =
+                  { Query = state.QueryState.Query
+                    Matcher = state.QueryCondition.Matcher
+                    CaseSensitive = state.QueryCondition.CaseSensitive
+                    Invert = state.QueryCondition.Invert }
+
+              let queryCache: Data.QueryCache = { Key = key; Queries = [] }
+
+              let state =
+                  { state with
+                      QueryCache = ValueSome queryCache }
+
+              let actual = Query.QueryContext.prepareQuery state context
+              actual.Queries |> Expect.isEmpty "should return empty QueryPart list"
+          }
+
           test "When normal query with spaces" {
-              let context: Query.QueryContext =
+              let context: Data.QueryContext =
                   { Queries = []
                     Operator = Data.Operator.And }
 
@@ -110,21 +139,21 @@ let tests_QueryContext =
 
               actual.Queries[1]
               |> function
-                  | Query.QueryPart.Normal test ->
+                  | Data.QueryPart.Normal test ->
                       test "abc" |> Expect.isTrue "should match 'abc'"
                       test "ab" |> Expect.isFalse "should not match 'ab'"
                   | _ -> failwith "unexpected QueryPart"
 
               actual.Queries[0]
               |> function
-                  | Query.QueryPart.Normal test ->
+                  | Data.QueryPart.Normal test ->
                       test "xyz" |> Expect.isTrue "should match 'xyz'"
                       test "xy" |> Expect.isFalse "should not match 'xy'"
                   | _ -> failwith "unexpected QueryPart"
           }
 
           test "When property query" {
-              let context: Query.QueryContext =
+              let context: Data.QueryContext =
                   { Queries = []
                     Operator = Data.Operator.And }
 
@@ -141,7 +170,7 @@ let tests_QueryContext =
 
               actual.Queries[2]
               |> function
-                  | Query.QueryPart.Property(prop, test) ->
+                  | Data.QueryPart.Property(prop, test) ->
                       prop |> Expect.equal "should have property 'name'" "name"
                       test "abc" |> Expect.isTrue "should match 'abc'"
                       test "ab" |> Expect.isFalse "should not match 'ab'"
@@ -149,14 +178,14 @@ let tests_QueryContext =
 
               actual.Queries[1]
               |> function
-                  | Query.QueryPart.Property _ -> failwith "unexpected QueryPart"
-                  | Query.QueryPart.Normal test ->
+                  | Data.QueryPart.Property _ -> failwith "unexpected QueryPart"
+                  | Data.QueryPart.Normal test ->
                       test "aa" |> Expect.isTrue "should match 'aa'"
                       test "a" |> Expect.isFalse "should not match 'a'"
 
               actual.Queries[0]
               |> function
-                  | Query.QueryPart.Property(prop, test) ->
+                  | Data.QueryPart.Property(prop, test) ->
                       prop |> Expect.equal "should have property 'attr'" "attr"
                       test "xyz" |> Expect.isTrue "should match 'xyz'"
                       test "xy" |> Expect.isFalse "should not match 'xy'"
@@ -262,7 +291,7 @@ module run =
             [
 
               test "When entry list is empty" {
-                  let context = Query.prepare state |> fst'
+                  let struct (state, context) = Query.prepare state
 
                   Query.run context PSeq.empty props
                   |> List.ofSeq
@@ -277,7 +306,7 @@ module run =
 
                     test "When query is empty" {
                         let state = initState () |> matcher Data.Matcher.Match
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -286,7 +315,7 @@ module run =
 
                     test "When query is invalid pattern" {
                         let state = state |> query "+"
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -294,7 +323,7 @@ module run =
                     }
 
                     test "When query is 'a' (filtered)" {
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -303,7 +332,7 @@ module run =
 
                     test "When matcher is match and case sensitive" {
                         let state = caseSensitive state
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -314,7 +343,7 @@ module run =
 
                     test "When matcher is match and invert result" {
                         let state = invert state
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -323,7 +352,7 @@ module run =
 
                     test "When matcher is invalid and invert result" {
                         let state = state |> query "+" |> invert
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> Expect.sequenceEqual "should return all entries" entries
@@ -331,7 +360,7 @@ module run =
 
                     test "When composite query with or operator" {
                         let state = state |> query "a N"
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -340,7 +369,7 @@ module run =
 
                     test "When composite query with and operator" {
                         let state = state |> query "a N" |> opAnd
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -357,7 +386,7 @@ module run =
 
                     test "When query is empty" {
                         let state = initState () |> matcher Data.Matcher.Like
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -365,7 +394,7 @@ module run =
                     }
 
                     test "When matcher is like" {
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -374,7 +403,7 @@ module run =
 
                     test "When matcher is like and case sensitive" {
                         let state = caseSensitive state
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -383,7 +412,7 @@ module run =
 
                     test "When matcher is like and invert result" {
                         let state = invert state
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -392,7 +421,7 @@ module run =
 
                     test "When composite query with or operator" {
                         let state = state |> query "*e* N*"
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -401,7 +430,7 @@ module run =
 
                     test "When composite query with and operator" {
                         let state = state |> query "*e* N*" |> opAnd
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -418,7 +447,7 @@ module run =
 
                     test "When query is empty" {
                         let state = initState () |> matcher Data.Matcher.Eq
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -426,7 +455,7 @@ module run =
                     }
 
                     test "When matcher is eq" {
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -435,7 +464,7 @@ module run =
 
                     test "When matcher is eq and case sensitive" {
                         let state = caseSensitive state
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -444,7 +473,7 @@ module run =
 
                     test "When matcher is eq and invert result" {
                         let state = invert state
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -453,7 +482,7 @@ module run =
 
                     test "When composite query with or operator" {
                         let state = state |> query "Name Length"
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
@@ -462,11 +491,42 @@ module run =
 
                     test "When composite query with and operator" {
                         let state = state |> query "Name Length" |> opAnd
-                        let context = Query.prepare state |> fst'
+                        let context = Query.prepare state |> snd'
 
                         Query.run context entries props
                         |> List.ofSeq
                         |> Expect.equal "should return filtered entries (and)" []
+                    }
+
+                    ]
+
+              testList
+                  "with cache"
+                  [
+
+                    let cache m (s: Data.InternalState) = { s with QueryCache = ValueSome m }
+
+                    test "When query matches cache" {
+                        let state = state |> query "Name" |> matcher Data.Matcher.Eq
+
+                        let key: Data.QueryCacheKey =
+                            { Query = state.QueryState.Query
+                              Matcher = state.QueryCondition.Matcher
+                              CaseSensitive = state.QueryCondition.CaseSensitive
+                              Invert = state.QueryCondition.Invert }
+
+                        let queryCache: Data.QueryCache =
+                            { Key = key
+                              Queries =
+                                [ Data.QueryPart.Normal(fun s ->
+                                      s.Equals("Name", StringComparison.InvariantCultureIgnoreCase)) ] }
+
+                        let state = state |> cache queryCache
+                        let context = Query.prepare state |> snd'
+
+                        Query.run context entries props
+                        |> List.ofSeq
+                        |> Expect.equal "should reuse cached query" (genList [ "Name" ])
                     }
 
                     ]
@@ -494,7 +554,7 @@ module run =
 
               test "When composite query with or operator" {
                   let state = state |> query "e"
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
 
                   Query.run context entries props
                   |> List.ofSeq
@@ -505,7 +565,7 @@ module run =
 
               test "When composite query with and operator" {
                   let state = state |> query "ne" |> opAnd
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
 
                   Query.run context entries props
                   |> List.ofSeq
@@ -521,7 +581,7 @@ module run =
                       |> Map
 
                   let state = state |> query ":key  ja" |> opAnd
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
 
                   Query.run context entries props
                   |> List.ofSeq
@@ -539,7 +599,7 @@ module run =
                       |> Map
 
                   let state = state |> query ":title  ja" |> opAnd
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
 
                   Query.run context entries props
                   |> List.ofSeq
@@ -559,7 +619,7 @@ module run =
                   let entries =
                       [ "d" ] |> List.map (PSObject.AsPSObject >> Data.Entry.Obj) |> PSeq.ofSeq
 
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
 
                   Query.run context entries props
                   |> List.ofSeq
@@ -591,7 +651,7 @@ module run =
 
               test "When composite query with or operator" {
                   let state = state |> query ":fn a  :ln  d"
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
                   let filtered = [ entries[0]; entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
@@ -601,7 +661,7 @@ module run =
 
               test "When composite query with and operator" {
                   let state = state |> query ":fn a :ln d" |> opAnd
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
                   let filtered = [ entries[1] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
@@ -611,7 +671,7 @@ module run =
 
               test "When property not exists" {
                   let state = state |> query ":f a"
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -620,7 +680,7 @@ module run =
 
               test "When incomplete composite query" {
                   let state = state |> query ":fn "
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
 
                   Query.run context (entries |> PSeq.ofSeq) props
                   |> List.ofSeq
@@ -629,7 +689,7 @@ module run =
 
               test "When incomplete composite query with filter" {
                   let state = state |> query "a :fn "
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
                   let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
@@ -639,7 +699,7 @@ module run =
 
               test "When a non-existent property query exists after a correct query" {
                   let state = state |> query "a :f  e "
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
                   let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
@@ -649,7 +709,7 @@ module run =
 
               test "When a non-existent property query exists before a correct query" {
                   let state = state |> query ":f e a"
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
                   let filtered = [ entries[1]; entries[3] ]
 
                   Query.run context (entries |> PSeq.ofSeq) props
@@ -682,7 +742,7 @@ module run =
                   Threading.Thread.CurrentThread.CurrentCulture <- testCulture
 
                   let state = state |> query "01-04"
-                  let context = Query.prepare state |> fst'
+                  let context = Query.prepare state |> snd'
                   let filtered = [ entries |> List.last ]
 
                   Query.run context (entries |> PSeq.ofSeq) (Map [])

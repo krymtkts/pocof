@@ -394,45 +394,52 @@ module initConfig =
 
               test "When valid config is provided" {
 
-                  initConfig
-                      { Query = ":name"
-                        Matcher = "like"
-                        Operator = "and"
-                        CaseSensitive = true
-                        InvertQuery = true
-                        NotInteractive = true
-                        SuppressProperties = true
-                        Prompt = "prompt"
-                        WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-                        Layout = "TopDown"
+                  let actualConfig, actualState =
+                      initConfig
+                          { Query = ":name"
+                            Matcher = "like"
+                            Operator = "and"
+                            CaseSensitive = true
+                            InvertQuery = true
+                            NotInteractive = true
+                            SuppressProperties = true
+                            Prompt = "prompt"
+                            WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                            Layout = "TopDown"
+                            Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
+                            Properties = [ "name"; "attributes" ]
+                            PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ]
+                            ConsoleWidth = 60 }
+
+                  let expectedConfig =
+                      { Layout = Layout.TopDown
                         Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
+                        NotInteractive = true
+                        WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                        Prompt = "prompt>"
+                        PromptLength = 7
                         Properties = [ "name"; "attributes" ]
-                        PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ]
-                        ConsoleWidth = 60 }
-                  |> Expect.equal
-                      "should return tuples"
-                      ({ Layout = Layout.TopDown
-                         Keymaps = Map [ ({ Modifier = 7; Key = ConsoleKey.X }, Action.Cancel) ]
-                         NotInteractive = true
-                         WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-                         Prompt = "prompt>"
-                         PromptLength = 7
-                         Properties = [ "name"; "attributes" ]
-                         PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ] },
-                       { QueryState =
-                           { Query = ":name"
-                             Cursor = 5
-                             WindowBeginningCursor = 0
-                             WindowWidth = 60 - (String.length "prompt>" + 1)
-                             InputMode = InputMode.Input }
-                         QueryCondition =
-                           { Matcher = Matcher.Like
-                             Operator = Operator.And
-                             CaseSensitive = true
-                             Invert = true }
-                         PropertySearch = PropertySearch.Search "name"
-                         SuppressProperties = true
-                         Refresh = Refresh.Required })
+                        PropertiesMap = Map [ ("name", "name"); ("attributes", "attributes") ] }
+
+                  let expectedState =
+                      { QueryState =
+                          { Query = ":name"
+                            Cursor = 5
+                            WindowBeginningCursor = 0
+                            WindowWidth = 60 - (String.length "prompt>" + 1)
+                            InputMode = InputMode.Input }
+                        QueryCondition =
+                          { Matcher = Matcher.Like
+                            Operator = Operator.And
+                            CaseSensitive = true
+                            Invert = true }
+                        PropertySearch = PropertySearch.Search "name"
+                        SuppressProperties = true
+                        Refresh = Refresh.Required
+                        QueryCache = ValueNone }
+
+                  actualConfig |> Expect.equal "should return correct config" expectedConfig
+                  Helper.expectInternalStateEqual "should return expected state" expectedState actualState
 
               }
 

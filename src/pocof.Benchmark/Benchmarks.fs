@@ -120,7 +120,8 @@ type HandleBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.Required }
+          Refresh = Refresh.Required
+          QueryCache = ValueNone }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
 
     let stateForWord =
@@ -140,7 +141,7 @@ type HandleBenchmarks() =
             InternalState.QueryState.Cursor = 5
             PropertySearch = PropertySearch.Rotate("Na", Seq.cycle [ "Name"; "Names" ]) }
 
-    let context = state |> Query.prepare |> fst'
+    let struct (state, context) = state |> Query.prepare
 
     let wordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
 
@@ -217,7 +218,8 @@ type QueryRunBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.NotRequired }
+          Refresh = Refresh.NotRequired
+          QueryCache = ValueNone }
 
     [<Params(100, 1000)>]
     member val EntryCount = 0 with get, set
@@ -225,11 +227,11 @@ type QueryRunBenchmarks() =
     [<Params(1, 5, 10)>]
     member val QueryCount = 0 with get, set
 
-    member val NormalContext: Query.QueryContext =
+    member val NormalContext: QueryContext =
         { Queries = []
           Operator = Operator.And } with get, set
 
-    member val PropertyContext: Query.QueryContext =
+    member val PropertyContext: QueryContext =
         { Queries = []
           Operator = Operator.And } with get, set
 
@@ -242,7 +244,7 @@ type QueryRunBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
             |> Query.prepare
-            |> fst'
+            |> snd'
 
         __.PropertyContext <-
             { state with
@@ -251,7 +253,7 @@ type QueryRunBenchmarks() =
                     |> Seq.map (fun x -> $":Length {x}")
                     |> String.concat " " }
             |> Query.prepare
-            |> fst'
+            |> snd'
 
         __.Objects <-
             seq { 1 .. __.EntryCount }
@@ -295,10 +297,11 @@ type QueryPrepareBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.NotRequired }
+          Refresh = Refresh.NotRequired
+          QueryCache = ValueNone }
 
     [<Benchmark>]
-    member __.prepare() = Query.prepare state |> fst'
+    member __.prepare() = Query.prepare state
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
@@ -316,9 +319,10 @@ type QueryBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.NotRequired }
+          Refresh = Refresh.NotRequired
+          QueryCache = ValueNone }
 
-    let context = Query.prepare state |> fst'
+    let context = Query.prepare state |> snd'
 
     let sampleProperties =
         [ "Length"; "Name"; "Type"; "Value"; "Key"; "Path"; "Count"; "Content" ]
@@ -337,7 +341,7 @@ type QueryBenchmarks() =
             { state with
                 InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
 
-        __.NormalContext <- __.NormalState |> Query.prepare |> fst'
+        __.NormalContext <- __.NormalState |> Query.prepare |> snd'
 
         __.PropertyState <-
             { state with
@@ -346,7 +350,7 @@ type QueryBenchmarks() =
                     |> Seq.mapi (fun x -> fun _ -> $":{sampleProperties[x % sampleProperties.Length]} {x}")
                     |> String.concat " " }
 
-        __.PropertyContext <- __.PropertyState |> Query.prepare |> fst'
+        __.PropertyContext <- __.PropertyState |> Query.prepare |> snd'
 
     [<Benchmark(Baseline = true)>]
     member __.prepareNormalQuery() =
@@ -374,7 +378,8 @@ type PocofInteractBenchmarks() =
               Invert = false }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
-          Refresh = Refresh.Required }
+          Refresh = Refresh.Required
+          QueryCache = ValueNone }
 
     let publishEvent _ = ()
 

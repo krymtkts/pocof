@@ -33,7 +33,7 @@ let private typesInKeys =
     []
 #endif
 
-let private typesInQuery = [ typeof<Query.QueryPart>; typeof<Query.QueryContext> ]
+let private typesInQuery = [ typeof<Data.QueryPart>; typeof<Data.QueryContext> ]
 
 let private typesInPocof =
     [ typeof<Pocof.LoopFixedArguments>

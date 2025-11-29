@@ -6,7 +6,6 @@ open Data
 open Query
 
 module Handle =
-    type QueryContext = Query.QueryContext
 
     let private noop (state: InternalState) (context: QueryContext) =
         struct (InternalState.noRefresh state, context)
