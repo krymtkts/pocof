@@ -642,9 +642,9 @@ module Data =
         { QueryState: QueryState
           QueryCondition: QueryCondition
           PropertySearch: PropertySearch
-          SuppressProperties: bool
+          QueryCache: QueryCache voption
           Refresh: Refresh
-          QueryCache: QueryCache voption }
+          SuppressProperties: bool }
 
     module InternalState =
         let queryInfo (state: InternalState) (count: int) =
@@ -707,9 +707,9 @@ module Data =
             { QueryState = queryState
               QueryCondition = queryCondition
               PropertySearch = QueryState.getCurrentProperty queryState
-              SuppressProperties = suppressProperties
+              QueryCache = ValueNone
               Refresh = Refresh.Required
-              QueryCache = ValueNone }
+              SuppressProperties = suppressProperties }
             |> updateConsoleWidth prompt consoleWidth
 
     [<NoComparison>]
