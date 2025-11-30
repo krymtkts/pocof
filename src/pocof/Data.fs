@@ -455,18 +455,23 @@ module Data =
                     InputMode = InputMode.Input }
 
         let getCurrentProperty (state: QueryState) =
-            let s =
-                let q, c = state.Query, state.Cursor
-                let start = if c > 0 then q.LastIndexOf(' ', c - 1) + 1 else 0
-                q.Substring(start, c - start)
+            let q, c = state.Query, state.Cursor
+            let len = q.Length
+
+            if c <= 0 || c > len then
+                PropertySearch.NoSearch
+            else
+                let start = q.LastIndexOf(' ', c - 1) + 1
+                let count = c - start
 
 #if DEBUG
-            Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
+                Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' start '{start}' count '{count}'" ]
 #endif
-
-            match s with
-            | Prefix ":" p -> PropertySearch.Search p
-            | _ -> PropertySearch.NoSearch
+                if count < 1 || q[start] <> ':' then
+                    PropertySearch.NoSearch
+                else
+                    let keyword = if count > 1 then q.Substring(start + 1, count - 1) else ""
+                    PropertySearch.Search keyword
 
     [<NoComparison>]
     [<Struct>]
