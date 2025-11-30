@@ -283,7 +283,8 @@ type QueryRunBenchmarks() =
 
 [<MemoryDiagnoser>]
 type QueryPrepareBenchmarks() =
-    let state =
+
+    let state: InternalState =
         { QueryState =
             { Query = ""
               Cursor = 0
@@ -293,15 +294,61 @@ type QueryPrepareBenchmarks() =
           QueryCondition =
             { Matcher = Matcher.Match
               Operator = Operator.And
-              CaseSensitive = false
-              Invert = false }
+              CaseSensitive = true
+              Invert = true }
           PropertySearch = PropertySearch.NoSearch
           SuppressProperties = false
           Refresh = Refresh.NotRequired
           QueryCache = ValueNone }
 
+    let cacheKey (state: InternalState) : QueryCacheKey =
+        { Query = state.QueryState.Query
+          Matcher = state.QueryCondition.Matcher
+          CaseSensitive = state.QueryCondition.CaseSensitive
+          Invert = state.QueryCondition.Invert }
+
+    let sampleQueries =
+        [
+          // NOTE: just dummy queries
+          ":Name a", QueryPart.Property("Name", fun _ -> true)
+          "b", QueryPart.Normal(fun _ -> true)
+          ":Name c", QueryPart.Property("Name", fun _ -> true)
+          "d", QueryPart.Normal(fun _ -> true)
+          ":Name e", QueryPart.Property("Name", fun _ -> true)
+          "f", QueryPart.Normal(fun _ -> true)
+          ":name g", QueryPart.Property("Name", fun _ -> true) ]
+
+    let queryCache (state: InternalState) (count: int) : QueryCache =
+        { Key = cacheKey state
+          Queries =
+            seq { 0..count }
+            |> Seq.map (fun x -> sampleQueries[x % sampleQueries.Length] |> snd)
+            |> Seq.toList }
+
+    [<Params(1, 3, 5, 7)>]
+    member val QueryCount = 0 with get, set
+
+    member val State = state with get, set
+    member val StateCached = state with get, set
+
+    [<GlobalSetup>]
+    member __.GlobalSetup() =
+        __.State <-
+            { state with
+                InternalState.QueryState.Query =
+                    seq { 0 .. __.QueryCount }
+                    |> Seq.map (fun x -> sampleQueries[x % sampleQueries.Length] |> fst)
+                    |> String.concat " " }
+
+        __.StateCached <-
+            { state with
+                QueryCache = ValueSome(queryCache state __.QueryCount) }
+
+    [<Benchmark(Baseline = true)>]
+    member __.prepare() = Query.prepare __.State
+
     [<Benchmark>]
-    member __.prepare() = Query.prepare state
+    member __.prepareCached() = Query.prepare __.StateCached
 
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
