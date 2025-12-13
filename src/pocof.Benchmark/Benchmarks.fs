@@ -617,3 +617,45 @@ type CollectionBenchmarks() =
 
         for _ in 1 .. __.FetchCount do
             buffer |> iter (fun _ -> ())
+
+[<MemoryDiagnoser>]
+type PocofCalculateWindowBeginningCursorBenchmarks() =
+    let getLengthInBufferCellsDummy (s: string) =
+        let isFullWidth (c: char) =
+            let code = int c
+            code >= 0xFF00 && code <= 0xFF60
+
+        s |> Seq.sumBy (fun c -> if isFullWidth c then 2 else 1)
+
+    [<Params(16, 64)>]
+    member val QueryLength = 0 with get, set
+
+    [<Params("ascii", "fullwidth", "mixed")>]
+    member val Pattern = "" with get, set
+
+    [<Params(0, 4)>]
+    member val BeginBackoff = 0 with get, set
+
+    member val QueryState = Unchecked.defaultof<QueryState> with get, set
+
+    [<GlobalSetup>]
+    member __.Setup() =
+        let q =
+            let ascii = "a"
+            let fullwidth = "ａ" // U+FF41
+
+            match __.Pattern with
+            | "ascii" -> String.replicate __.QueryLength ascii
+            | "fullwidth" -> String.replicate __.QueryLength fullwidth
+            | _ -> String.init __.QueryLength (fun i -> if i &&& 1 = 0 then ascii else fullwidth)
+
+        __.QueryState <-
+            { Query = q
+              Cursor = q.Length
+              WindowBeginningCursor = __.BeginBackoff
+              WindowWidth = 60
+              InputMode = InputMode.Input }
+
+    [<Benchmark>]
+    member __.Run() =
+        Pocof.calculateWindowBeginningCursor getLengthInBufferCellsDummy __.QueryState
