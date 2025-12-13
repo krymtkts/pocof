@@ -14,7 +14,7 @@
     <PackageVersion Include="Expecto" Version="11.0.0-alpha8" />
     <PackageVersion Include="YoloDev.Expecto.TestSdk" Version="0.15.5" />
     <PackageVersion Include="FsCheck" Version="3.3.2" />
-    <PackageVersion Include="Expecto.FsCheck" Version="11.0.0-alpha8" />
+    <PackageVersion Include="Expecto.FsCheck" Version="11.0.0-alpha8-fscheck2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
 
@@ -22,8 +22,8 @@
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.13" />
 
     <!-- NOTE: Benchmark dependencies. -->
-    <PackageVersion Include="BenchmarkDotNet" Version="0.15.7" />
-    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.7" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.8" />
 
     <!-- NOTE: Inspector dependencies. -->
     <PackageVersion Include="ObjectLayoutInspector" Version="0.1.4" />
