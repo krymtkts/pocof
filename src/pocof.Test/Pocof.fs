@@ -106,6 +106,23 @@ let tests_calculateWindowBeginningCursor =
               |> Expect.equal "should return 0 when window beginning cursor is set and cursor at start" 0
           }
 
+          test "When full-width query overflows window, cursor at end" {
+              // NOTE: MockRawUI treats U+FF00..U+FF60 as full-width (2 cells).
+              let state =
+                  { Query = String.replicate 16 "Ａ" // 16 * 2 = 32 cells
+                    Cursor = 16
+                    WindowBeginningCursor = 0
+                    WindowWidth = 30
+                    InputMode = InputMode.Input }
+
+              let rui = new MockRawUI()
+              use buff = new Screen.Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, prompt)
+              let actual = Pocof.calculateWindowBeginningCursor buff.GetLengthInBufferCells state
+
+              actual
+              |> Expect.equal "should return 1 when full-width query overflows window and cursor at end" 1
+          }
+
           ]
 
 [<Tests>]
