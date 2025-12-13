@@ -11,7 +11,6 @@ open Pocof
 open Pocof.Data
 open Pocof.Test
 open System.Linq
-open Pocof.Keys
 
 [<MemoryDiagnoser>]
 type PocofBenchmarks() =
@@ -56,10 +55,10 @@ type PocofBenchmarks() =
 [<MemoryDiagnoser>]
 type KeysBenchmarks() =
     let keyInfoA =
-        KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) |], 1)
+        Keys.KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) |], 1)
 
     let keyInfoAaa =
-        KeyBatch(
+        Keys.KeyBatch(
             [| new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
                new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
                new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) |],
@@ -67,10 +66,10 @@ type KeysBenchmarks() =
         )
 
     let keyInfoShortcut =
-        KeyBatch([| new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false) |], 1)
+        Keys.KeyBatch([| new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false) |], 1)
 
     let keyInfoControl =
-        KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, true, true, true) |], 1)
+        Keys.KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, true, true, true) |], 1)
 
     let keymaps =
         let h = new Hashtable()
