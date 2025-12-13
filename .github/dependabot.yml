@@ -62,5 +62,8 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      - dependency-name: "Expecto.FsCheck"
+        versions:
+          - "11.0.0-alpha8-fscheck2"
     assignees:
       - "krymtkts"
