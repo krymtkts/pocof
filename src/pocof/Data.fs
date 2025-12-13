@@ -229,12 +229,6 @@ module Data =
             | Ok x -> x
             | Error e -> failwith e
 
-    [<return: Struct>]
-    let (|Prefix|_|) (p: string) (s: string) =
-        match String.startsWith p s with
-        | true -> s |> String.fromIndex p.Length |> ValueSome
-        | _ -> ValueNone
-
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<Struct>]
