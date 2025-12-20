@@ -8,7 +8,7 @@
     <PackageVersion Include="FSharp.Core" Version="10.0.101" />
 
     <!-- NOTE: PowerShell dependencies. -->
-    <PackageVersion Include="PowerShellStandard.Library" Version="7.0.0-preview.1" />
+    <PackageVersion Include="PowerShellStandard.Library" Version="5.1.1" />
 
     <!-- NOTE: Test dependencies. -->
     <PackageVersion Include="Expecto" Version="11.0.0-alpha8" />
