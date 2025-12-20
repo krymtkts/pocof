@@ -58,6 +58,7 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # NOTE: to pin the LTS version of PowerShell SDK.
       - dependency-name: "Microsoft.PowerShell.SDK"
         update-types:
           - "version-update:semver-major"

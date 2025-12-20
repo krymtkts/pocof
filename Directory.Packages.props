@@ -18,7 +18,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
 
-    <!-- NOTE: for creating mock PSObject -->
+    <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.13" />
 
     <!-- NOTE: Benchmark dependencies. -->
