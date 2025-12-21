@@ -229,12 +229,6 @@ module Data =
             | Ok x -> x
             | Error e -> failwith e
 
-    [<return: Struct>]
-    let (|Prefix|_|) (p: string) (s: string) =
-        match String.startsWith p s with
-        | true -> s |> String.fromIndex p.Length |> ValueSome
-        | _ -> ValueNone
-
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<Struct>]
@@ -455,18 +449,23 @@ module Data =
                     InputMode = InputMode.Input }
 
         let getCurrentProperty (state: QueryState) =
-            let s =
-                let q, c = state.Query, state.Cursor
-                let start = if c > 0 then q.LastIndexOf(' ', c - 1) + 1 else 0
-                q.Substring(start, c - start)
+            let q, c = state.Query, state.Cursor
+            let len = q.Length
+
+            if c <= 0 || c > len then
+                PropertySearch.NoSearch
+            else
+                let start = q.LastIndexOf(' ', c - 1) + 1
+                let count = c - start
 
 #if DEBUG
-            Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' string '{s}'" ]
+                Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' start '{start}' count '{count}'" ]
 #endif
-
-            match s with
-            | Prefix ":" p -> PropertySearch.Search p
-            | _ -> PropertySearch.NoSearch
+                if count < 1 || q[start] <> ':' then
+                    PropertySearch.NoSearch
+                else
+                    let keyword = if count > 1 then q.Substring(start + 1, count - 1) else ""
+                    PropertySearch.Search keyword
 
     [<NoComparison>]
     [<Struct>]
@@ -659,12 +658,18 @@ module Data =
                 PropertySearch = QueryState.getCurrentProperty qs }
 
         let refresh (state: InternalState) =
-            { state with
-                Refresh = Refresh.Required }
+            match state.Refresh with
+            | Refresh.Required -> state
+            | _ ->
+                { state with
+                    Refresh = Refresh.Required }
 
         let noRefresh (state: InternalState) =
-            { state with
-                Refresh = Refresh.NotRequired }
+            match state.Refresh with
+            | Refresh.NotRequired -> state
+            | _ ->
+                { state with
+                    Refresh = Refresh.NotRequired }
 
         let refreshIfTrue (b: bool) (state: InternalState) =
             match b with

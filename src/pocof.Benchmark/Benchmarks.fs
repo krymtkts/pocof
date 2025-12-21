@@ -11,7 +11,6 @@ open Pocof
 open Pocof.Data
 open Pocof.Test
 open System.Linq
-open Pocof.Keys
 
 [<MemoryDiagnoser>]
 type PocofBenchmarks() =
@@ -56,10 +55,10 @@ type PocofBenchmarks() =
 [<MemoryDiagnoser>]
 type KeysBenchmarks() =
     let keyInfoA =
-        KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) |], 1)
+        Keys.KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) |], 1)
 
     let keyInfoAaa =
-        KeyBatch(
+        Keys.KeyBatch(
             [| new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
                new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
                new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) |],
@@ -67,10 +66,10 @@ type KeysBenchmarks() =
         )
 
     let keyInfoShortcut =
-        KeyBatch([| new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false) |], 1)
+        Keys.KeyBatch([| new ConsoleKeyInfo('\000', ConsoleKey.Escape, false, false, false) |], 1)
 
     let keyInfoControl =
-        KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, true, true, true) |], 1)
+        Keys.KeyBatch([| new ConsoleKeyInfo('a', ConsoleKey.A, true, true, true) |], 1)
 
     let keymaps =
         let h = new Hashtable()
@@ -519,9 +518,6 @@ type DataBenchmarks() =
           CaseSensitive = false
           Invert = false }
 
-    [<Literal>]
-    let queryString = ":Name foo"
-
     [<Benchmark>]
     member __.Action_fromString() =
         Action.fromString "CompleteProperty" |> ignore
@@ -536,13 +532,6 @@ type DataBenchmarks() =
     [<Benchmark>]
     member __.QueryCondition_toString() =
         QueryCondition.toString queryCondition |> ignore
-
-    [<Benchmark>]
-    member __.Prefix_colon() =
-        queryString
-        |> function
-            | Prefix ":" x -> x |> ignore
-            | _ -> ()
 
 [<MemoryDiagnoser>]
 type CollectionAddBenchmarks() =
@@ -628,3 +617,45 @@ type CollectionBenchmarks() =
 
         for _ in 1 .. __.FetchCount do
             buffer |> iter (fun _ -> ())
+
+[<MemoryDiagnoser>]
+type PocofCalculateWindowBeginningCursorBenchmarks() =
+    let getLengthInBufferCellsDummy (s: string) =
+        let isFullWidth (c: char) =
+            let code = int c
+            code >= 0xFF00 && code <= 0xFF60
+
+        s |> Seq.sumBy (fun c -> if isFullWidth c then 2 else 1)
+
+    [<Params(16, 64)>]
+    member val QueryLength = 0 with get, set
+
+    [<Params("ascii", "fullwidth", "mixed")>]
+    member val Pattern = "" with get, set
+
+    [<Params(0, 4)>]
+    member val BeginBackoff = 0 with get, set
+
+    member val QueryState = Unchecked.defaultof<QueryState> with get, set
+
+    [<GlobalSetup>]
+    member __.Setup() =
+        let q =
+            let ascii = "a"
+            let fullwidth = "ａ" // U+FF41
+
+            match __.Pattern with
+            | "ascii" -> String.replicate __.QueryLength ascii
+            | "fullwidth" -> String.replicate __.QueryLength fullwidth
+            | _ -> String.init __.QueryLength (fun i -> if i &&& 1 = 0 then ascii else fullwidth)
+
+        __.QueryState <-
+            { Query = q
+              Cursor = q.Length
+              WindowBeginningCursor = __.BeginBackoff
+              WindowWidth = 60
+              InputMode = InputMode.Input }
+
+    [<Benchmark>]
+    member __.Run() =
+        Pocof.calculateWindowBeginningCursor getLengthInBufferCellsDummy __.QueryState

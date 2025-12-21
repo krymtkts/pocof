@@ -58,25 +58,6 @@ module Pocof =
           Properties: Generic.IReadOnlyCollection<string>
           PropertiesMap: Generic.IReadOnlyDictionary<string, string> }
 
-    [<TailCall>]
-    let rec private searchBeginningCursorRecursive (getLengthInBufferCells: string -> int) (state: QueryState) =
-        let l =
-            getLengthInBufferCells
-            <| state.Query.Substring(state.WindowBeginningCursor, state.Cursor - state.WindowBeginningCursor)
-
-        match l with
-        | bx when bx <= state.WindowWidth ->
-#if DEBUG
-            Logger.LogFile
-                [ $"LengthInBufferCells '{bx}' WindowWidth '{state.WindowWidth}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}'" ]
-#endif
-            state.WindowBeginningCursor
-        | _ ->
-            searchBeginningCursorRecursive
-                getLengthInBufferCells
-                { state with
-                    WindowBeginningCursor = state.WindowBeginningCursor + 1 }
-
     let calculateWindowBeginningCursor (getLengthInBufferCells: string -> int) (state: QueryState) =
 #if DEBUG
         Logger.LogFile
@@ -85,14 +66,33 @@ module Pocof =
         match state.WindowBeginningCursor > state.Cursor with
         | true -> state.Cursor
         | _ ->
-            let wx =
-                let l =
-                    getLengthInBufferCells
-                    <| state.Query.Substring(state.WindowBeginningCursor, state.Cursor - state.WindowBeginningCursor)
+            let cursor = state.Cursor
+            let windowWidth = state.WindowWidth
+            let initialBegin = state.WindowBeginningCursor
 
-                match l > state.WindowWidth with
-                | true -> searchBeginningCursorRecursive getLengthInBufferCells state
-                | _ -> state.WindowBeginningCursor
+            let getLengthFrom beginIndex =
+                getLengthInBufferCells <| state.Query.Substring(beginIndex, cursor - beginIndex)
+
+            let wx =
+                if getLengthFrom initialBegin <= windowWidth then
+                    initialBegin
+                else
+                    // Find minimal beginIndex in [initialBegin..cursor] such that the substring fits.
+                    // This replaces the linear search (O(n)) with binary search (O(log n)).
+                    let mutable low = initialBegin
+                    let mutable high = cursor
+                    let mutable best = cursor
+
+                    while low <= high do
+                        let mid = low + (high - low) / 2
+
+                        if getLengthFrom mid <= windowWidth then
+                            best <- mid
+                            high <- mid - 1
+                        else
+                            low <- mid + 1
+
+                    best
 
 #if DEBUG
             Logger.LogFile
