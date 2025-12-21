@@ -135,16 +135,6 @@ module Query =
             let is = prepareTest condition
             parseQuery is q
 
-    let private prepareNotification (query: string) (condition: QueryCondition) =
-        match condition.Matcher with
-        | Matcher.Match ->
-            try
-                Regex query |> ignore
-                ValueNone
-            with e ->
-                e.Message |> ValueSome
-        | _ -> ValueNone
-
     let private makeCacheKey (state: InternalState) : QueryCacheKey =
         { Query = state.QueryState.Query
           Matcher = state.QueryCondition.Matcher
@@ -171,7 +161,14 @@ module Query =
 
     module InternalState =
         let prepareNotification state =
-            prepareNotification state.QueryState.Query state.QueryCondition
+            match state.QueryCondition.Matcher with
+            | Matcher.Match ->
+                try
+                    Regex state.QueryState.Query |> ignore
+                    ValueNone
+                with e ->
+                    e.Message |> ValueSome
+            | _ -> ValueNone
 
     module QueryContext =
         let prepareQuery state context =
