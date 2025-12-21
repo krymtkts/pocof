@@ -195,7 +195,7 @@ let tests_QueryContext =
 
           ]
 
-
+[<Tests>]
 let tests_props =
     testList
         "props"
