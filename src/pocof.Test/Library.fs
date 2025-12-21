@@ -231,6 +231,7 @@ module SelectPocofCommand =
                       k.Add("Escape", "Finish")
                       k
 
+                  Thread.Sleep 100
                   cmdlet.InvokeForTest()
 
                   runtime.Output
