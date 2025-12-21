@@ -264,6 +264,17 @@ let tests_props =
               |> Expect.sequenceEqual "should return filtered properties (rotate)" [ "Name" ]
           }
 
+          test "When Matcher isn't Match, PropertySearch is Rotate with filter 'No'" {
+              Query.props
+                  properties
+                  { state with
+                      SuppressProperties = false
+                      Data.InternalState.QueryCondition.Matcher = Data.Matcher.Like
+                      PropertySearch = Data.PropertySearch.Rotate("No", [ "Name" ]) }
+              |> Expect.wantError "should return Error"
+              |> Expect.sequenceEqual "should return error message" "Property not found"
+          }
+
           ]
 
 module run =
