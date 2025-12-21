@@ -658,12 +658,18 @@ module Data =
                 PropertySearch = QueryState.getCurrentProperty qs }
 
         let refresh (state: InternalState) =
-            { state with
-                Refresh = Refresh.Required }
+            match state.Refresh with
+            | Refresh.Required -> state
+            | _ ->
+                { state with
+                    Refresh = Refresh.Required }
 
         let noRefresh (state: InternalState) =
-            { state with
-                Refresh = Refresh.NotRequired }
+            match state.Refresh with
+            | Refresh.NotRequired -> state
+            | _ ->
+                { state with
+                    Refresh = Refresh.NotRequired }
 
         let refreshIfTrue (b: bool) (state: InternalState) =
             match b with
