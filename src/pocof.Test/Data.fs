@@ -385,6 +385,40 @@ module ``QueryState toString`` =
 
               ]
 
+module InternalState =
+    [<Tests>]
+    let tests_noRefresh =
+        testList
+            "InternalState.noRefresh"
+            [
+
+              test "When Refresh is NotRequired, should remain NotRequired" {
+                  let state =
+                      { QueryState =
+                          { Query = ""
+                            Cursor = 0
+                            WindowBeginningCursor = 0
+                            WindowWidth = 0
+                            InputMode = InputMode.Input }
+                        QueryCondition =
+                          { Matcher = Matcher.Eq
+                            Operator = Operator.And
+                            CaseSensitive = false
+                            Invert = false }
+                        PropertySearch = PropertySearch.NoSearch
+                        SuppressProperties = false
+                        Refresh = Refresh.NotRequired
+                        QueryCache = ValueNone }
+
+                  state
+                  |> InternalState.noRefresh
+                  |> _.Refresh
+                  |> Expect.equal "NotRequired" Refresh.NotRequired
+              }
+
+              ]
+
+
 module initConfig =
     [<Tests>]
     let tests_initConfig =
