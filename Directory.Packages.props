@@ -16,7 +16,7 @@
     <PackageVersion Include="FsCheck" Version="3.3.2" />
     <PackageVersion Include="Expecto.FsCheck" Version="11.0.0-alpha8" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="coverlet.collector" Version="8.0.0" />
 
     <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.13" />
