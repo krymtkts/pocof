@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- NOTE: F# dependencies. -->
-    <PackageVersion Include="FSharp.Core" Version="10.0.103" />
+    <PackageVersion Include="FSharp.Core" Version="11.0.100" />
 
     <!-- NOTE: PowerShell dependencies. -->
     <PackageVersion Include="PowerShellStandard.Library" Version="5.1.1" />
