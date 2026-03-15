@@ -54,6 +54,9 @@ updates:
           - "PowerShellStandard.Library"
           - "Microsoft.PowerShell.SDK"
     ignore:
+      - dependency-name: "FSharp.Core"
+        update-types:
+          - "version-update:semver-major"
       - dependency-name: "PowerShellStandard.Library"
         update-types:
           - "version-update:semver-major"
