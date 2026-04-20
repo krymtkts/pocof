@@ -12,7 +12,6 @@
 
     <!-- NOTE: Test dependencies. -->
     <PackageVersion Include="Expecto" Version="11.0.0-alpha8" />
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.3" />
     <PackageVersion Include="YoloDev.Expecto.TestSdk" Version="0.15.5" />
     <PackageVersion Include="FsCheck" Version="3.3.2" />
     <PackageVersion Include="Expecto.FsCheck" Version="11.0.0-alpha8" />
@@ -21,6 +20,8 @@
 
     <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.14" />
+    <!-- NOTE: to address security vulnerabilities. -->
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.3" />
 
     <!-- NOTE: Benchmark dependencies. -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
