@@ -35,7 +35,7 @@ let initState () : InternalState =
 let prompt = "query>"
 let state = initState ()
 let publishEvent _ = ()
-let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map box
+let results = [ "a"; "b"; "c"; "d"; "e" ] |> List.map id
 
 [<Tests>]
 let tests_initConsoleInterface =
@@ -252,6 +252,8 @@ let tests_interact =
         "interact"
         [
 
+          let asObj x = x :> obj
+
           test "When NonInteractive mode, should return result" {
               let config: InternalConfig =
                   { NotInteractive = true
@@ -267,7 +269,9 @@ let tests_interact =
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.interact config state buff publishEvent input
-              let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+
+              let expected =
+                  [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> asObj)
 
               actual |> Expect.hasLength "should return 5 results in NonInteractive mode" 5
 
@@ -292,7 +296,9 @@ let tests_interact =
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.interact config state buff publishEvent input
-              let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+
+              let expected =
+                  [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> asObj)
 
               actual
               |> Expect.hasLength "should return 5 results in Interactive TopDown mode" 5
@@ -318,7 +324,9 @@ let tests_interact =
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.interact config state buff publishEvent input
-              let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+
+              let expected =
+                  [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> asObj)
 
               actual
               |> Expect.hasLength "should return 5 results in Interactive BottomUp mode" 5
@@ -344,7 +352,9 @@ let tests_interact =
               let rui = new MockRawUI()
               let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
               let actual = Pocof.interact config state buff publishEvent input
-              let expected = [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> box)
+
+              let expected =
+                  [ "a"; "b"; "c"; "d"; "e" ] |> List.map (PSObject.AsPSObject >> asObj)
 
               actual
               |> Expect.hasLength "should return 5 results in Interactive BottomUpHalf mode" 5
