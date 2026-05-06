@@ -28,6 +28,8 @@ runs:
       shell: ${{ inputs.shell }}
       if: inputs.shell == 'powershell'
       run: |
+        Install-Module -Name Microsoft.PowerShell.PSResourceGet -Force -Scope CurrentUser -Repository PSGallery -SkipPublisherCheck -AllowPrerelease
+        Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion V2
         Install-PSResource pslrm -Prerelease -Quiet -Reinstall -Scope CurrentUser
         Restore-PSLResource
         Set-ItemProperty -Path 'HKCU:\Control Panel\International' -Name 'sShortDate' -Value 'yyyy-MM-dd'
