@@ -22,13 +22,14 @@ runs:
       if: inputs.shell == 'pwsh'
       run: |
         Set-PSResourceRepository PSGallery -Trusted
-        Install-PSResource Psake,Pester,PSScriptAnalyzer -Quiet -Reinstall -Scope CurrentUser
-        Install-PSResource Microsoft.PowerShell.PlatyPS -Prerelease -Quiet -Reinstall -Scope CurrentUser
+        Install-PSResource pslrm -Prerelease -Quiet -Reinstall -Scope CurrentUser
+        Restore-PSLResource
     - name: Install modules from PSGallery (powershell)
       shell: ${{ inputs.shell }}
       if: inputs.shell == 'powershell'
       run: |
-        Install-Module -Name Psake,Pester,PSScriptAnalyzer -Force -Scope CurrentUser -Repository PSGallery -SkipPublisherCheck
+        Install-PSResource pslrm -Prerelease -Quiet -Reinstall -Scope CurrentUser
+        Restore-PSLResource
         Set-ItemProperty -Path 'HKCU:\Control Panel\International' -Name 'sShortDate' -Value 'yyyy-MM-dd'
         RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
     - name: Execute All Tests
@@ -37,8 +38,8 @@ runs:
       env:
         VSTEST_CONNECTION_TIMEOUT: 600
       run: |
-        Invoke-Psake -taskList TestAll
-        if (-not $psake.build_success) { exit 1 }
+        Invoke-PSLResource Invoke-Psake '-taskList','TestAll' | Tee-Object -Variable result
+        if (-not $result[-1].Success) { exit 1 }
         $reports = (Get-ChildItem ./src/pocof.Test/TestResults/coverage.*.cobertura.xml) -join ','
         "REPORT_PATHS=$reports" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
     - name: Upload coverage reports to Codecov
