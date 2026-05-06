@@ -404,3 +404,6 @@ publish/pocof/*
 
 # FSharp.Analyzers.SDK SARIF report
 *.sarif
+
+# pslrm local modules
+.pslrm/

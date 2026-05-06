@@ -1,0 +1,21 @@
+name: Bump pslrm lockfile
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 6 * * 5"
+      timezone: "Asia/Tokyo"
+
+permissions: {}
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Update lockfile and create pull request
+        uses: krymtkts/pslrm-bump-action@v0.0.1-alpha
+        with:
+          github-token: ${{ secrets.PSLRM_BUMP_TOKEN }}
