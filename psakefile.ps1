@@ -120,8 +120,8 @@ Task UnitTest {
 }
 
 Task Coverage -Depends UnitTest {
-    Remove-Item ./coverage/*
-    reportgenerator -reports:"${TestResultsRootPath}/coverage.*.cobertura.xml" -targetdir:'coverage' -reporttypes:Html
+    Remove-Item ./coverage/* -Recurse -Force -ErrorAction SilentlyContinue
+    dotnet reportgenerator -reports:"${TestResultsRootPath}/coverage.*.cobertura.xml" -targetdir:'coverage' -reporttypes:Html
 }
 
 Task WorkflowTest {
