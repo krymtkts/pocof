@@ -15,6 +15,13 @@
         "fsharp-analyzers"
       ],
       "rollForward": false
+    },
+    "dotnet-reportgenerator-globaltool": {
+      "version": "5.5.9",
+      "commands": [
+        "reportgenerator"
+      ],
+      "rollForward": false
     }
   }
 }
