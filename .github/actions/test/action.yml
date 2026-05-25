@@ -33,7 +33,10 @@ runs:
         # Cannot retrieve the dynamic parameters for the cmdlet. Loading repository store failed:  Could not find a part of the path 'C:\Users\runneradmin\AppData\Local\PSResourceGet\PSResourceRepository.xml'.
         Get-PSResourceRepository | Out-Null
         Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion V2
-        Install-PSResource pslrm -Prerelease -Quiet -Reinstall -Scope CurrentUser
+        # NOTE: In Windows PowerShell CI, we bootstrap Microsoft.PowerShell.PSResourceGet before calling Install-PSResource.
+        # NOTE: pslrm declares PSResourceGet as a dependency, and the dependency install would otherwise try to replace the same loaded module under CurrentUser.
+        # NOTE: SkipDependencyCheck avoids that self-reinstall conflict.
+        Install-PSResource pslrm -Prerelease -Quiet -Scope CurrentUser -Repository PSGallery -TrustRepository -SkipDependencyCheck
         Restore-PSLResource
         Set-ItemProperty -Path 'HKCU:\Control Panel\International' -Name 'sShortDate' -Value 'yyyy-MM-dd'
         RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
