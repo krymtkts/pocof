@@ -16,6 +16,6 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Update lockfile and create pull request
-        uses: krymtkts/pslrm-bump-action@v0.0.1-alpha
+        uses: krymtkts/pslrm-bump-action@v0.0.1
         with:
           github-token: ${{ secrets.PSLRM_BUMP_TOKEN }}
