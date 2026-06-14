@@ -6,7 +6,9 @@ on:
     - cron: "35 6 * * 5"
       timezone: "Asia/Tokyo"
 
-permissions: {}
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   bump:
@@ -18,4 +20,4 @@ jobs:
       - name: Update lockfile and create pull request
         uses: krymtkts/pslrm-bump-action@v0.0.1
         with:
-          github-token: ${{ secrets.PSLRM_BUMP_TOKEN }}
+          github-token: ${{ github.token }}
