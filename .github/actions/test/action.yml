@@ -21,7 +21,10 @@ runs:
       shell: ${{ inputs.shell }}
       if: inputs.shell == 'pwsh'
       run: |
-        Set-PSResourceRepository PSGallery -Trusted
+        # NOTE: PSResourceGet v1.2.0 may fail on first run unless the repository store is initialized.
+        # Cannot retrieve the dynamic parameters for the cmdlet. Loading repository store failed:  Could not find a part of the path 'C:\Users\runneradmin\AppData\Local\PSResourceGet\PSResourceRepository.xml'.
+        Get-PSResourceRepository
+        Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion V2
         Install-PSResource pslrm -Prerelease -Quiet -Reinstall -Scope CurrentUser
         Restore-PSLResource
     - name: Install modules from PSGallery (powershell)
