@@ -31,7 +31,7 @@ runs:
         Install-Module -Name Microsoft.PowerShell.PSResourceGet -Force -Scope CurrentUser -Repository PSGallery -SkipPublisherCheck -AllowPrerelease
         # NOTE: PSResourceGet v1.2.0 may fail on first run unless the repository store is initialized.
         # Cannot retrieve the dynamic parameters for the cmdlet. Loading repository store failed:  Could not find a part of the path 'C:\Users\runneradmin\AppData\Local\PSResourceGet\PSResourceRepository.xml'.
-        Get-PSResourceRepository | Out-Null
+        Get-PSResourceRepository
         Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion V2
         # NOTE: In Windows PowerShell CI, we bootstrap Microsoft.PowerShell.PSResourceGet before calling Install-PSResource.
         # NOTE: pslrm declares PSResourceGet as a dependency, and the dependency install would otherwise try to replace the same loaded module under CurrentUser.
