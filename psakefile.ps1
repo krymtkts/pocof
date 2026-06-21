@@ -190,7 +190,7 @@ Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
     Publish-PSResource @Params
 }
 
-Task FindUnusedSecurityPin {
+Task CheckUnusedSecurityPins {
     $securityPins = Get-Content Directory.Packages.props -Raw |
         ForEach-Object { ([xml]$_).Project.ItemGroup.PackageVersion } |
         Where-Object { $_.SecurityPin }
