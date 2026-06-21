@@ -20,8 +20,6 @@
 
     <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.17" />
-    <!-- NOTE: to address security vulnerabilities. -->
-    <!-- <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.3" /> -->
 
     <!-- NOTE: Benchmark dependencies. -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />

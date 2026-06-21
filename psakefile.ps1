@@ -189,3 +189,33 @@ Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
     }
     Publish-PSResource @Params
 }
+
+Task CheckUnusedSecurityPins {
+    $securityPins = Get-Content Directory.Packages.props -Raw |
+        ForEach-Object { ([xml]$_).Project.ItemGroup.PackageVersion } |
+        Where-Object { $_.SecurityPin }
+    if (-not $securityPins) {
+        Write-Output 'No security pins found in Directory.Packages.props.'
+        return
+    }
+
+    $topLevelPackageNames = dotnet package list --format json |
+        ConvertFrom-Json -Depth 10 |
+        ForEach-Object { $_.projects.frameworks.topLevelPackages.id } |
+        ForEach-Object -Begin { $set = [System.Collections.Generic.HashSet[string]]::new() } -Process {
+            $set.Add($_) | Out-Null
+        } -End { , $set }
+
+    $unused = $securityPins | Where-Object { -not $topLevelPackageNames.Contains($_.Include) } |
+        ForEach-Object {
+            [PSCustomObject]@{
+                Package = $_.Include
+                Version = $_.Version
+                Status = 'PossiblyUnused'
+            }
+        }
+    if ($unused) {
+        $unused | Format-Table
+        throw 'Found possibly unused security pins in Directory.Packages.props. Please check the above list and remove the pins if the packages are no longer used.'
+    }
+}
