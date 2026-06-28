@@ -110,7 +110,49 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            # ReleaseNotes = ''
+
+            ReleaseNotes = @'
+## [0.23.0] - 2026-06-28
+
+### Performance
+
+- Optimize current property extraction to reduce string operations.
+- Optimize window beginning cursor calculation with binary search.
+- Avoid unnecessary state updates when refresh is not required.
+
+## [0.22.0] - 2025-11-30
+
+### Changed
+
+- Update the optimized binary target from .NET 6.0 to .NET 8.0.
+- Use the .NET 8.0 binary on PowerShell 7.4 and later.
+- Use the .NET Standard 2.0 binary on older PowerShell versions.
+
+### Fixed
+
+- Fix multi-byte line rendering to measure display width accurately.
+
+### Performance
+
+- Add query caching to reduce repeated query preparation work.
+
+## [0.22.0-alpha] - 2025-11-30
+
+### Added
+
+- Add multi-target module publishing with a script module loader.
+
+### Changed
+
+- Add .NET 6.0 and .NET Standard 2.0 builds to the module package.
+
+### Fixed
+
+- Fix compatibility with Windows PowerShell 5.1.
+- Fix screen line appending to respect the current window width.
+
+Full CHANGELOG: https://github.com/krymtkts/pocof/blob/main/CHANGELOG.md
+'@
 
             # Prerelease string of this module
             # Prerelease = 'alpha'
