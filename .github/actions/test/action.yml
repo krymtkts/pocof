@@ -17,30 +17,17 @@ runs:
       uses: actions/setup-dotnet@v5
       with:
         global-json-file: ./global.json
-    - name: Install modules from PSGallery (pwsh)
+    - name: Install modules from PSGallery
       shell: ${{ inputs.shell }}
-      if: inputs.shell == 'pwsh'
+      env:
+        SHELL: ${{ inputs.shell }}
       run: |
-        # NOTE: PSResourceGet v1.2.0 may fail on first run unless the repository store is initialized.
-        # Cannot retrieve the dynamic parameters for the cmdlet. Loading repository store failed:  Could not find a part of the path 'C:\Users\runneradmin\AppData\Local\PSResourceGet\PSResourceRepository.xml'.
-        Get-PSResourceRepository
-        Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion V2
-        Install-PSResource pslrm -Prerelease -Quiet -Reinstall -Scope CurrentUser
+        ./scripts/Initialize-PSResourceRepository.ps1 -Shell $env:SHELL -InstallPslrm
         Restore-PSLResource
-    - name: Install modules from PSGallery (powershell)
+    - name: Initialize system locale for PowerShell
       shell: ${{ inputs.shell }}
       if: inputs.shell == 'powershell'
       run: |
-        Install-Module -Name Microsoft.PowerShell.PSResourceGet -Force -Scope CurrentUser -Repository PSGallery -SkipPublisherCheck -AllowPrerelease
-        # NOTE: PSResourceGet v1.2.0 may fail on first run unless the repository store is initialized.
-        # Cannot retrieve the dynamic parameters for the cmdlet. Loading repository store failed:  Could not find a part of the path 'C:\Users\runneradmin\AppData\Local\PSResourceGet\PSResourceRepository.xml'.
-        Get-PSResourceRepository
-        Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion V2
-        # NOTE: In Windows PowerShell CI, we bootstrap Microsoft.PowerShell.PSResourceGet before calling Install-PSResource.
-        # NOTE: pslrm declares PSResourceGet as a dependency, and the dependency install would otherwise try to replace the same loaded module under CurrentUser.
-        # NOTE: SkipDependencyCheck avoids that self-reinstall conflict.
-        Install-PSResource pslrm -Prerelease -Quiet -Scope CurrentUser -Repository PSGallery -TrustRepository -SkipDependencyCheck
-        Restore-PSLResource
         Set-ItemProperty -Path 'HKCU:\Control Panel\International' -Name 'sShortDate' -Value 'yyyy-MM-dd'
         RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
     - name: Execute All Tests
