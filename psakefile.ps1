@@ -13,6 +13,10 @@ Properties {
     $ModulePublishPath = Resolve-Path "./publish/${ModuleName}/"
     $ModuleManifestPath = "${ModulePublishPath}/${ModuleName}.psd1"
     $TestResultsRootPath = "./src/${ModuleName}.Test/TestResults/"
+    $ChangelogPath = Join-Path $PSScriptRoot 'CHANGELOG.md'
+    $FullChangelogUrl = "https://github.com/krymtkts/${ModuleName}/blob/main/CHANGELOG.md"
+    $ModuleManifest = Get-Item -LiteralPath (Join-Path $ModuleSrcPath "$ModuleName.psd1")
+
     "Module: ${ModuleName} ver${ModuleVersion} root=${ModuleSrcPath} publish=${ModulePublishPath}"
 }
 
@@ -169,6 +173,13 @@ Task ExternalHelp {
         $help.FilePath | Update-MarkdownCommandHelp -NoBackup
     }
     $help.FilePath | Import-MarkdownCommandHelp | Export-MamlCommandHelp -OutputFolder ./src/ -Force | Out-Null
+}
+
+Task ReleaseNotes {
+    'Syncing module manifest ReleaseNotes from CHANGELOG.md.'
+
+    $releaseNotes = Get-KeepAChangelogManifestReleaseNotes -Path $ChangelogPath -Version $ModuleVersion -FullChangelogUrl $FullChangelogUrl
+    Set-KeepAChangelogManifestReleaseNotes -ManifestPath $ModuleManifest.FullName -ReleaseNotes $releaseNotes
 }
 
 Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
