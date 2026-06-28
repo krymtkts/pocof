@@ -5,6 +5,9 @@
     Pester = @{
         Repository = 'PSGallery'
     }
+    PSKeepAChangelogTools = @{
+        Repository = 'PSGallery'
+    }
     PSScriptAnalyzer = @{
         Repository = 'PSGallery'
     }

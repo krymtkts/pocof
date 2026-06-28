@@ -3,6 +3,10 @@
         'Repository' = 'PSGallery'
         'Version' = '1.0.1'
     }
+    'PSKeepAChangelogTools' = @{
+        'Repository' = 'PSGallery'
+        'Version' = '0.1.0'
+    }
     'PSScriptAnalyzer' = @{
         'Repository' = 'PSGallery'
         'Version' = '1.25.0'
