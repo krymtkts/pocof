@@ -182,6 +182,60 @@ Task ReleaseNotes {
     Set-KeepAChangelogManifestReleaseNotes -ManifestPath $ModuleManifest.FullName -ReleaseNotes $releaseNotes
 }
 
+Task ValidateReleaseMetadata {
+    'Validating release metadata.'
+
+    Assert-KeepAChangelogReleaseMetadata -Version $ModuleVersion -ReleaseTag $ReleaseTag
+}
+
+Task ReleaseTag -Depends ValidateReleaseMetadata {
+    'Creating a signed release tag from CHANGELOG.md.'
+
+    $run = {
+        param(
+            [Parameter(Mandatory)]
+            [ValidateNotNull()]
+            [scriptblock] $Command,
+
+            [Parameter(Mandatory)]
+            [ValidateNotNullOrEmpty()]
+            [string] $FailureMessage
+        )
+
+        $output = @(
+            & $Command 2>&1 |
+                ForEach-Object { "$_" } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        )
+        if (-not $LASTEXITCODE) {
+            return , $output
+        }
+        if ($output.Count -eq 0) {
+            throw $FailureMessage
+        }
+        throw "$FailureMessage`n$($output -join "`n")"
+    }
+
+    $gitReleaseTag = ($ReleaseTag -replace '^refs/tags/', '').Trim()
+    $statusOutput = & $run { git status --porcelain=v1 --untracked-files=all } 'Failed to inspect git working tree status.'
+    if ($statusOutput.Count -gt 0) {
+        throw "Git working tree must be clean before release tagging. Remaining changes: $($statusOutput -join '; ')"
+    }
+
+    $existingTag = & $run { git tag --list $gitReleaseTag } "Failed to inspect local release tag '$gitReleaseTag'."
+    if ($existingTag.Count -gt 0) {
+        throw "Local release tag '$gitReleaseTag' already exists."
+    }
+
+    $releaseNotes = Get-KeepAChangelogEntry -Path $ChangelogPath -ReleaseTag $ReleaseTag
+    $tagMessage = if ($releaseNotes.EndsWith("`n")) { $releaseNotes } else { "$releaseNotes`n" }
+    & $run {
+        git tag --sign --cleanup=verbatim $gitReleaseTag --message $tagMessage
+    } "Failed to create signed release tag '$gitReleaseTag'." | Out-Null
+
+    Write-Host "Created local signed release tag '$gitReleaseTag'." -ForegroundColor Green
+}
+
 Task Release -Depends TestAll {
     "Release ${ModuleName}! version=${ModuleVersion} dryrun=${DryRun}"
 
