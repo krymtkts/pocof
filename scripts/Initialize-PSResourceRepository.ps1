@@ -1,9 +1,9 @@
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory, Position = 0)]
+    [Parameter(Position = 0)]
     [ValidateSet('pwsh', 'powershell')]
     [string]
-    $Shell,
+    $Shell = 'pwsh',
     [Parameter()]
     [switch]
     $InstallPslrm
