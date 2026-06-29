@@ -1,0 +1,204 @@
+name: Release module
+
+# Release flow
+#
+# This workflow always runs against a version tag ref.
+#
+# Normal path:
+# - `push` on `v*`
+# - `workflow_dispatch` with `mode=full`
+# - Flow: validate -> publish to PowerShell Gallery -> create or update GitHub Release
+# - Prerequisites:
+#   - The `release` environment is the manual approval gate before publish
+#   - Store `POWERSHELL_GALLERY_API_KEY` in the `release` environment
+#
+# Recovery path:
+# - `workflow_dispatch` with `mode=github-release-only`
+#   `release_tag` input must be provided and point to an already published version.
+#   Flow: validate -> create or update GitHub Release
+# - Use this only after the target version is already visible on PowerShell Gallery
+# - This path skips publish and repairs the GitHub Release only
+#
+# Retry rule:
+# - Rerun a failed job first
+# - Use recovery mode only when publish already succeeded and GitHub Release needs repair
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Which release path to run
+        required: true
+        default: full
+        type: choice
+        options:
+          - full
+          - github-release-only
+      release_tag:
+        description: Release tag starting with 'v' to run the workflow against, required only for workflow_dispatch
+        type: string
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+  RELEASE_REF: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      # NOTE: the workflow is tag-driven even when started from workflow_dispatch.
+      - name: Validate release ref
+        run: |
+          if ($env:RELEASE_REF -notmatch '^refs/tags/v.+') {
+            throw "Release workflow must run against a version tag ref. Current ref: $env:RELEASE_REF"
+          }
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_REF }}
+
+      - name: Validate PowerShell Gallery publish state for recovery mode
+        if: github.event_name == 'workflow_dispatch'
+        # NOTE: Recovery mode is intentionally fail-closed.
+        # NOTE: It can run only after the target version is already visible on PowerShell Gallery.
+        run: |
+          $mode = '${{ inputs.mode }}'
+
+          if ($mode -ne 'github-release-only') {
+            return
+          }
+
+          ./scripts/Initialize-PSResourceRepository.ps1
+          $module = Get-ChildItem -LiteralPath ./src/pocof -Filter '*.psd1' -File | Select-Object -First 1
+          if ($null -eq $module) {
+            throw 'Module script (*.psd1) was not found in the workspace.'
+          }
+
+          $moduleName = $module.BaseName
+          $version = $env:RELEASE_TAG -replace '^v', ''
+          $resource = Find-PSResource -Name $moduleName -Repository PSGallery -Version $version -ErrorAction SilentlyContinue
+          if ($null -eq $resource) {
+            throw "Module ${moduleName} version $version was not found on PSGallery. Use full mode until publish has completed."
+          }
+
+      - name: Restore modules from PSGallery
+        if: github.event_name != 'workflow_dispatch' || inputs.mode == 'full'
+        run: |
+          ./scripts/Initialize-PSResourceRepository.ps1 -InstallPslrm
+          Restore-PSLResource
+
+      - name: Execute release tests
+        if: github.event_name != 'workflow_dispatch' || inputs.mode == 'full'
+        run: |
+          Invoke-PSLResource Invoke-Psake '-taskList', 'TestAll', '-parameters', @{'Stage'='Release'} | Tee-Object -Variable result
+          if (-not $result[-1].Success) { exit 1 }
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || inputs.mode == 'full'
+    # NOTE: Publish is restricted to the normal full path.
+    # NOTE: The release environment is the manual gate before PowerShell Gallery publication.
+    # NOTE: The PowerShell Gallery API key is expected as an environment secret there.
+    environment:
+      name: release
+    env:
+      POWERSHELL_GALLERY_API_KEY: ${{ secrets.POWERSHELL_GALLERY_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_REF }}
+
+      - name: Restore modules from PSGallery
+        run: |
+          ./scripts/Initialize-PSResourceRepository.ps1 -InstallPslrm
+          Restore-PSLResource
+
+      - name: Publish module to PSGallery
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:POWERSHELL_GALLERY_API_KEY)) {
+            throw 'POWERSHELL_GALLERY_API_KEY is not configured.'
+          }
+
+          $secureApiKey = ConvertTo-SecureString -String $env:POWERSHELL_GALLERY_API_KEY -AsPlainText -Force
+          Invoke-PSLResource Invoke-Psake '-taskList','Release','-parameters',@{ 'Stage'='Release'; 'DryRun'=$false; 'ApiKey'=$secureApiKey } | Tee-Object -Variable result
+          if (-not $result[-1].Success) { exit 1 }
+
+  github-release:
+    needs:
+      - validate
+      - publish
+    # NOTE: Run after publish on the normal path.
+    # NOTE: In recovery mode, run when validate succeeded and publish was intentionally skipped.
+    if: >
+      always() &&
+      needs.validate.result == 'success' &&
+      (
+        needs.publish.result == 'success' ||
+        (
+          needs.publish.result == 'skipped' &&
+          github.event_name == 'workflow_dispatch' &&
+          inputs.mode == 'github-release-only'
+        )
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_REF }}
+
+      - name: Restore modules from PSGallery
+        run: |
+          ./scripts/Initialize-PSResourceRepository.ps1 -InstallPslrm
+          Restore-PSLResource
+
+      - name: Generate release notes body
+        id: release-notes
+        run: |
+          $releaseNotesPath = Join-Path $env:RUNNER_TEMP 'release-notes.md'
+          $releaseNotes = Invoke-PSLResource Get-KeepAChangelogEntry '-ReleaseTag', $env:RELEASE_TAG
+          Set-Content -LiteralPath $releaseNotesPath -Value $releaseNotes -NoNewline
+          "release_notes_path=$releaseNotesPath" >> $env:GITHUB_OUTPUT
+
+      - name: Create or update GitHub Release
+        env:
+          RELEASE_NOTES_PATH: ${{ steps.release-notes.outputs.release_notes_path }}
+        run: |
+          gh release view $env:RELEASE_TAG --json name *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release edit $env:RELEASE_TAG --title $env:RELEASE_TAG --notes-file $env:RELEASE_NOTES_PATH
+            exit 0
+          }
+
+          $createArgs = @(
+            'release', 'create', $env:RELEASE_TAG,
+            '--verify-tag',
+            '--title', $env:RELEASE_TAG,
+            '--notes-file', $env:RELEASE_NOTES_PATH
+          )
+          if ($env:RELEASE_TAG.Contains('-')) {
+            $createArgs += '--prerelease'
+          }
+
+          gh @createArgs
