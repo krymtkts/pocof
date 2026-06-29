@@ -182,8 +182,12 @@ Task ReleaseNotes {
     Set-KeepAChangelogManifestReleaseNotes -ManifestPath $ModuleManifest.FullName -ReleaseNotes $releaseNotes
 }
 
-Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
+Task Release -Depends TestAll {
     "Release ${ModuleName}! version=${ModuleVersion} dryrun=${DryRun}"
+
+    if ( $Stage -ne 'Release' ) {
+        throw "Stage must be 'Release' for publishing. Current stage: $Stage"
+    }
 
     $module = Import-PowerShellDataFile $ModuleManifestPath
     $ManifestModuleVersion = $module | Get-FullModuleVersion
@@ -194,7 +198,7 @@ Task Release -PreCondition { $Stage -eq 'Release' } -Depends TestAll {
     $Params = @{
         Path = $ModulePublishPath
         Repository = 'PSGallery'
-        ApiKey = (Get-Credential API-key -Message 'Enter your API key as the password').GetNetworkCredential().Password
+        ApiKey = ConvertFrom-SecureString $ApiKey -AsPlainText
         WhatIf = $DryRun
         Verbose = $true
     }
