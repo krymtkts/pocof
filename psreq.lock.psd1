@@ -1,7 +1,7 @@
 @{
     'Microsoft.PowerShell.PlatyPS' = @{
         'Repository' = 'PSGallery'
-        'Version' = '1.0.1'
+        'Version' = '1.0.2'
     }
     'PSKeepAChangelogTools' = @{
         'Repository' = 'PSGallery'
@@ -13,7 +13,7 @@
     }
     'Pester' = @{
         'Repository' = 'PSGallery'
-        'Version' = '5.8.0'
+        'Version' = '6.0.0'
     }
     'psake' = @{
         'Repository' = 'PSGallery'
