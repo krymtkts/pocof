@@ -7,7 +7,13 @@ This project uses prerelease versions such as 0.1.0-alpha.
 
 ## [Unreleased]
 
-## [0.23.0] - 2026-06-28
+## [0.24.0] - 2026-07-11
+
+### Changed
+
+- Update bundled `FSharp.Core` from 10.0.101 to 10.1.301 for F# 10.1 assembly support.
+
+## [0.23.0] - 2025-12-30
 
 ### Performance
 
