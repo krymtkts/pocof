@@ -10,7 +10,7 @@ Properties {
     $ProjectPath = Resolve-Path "${ModuleSrcPath}/${ModuleName}.fsproj"
     $ModuleVersion = ($ProjectPath | Select-Xml '//Version/text()').Node.Value
     $TargetFrameworks = ($ProjectPath | Select-Xml '//TargetFrameworks/text()').Node.Value -split ';'
-    $ModulePublishPath = Resolve-Path "./publish/${ModuleName}/"
+    $ModulePublishPath = Join-Path $PSScriptRoot "publish/${ModuleName}/"
     $ModuleManifestPath = "${ModulePublishPath}/${ModuleName}.psd1"
     $TestResultsRootPath = "./src/${ModuleName}.Test/TestResults/"
     $ChangelogPath = Join-Path $PSScriptRoot 'CHANGELOG.md'
