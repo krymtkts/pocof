@@ -112,7 +112,13 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
-## [0.23.0] - 2026-06-28
+## [0.24.0] - 2026-07-11
+
+### Changed
+
+- Update bundled `FSharp.Core` from 10.0.101 to 10.1.301 for F# 10.1 assembly support.
+
+## [0.23.0] - 2025-12-30
 
 ### Performance
 
@@ -135,21 +141,6 @@
 ### Performance
 
 - Add query caching to reduce repeated query preparation work.
-
-## [0.22.0-alpha] - 2025-11-30
-
-### Added
-
-- Add multi-target module publishing with a script module loader.
-
-### Changed
-
-- Add .NET 6.0 and .NET Standard 2.0 builds to the module package.
-
-### Fixed
-
-- Fix compatibility with Windows PowerShell 5.1.
-- Fix screen line appending to respect the current window width.
 
 Full CHANGELOG: https://github.com/krymtkts/pocof/blob/main/CHANGELOG.md
 '@
