@@ -389,7 +389,8 @@ This project uses prerelease versions such as 0.1.0-alpha.
 
 ---
 
-[Unreleased]: https://github.com/krymtkts/pocof/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/krymtkts/pocof/compare/v0.24.0...HEAD
+[0.24.0]: https://github.com/krymtkts/pocof/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/krymtkts/pocof/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/krymtkts/pocof/compare/v0.22.0-alpha...v0.22.0
 [0.22.0-alpha]: https://github.com/krymtkts/pocof/compare/v0.21.0...v0.22.0-alpha
