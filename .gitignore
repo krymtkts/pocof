@@ -398,10 +398,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# publish outputs
-publish/pocof/*
-!publish/pocof/.gitkeep
-
 # FSharp.Analyzers.SDK SARIF report
 *.sarif
 
