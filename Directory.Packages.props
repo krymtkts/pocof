@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- NOTE: F# dependencies. -->
-    <PackageVersion Include="FSharp.Core" Version="10.1.301" />
+    <PackageVersion Include="FSharp.Core" Version="10.1.302" />
 
     <!-- NOTE: PowerShell dependencies. -->
     <PackageVersion Include="PowerShellStandard.Library" Version="5.1.1" />
@@ -20,6 +20,8 @@
 
     <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.17" />
+    <!-- NOTE: To resolve high severity vulnerability in Microsoft.PowerShell.SDK@7.4.17. -->
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.4" />
 
     <!-- NOTE: Benchmark dependencies. -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
