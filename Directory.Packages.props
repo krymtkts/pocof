@@ -19,9 +19,7 @@
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
 
     <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
-    <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.17" />
-    <!-- NOTE: To resolve high severity vulnerability in Microsoft.PowerShell.SDK@7.4.17. -->
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.4" />
+    <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.18" />
 
     <!-- NOTE: Benchmark dependencies. -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
