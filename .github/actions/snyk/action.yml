@@ -20,7 +20,7 @@ runs:
       env:
         SNYK_TOKEN: ${{ inputs.snyk_token }}
     - name: Upload result to GitHub Code Scanning(${{ inputs.project_name }})
-      uses: github/codeql-action/upload-sarif@v4
+      uses: github/codeql-action/upload-sarif@v4.37.3
       with:
         sarif_file: ${{ inputs.project_name }}-snyk.sarif
         category: Snyk(${{ inputs.project_name }})
