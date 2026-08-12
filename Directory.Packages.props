@@ -29,6 +29,6 @@
     <PackageVersion Include="ObjectLayoutInspector" Version="0.2.0" />
 
     <!-- NOTE: Analyzer configurations. -->
-    <PackageVersion Include="Ionide.Analyzers" Version="0.15.0" />
+    <PackageVersion Include="Ionide.Analyzers" Version="0.16.0" />
   </ItemGroup>
 </Project>
