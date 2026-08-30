@@ -16,6 +16,7 @@
     <PackageVersion Include="FsCheck" Version="3.4.0" />
     <PackageVersion Include="Expecto.FsCheck" Version="11.1.0" />
     <PackageVersion Include="coverlet.MTP" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="1.0.0-alpha.26377.5" />
     <PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="2.3.3" />
 
     <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
