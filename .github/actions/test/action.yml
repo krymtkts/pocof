@@ -33,8 +33,6 @@ runs:
     - name: Execute All Tests
       id: run_tests
       shell: ${{ inputs.shell }}
-      env:
-        VSTEST_CONNECTION_TIMEOUT: 600
       run: |
         Invoke-PSLResource Invoke-Psake '-taskList','TestAll' | Tee-Object -Variable result
         if (-not $result[-1].Success) { exit 1 }

@@ -116,11 +116,20 @@ Task UnitTest {
     Remove-Item "${TestResultsRootPath}/*" -Recurse -ErrorAction SilentlyContinue
     $TargetFrameworks | ForEach-Object {
         "Run unit tests for target framework: ${_}"
-        dotnet test -p:TestTargetFramework=$_ --collect:"XPlat Code Coverage" --nologo --logger:"console;verbosity=detailed" --blame-hang-timeout 20s --blame-hang-dump-type full
+        dotnet test --project "./src/${ModuleName}.Test/${ModuleName}.Test.fsproj" `
+            -p:TestTargetFramework=$_ `
+            --results-directory "${TestResultsRootPath}" `
+            --output Detailed `
+            --coverlet `
+            --coverlet-include "[pocof]*" `
+            --coverlet-output-format cobertura `
+            --hangdump `
+            --hangdump-timeout 20s `
+            --hangdump-type Full
         if (-not $?) {
             throw "dotnet test failed for target framework: ${_}"
         }
-        Move-Item "${TestResultsRootPath}/*/coverage.cobertura.xml" "${TestResultsRootPath}/coverage.${_}.cobertura.xml" -Force
+        Move-Item "${TestResultsRootPath}/coverage.cobertura.*.xml" "${TestResultsRootPath}/coverage.${_}.cobertura.xml" -Force
     }
 }
 

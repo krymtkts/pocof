@@ -3,8 +3,9 @@
   <PropertyGroup>
     <!-- NOTE: Align the .NET version with PowerShell 7.5. -->
     <TargetFramework>net9.0</TargetFramework>
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
-    <GenerateProgramFile>false</GenerateProgramFile>
+    <EnableExpectoTestingPlatformIntegration>true</EnableExpectoTestingPlatformIntegration>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +19,6 @@
     <Compile Include="Handle.fs" />
     <Compile Include="Pocof.fs" />
     <Compile Include="Library.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,11 +27,8 @@
     <PackageReference Include="YoloDev.Expecto.TestSdk" />
     <PackageReference Include="FsCheck" />
     <PackageReference Include="Expecto.FsCheck" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="coverlet.collector" >
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="coverlet.MTP" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" />
     <!-- NOTE: for creating mock PSObject -->
     <PackageReference Include="Microsoft.PowerShell.SDK" />
   </ItemGroup>
