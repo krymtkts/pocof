@@ -120,6 +120,7 @@ Task UnitTest {
             -p:TestTargetFramework=$_ `
             --results-directory "${TestResultsRootPath}" `
             --output Detailed `
+            --report-gh `
             --coverlet `
             --coverlet-include "[pocof]*" `
             --coverlet-output-format cobertura `
