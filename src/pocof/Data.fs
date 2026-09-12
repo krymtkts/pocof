@@ -86,6 +86,8 @@ module LanguageExtension =
     let (|Ascending|) (x, y) =
         if x < y then struct (x, y) else struct (y, x)
 
+    // NOTE: A bool-returning partial active pattern cannot use return: Struct.
+    // fsharpanalyzer: ignore-line-next IONIDE-009
     let (|Negative|_|) (value: int) = value < 0
 
     [<return: Struct>]
