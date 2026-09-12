@@ -86,6 +86,8 @@ module LanguageExtension =
     let (|Ascending|) (x, y) =
         if x < y then struct (x, y) else struct (y, x)
 
+    // NOTE: A bool-returning partial active pattern cannot use return: Struct.
+    // fsharpanalyzer: ignore-line-next IONIDE-009
     let (|Negative|_|) (value: int) = value < 0
 
     [<return: Struct>]
@@ -209,7 +211,7 @@ module Data =
     let generateDictOfDu<'DU> (excludes: string Set) =
         let dict = Generic.Dictionary<string, 'DU> StringComparer.InvariantCultureIgnoreCase
 
-        generateArrayOfDu typeof<'DU> <| excludes
+        generateArrayOfDu typeof<'DU> excludes
         |> Array.fold
             (fun (acc: Generic.Dictionary<string, 'DU>) u ->
                 acc.Add(u.Name, makeUnion<'DU> u)
@@ -271,7 +273,8 @@ module Data =
     [<RequireQualifiedAccess>]
     module Action =
         let fromString =
-            generateDictOfDu<Action> <| set [ nameof Action.AddQuery ]
+            set [ nameof Action.AddQuery ]
+            |> generateDictOfDu<Action>
             |> tryFromStringExcludes
 
     [<RequireQualifiedAccess>]
@@ -284,7 +287,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Matcher =
-        let fromString = generateDictOfDu<Matcher> <| set [] |> fromString<Matcher>
+        let fromString = set [] |> generateDictOfDu<Matcher> |> fromString<Matcher>
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -295,7 +298,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Operator =
-        let fromString = generateDictOfDu<Operator> <| set [] |> fromString<Operator>
+        let fromString = set [] |> generateDictOfDu<Operator> |> fromString<Operator>
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -308,7 +311,7 @@ module Data =
 
     [<RequireQualifiedAccess>]
     module Layout =
-        let fromString = generateDictOfDu<Layout> <| set [] |> fromString<Layout>
+        let fromString = set [] |> generateDictOfDu<Layout> |> fromString<Layout>
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
