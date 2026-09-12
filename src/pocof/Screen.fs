@@ -400,7 +400,7 @@ module Screen =
 
                     sb.ToString()
 
-                pos ||> rui.Write <| blankLines
+                rui.Write <|| pos <| blankLines
                 pos ||> rui.SetCursorPosition
 
         member private __.GenerateScreenLine (width: int) (line: string) =
