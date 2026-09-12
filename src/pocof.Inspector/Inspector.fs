@@ -44,32 +44,32 @@ let private typesInPocof =
 let printMemoryLayout (group: string array) =
     match group with
     | [||] ->
-        System.Console.WriteLine "Memory layout of Pocof.Data types:=============================="
+        stdout.WriteLine "Memory layout of Pocof.Data types:=============================="
         typesInData |> List.iter printLayout
-        System.Console.WriteLine "Memory layout of Pocof.Keys types:=============================="
+        stdout.WriteLine "Memory layout of Pocof.Keys types:=============================="
         typesInKeys |> List.iter printLayout
-        System.Console.WriteLine "Memory layout of Pocof.Query types:============================="
+        stdout.WriteLine "Memory layout of Pocof.Query types:============================="
         typesInQuery |> List.iter printLayout
-        System.Console.WriteLine "Memory layout of Pocof.Pocof types:============================="
+        stdout.WriteLine "Memory layout of Pocof.Pocof types:============================="
         typesInPocof |> List.iter printLayout
     | group ->
         group
         |> Array.iter (fun g ->
             match g.ToLower() with
             | "data" ->
-                System.Console.WriteLine "Memory layout of Pocof.Data types:=============================="
+                stdout.WriteLine "Memory layout of Pocof.Data types:=============================="
                 typesInData |> List.iter printLayout
 
             | "keys" ->
-                System.Console.WriteLine "Memory layout of Pocof.Keys types:=============================="
+                stdout.WriteLine "Memory layout of Pocof.Keys types:=============================="
                 typesInKeys |> List.iter printLayout
 
             | "query" ->
-                System.Console.WriteLine "Memory layout of Pocof.Query types:============================="
+                stdout.WriteLine "Memory layout of Pocof.Query types:============================="
                 typesInQuery |> List.iter printLayout
 
             | "pocof" ->
-                System.Console.WriteLine "Memory layout of Pocof.Pocof types:============================="
+                stdout.WriteLine "Memory layout of Pocof.Pocof types:============================="
                 typesInPocof |> List.iter printLayout
 
             | _ -> printfn "Unknown group: %s\n" g)
