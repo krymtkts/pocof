@@ -11,20 +11,22 @@ let private printLayout t =
         | m -> m.MakeGenericMethod([| t |]).Invoke(null, [| true |]) |> ignore
 
 let private typesInData =
-    [ typeof<Data.Entry>
-      typeof<Data.Action>
-      typeof<Data.Matcher>
-      typeof<Data.Operator>
-      typeof<Data.Layout>
-      typeof<Data.PropertySearch>
-      typeof<Data.Refresh>
-      typeof<Data.KeyPattern>
-      typeof<Data.InternalConfig>
-      typeof<Data.InputMode>
-      typeof<Data.QueryState>
-      typeof<Data.QueryCondition>
-      typeof<Data.InternalState>
-      typeof<Data.IncomingParameters> ]
+    [
+        typeof<Data.Entry>
+        typeof<Data.Action>
+        typeof<Data.Matcher>
+        typeof<Data.Operator>
+        typeof<Data.Layout>
+        typeof<Data.PropertySearch>
+        typeof<Data.Refresh>
+        typeof<Data.KeyPattern>
+        typeof<Data.InternalConfig>
+        typeof<Data.InputMode>
+        typeof<Data.QueryState>
+        typeof<Data.QueryCondition>
+        typeof<Data.InternalState>
+        typeof<Data.IncomingParameters>
+    ]
 
 let private typesInKeys =
 #if DEBUG
@@ -36,10 +38,12 @@ let private typesInKeys =
 let private typesInQuery = [ typeof<Data.QueryPart>; typeof<Data.QueryContext> ]
 
 let private typesInPocof =
-    [ typeof<Pocof.LoopFixedArguments>
-      typeof<Pocof.RenderEvent>
-      typeof<Pocof.RenderMessage>
-      typeof<Pocof.RenderProcess> ]
+    [
+        typeof<Pocof.LoopFixedArguments>
+        typeof<Pocof.RenderEvent>
+        typeof<Pocof.RenderMessage>
+        typeof<Pocof.RenderProcess>
+    ]
 
 let printMemoryLayout (group: string array) =
     match group with

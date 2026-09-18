@@ -59,9 +59,11 @@ type KeysBenchmarks() =
 
     let keyInfoAaa =
         Keys.KeyBatch(
-            [| new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
-               new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
-               new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false) |],
+            [|
+                new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+                new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+                new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false)
+            |],
             3
         )
 
@@ -74,11 +76,13 @@ type KeysBenchmarks() =
     let keymaps =
         let h = new Hashtable()
 
-        [ ("tab", "CompleteProperty")
-          ("alt+a", "DeleteBackwardChar")
-          ("ctrl+d", "SelectBackwardChar")
-          ("ctrl+shift+e", "RotateMatcher")
-          ("control+alt+shift+x", "cancel") ]
+        [
+            ("tab", "CompleteProperty")
+            ("alt+a", "DeleteBackwardChar")
+            ("ctrl+d", "SelectBackwardChar")
+            ("ctrl+shift+e", "RotateMatcher")
+            ("control+alt+shift+x", "cancel")
+        ]
         |> List.map h.Add
         |> ignore
 
@@ -106,39 +110,48 @@ type KeysBenchmarks() =
 [<MemoryDiagnoser>]
 type HandleBenchmarks() =
     let state =
-        { QueryState =
-            { Query = ""
-              Cursor = 0
-              WindowBeginningCursor = 0
-              WindowWidth = 0
-              InputMode = InputMode.Input }
-          QueryCondition =
-            { Matcher = Matcher.Match
-              Operator = Operator.Or
-              CaseSensitive = false
-              Invert = false }
-          PropertySearch = PropertySearch.NoSearch
-          SuppressProperties = false
-          Refresh = Refresh.Required
-          QueryCache = ValueNone }
+        {
+            QueryState =
+                {
+                    Query = ""
+                    Cursor = 0
+                    WindowBeginningCursor = 0
+                    WindowWidth = 0
+                    InputMode = InputMode.Input
+                }
+            QueryCondition =
+                {
+                    Matcher = Matcher.Match
+                    Operator = Operator.Or
+                    CaseSensitive = false
+                    Invert = false
+                }
+            PropertySearch = PropertySearch.NoSearch
+            SuppressProperties = false
+            Refresh = Refresh.Required
+            QueryCache = ValueNone
+        }
         |> InternalState.updateConsoleWidth ("query>" |> String.length) 60
 
     let stateForWord =
         { state with
             InternalState.QueryState.Query = ":Name foo :Value bar"
-            InternalState.QueryState.Cursor = 8 }
+            InternalState.QueryState.Cursor = 8
+        }
 
     let stateForPropertySearch =
         { state with
             InternalState.QueryState.Query = ":Name"
             InternalState.QueryState.Cursor = 3
-            PropertySearch = PropertySearch.Search("Na") }
+            PropertySearch = PropertySearch.Search("Na")
+        }
 
     let stateForPropertyRotate =
         { state with
             InternalState.QueryState.Query = ":Name"
             InternalState.QueryState.Cursor = 5
-            PropertySearch = PropertySearch.Rotate("Na", Seq.cycle [ "Name"; "Names" ]) }
+            PropertySearch = PropertySearch.Rotate("Na", Seq.cycle [ "Name"; "Names" ])
+        }
 
     let struct (state, context) = state |> Query.prepare
 
@@ -204,21 +217,27 @@ type QueryRunBenchmarks() =
     let props = Map [ ("length", "Length") ]
 
     let state =
-        { QueryState =
-            { Query = ""
-              Cursor = 0
-              WindowBeginningCursor = 0
-              WindowWidth = 0
-              InputMode = InputMode.Input }
-          QueryCondition =
-            { Matcher = Matcher.Match
-              Operator = Operator.And
-              CaseSensitive = false
-              Invert = false }
-          PropertySearch = PropertySearch.NoSearch
-          SuppressProperties = false
-          Refresh = Refresh.NotRequired
-          QueryCache = ValueNone }
+        {
+            QueryState =
+                {
+                    Query = ""
+                    Cursor = 0
+                    WindowBeginningCursor = 0
+                    WindowWidth = 0
+                    InputMode = InputMode.Input
+                }
+            QueryCondition =
+                {
+                    Matcher = Matcher.Match
+                    Operator = Operator.And
+                    CaseSensitive = false
+                    Invert = false
+                }
+            PropertySearch = PropertySearch.NoSearch
+            SuppressProperties = false
+            Refresh = Refresh.NotRequired
+            QueryCache = ValueNone
+        }
 
     [<Params(100, 1000)>]
     member val EntryCount = 0 with get, set
@@ -227,12 +246,16 @@ type QueryRunBenchmarks() =
     member val QueryCount = 0 with get, set
 
     member val NormalContext: QueryContext =
-        { Queries = []
-          Operator = Operator.And } with get, set
+        {
+            Queries = []
+            Operator = Operator.And
+        } with get, set
 
     member val PropertyContext: QueryContext =
-        { Queries = []
-          Operator = Operator.And } with get, set
+        {
+            Queries = []
+            Operator = Operator.And
+        } with get, set
 
     member val Objects: Entry pseq = PSeq.empty with get, set
     member val Dicts: Entry pseq = PSeq.empty with get, set
@@ -241,7 +264,8 @@ type QueryRunBenchmarks() =
     member __.GlobalSetup() =
         __.NormalContext <-
             { state with
-                InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
+                InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " "
+            }
             |> Query.prepare
             |> snd'
 
@@ -250,7 +274,8 @@ type QueryRunBenchmarks() =
                 InternalState.QueryState.Query =
                     seq { 0 .. __.QueryCount }
                     |> Seq.map (fun x -> $":Length {x}")
-                    |> String.concat " " }
+                    |> String.concat " "
+            }
             |> Query.prepare
             |> snd'
 
@@ -284,45 +309,56 @@ type QueryRunBenchmarks() =
 type QueryPrepareBenchmarks() =
 
     let state: InternalState =
-        { QueryState =
-            { Query = ""
-              Cursor = 0
-              WindowBeginningCursor = 0
-              WindowWidth = 0
-              InputMode = InputMode.Input }
-          QueryCondition =
-            { Matcher = Matcher.Match
-              Operator = Operator.And
-              CaseSensitive = true
-              Invert = true }
-          PropertySearch = PropertySearch.NoSearch
-          SuppressProperties = false
-          Refresh = Refresh.NotRequired
-          QueryCache = ValueNone }
+        {
+            QueryState =
+                {
+                    Query = ""
+                    Cursor = 0
+                    WindowBeginningCursor = 0
+                    WindowWidth = 0
+                    InputMode = InputMode.Input
+                }
+            QueryCondition =
+                {
+                    Matcher = Matcher.Match
+                    Operator = Operator.And
+                    CaseSensitive = true
+                    Invert = true
+                }
+            PropertySearch = PropertySearch.NoSearch
+            SuppressProperties = false
+            Refresh = Refresh.NotRequired
+            QueryCache = ValueNone
+        }
 
     let cacheKey (state: InternalState) : QueryCacheKey =
-        { Query = state.QueryState.Query
-          Matcher = state.QueryCondition.Matcher
-          CaseSensitive = state.QueryCondition.CaseSensitive
-          Invert = state.QueryCondition.Invert }
+        {
+            Query = state.QueryState.Query
+            Matcher = state.QueryCondition.Matcher
+            CaseSensitive = state.QueryCondition.CaseSensitive
+            Invert = state.QueryCondition.Invert
+        }
 
     let sampleQueries =
         [
-          // NOTE: just dummy queries
-          ":Name a", QueryPart.Property("Name", fun _ -> true)
-          "b", QueryPart.Normal(fun _ -> true)
-          ":Name c", QueryPart.Property("Name", fun _ -> true)
-          "d", QueryPart.Normal(fun _ -> true)
-          ":Name e", QueryPart.Property("Name", fun _ -> true)
-          "f", QueryPart.Normal(fun _ -> true)
-          ":name g", QueryPart.Property("Name", fun _ -> true) ]
+            // NOTE: just dummy queries
+            ":Name a", QueryPart.Property("Name", fun _ -> true)
+            "b", QueryPart.Normal(fun _ -> true)
+            ":Name c", QueryPart.Property("Name", fun _ -> true)
+            "d", QueryPart.Normal(fun _ -> true)
+            ":Name e", QueryPart.Property("Name", fun _ -> true)
+            "f", QueryPart.Normal(fun _ -> true)
+            ":name g", QueryPart.Property("Name", fun _ -> true)
+        ]
 
     let queryCache (state: InternalState) (count: int) : QueryCache =
-        { Key = cacheKey state
-          Queries =
-            seq { 0..count }
-            |> Seq.map (fun x -> sampleQueries[x % sampleQueries.Length] |> snd)
-            |> Seq.toList }
+        {
+            Key = cacheKey state
+            Queries =
+                seq { 0..count }
+                |> Seq.map (fun x -> sampleQueries[x % sampleQueries.Length] |> snd)
+                |> Seq.toList
+        }
 
     [<Params(1, 3, 5, 7)>]
     member val QueryCount = 0 with get, set
@@ -337,11 +373,13 @@ type QueryPrepareBenchmarks() =
                 InternalState.QueryState.Query =
                     seq { 0 .. __.QueryCount }
                     |> Seq.map (fun x -> sampleQueries[x % sampleQueries.Length] |> fst)
-                    |> String.concat " " }
+                    |> String.concat " "
+            }
 
         __.StateCached <-
             { state with
-                QueryCache = ValueSome(queryCache state __.QueryCount) }
+                QueryCache = ValueSome(queryCache state __.QueryCount)
+            }
 
     [<Benchmark(Baseline = true)>]
     member __.prepare() = Query.prepare __.State
@@ -352,21 +390,27 @@ type QueryPrepareBenchmarks() =
 [<MemoryDiagnoser>]
 type QueryBenchmarks() =
     let state =
-        { QueryState =
-            { Query = ""
-              Cursor = 0
-              WindowBeginningCursor = 0
-              WindowWidth = 0
-              InputMode = InputMode.Input }
-          QueryCondition =
-            { Matcher = Matcher.Match
-              Operator = Operator.And
-              CaseSensitive = false
-              Invert = false }
-          PropertySearch = PropertySearch.NoSearch
-          SuppressProperties = false
-          Refresh = Refresh.NotRequired
-          QueryCache = ValueNone }
+        {
+            QueryState =
+                {
+                    Query = ""
+                    Cursor = 0
+                    WindowBeginningCursor = 0
+                    WindowWidth = 0
+                    InputMode = InputMode.Input
+                }
+            QueryCondition =
+                {
+                    Matcher = Matcher.Match
+                    Operator = Operator.And
+                    CaseSensitive = false
+                    Invert = false
+                }
+            PropertySearch = PropertySearch.NoSearch
+            SuppressProperties = false
+            Refresh = Refresh.NotRequired
+            QueryCache = ValueNone
+        }
 
     let context = Query.prepare state |> snd'
 
@@ -385,7 +429,8 @@ type QueryBenchmarks() =
     member __.GlobalSetup() =
         __.NormalState <-
             { state with
-                InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " " }
+                InternalState.QueryState.Query = seq { 0 .. __.QueryCount } |> Seq.map string |> String.concat " "
+            }
 
         __.NormalContext <- __.NormalState |> Query.prepare |> snd'
 
@@ -394,7 +439,8 @@ type QueryBenchmarks() =
                 InternalState.QueryState.Query =
                     seq { 0 .. __.QueryCount }
                     |> Seq.mapi (fun x -> fun _ -> $":{sampleProperties[x % sampleProperties.Length]} {x}")
-                    |> String.concat " " }
+                    |> String.concat " "
+            }
 
         __.PropertyContext <- __.PropertyState |> Query.prepare |> snd'
 
@@ -411,21 +457,27 @@ type PocofInteractBenchmarks() =
     let prompt = ">"
 
     let state: InternalState =
-        { QueryState =
-            { Query = "foo"
-              Cursor = 3
-              WindowBeginningCursor = 0
-              WindowWidth = 0
-              InputMode = InputMode.Input }
-          QueryCondition =
-            { Matcher = Matcher.Match
-              Operator = Operator.And
-              CaseSensitive = true
-              Invert = false }
-          PropertySearch = PropertySearch.NoSearch
-          SuppressProperties = false
-          Refresh = Refresh.Required
-          QueryCache = ValueNone }
+        {
+            QueryState =
+                {
+                    Query = "foo"
+                    Cursor = 3
+                    WindowBeginningCursor = 0
+                    WindowWidth = 0
+                    InputMode = InputMode.Input
+                }
+            QueryCondition =
+                {
+                    Matcher = Matcher.Match
+                    Operator = Operator.And
+                    CaseSensitive = true
+                    Invert = false
+                }
+            PropertySearch = PropertySearch.NoSearch
+            SuppressProperties = false
+            Refresh = Refresh.Required
+            QueryCache = ValueNone
+        }
 
     let publishEvent _ = ()
 
@@ -454,16 +506,18 @@ type PocofInteractBenchmarks() =
         __.Keys <-
             [ __.QueryCount .. 1 ]
             |> List.collect (fun x ->
-                [ match x with
-                  | 1
-                  | 3
-                  | 5
-                  | 7
-                  | 9 ->
-                      let c = x |> (+) 48 |> char
-                      MockRawUI.ConsoleKey c (Enum.Parse(typeof<ConsoleKey>, c.ToString()) :?> ConsoleKey)
-                  | _ -> None
-                  MockRawUI.ConsoleKey ' ' ConsoleKey.Spacebar ])
+                [
+                    match x with
+                    | 1
+                    | 3
+                    | 5
+                    | 7
+                    | 9 ->
+                        let c = x |> (+) 48 |> char
+                        MockRawUI.ConsoleKey c (Enum.Parse(typeof<ConsoleKey>, c.ToString()) :?> ConsoleKey)
+                    | _ -> None
+                    MockRawUI.ConsoleKey ' ' ConsoleKey.Spacebar
+                ])
             |> List.append [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
             |> List.rev
 
@@ -472,14 +526,16 @@ type PocofInteractBenchmarks() =
         let rui = new MockRawUI(60, 30, __.Keys)
 
         let config: InternalConfig =
-            { NotInteractive = true
-              Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+            {
+                NotInteractive = true
+                Layout = Layout.TopDown
+                Keymaps = Keys.defaultKeymap
+                WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                Prompt = prompt
+                PromptLength = prompt |> String.length
+                Properties = []
+                PropertiesMap = Map []
+            }
 
         use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         // NOTE: use Seq.length to force strict evaluation of the sequence
@@ -490,14 +546,16 @@ type PocofInteractBenchmarks() =
         let rui = new MockRawUI(60, 30, __.Keys)
 
         let config: InternalConfig =
-            { NotInteractive = true
-              Layout = Layout.TopDown
-              Keymaps = Keys.defaultKeymap
-              WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
-              Prompt = prompt
-              PromptLength = prompt |> String.length
-              Properties = []
-              PropertiesMap = Map [] }
+            {
+                NotInteractive = true
+                Layout = Layout.TopDown
+                Keymaps = Keys.defaultKeymap
+                WordDelimiters = ";:,.[]{}()/\\|!?^&*-=+'\"–—―"
+                Prompt = prompt
+                PromptLength = prompt |> String.length
+                Properties = []
+                PropertiesMap = Map []
+            }
 
         use buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
         // NOTE: use Seq.length to force strict evaluation of the sequence
@@ -506,17 +564,21 @@ type PocofInteractBenchmarks() =
 [<MemoryDiagnoser>]
 type DataBenchmarks() =
     let queryState =
-        { Query = ":Name foo :Value bar"
-          Cursor = 13
-          WindowBeginningCursor = 0
-          WindowWidth = 0
-          InputMode = InputMode.Input }
+        {
+            Query = ":Name foo :Value bar"
+            Cursor = 13
+            WindowBeginningCursor = 0
+            WindowWidth = 0
+            InputMode = InputMode.Input
+        }
 
     let queryCondition =
-        { Matcher = Matcher.Match
-          Operator = Operator.And
-          CaseSensitive = false
-          Invert = false }
+        {
+            Matcher = Matcher.Match
+            Operator = Operator.And
+            CaseSensitive = false
+            Invert = false
+        }
 
     [<Benchmark>]
     member __.Action_fromString() =
@@ -650,11 +712,13 @@ type PocofCalculateWindowBeginningCursorBenchmarks() =
             | _ -> String.init __.QueryLength (fun i -> if i &&& 1 = 0 then ascii else fullwidth)
 
         __.QueryState <-
-            { Query = q
-              Cursor = q.Length
-              WindowBeginningCursor = __.BeginBackoff
-              WindowWidth = 60
-              InputMode = InputMode.Input }
+            {
+                Query = q
+                Cursor = q.Length
+                WindowBeginningCursor = __.BeginBackoff
+                WindowWidth = 60
+                InputMode = InputMode.Input
+            }
 
     [<Benchmark>]
     member __.Run() =

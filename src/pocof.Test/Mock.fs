@@ -24,47 +24,55 @@ module Mock =
 
         new() =
             // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
-            { caAsInput = true
-              x = MockRawUI.xx
-              y = MockRawUI.yy
-              width = MockRawUI.xx
-              height = MockRawUI.yy
-              screen = generateLine MockRawUI.xx MockRawUI.yy
-              keys = [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
-              forceCancel = false }
+            {
+                caAsInput = true
+                x = MockRawUI.xx
+                y = MockRawUI.yy
+                width = MockRawUI.xx
+                height = MockRawUI.yy
+                screen = generateLine MockRawUI.xx MockRawUI.yy
+                keys = [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
+                forceCancel = false
+            }
 
         new(x: int, y: int) =
             // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
-            { caAsInput = true
-              x = x
-              y = y
-              width = x
-              height = y
-              screen = generateLine x y
-              keys = [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
-              forceCancel = false }
+            {
+                caAsInput = true
+                x = x
+                y = y
+                width = x
+                height = y
+                screen = generateLine x y
+                keys = [ MockRawUI.ConsoleKey '\000' ConsoleKey.Enter ]
+                forceCancel = false
+            }
 
         new(x: int, y: int, keys: ConsoleKeyInfo option list) =
             // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
-            { caAsInput = true
-              x = x
-              y = y
-              width = x
-              height = y
-              screen = generateLine x y
-              keys = keys
-              forceCancel = false }
+            {
+                caAsInput = true
+                x = x
+                y = y
+                width = x
+                height = y
+                screen = generateLine x y
+                keys = keys
+                forceCancel = false
+            }
 
         new(x: int, y: int, keys: ConsoleKeyInfo option list, forceCancel: bool) =
             // NOTE: accessing Console.TreatControlCAsInput will raise System.IO.IOException when running on GitHub Actions windows runner.
-            { caAsInput = true
-              x = x
-              y = y
-              width = x
-              height = y
-              screen = generateLine x y
-              keys = keys
-              forceCancel = forceCancel }
+            {
+                caAsInput = true
+                x = x
+                y = y
+                width = x
+                height = y
+                screen = generateLine x y
+                keys = keys
+                forceCancel = forceCancel
+            }
 
         interface IRawUI with
             member __.GetCursorPosition() = __.x, __.y
@@ -132,7 +140,8 @@ module Mock =
 
             member __.HideCursorWhileRendering() =
                 { new IDisposable with
-                    member _.Dispose() = () }
+                    member _.Dispose() = ()
+                }
 
         interface IDisposable with
             member __.Dispose() = ()

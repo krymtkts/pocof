@@ -74,7 +74,8 @@ module Screen =
                 console.CursorVisible <- false
 
                 { new IDisposable with
-                    member _.Dispose() = console.CursorVisible <- true }
+                    member _.Dispose() = console.CursorVisible <- true
+                }
 
         interface IDisposable with
             member __.Dispose() =
@@ -118,8 +119,10 @@ module Screen =
         val mutable private count: int
 
         new(initialCapacity: int) =
-            { buffer = Array.zeroCreate initialCapacity
-              count = 0 }
+            {
+                buffer = Array.zeroCreate initialCapacity
+                count = 0
+            }
 
         member __.Count = __.count
 
@@ -246,7 +249,9 @@ module Screen =
 
 #if DEBUG
             Logger.LogFile
-                [ $"query '{q}' query length '{q.Length}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'" ]
+                [
+                    $"query '{q}' query length '{q.Length}' WindowBeginningCursor '{state.QueryState.WindowBeginningCursor}' WindowWidth '{state.QueryState.WindowWidth}'"
+                ]
 #endif
             fitStringToWidth state.QueryState.WindowWidth q q.Length
             ||*> fun adjustedQ -> buildQueryString state.QueryState adjustedQ
@@ -433,7 +438,9 @@ module Screen =
 
 #if DEBUG
             Logger.LogFile
-                [ $"baseLine {baseLine}, firstLine {firstLine}, toHeight {toHeight}, screenHeight {screenHeight}" ]
+                [
+                    $"baseLine {baseLine}, firstLine {firstLine}, toHeight {toHeight}, screenHeight {screenHeight}"
+                ]
 #endif
 
             getInformationString width state props (PSeq.length entries)

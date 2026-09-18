@@ -118,20 +118,22 @@ type SelectPocofCommand() =
                 __.Invoke
                 cancelAction
                 input.GetEntries
-                { Query = __.Query
-                  Matcher = __.Matcher
-                  Operator = __.Operator
-                  CaseSensitive = __.CaseSensitive.IsPresent
-                  InvertQuery = __.InvertQuery.IsPresent
-                  NotInteractive = __.NonInteractive.IsPresent
-                  SuppressProperties = __.SuppressProperties.IsPresent
-                  Prompt = __.Prompt
-                  WordDelimiters = __.WordDelimiters
-                  Layout = __.Layout
-                  Keymaps = keymaps
-                  Properties = properties.GetProperties()
-                  PropertiesMap = properties.GetPropertyMap()
-                  ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width }
+                {
+                    Query = __.Query
+                    Matcher = __.Matcher
+                    Operator = __.Operator
+                    CaseSensitive = __.CaseSensitive.IsPresent
+                    InvertQuery = __.InvertQuery.IsPresent
+                    NotInteractive = __.NonInteractive.IsPresent
+                    SuppressProperties = __.SuppressProperties.IsPresent
+                    Prompt = __.Prompt
+                    WordDelimiters = __.WordDelimiters
+                    Layout = __.Layout
+                    Keymaps = keymaps
+                    Properties = properties.GetProperties()
+                    PropertiesMap = properties.GetPropertyMap()
+                    ConsoleWidth = __.PSHost().UI.RawUI.WindowSize.Width
+                }
 
         renderPeriodic <- r
         waitResult <- w

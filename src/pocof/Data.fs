@@ -334,14 +334,16 @@ module Data =
 
     [<NoComparison>]
     type InternalConfig =
-        { Layout: Layout
-          Keymaps: Map<KeyPattern, Action>
-          NotInteractive: bool
-          WordDelimiters: string
-          Prompt: string
-          PromptLength: int
-          Properties: Generic.IReadOnlyCollection<string>
-          PropertiesMap: Generic.IReadOnlyDictionary<string, string> }
+        {
+            Layout: Layout
+            Keymaps: Map<KeyPattern, Action>
+            NotInteractive: bool
+            WordDelimiters: string
+            Prompt: string
+            PromptLength: int
+            Properties: Generic.IReadOnlyCollection<string>
+            PropertiesMap: Generic.IReadOnlyDictionary<string, string>
+        }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -360,17 +362,20 @@ module Data =
     [<NoComparison>]
     [<Struct>]
     type QueryState =
-        { Query: string
-          Cursor: int
-          WindowBeginningCursor: int
-          WindowWidth: int
-          InputMode: InputMode }
+        {
+            Query: string
+            Cursor: int
+            WindowBeginningCursor: int
+            WindowWidth: int
+            InputMode: InputMode
+        }
 
     module QueryState =
         let addQuery (query: string) (state: QueryState) =
             { state with
                 Query = state.Query.Insert(state.Cursor, query)
-                Cursor = state.Cursor + query.Length }
+                Cursor = state.Cursor + query.Length
+            }
 
         [<return: Struct>]
         let (|OverQuery|_|) (query: string) (cursor: int) =
@@ -427,7 +432,8 @@ module Data =
 
             { state with
                 Query = query.Remove(index, count)
-                Cursor = index }
+                Cursor = index
+            }
 
         let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
             let ql = state.Query.Length
@@ -436,7 +442,8 @@ module Data =
             | Negative -> { state with Cursor = ql }
             | _ ->
                 { state with
-                    Query = state.Query.Remove(state.Cursor, size) }
+                    Query = state.Query.Remove(state.Cursor, size)
+                }
 
         let deleteSelection (state: QueryState) =
             match state.InputMode with
@@ -449,7 +456,8 @@ module Data =
                 { state with
                     Query = state.Query.Remove(si, c - si)
                     Cursor = si
-                    InputMode = InputMode.Input }
+                    InputMode = InputMode.Input
+                }
 
         let getCurrentProperty (state: QueryState) =
             let q, c = state.Query, state.Cursor
@@ -462,7 +470,10 @@ module Data =
                 let count = c - start
 
 #if DEBUG
-                Logger.LogFile [ $"Query '{state.Query}' Cursor '{state.Cursor}' start '{start}' count '{count}'" ]
+                Logger.LogFile
+                    [
+                        $"Query '{state.Query}' Cursor '{state.Cursor}' start '{start}' count '{count}'"
+                    ]
 #endif
                 if count < 1 || q[start] <> ':' then
                     PropertySearch.NoSearch
@@ -473,10 +484,12 @@ module Data =
     [<NoComparison>]
     [<Struct>]
     type QueryCondition =
-        { Matcher: Matcher
-          Operator: Operator
-          CaseSensitive: bool
-          Invert: bool }
+        {
+            Matcher: Matcher
+            Operator: Operator
+            CaseSensitive: bool
+            Invert: bool
+        }
 
     module QueryCondition =
         // Case-insensitive variants
@@ -590,22 +603,26 @@ module Data =
                     match condition.Matcher with
                     | Matcher.Eq -> Matcher.Like
                     | Matcher.Like -> Matcher.Match
-                    | Matcher.Match -> Matcher.Eq }
+                    | Matcher.Match -> Matcher.Eq
+            }
 
         let rotateOperator (condition: QueryCondition) =
             { condition with
                 Operator =
                     match condition.Operator with
                     | Operator.Or -> Operator.And
-                    | Operator.And -> Operator.Or }
+                    | Operator.And -> Operator.Or
+            }
 
         let toggleCaseSensitive (condition: QueryCondition) =
             { condition with
-                CaseSensitive = not condition.CaseSensitive }
+                CaseSensitive = not condition.CaseSensitive
+            }
 
         let toggleInvertFilter (condition: QueryCondition) =
             { condition with
-                Invert = not condition.Invert }
+                Invert = not condition.Invert
+            }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
@@ -619,34 +636,42 @@ module Data =
     [<NoEquality>]
     [<Struct>]
     type QueryContext =
-        { Queries: QueryPart list
-          Operator: Operator }
+        {
+            Queries: QueryPart list
+            Operator: Operator
+        }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<Struct>]
     type QueryCacheKey =
-        { Query: string
-          Matcher: Matcher
-          CaseSensitive: bool
-          Invert: bool }
+        {
+            Query: string
+            Matcher: Matcher
+            CaseSensitive: bool
+            Invert: bool
+        }
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
     [<NoEquality>]
     [<Struct>]
     type QueryCache =
-        { Key: QueryCacheKey
-          Queries: QueryPart list }
+        {
+            Key: QueryCacheKey
+            Queries: QueryPart list
+        }
 
     [<NoComparison>]
     type InternalState =
-        { QueryState: QueryState
-          QueryCondition: QueryCondition
-          PropertySearch: PropertySearch
-          QueryCache: QueryCache voption
-          Refresh: Refresh
-          SuppressProperties: bool }
+        {
+            QueryState: QueryState
+            QueryCondition: QueryCondition
+            PropertySearch: PropertySearch
+            QueryCache: QueryCache voption
+            Refresh: Refresh
+            SuppressProperties: bool
+        }
 
     module InternalState =
         let queryInfo (state: InternalState) (count: int) =
@@ -658,21 +683,24 @@ module Data =
         let updateQueryState (qs: QueryState) (state: InternalState) =
             { state with
                 QueryState = qs
-                PropertySearch = QueryState.getCurrentProperty qs }
+                PropertySearch = QueryState.getCurrentProperty qs
+            }
 
         let refresh (state: InternalState) =
             match state.Refresh with
             | Refresh.Required -> state
             | _ ->
                 { state with
-                    Refresh = Refresh.Required }
+                    Refresh = Refresh.Required
+                }
 
         let noRefresh (state: InternalState) =
             match state.Refresh with
             | Refresh.NotRequired -> state
             | _ ->
                 { state with
-                    Refresh = Refresh.NotRequired }
+                    Refresh = Refresh.NotRequired
+                }
 
         let refreshIfTrue (b: bool) (state: InternalState) =
             match b with
@@ -682,27 +710,33 @@ module Data =
 
         let rotateMatcher (state: InternalState) =
             { state with
-                QueryCondition = state.QueryCondition |> QueryCondition.rotateMatcher }
+                QueryCondition = state.QueryCondition |> QueryCondition.rotateMatcher
+            }
 
         let rotateOperator (state: InternalState) =
             { state with
-                QueryCondition = state.QueryCondition |> QueryCondition.rotateOperator }
+                QueryCondition = state.QueryCondition |> QueryCondition.rotateOperator
+            }
 
         let toggleCaseSensitive (state: InternalState) =
             { state with
-                QueryCondition = state.QueryCondition |> QueryCondition.toggleCaseSensitive }
+                QueryCondition = state.QueryCondition |> QueryCondition.toggleCaseSensitive
+            }
 
         let toggleInvertFilter (state: InternalState) =
             { state with
-                QueryCondition = state.QueryCondition |> QueryCondition.toggleInvertFilter }
+                QueryCondition = state.QueryCondition |> QueryCondition.toggleInvertFilter
+            }
 
         let toggleSuppressProperties (state: InternalState) =
             { state with
-                SuppressProperties = not state.SuppressProperties }
+                SuppressProperties = not state.SuppressProperties
+            }
 
         let updateConsoleWidth (promptLength: int) (consoleWidth: int) (state: InternalState) =
             { state with
-                InternalState.QueryState.WindowWidth = promptLength |> (+) 1 |> (-) consoleWidth }
+                InternalState.QueryState.WindowWidth = promptLength |> (+) 1 |> (-) consoleWidth
+            }
 
         let create
             (queryState: QueryState)
@@ -712,31 +746,35 @@ module Data =
             (consoleWidth: int)
             =
 
-            { QueryState = queryState
-              QueryCondition = queryCondition
-              PropertySearch = QueryState.getCurrentProperty queryState
-              QueryCache = ValueNone
-              Refresh = Refresh.Required
-              SuppressProperties = suppressProperties }
+            {
+                QueryState = queryState
+                QueryCondition = queryCondition
+                PropertySearch = QueryState.getCurrentProperty queryState
+                QueryCache = ValueNone
+                Refresh = Refresh.Required
+                SuppressProperties = suppressProperties
+            }
             |> updateConsoleWidth prompt consoleWidth
 
     [<NoComparison>]
     [<NoEquality>]
     type IncomingParameters =
-        { Query: string
-          Matcher: string
-          Operator: string
-          CaseSensitive: bool
-          InvertQuery: bool
-          NotInteractive: bool
-          SuppressProperties: bool
-          Prompt: string
-          WordDelimiters: string
-          Layout: string
-          Keymaps: Map<KeyPattern, Action>
-          Properties: Generic.IReadOnlyCollection<string>
-          PropertiesMap: Generic.IReadOnlyDictionary<string, string>
-          ConsoleWidth: int }
+        {
+            Query: string
+            Matcher: string
+            Operator: string
+            CaseSensitive: bool
+            InvertQuery: bool
+            NotInteractive: bool
+            SuppressProperties: bool
+            Prompt: string
+            WordDelimiters: string
+            Layout: string
+            Keymaps: Map<KeyPattern, Action>
+            Properties: Generic.IReadOnlyCollection<string>
+            PropertiesMap: Generic.IReadOnlyDictionary<string, string>
+            ConsoleWidth: int
+        }
 
     [<Literal>]
     let private anchor = ">"
@@ -745,24 +783,30 @@ module Data =
         let prompt = p.Prompt + anchor
         let promptLength = prompt |> String.length
 
-        { Layout = Layout.fromString p.Layout
-          Keymaps = p.Keymaps
-          NotInteractive = p.NotInteractive
-          WordDelimiters = p.WordDelimiters
-          Prompt = prompt
-          PromptLength = promptLength
-          Properties = p.Properties
-          PropertiesMap = p.PropertiesMap },
+        {
+            Layout = Layout.fromString p.Layout
+            Keymaps = p.Keymaps
+            NotInteractive = p.NotInteractive
+            WordDelimiters = p.WordDelimiters
+            Prompt = prompt
+            PromptLength = promptLength
+            Properties = p.Properties
+            PropertiesMap = p.PropertiesMap
+        },
         InternalState.create
-            { Query = p.Query
-              Cursor = String.length p.Query
-              WindowBeginningCursor = 0 // NOTE: adjust later.
-              WindowWidth = 0 // NOTE: adjust later.
-              InputMode = InputMode.Input }
-            { Matcher = Matcher.fromString p.Matcher
-              Operator = Operator.fromString p.Operator
-              CaseSensitive = p.CaseSensitive
-              Invert = p.InvertQuery }
+            {
+                Query = p.Query
+                Cursor = String.length p.Query
+                WindowBeginningCursor = 0 // NOTE: adjust later.
+                WindowWidth = 0 // NOTE: adjust later.
+                InputMode = InputMode.Input
+            }
+            {
+                Matcher = Matcher.fromString p.Matcher
+                Operator = Operator.fromString p.Operator
+                CaseSensitive = p.CaseSensitive
+                Invert = p.InvertQuery
+            }
             p.SuppressProperties
             promptLength
             p.ConsoleWidth
