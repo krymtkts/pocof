@@ -321,7 +321,8 @@ module Handle =
                 { state with
                     InternalState.QueryState.Query = $"%s{head}%s{next}%s{tail}"
                     InternalState.QueryState.Cursor = basePosition + next.Length
-                    PropertySearch = PropertySearch.Rotate(keyword, candidates) }
+                    PropertySearch = PropertySearch.Rotate(keyword, candidates)
+                }
                 |> InternalState.refresh
 
             struct (state, context |> QueryContext.prepareQuery state)
@@ -337,7 +338,10 @@ module Handle =
                 let candidate = Seq.head candidates
                 let struct (basePosition, head, tail) = splitQuery state keyword candidate
 #if DEBUG
-                Logger.LogFile [ $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'" ]
+                Logger.LogFile
+                    [
+                        $"Search keyword '{keyword}' head '{head}' candidate '{candidate}' tail '{tail}'"
+                    ]
 #endif
                 buildValues head candidate tail keyword (candidates |> Seq.cycle) basePosition context
         | PropertySearch.Rotate(keyword, candidates) ->
@@ -346,7 +350,10 @@ module Handle =
             let next = candidates |> Seq.head
             let struct (basePosition, head, tail) = splitQuery state cur next
 #if DEBUG
-            Logger.LogFile [ $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'" ]
+            Logger.LogFile
+                [
+                    $"Rotate keyword '{keyword}' head '{head}' cur '{cur}' next '{next}' tail '{tail}'"
+                ]
 #endif
             buildValues head next tail keyword candidates basePosition context
 

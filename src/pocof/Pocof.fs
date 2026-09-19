@@ -47,21 +47,25 @@ module Pocof =
     [<NoComparison>]
     [<NoEquality>]
     type LoopFixedArguments =
-        { Keymaps: Map<KeyPattern, Action>
-          Input: Entry pseq
-          PublishEvent: RenderEvent -> unit
-          GetKey: unit -> KeyBatch
-          GetConsoleWidth: unit -> int
-          GetLengthInBufferCells: string -> int
-          WordDelimiters: string
-          PromptLength: int
-          Properties: Generic.IReadOnlyCollection<string>
-          PropertiesMap: Generic.IReadOnlyDictionary<string, string> }
+        {
+            Keymaps: Map<KeyPattern, Action>
+            Input: Entry pseq
+            PublishEvent: RenderEvent -> unit
+            GetKey: unit -> KeyBatch
+            GetConsoleWidth: unit -> int
+            GetLengthInBufferCells: string -> int
+            WordDelimiters: string
+            PromptLength: int
+            Properties: Generic.IReadOnlyCollection<string>
+            PropertiesMap: Generic.IReadOnlyDictionary<string, string>
+        }
 
     let calculateWindowBeginningCursor (getLengthInBufferCells: string -> int) (state: QueryState) =
 #if DEBUG
         Logger.LogFile
-            [ $"Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+            [
+                $"Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'"
+            ]
 #endif
         match state.WindowBeginningCursor > state.Cursor with
         | true -> state.Cursor
@@ -96,14 +100,17 @@ module Pocof =
 
 #if DEBUG
             Logger.LogFile
-                [ $"WindowBeginningCursor '{wx}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'" ]
+                [
+                    $"WindowBeginningCursor '{wx}' Cursor '{state.Cursor}' WindowBeginningCursor '{state.WindowBeginningCursor}' WindowWidth '{state.WindowWidth}'"
+                ]
 #endif
             wx
 
     let private adjustQueryWindow (getLengthInBufferCells: string -> int) (state: InternalState) =
         { state with
             InternalState.QueryState.WindowBeginningCursor =
-                calculateWindowBeginningCursor getLengthInBufferCells state.QueryState }
+                calculateWindowBeginningCursor getLengthInBufferCells state.QueryState
+        }
 
     let query (args: LoopFixedArguments) (results: Entry pseq Lazy) (state: InternalState) (context: QueryContext) =
         match state.Refresh with
@@ -159,16 +166,18 @@ module Pocof =
         let input = input |> PSeq.ofSeq
 
         let args =
-            { Keymaps = conf.Keymaps
-              Input = input
-              PublishEvent = publish
-              GetKey = buff.GetKey
-              GetConsoleWidth = buff.GetConsoleWidth
-              GetLengthInBufferCells = buff.GetLengthInBufferCells
-              WordDelimiters = conf.WordDelimiters
-              PromptLength = conf.PromptLength
-              Properties = conf.Properties
-              PropertiesMap = conf.PropertiesMap }
+            {
+                Keymaps = conf.Keymaps
+                Input = input
+                PublishEvent = publish
+                GetKey = buff.GetKey
+                GetConsoleWidth = buff.GetConsoleWidth
+                GetLengthInBufferCells = buff.GetLengthInBufferCells
+                WordDelimiters = conf.WordDelimiters
+                PromptLength = conf.PromptLength
+                Properties = conf.Properties
+                PropertiesMap = conf.PropertiesMap
+            }
 
         loop args (lazy input) state context
 

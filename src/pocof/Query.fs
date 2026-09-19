@@ -136,14 +136,17 @@ module Query =
             parseQuery is q
 
     let private makeCacheKey (state: InternalState) : QueryCacheKey =
-        { Query = state.QueryState.Query
-          Matcher = state.QueryCondition.Matcher
-          CaseSensitive = state.QueryCondition.CaseSensitive
-          Invert = state.QueryCondition.Invert }
+        {
+            Query = state.QueryState.Query
+            Matcher = state.QueryCondition.Matcher
+            CaseSensitive = state.QueryCondition.CaseSensitive
+            Invert = state.QueryCondition.Invert
+        }
 
     let private cacheQueries (state: InternalState) (key: QueryCacheKey) (queries: QueryPart list) : InternalState =
         { state with
-            QueryCache = ({ Key = key; Queries = queries }: QueryCache) |> ValueSome }
+            QueryCache = ({ Key = key; Queries = queries }: QueryCache) |> ValueSome
+        }
 
     let prepare (state: InternalState) : struct (InternalState * QueryContext) =
         let key = makeCacheKey state
@@ -156,8 +159,10 @@ module Query =
                 cacheQueries state key qs, qs
 
         struct (state,
-                { Queries = queries
-                  Operator = state.QueryCondition.Operator })
+                {
+                    Queries = queries
+                    Operator = state.QueryCondition.Operator
+                })
 
     module InternalState =
         let prepareNotification state =
@@ -180,11 +185,13 @@ module Query =
                 | _ -> prepareQuery state.QueryState.Query state.QueryCondition
 
             { context with
-                QueryContext.Queries = queries }
+                QueryContext.Queries = queries
+            }
 
         let prepareTest state context =
             { context with
-                QueryContext.Operator = state.QueryCondition.Operator }
+                QueryContext.Operator = state.QueryCondition.Operator
+            }
 
     let private generatePredicate
         (props: Generic.IReadOnlyDictionary<string, string>)
@@ -242,7 +249,7 @@ module Query =
                     let mutable result = true
 
                     while result && i < predicates.Length do
-                        result <- predicates[i]entry
+                        result <- predicates[i] entry
                         i <- i + 1
 
                     result
@@ -252,7 +259,7 @@ module Query =
                     let mutable result = false
 
                     while not result && i < predicates.Length do
-                        result <- predicates[i]entry
+                        result <- predicates[i] entry
                         i <- i + 1
 
                     result

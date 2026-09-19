@@ -176,91 +176,91 @@ module SelectPocofCommand =
             "SelectPocofCommand"
             [
 
-              test "When non-interactive mode, should return values" {
-                  let runtime = new Mock.CommandRuntime()
-                  let cmdlet = SelectPocofCommandForTest()
-                  cmdlet.CommandRuntime <- runtime
-                  cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
-                  cmdlet.NonInteractive <- true
-                  cmdlet.InvokeForTest()
+                test "When non-interactive mode, should return values" {
+                    let runtime = new Mock.CommandRuntime()
+                    let cmdlet = SelectPocofCommandForTest()
+                    cmdlet.CommandRuntime <- runtime
+                    cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+                    cmdlet.NonInteractive <- true
+                    cmdlet.InvokeForTest()
 
-                  runtime.Output
-                  |> Expect.equal "should return values with non-interactive mode" [ "a" ]
-              }
+                    runtime.Output
+                    |> Expect.equal "should return values with non-interactive mode" [ "a" ]
+                }
 
-              test "When invalid keymaps, should raise ArgumentException" {
-                  let runtime = new Mock.CommandRuntime()
-                  let cmdlet = new SelectPocofCommandForTest()
-                  cmdlet.CommandRuntime <- runtime
-                  cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+                test "When invalid keymaps, should raise ArgumentException" {
+                    let runtime = new Mock.CommandRuntime()
+                    let cmdlet = new SelectPocofCommandForTest()
+                    cmdlet.CommandRuntime <- runtime
+                    cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
 
-                  cmdlet.Keymaps <-
-                      let k = new Hashtable()
-                      k.Add("Escape", "cancellation")
-                      k
+                    cmdlet.Keymaps <-
+                        let k = new Hashtable()
+                        k.Add("Escape", "cancellation")
+                        k
 
-                  Expect.throwsT<ArgumentException> "should raise ArgumentException when invalid keymaps" (fun () ->
-                      cmdlet.InvokeForTest())
-              }
+                    Expect.throwsT<ArgumentException> "should raise ArgumentException when invalid keymaps" (fun () ->
+                        cmdlet.InvokeForTest())
+                }
 
-              test "When cancellation received, should return" {
-                  let runtime = new Mock.CommandRuntime()
-                  let cmdlet = new SelectPocofCommandForTest()
-                  cmdlet.CommandRuntime <- runtime
-                  cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+                test "When cancellation received, should return" {
+                    let runtime = new Mock.CommandRuntime()
+                    let cmdlet = new SelectPocofCommandForTest()
+                    cmdlet.CommandRuntime <- runtime
+                    cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
 
-                  cmdlet.Keymaps <-
-                      let k = new Hashtable()
-                      k.Add("Escape", "Cancel")
-                      k
+                    cmdlet.Keymaps <-
+                        let k = new Hashtable()
+                        k.Add("Escape", "Cancel")
+                        k
 
-                  Expect.throwsT<MockException> "should raise when cancellation received" (fun () ->
-                      cmdlet.InvokeForTerminationTest())
+                    Expect.throwsT<MockException> "should raise when cancellation received" (fun () ->
+                        cmdlet.InvokeForTerminationTest())
 
-              }
+                }
 
-              test "When Escape is Finish, should return values" {
-                  let runtime = new Mock.CommandRuntime()
-                  let cmdlet = new SelectPocofCommandForTest()
+                test "When Escape is Finish, should return values" {
+                    let runtime = new Mock.CommandRuntime()
+                    let cmdlet = new SelectPocofCommandForTest()
 
-                  cmdlet.CommandRuntime <- runtime
-                  cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+                    cmdlet.CommandRuntime <- runtime
+                    cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
 
-                  cmdlet.Keymaps <-
-                      let k = new Hashtable()
-                      k.Add("Escape", "Finish")
-                      k
+                    cmdlet.Keymaps <-
+                        let k = new Hashtable()
+                        k.Add("Escape", "Finish")
+                        k
 
-                  Thread.Sleep 100
-                  cmdlet.InvokeForTest()
+                    Thread.Sleep 100
+                    cmdlet.InvokeForTest()
 
-                  runtime.Output
-                  |> Expect.equal "should return values when Escape is Finish" [ "a" ]
-              }
+                    runtime.Output
+                    |> Expect.equal "should return values when Escape is Finish" [ "a" ]
+                }
 
-              test "When setting properties, should reflect properties" {
-                  let runtime = new Mock.CommandRuntime()
-                  let cmdlet = new SelectPocofCommandForTest()
-                  cmdlet.CommandRuntime <- runtime
-                  cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
-                  cmdlet.Query <- "a"
-                  cmdlet.Matcher <- "Match"
-                  cmdlet.Operator <- "Or"
-                  cmdlet.CaseSensitive <- true
-                  cmdlet.InvertQuery <- true
-                  cmdlet.NonInteractive <- true
-                  cmdlet.SuppressProperties <- true
-                  cmdlet.Unique <- true
-                  cmdlet.Prompt <- ">"
-                  cmdlet.Layout <- "TopDown"
+                test "When setting properties, should reflect properties" {
+                    let runtime = new Mock.CommandRuntime()
+                    let cmdlet = new SelectPocofCommandForTest()
+                    cmdlet.CommandRuntime <- runtime
+                    cmdlet.InputObject <- [| PSObject.AsPSObject "a" |]
+                    cmdlet.Query <- "a"
+                    cmdlet.Matcher <- "Match"
+                    cmdlet.Operator <- "Or"
+                    cmdlet.CaseSensitive <- true
+                    cmdlet.InvertQuery <- true
+                    cmdlet.NonInteractive <- true
+                    cmdlet.SuppressProperties <- true
+                    cmdlet.Unique <- true
+                    cmdlet.Prompt <- ">"
+                    cmdlet.Layout <- "TopDown"
 
-                  cmdlet.Keymaps <-
-                      let k = new Hashtable()
-                      k.Add("Escape", "Finish")
-                      k
+                    cmdlet.Keymaps <-
+                        let k = new Hashtable()
+                        k.Add("Escape", "Finish")
+                        k
 
-                  cmdlet.WordDelimiters <- "_"
-              // NOTE: do nothing
-              }
+                    cmdlet.WordDelimiters <- "_"
+                // NOTE: do nothing
+                }
 
-              ]
+            ]

@@ -36,43 +36,45 @@ module Keys =
 
     let defaultKeymap =
         Map
-            [ plain ConsoleKey.Escape, Action.Cancel
-              ctrl ConsoleKey.C, Action.Cancel
-              plain ConsoleKey.Enter, Action.Finish
+            [
+                plain ConsoleKey.Escape, Action.Cancel
+                ctrl ConsoleKey.C, Action.Cancel
+                plain ConsoleKey.Enter, Action.Finish
 
-              plain ConsoleKey.LeftArrow, Action.BackwardChar
-              ctrl ConsoleKey.LeftArrow, Action.BackwardWord
-              plain ConsoleKey.RightArrow, Action.ForwardChar
-              ctrl ConsoleKey.RightArrow, Action.ForwardWord
-              plain ConsoleKey.Home, Action.BeginningOfLine
-              plain ConsoleKey.End, Action.EndOfLine
+                plain ConsoleKey.LeftArrow, Action.BackwardChar
+                ctrl ConsoleKey.LeftArrow, Action.BackwardWord
+                plain ConsoleKey.RightArrow, Action.ForwardChar
+                ctrl ConsoleKey.RightArrow, Action.ForwardWord
+                plain ConsoleKey.Home, Action.BeginningOfLine
+                plain ConsoleKey.End, Action.EndOfLine
 
-              plain ConsoleKey.Backspace, Action.DeleteBackwardChar
-              plain ConsoleKey.Delete, Action.DeleteForwardChar
-              ctrl ConsoleKey.Backspace, Action.DeleteBackwardWord
-              ctrl ConsoleKey.Delete, Action.DeleteForwardWord
-              ctrl ConsoleKey.Home, Action.DeleteBackwardInput
-              ctrl ConsoleKey.End, Action.DeleteForwardInput
+                plain ConsoleKey.Backspace, Action.DeleteBackwardChar
+                plain ConsoleKey.Delete, Action.DeleteForwardChar
+                ctrl ConsoleKey.Backspace, Action.DeleteBackwardWord
+                ctrl ConsoleKey.Delete, Action.DeleteForwardWord
+                ctrl ConsoleKey.Home, Action.DeleteBackwardInput
+                ctrl ConsoleKey.End, Action.DeleteForwardInput
 
-              shift ConsoleKey.LeftArrow, Action.SelectBackwardChar
-              shift ConsoleKey.RightArrow, Action.SelectForwardChar
-              ctlSft ConsoleKey.LeftArrow, Action.SelectBackwardWord
-              ctlSft ConsoleKey.RightArrow, Action.SelectForwardWord
-              shift ConsoleKey.Home, Action.SelectToBeginningOfLine
-              shift ConsoleKey.End, Action.SelectToEndOfLine
-              ctrl ConsoleKey.A, Action.SelectAll
+                shift ConsoleKey.LeftArrow, Action.SelectBackwardChar
+                shift ConsoleKey.RightArrow, Action.SelectForwardChar
+                ctlSft ConsoleKey.LeftArrow, Action.SelectBackwardWord
+                ctlSft ConsoleKey.RightArrow, Action.SelectForwardWord
+                shift ConsoleKey.Home, Action.SelectToBeginningOfLine
+                shift ConsoleKey.End, Action.SelectToEndOfLine
+                ctrl ConsoleKey.A, Action.SelectAll
 
-              alt ConsoleKey.R, Action.RotateMatcher
-              alt ConsoleKey.L, Action.RotateOperator
-              alt ConsoleKey.C, Action.ToggleCaseSensitive
-              alt ConsoleKey.I, Action.ToggleInvertFilter
+                alt ConsoleKey.R, Action.RotateMatcher
+                alt ConsoleKey.L, Action.RotateOperator
+                alt ConsoleKey.C, Action.ToggleCaseSensitive
+                alt ConsoleKey.I, Action.ToggleInvertFilter
 
-              ctrl ConsoleKey.Spacebar, Action.ToggleSuppressProperties
+                ctrl ConsoleKey.Spacebar, Action.ToggleSuppressProperties
 
-              plain ConsoleKey.Tab, Action.CompleteProperty ]
+                plain ConsoleKey.Tab, Action.CompleteProperty
+            ]
 
-    let consoleKeyMap = lazy generateDictOfEnum<ConsoleKey> ()
-    let consoleModifiersMap = lazy generateDictOfEnum<ConsoleModifiers> ()
+    let consoleKeyMap = lazy generateDictOfEnum<ConsoleKey>()
+    let consoleModifiersMap = lazy generateDictOfEnum<ConsoleModifiers>()
 
     [<TailCall>]
     let rec private processKeys (keys: string array) l i (result: Result<Data.KeyPattern, string>) =
@@ -93,7 +95,8 @@ module Keys =
                 match result, consoleModifiersMap.Value.TryGetValue k with
                 | Ok r, (true, x) ->
                     { r with
-                        Modifier = r.Modifier ||| x.GetHashCode() }
+                        Modifier = r.Modifier ||| x.GetHashCode()
+                    }
                     |> Ok
                 | Ok _, (false, _) -> Error $"Unsupported modifier '%s{k}'."
                 | Error e, (false, _) -> Error $"%s{e} Unsupported modifier '%s{k}'."
@@ -105,8 +108,10 @@ module Keys =
 
         processKeys keys (Array.length keys) 0
         <| Ok
-            { Data.KeyPattern.Modifier = 0
-              Data.KeyPattern.Key = ConsoleKey.NoName }
+            {
+                Data.KeyPattern.Modifier = 0
+                Data.KeyPattern.Key = ConsoleKey.NoName
+            }
 
     let convertKeymaps (h: Hashtable | null) =
         match h with
@@ -157,8 +162,10 @@ module Keys =
     let private key (k: ConsoleKeyInfo) =
         let m = k.Modifiers.GetHashCode()
 
-        { KeyChar = k.KeyChar
-          Pattern = { Modifier = m; Key = k.Key } }
+        {
+            KeyChar = k.KeyChar
+            Pattern = { Modifier = m; Key = k.Key }
+        }
 
     [<return: Struct>]
     let private (|ShortcutKey|_|) (m: Map<KeyPattern, Action>) (k: KeyInfo) =

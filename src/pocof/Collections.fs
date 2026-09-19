@@ -29,12 +29,14 @@ type SpscSegmentEnumerator<'T> =
     new(head: SpscSegment<'T>, total: int) =
         let items = head.Items
 
-        { remaining = total
-          seg = head
-          items = items
-          cap = items.Length
-          idx = 0
-          current = Unchecked.defaultof<'T> }
+        {
+            remaining = total
+            seg = head
+            items = items
+            cap = items.Length
+            idx = 0
+            current = Unchecked.defaultof<'T>
+        }
 
     // NOTE: for F# pattern enumeration optimization (zero allocation via struct enumerator).
     member __.Current = __.current
