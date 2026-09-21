@@ -56,7 +56,7 @@ function Get-ValidMarkdownCommentHelp {
 
 Task Lint {
     # F# analysis
-    dotnet fantomas ./src --check --verbosity detailed
+    dotnet fantomas check ./src --verbosity detailed
     if (-not $?) {
         throw 'dotnet fantomas failed.'
     }
@@ -131,7 +131,7 @@ Task UnitTest {
             --output Detailed `
             --report-gh `
             --coverlet `
-            --coverlet-include "[pocof]*" `
+            --coverlet-include '[pocof]*' `
             --coverlet-output-format cobertura `
             --hangdump `
             --hangdump-timeout 20s `
