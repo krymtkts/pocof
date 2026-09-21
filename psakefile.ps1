@@ -131,7 +131,7 @@ Task UnitTest {
             --output Detailed `
             --report-gh `
             --coverlet `
-            --coverlet-include "[pocof]*" `
+            --coverlet-include '[pocof]*' `
             --coverlet-output-format cobertura `
             --hangdump `
             --hangdump-timeout 20s `
