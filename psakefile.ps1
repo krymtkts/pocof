@@ -56,7 +56,7 @@ function Get-ValidMarkdownCommentHelp {
 
 Task Lint {
     # F# analysis
-    dotnet fantomas ./src --check --verbosity detailed
+    dotnet fantomas check ./src --verbosity detailed
     if (-not $?) {
         throw 'dotnet fantomas failed.'
     }
