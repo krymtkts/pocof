@@ -426,8 +426,8 @@ module Screen =
 
         member __.WriteScreen
             (state: Data.InternalState)
-            (entries: Data.Entry pseq)
             (props: Result<string seq, string>)
+            (entries: Data.Entry pseq)
             =
             use _ = rui.HideCursorWhileRendering()
             let width = rui.GetWindowWidth()

@@ -514,7 +514,7 @@ let tests_renderOnce =
                 let handler = new Pocof.RenderHandler()
                 let rui = new MockRawUI()
                 let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-                let actual = Pocof.renderOnce handler buff
+                let actual = Pocof.renderOnce buff handler
 
                 actual
                 |> function
@@ -544,7 +544,7 @@ let tests_renderOnce =
 
                 let rui = new MockRawUI()
                 let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-                let actual = Pocof.renderOnce handler buff
+                let actual = Pocof.renderOnce buff handler
 
                 actual
                 |> function
@@ -570,7 +570,7 @@ let tests_renderOnce =
                 Pocof.RenderEvent.Quit |> handler.Publish
                 let rui = new MockRawUI()
                 let buff = Screen.init (fun _ -> rui) (fun _ -> Seq.empty) config.Layout prompt
-                let actual = Pocof.renderOnce handler buff
+                let actual = Pocof.renderOnce buff handler
 
                 actual
                 |> function

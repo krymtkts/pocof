@@ -339,7 +339,8 @@ module run =
                 test "When entry list is empty" {
                     let struct (state, context) = Query.prepare state
 
-                    Query.run context PSeq.empty props
+                    PSeq.empty
+                    |> Query.run context props
                     |> List.ofSeq
                     |> Expect.equal "should return empty" []
                 }
@@ -354,7 +355,7 @@ module run =
                             let state = initState () |> matcher Data.Matcher.Match
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return all entries" (entries |> List.ofSeq)
                         }
@@ -363,7 +364,7 @@ module run =
                             let state = state |> query "+"
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return all entries" (entries |> List.ofSeq)
                         }
@@ -371,7 +372,7 @@ module run =
                         test "When query is 'a' (filtered)" {
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return filtered entries" (genList [ "Name"; "Attribute" ])
                         }
@@ -380,7 +381,7 @@ module run =
                             let state = caseSensitive state
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal
                                 "should return filtered entries (case sensitive)"
@@ -391,7 +392,7 @@ module run =
                             let state = invert state
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return filtered entries (invert)" (genList [ "Length" ])
                         }
@@ -400,7 +401,7 @@ module run =
                             let state = state |> query "+" |> invert
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> Expect.sequenceEqual "should return all entries" entries
                         }
 
@@ -408,7 +409,7 @@ module run =
                             let state = state |> query "a N"
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return all entries (or)" (entries |> List.ofSeq)
                         }
@@ -417,7 +418,7 @@ module run =
                             let state = state |> query "a N" |> opAnd
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return filtered entries (and)" (genList [ "Name" ])
                         }
@@ -434,7 +435,7 @@ module run =
                             let state = initState () |> matcher Data.Matcher.Like
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return all entries" (entries |> List.ofSeq)
                         }
@@ -442,7 +443,7 @@ module run =
                         test "When matcher is like" {
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return matched entries" (genList [ "Attribute" ])
                         }
@@ -451,7 +452,7 @@ module run =
                             let state = caseSensitive state
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return matched entries (case sensitive)" (mapToObj [ "attribute" ])
                         }
@@ -460,7 +461,7 @@ module run =
                             let state = invert state
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return filtered entries (invert)" (genList [ "Name"; "Length" ])
                         }
@@ -469,7 +470,7 @@ module run =
                             let state = state |> query "*e* N*"
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return all entries (or)" (entries |> List.ofSeq)
                         }
@@ -478,7 +479,7 @@ module run =
                             let state = state |> query "*e* N*" |> opAnd
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return filtered entries (and)" (genList [ "Name" ])
                         }
@@ -495,7 +496,7 @@ module run =
                             let state = initState () |> matcher Data.Matcher.Eq
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return all entries" (entries |> List.ofSeq)
                         }
@@ -503,7 +504,7 @@ module run =
                         test "When matcher is eq" {
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return matched entries" (genList [ "Name" ])
                         }
@@ -512,7 +513,7 @@ module run =
                             let state = caseSensitive state
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return matched entries (case sensitive)" (mapToObj [ "Name" ])
                         }
@@ -521,7 +522,7 @@ module run =
                             let state = invert state
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal
                                 "should return filtered entries (invert)"
@@ -532,7 +533,7 @@ module run =
                             let state = state |> query "Name Length"
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return filtered entries (or)" (genList [ "Name"; "Length" ])
                         }
@@ -541,7 +542,7 @@ module run =
                             let state = state |> query "Name Length" |> opAnd
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should return filtered entries (and)" []
                         }
@@ -578,7 +579,7 @@ module run =
                             let state = state |> cache queryCache
                             let context = Query.prepare state |> snd'
 
-                            Query.run context entries props
+                            Query.run context props entries
                             |> List.ofSeq
                             |> Expect.equal "should reuse cached query" (genList [ "Name" ])
                         }
@@ -612,7 +613,7 @@ module run =
                     let state = state |> query "e"
                     let context = Query.prepare state |> snd'
 
-                    Query.run context entries props
+                    Query.run context props entries
                     |> List.ofSeq
                     |> Expect.equal
                         "should return filtered entries (or)"
@@ -623,7 +624,7 @@ module run =
                     let state = state |> query "ne" |> opAnd
                     let context = Query.prepare state |> snd'
 
-                    Query.run context entries props
+                    Query.run context props entries
                     |> List.ofSeq
                     |> Expect.equal
                         "should return filtered entries (and)"
@@ -641,7 +642,7 @@ module run =
                     let state = state |> query ":key  ja" |> opAnd
                     let context = Query.prepare state |> snd'
 
-                    Query.run context entries props
+                    Query.run context props entries
                     |> List.ofSeq
                     |> Expect.equal
                         "should return filtered entries (property query)"
@@ -659,7 +660,7 @@ module run =
                     let state = state |> query ":title  ja" |> opAnd
                     let context = Query.prepare state |> snd'
 
-                    Query.run context entries props
+                    Query.run context props entries
                     |> List.ofSeq
                     |> Expect.equal "should return all entries (non-existing property)" (entries |> List.ofSeq)
                 }
@@ -679,7 +680,7 @@ module run =
 
                     let context = Query.prepare state |> snd'
 
-                    Query.run context entries props
+                    Query.run context props entries
                     |> List.ofSeq
                     |> Expect.equal "should return empty" []
                 }
@@ -712,7 +713,9 @@ module run =
                     let context = Query.prepare state |> snd'
                     let filtered = [ entries[0]; entries[1]; entries[3] ]
 
-                    Query.run context (entries |> PSeq.ofSeq) props
+                    entries
+                    |> PSeq.ofSeq
+                    |> Query.run context props
                     |> List.ofSeq
                     |> Expect.equal "should return filtered entries (or)" filtered
                 }
@@ -722,7 +725,9 @@ module run =
                     let context = Query.prepare state |> snd'
                     let filtered = [ entries[1] ]
 
-                    Query.run context (entries |> PSeq.ofSeq) props
+                    entries
+                    |> PSeq.ofSeq
+                    |> Query.run context props
                     |> List.ofSeq
                     |> Expect.equal "should return filtered entries (and)" filtered
                 }
@@ -731,7 +736,9 @@ module run =
                     let state = state |> query ":f a"
                     let context = Query.prepare state |> snd'
 
-                    Query.run context (entries |> PSeq.ofSeq) props
+                    entries
+                    |> PSeq.ofSeq
+                    |> Query.run context props
                     |> List.ofSeq
                     |> Expect.equal "should return all entries (property not exists)" entries
                 }
@@ -740,7 +747,9 @@ module run =
                     let state = state |> query ":fn "
                     let context = Query.prepare state |> snd'
 
-                    Query.run context (entries |> PSeq.ofSeq) props
+                    entries
+                    |> PSeq.ofSeq
+                    |> Query.run context props
                     |> List.ofSeq
                     |> Expect.equal "should return all entries (incomplete composite query)" entries
                 }
@@ -750,7 +759,9 @@ module run =
                     let context = Query.prepare state |> snd'
                     let filtered = [ entries[1]; entries[3] ]
 
-                    Query.run context (entries |> PSeq.ofSeq) props
+                    entries
+                    |> PSeq.ofSeq
+                    |> Query.run context props
                     |> List.ofSeq
                     |> Expect.equal "should return filtered entries (incomplete composite query with filter)" filtered
                 }
@@ -760,7 +771,9 @@ module run =
                     let context = Query.prepare state |> snd'
                     let filtered = [ entries[1]; entries[3] ]
 
-                    Query.run context (entries |> PSeq.ofSeq) props
+                    entries
+                    |> PSeq.ofSeq
+                    |> Query.run context props
                     |> List.ofSeq
                     |> Expect.equal
                         "should return filtered entries (non-existent property after correct query)"
@@ -772,7 +785,9 @@ module run =
                     let context = Query.prepare state |> snd'
                     let filtered = [ entries[1]; entries[3] ]
 
-                    Query.run context (entries |> PSeq.ofSeq) props
+                    entries
+                    |> PSeq.ofSeq
+                    |> Query.run context props
                     |> List.ofSeq
                     |> Expect.equal
                         "should return filtered entries (non-existent property before correct query)"
@@ -809,7 +824,9 @@ module run =
                     let context = Query.prepare state |> snd'
                     let filtered = [ entries |> List.last ]
 
-                    Query.run context (entries |> PSeq.ofSeq) (Map [])
+                    entries
+                    |> PSeq.ofSeq
+                    |> Query.run context (Map [])
                     |> List.ofSeq
                     |> Expect.equal "should return filtered entries (locale en-US)" filtered
 

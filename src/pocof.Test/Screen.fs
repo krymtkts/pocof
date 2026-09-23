@@ -105,7 +105,7 @@ let ``tests Buff writeScreen`` =
     let getRenderedScreen rui state layout prompt =
         // NOTE: avoid cleanup of buff to check screen.
         let buff = new Buff(rui, (fun _ -> Seq.empty), layout, prompt)
-        buff.WriteScreen state PSeq.empty <| Ok []
+        PSeq.empty |> buff.WriteScreen state (Ok [])
         rui
 
     testList
@@ -237,7 +237,7 @@ let ``tests Buff writeScreen`` =
                     |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
                 use buff = new Buff(rui, (fun _ -> Seq.empty), Layout.TopDown, ``prompt>``)
-                buff.WriteScreen state PSeq.empty <| Pocof.Query.props [] state
+                PSeq.empty |> buff.WriteScreen state (Pocof.Query.props [] state)
 
                 let expected =
                     List.concat
@@ -266,7 +266,7 @@ let ``tests Buff writeScreen`` =
                     }
                     |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
-                buff.WriteScreen state PSeq.empty <| (props |> Ok)
+                PSeq.empty |> buff.WriteScreen state (Ok props)
 
                 let expected =
                     List.concat
@@ -301,7 +301,7 @@ let ``tests Buff writeScreen`` =
                     }
                     |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
-                buff.WriteScreen state PSeq.empty <| (props |> Ok)
+                PSeq.empty |> buff.WriteScreen state (Ok props)
 
                 let expected =
                     List.concat
@@ -328,7 +328,7 @@ let ``tests Buff writeScreen`` =
                     }
                     |> InternalState.updateConsoleWidth ``prompt>Length`` rui.width
 
-                buff.WriteScreen state PSeq.empty <| Error "Property not found"
+                PSeq.empty |> buff.WriteScreen state (Error "Property not found")
 
                 let expected =
                     List.concat
@@ -369,7 +369,7 @@ let ``tests Buff writeScreen`` =
                     |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
                     |> PSeq.ofSeq
 
-                buff.WriteScreen state entries <| Ok []
+                entries |> buff.WriteScreen state (Ok [])
 
                 let expected =
                     List.concat
@@ -406,7 +406,7 @@ let ``tests Buff writeScreen`` =
                     |> List.map (fun i -> DictionaryEntry("Number", i) |> Entry.Dict)
                     |> PSeq.ofSeq
 
-                buff.WriteScreen state entries <| Ok []
+                entries |> buff.WriteScreen state (Ok [])
 
                 let expected =
                     List.concat
@@ -442,7 +442,7 @@ let ``tests Buff writeScreen`` =
                     |> List.map (fun _ -> String.replicate 10 "0123456789" |> PSObject.AsPSObject |> Entry.Obj)
                     |> PSeq.ofSeq
 
-                buff.WriteScreen state entries <| Ok []
+                entries |> buff.WriteScreen state (Ok [])
 
                 let expected =
                     List.concat
@@ -480,7 +480,7 @@ let ``tests Buff writeScreen`` =
                         i % 10 |> intToChar |> String.replicate 100 |> PSObject.AsPSObject |> Entry.Obj)
                     |> PSeq.ofSeq
 
-                buff.WriteScreen state entries <| Ok []
+                entries |> buff.WriteScreen state (Ok [])
 
                 let expected =
                     List.concat

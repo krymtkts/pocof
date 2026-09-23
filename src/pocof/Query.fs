@@ -264,7 +264,7 @@ module Query =
 
                     result
 
-    let run (context: QueryContext) (entries: Entry pseq) (props: Generic.IReadOnlyDictionary<string, string>) =
+    let run (context: QueryContext) (props: Generic.IReadOnlyDictionary<string, string>) (entries: Entry pseq) =
         match context.Queries with
         | [] -> entries
         | _ ->
