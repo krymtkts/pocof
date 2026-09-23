@@ -291,19 +291,19 @@ type QueryRunBenchmarks() =
 
     [<Benchmark>]
     member __.run_obj_normal() =
-        Query.run __.NormalContext __.Objects props |> PSeq.length |> ignore
+        __.Objects |> Query.run __.NormalContext props |> PSeq.length |> ignore
 
     [<Benchmark>]
     member __.run_dict_normal() =
-        Query.run __.NormalContext __.Dicts props |> PSeq.length |> ignore
+        __.Dicts |> Query.run __.NormalContext props |> PSeq.length |> ignore
 
     [<Benchmark>]
     member __.run_obj_property() =
-        Query.run __.PropertyContext __.Objects props |> PSeq.length |> ignore
+        __.Objects |> Query.run __.PropertyContext props |> PSeq.length |> ignore
 
     [<Benchmark>]
     member __.run_dict_property() =
-        Query.run __.PropertyContext __.Dicts props |> PSeq.length |> ignore
+        __.Dicts |> Query.run __.PropertyContext props |> PSeq.length |> ignore
 
 [<MemoryDiagnoser>]
 type QueryPrepareBenchmarks() =
