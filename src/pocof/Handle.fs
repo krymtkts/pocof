@@ -16,13 +16,13 @@ module Handle =
         struct (state, context |> QueryContext.prepareQuery state)
 
     let private updateCursor
-        (update: QueryState -> int -> QueryState)
+        (update: int -> QueryState -> QueryState)
         (cursor: int)
         (mode: InputMode)
         (state: InternalState)
         (context: QueryContext)
         =
-        let qs = update state.QueryState cursor |> QueryState.setInputMode mode
+        let qs = state.QueryState |> update cursor |> QueryState.setInputMode mode
 
         struct (state
                 |> InternalState.refreshIfTrue (state.QueryState.Cursor <> qs.Cursor)
@@ -121,7 +121,7 @@ module Handle =
         match state.QueryState.Cursor with
         | x when x = limit -> struct (InternalState.noRefresh state, context)
         | _ ->
-            let qs = removeQuery state.QueryState size
+            let qs = state.QueryState |> removeQuery size
 
             let state =
                 state
@@ -265,9 +265,9 @@ module Handle =
         let s = state.QueryState.Query.Length
 
         let qs =
-            QueryState.setInputMode
-            <| InputMode.Select s
-            <| QueryState.setCursor state.QueryState s
+            state.QueryState
+            |> QueryState.setCursor s
+            |> QueryState.setInputMode (InputMode.Select s)
 
         struct (state |> InternalState.refresh |> InternalState.updateQueryState qs, context)
 

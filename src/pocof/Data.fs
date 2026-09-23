@@ -385,7 +385,7 @@ module Data =
             | x when x > ql -> ValueSome ql
             | _ -> ValueNone
 
-        let moveCursor (state: QueryState) (step: int) =
+        let moveCursor (step: int) (state: QueryState) =
             let x =
                 match state.Cursor + step with
                 | Negative -> 0
@@ -394,7 +394,7 @@ module Data =
 
             { state with Cursor = x }
 
-        let setCursor (state: QueryState) (x: int) = { state with Cursor = x }
+        let setCursor (x: int) (state: QueryState) = { state with Cursor = x }
 
         let setInputMode (mode: InputMode) (state: QueryState) = { state with InputMode = mode }
 
@@ -411,7 +411,7 @@ module Data =
                     | 0 -> InputMode.Input
                     | s -> s |> InputMode.Select
 
-        let backspaceQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
+        let backspaceQuery (size: int) (state: QueryState) = // NOTE: size is non-negative.
             let query = state.Query
 
             let index, count =
@@ -435,7 +435,7 @@ module Data =
                 Cursor = index
             }
 
-        let deleteQuery (state: QueryState) (size: int) = // NOTE: size is non-negative.
+        let deleteQuery (size: int) (state: QueryState) = // NOTE: size is non-negative.
             let ql = state.Query.Length
 
             match ql - state.Cursor with
