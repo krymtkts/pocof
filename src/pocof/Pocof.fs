@@ -116,7 +116,7 @@ module Pocof =
         match state.Refresh with
         | Refresh.NotRequired -> results, state
         | _ ->
-            let results = lazy Query.run context args.Input args.PropertiesMap
+            let results = lazy (args.Input |> Query.run context args.PropertiesMap)
             let state = state |> adjustQueryWindow args.GetLengthInBufferCells
             let props = lazy Query.props args.Properties state
             RenderEvent.Render(state, results, props) |> args.PublishEvent
@@ -183,8 +183,7 @@ module Pocof =
 
     let interactOnce (conf: InternalConfig) (state: InternalState) (input: Entry seq) =
         let context = Query.prepare state |> snd'
-        let input = input |> PSeq.ofSeq
-        Query.run context input conf.PropertiesMap |> unwrap
+        input |> PSeq.ofSeq |> Query.run context conf.PropertiesMap |> unwrap
 
     [<RequireQualifiedAccess>]
     [<NoComparison>]
