@@ -271,7 +271,7 @@ module Pocof =
         | Rendered of (InternalState * Entry pseq Lazy * Result<string seq, string> Lazy)
         | StopUpstreamCommands
 
-    let renderOnce (handler: RenderHandler) (buff: Screen.Buff) =
+    let renderOnce (buff: Screen.Buff) (handler: RenderHandler) =
         match handler.Receive(block = false) with
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
@@ -328,7 +328,7 @@ module Pocof =
 
         member __.Render() =
             if stopwatch.ElapsedMilliseconds >= 10 then
-                renderOnce handler buff
+                renderOnce buff handler
                 |> function
                     | Cancelled _ -> cancelAction ()
                     | _ -> ()
