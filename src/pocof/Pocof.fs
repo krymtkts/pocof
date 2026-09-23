@@ -242,7 +242,7 @@ module Pocof =
             render buff handler
         | RenderMessage.Received RenderEvent.Quit -> ()
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
-            buff.WriteScreen state entries.Value props.Value
+            entries.Value |> buff.WriteScreen state props.Value
             render buff handler
 
     let stopUpstreamCommandsException (exp: Type) (cmdlet: Cmdlet) : Exception | null =
@@ -276,7 +276,7 @@ module Pocof =
         | RenderMessage.None -> RenderProcess.Noop
         | RenderMessage.Received RenderEvent.Quit -> RenderProcess.StopUpstreamCommands
         | RenderMessage.Received(RenderEvent.Render(state, entries, props)) ->
-            buff.WriteScreen state entries.Value props.Value
+            entries.Value |> buff.WriteScreen state props.Value
             RenderProcess.Rendered(state, entries, props)
 
     [<Sealed>]
@@ -294,7 +294,7 @@ module Pocof =
                 |> InternalState.updateConsoleWidth promptLength (buff.GetConsoleWidth())
                 |> adjustQueryWindow buff.GetLengthInBufferCells
 
-            buff.WriteScreen state result.Value props.Value
+            result.Value |> buff.WriteScreen state props.Value
 
         [<return: Struct>]
         let (|Cancelled|_|) =
