@@ -8,19 +8,46 @@ inputs:
   project_name:
     description: "Name of the .NET project to scan"
     required: true
+  target_framework:
+    description: "Target framework to scan"
+    required: false
+    default: ""
 
 runs:
   using: composite
   steps:
+    - id: scan_options
+      name: Configure Snyk scan
+      shell: bash
+      env:
+        PROJECT_NAME: ${{ inputs.project_name }}
+        TARGET_FRAMEWORK: ${{ inputs.target_framework }}
+      run: |
+        suffix=""
+        if [[ -n "$TARGET_FRAMEWORK" ]]; then
+          suffix="-$TARGET_FRAMEWORK"
+        fi
+        echo "sarif_file=${PROJECT_NAME}${suffix}-snyk.sarif" >> "$GITHUB_OUTPUT"
+        echo "category=Snyk(${PROJECT_NAME}${suffix})" >> "$GITHUB_OUTPUT"
     - name: Run Snyk to check for vulnerabilities(${{ inputs.project_name }})
       continue-on-error: true # To make sure that SARIF upload gets called
       shell: bash
       run: |
-        snyk test ./src/${{ inputs.project_name }} --sarif-file-output=${{ inputs.project_name }}-snyk.sarif --org=krymtkts
+        target_framework_args=()
+        if [[ -n "$TARGET_FRAMEWORK" ]]; then
+          target_framework_args+=(--dotnet-target-framework="$TARGET_FRAMEWORK")
+        fi
+        snyk test "./src/${PROJECT_NAME}" \
+          "${target_framework_args[@]}" \
+          "--sarif-file-output=${SARIF_FILE}" \
+          --org=krymtkts
       env:
         SNYK_TOKEN: ${{ inputs.snyk_token }}
+        PROJECT_NAME: ${{ inputs.project_name }}
+        TARGET_FRAMEWORK: ${{ inputs.target_framework }}
+        SARIF_FILE: ${{ steps.scan_options.outputs.sarif_file }}
     - name: Upload result to GitHub Code Scanning(${{ inputs.project_name }})
       uses: github/codeql-action/upload-sarif@v4
       with:
-        sarif_file: ${{ inputs.project_name }}-snyk.sarif
-        category: Snyk(${{ inputs.project_name }})
+        sarif_file: ${{ steps.scan_options.outputs.sarif_file }}
+        category: ${{ steps.scan_options.outputs.category }}

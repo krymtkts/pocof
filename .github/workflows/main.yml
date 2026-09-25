@@ -36,12 +36,20 @@ jobs:
           shell: ${{ matrix.shell }}
       - uses: snyk/actions/setup@master
         if: runner.os == 'Linux'
-      - name: Run Snyk to check for vulnerabilities(pocof)
+      - name: Run Snyk to check for vulnerabilities(pocof net8.0)
         if: runner.os == 'Linux'
         uses: ./.github/actions/snyk
         with:
           snyk_token: ${{ secrets.SNYK_TOKEN }}
           project_name: pocof
+          target_framework: net8.0
+      - name: Run Snyk to check for vulnerabilities(pocof netstandard2.0)
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/snyk
+        with:
+          snyk_token: ${{ secrets.SNYK_TOKEN }}
+          project_name: pocof
+          target_framework: netstandard2.0
       - name: Run Snyk to check for vulnerabilities(pocof.Test)
         if: runner.os == 'Linux'
         uses: ./.github/actions/snyk
