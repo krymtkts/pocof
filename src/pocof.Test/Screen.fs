@@ -343,14 +343,25 @@ let ``tests Buff writeScreen`` =
                 rui.screen |> Expect.equal "should render props notification" expected
             }
 
+            let powerShellGate = obj ()
+
             let formatTableOutString ol =
-                PowerShell
-                    .Create()
-                    .AddCommand("Format-Table")
-                    .AddParameter("InputObject", ol)
-                    .AddCommand("Out-String")
-                    .Invoke()
-                |> Seq.map string
+                let invoke () =
+                    use ps = PowerShell.Create()
+
+                    ps.AddCommand("Format-Table").AddParameter("InputObject", ol).AddCommand("Out-String").Invoke()
+                    |> Seq.map string
+                    |> Seq.toArray
+                    |> Array.toSeq
+
+                // NOTE: Concurrent DriveInfo.GetDrives() calls can crash on macOS with .NET 9 and .NET 10 before 10.0.10.
+                // NOTE: Tests still run on .NET 9, so serialize PowerShell calls until they use a fixed runtime.
+                // NOTE: https://github.com/dotnet/runtime/issues/122634
+                // NOTE: https://github.com/dotnet/runtime/releases/tag/v10.0.10
+                if OperatingSystem.IsMacOS() then
+                    lock powerShellGate invoke
+                else
+                    invoke ()
 
             test "When rendering entries under y" {
                 let rui = new MockRawUI(60, 30)
