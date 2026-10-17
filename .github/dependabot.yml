@@ -29,9 +29,11 @@ updates:
       time: "06:00"
       timezone: "Asia/Tokyo"
     groups:
-      dotnet-tools:
+      fantomas:
         patterns:
           - "fantomas"
+      fsharp-analyzers:
+        patterns:
           - "fsharp-analyzers"
           - "Ionide.Analyzers"
       fsharp:
@@ -66,8 +68,9 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
-      - dependency-name: "Expecto.FsCheck"
-        versions:
-          - "11.0.0-alpha9-fscheck2"
+      # NOTE: requires the ignore pattern when Expecto.FsCheck alpha versions are available.
+      # - dependency-name: "Expecto.FsCheck"
+      #   versions:
+      #     - "11.0.0-alpha9-fscheck2"
     assignees:
       - "krymtkts"
