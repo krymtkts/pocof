@@ -29,9 +29,11 @@ updates:
       time: "06:00"
       timezone: "Asia/Tokyo"
     groups:
-      dotnet-tools:
+      fantomas:
         patterns:
           - "fantomas"
+      fsharp-analyzers:
+        patterns:
           - "fsharp-analyzers"
           - "Ionide.Analyzers"
       fsharp:
