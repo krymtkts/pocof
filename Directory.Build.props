@@ -5,6 +5,7 @@
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     <!-- Set warning level to 4 and treat warnings as errors -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NuGetAuditMode>all</NuGetAuditMode>
     <WarningLevel>4</WarningLevel>
     <!-- Enable warning for usage of the legacy F# indexing syntax expr.[idx]. -->
     <WarnOn>$(WarnOn);3366</WarnOn>
