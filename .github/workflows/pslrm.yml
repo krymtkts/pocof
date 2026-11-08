@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Update lockfile and create pull request
         uses: krymtkts/pslrm-bump-action@v0.0.3

@@ -28,9 +28,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
       - name: Test
-        uses: ./.github/actions/test
+        uses: $/.github/actions/test
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
           shell: ${{ matrix.shell }}
