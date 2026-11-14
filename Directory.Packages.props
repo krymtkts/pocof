@@ -23,8 +23,8 @@
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.7.0" />
 
     <!-- NOTE: Benchmark dependencies. -->
-    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.8" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.16.0-preview.2" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.16.0-preview.2" />
 
     <!-- NOTE: Inspector dependencies. -->
     <PackageVersion Include="ObjectLayoutInspector" Version="0.2.0" />
