@@ -19,8 +19,8 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="2.5.3" />
     <PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="2.5.3" />
 
-    <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
-    <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.22" />
+    <!-- NOTE: Tests and benchmarks use the PowerShell SDK version matching their target runtime. -->
+    <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.7.0" />
 
     <!-- NOTE: Benchmark dependencies. -->
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
