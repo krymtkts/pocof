@@ -7,6 +7,10 @@ This project uses prerelease versions such as 0.1.0-alpha.
 
 ## [Unreleased]
 
+### Changed
+
+- Update bundled `FSharp.Core` to 11.0.101 for F# 11 assembly support.
+
 ## [0.24.0] - 2026-07-11
 
 ### Changed
