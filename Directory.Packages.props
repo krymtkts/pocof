@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- NOTE: F# dependencies. -->
-    <PackageVersion Include="FSharp.Core" Version="10.1.404" />
+    <PackageVersion Include="FSharp.Core" Version="11.0.101" />
 
     <!-- NOTE: PowerShell dependencies. -->
     <PackageVersion Include="PowerShellStandard.Library" Version="5.1.1" />
@@ -19,12 +19,12 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="2.5.3" />
     <PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="2.5.3" />
 
-    <!-- NOTE: for creating mock PSObject. Pin the LTS version of PowerShell SDK. -->
-    <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.4.22" />
+    <!-- NOTE: Tests and benchmarks use the PowerShell SDK version matching their target runtime. -->
+    <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.7.0" />
 
     <!-- NOTE: Benchmark dependencies. -->
-    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.8" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.16.0-preview.2" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.16.0-preview.2" />
 
     <!-- NOTE: Inspector dependencies. -->
     <PackageVersion Include="ObjectLayoutInspector" Version="0.2.0" />

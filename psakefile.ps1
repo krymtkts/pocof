@@ -116,7 +116,7 @@ Task UnitTest {
     Remove-Item "${TestResultsRootPath}/*" -Recurse -ErrorAction SilentlyContinue
     $TargetFrameworks | ForEach-Object {
         "Run unit tests for target framework: ${_}"
-        # NOTE: The test assembly always targets net9.0.
+        # NOTE: The test assembly always targets net11.0.
         # NOTE: So label each report with the pocof target framework selected by the project reference.
         if ($env:GITHUB_ACTIONS -eq 'true' -and $env:GITHUB_STEP_SUMMARY) {
             Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value @(
