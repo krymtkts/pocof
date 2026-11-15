@@ -12,7 +12,7 @@
     RootModule = 'pocof.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.24.0'
+    ModuleVersion = '0.25.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @(
@@ -112,6 +112,12 @@
             # ReleaseNotes of this module
 
             ReleaseNotes = @'
+## [0.25.0] - 2026-11-15
+
+### Changed
+
+- Update bundled `FSharp.Core` to 11.0.101 for F# 11 assembly support.
+
 ## [0.24.0] - 2026-07-11
 
 ### Changed
@@ -125,22 +131,6 @@
 - Optimize current property extraction to reduce string operations.
 - Optimize window beginning cursor calculation with binary search.
 - Avoid unnecessary state updates when refresh is not required.
-
-## [0.22.0] - 2025-11-30
-
-### Changed
-
-- Update the optimized binary target from .NET 6.0 to .NET 8.0.
-- Use the .NET 8.0 binary on PowerShell 7.4 and later.
-- Use the .NET Standard 2.0 binary on older PowerShell versions.
-
-### Fixed
-
-- Fix multi-byte line rendering to measure display width accurately.
-
-### Performance
-
-- Add query caching to reduce repeated query preparation work.
 
 Full CHANGELOG: https://github.com/krymtkts/pocof/blob/main/CHANGELOG.md
 '@

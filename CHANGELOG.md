@@ -7,6 +7,8 @@ This project uses prerelease versions such as 0.1.0-alpha.
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-11-15
+
 ### Changed
 
 - Update bundled `FSharp.Core` to 11.0.101 for F# 11 assembly support.
@@ -393,7 +395,8 @@ This project uses prerelease versions such as 0.1.0-alpha.
 
 ---
 
-[Unreleased]: https://github.com/krymtkts/pocof/compare/v0.24.0...HEAD
+[Unreleased]: https://github.com/krymtkts/pocof/compare/v0.25.0...HEAD
+[0.25.0]: https://github.com/krymtkts/pocof/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/krymtkts/pocof/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/krymtkts/pocof/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/krymtkts/pocof/compare/v0.22.0-alpha...v0.22.0
