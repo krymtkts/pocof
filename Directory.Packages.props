@@ -15,7 +15,7 @@
     <PackageVersion Include="YoloDev.Expecto.TestSdk" Version="0.16.1" />
     <PackageVersion Include="FsCheck" Version="3.6.0" />
     <PackageVersion Include="Expecto.FsCheck" Version="11.1.1" />
-    <PackageVersion Include="coverlet.MTP" Version="10.1.0" />
+    <PackageVersion Include="coverlet.MTP" Version="10.1.1" />
     <PackageVersion Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="2.5.3" />
     <PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="2.5.3" />
 
@@ -30,6 +30,6 @@
     <PackageVersion Include="ObjectLayoutInspector" Version="0.2.0" />
 
     <!-- NOTE: Analyzer configurations. -->
-    <PackageVersion Include="Ionide.Analyzers" Version="0.20.0" />
+    <PackageVersion Include="Ionide.Analyzers" Version="0.22.0" />
   </ItemGroup>
 </Project>
